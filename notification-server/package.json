@@ -1,0 +1,19 @@
+{
+  "name": "notification-server",
+  "version": "1.0.0",
+  "description": "سيرفر إشعارات تطبيق گريب منك",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": [],
+  "author": "Greib Menk",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^4.21.0",
+    "cors": "^2.8.5",
+    "firebase-admin": "^12.7.0"
+  }
+}
