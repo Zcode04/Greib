@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../core/mock_data/mock_data.dart';
 import '../../core/permissions/permissions.dart';
@@ -154,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   alignment: Alignment.topLeft,
                   child: TextButton.icon(
                     onPressed: () => langProvider.toggleLanguage(),
-                    icon: const Icon(Icons.language, size: 18),
+                    icon: const Icon(LucideIcons.languages, size: 18),
                     label: Text(loc.get('language')),
                   ),
                 ),
@@ -181,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     boxShadow: AppShadows.glowGreen,
                   ),
                   child: const Icon(
-                    Icons.rocket_launch,
+                    LucideIcons.rocket,
                     size: 48,
                     color: AppColors.accentPrimary,
                   ),
@@ -208,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     labelText: loc.get('email'),
-                    prefixIcon: const Icon(Icons.email_outlined),
+                    prefixIcon: const Icon(LucideIcons.mail),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
@@ -218,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: loc.get('password'),
-                    prefixIcon: const Icon(Icons.lock_outline),
+                    prefixIcon: const Icon(LucideIcons.lock),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -240,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 AppButton(
                   label: loc.get('login'),
-                  icon: Icons.login,
+                  icon: LucideIcons.logIn,
                   onPressed: _isLoading ? null : _handleLogin,
                   isLoading: _isLoading,
                 ),
@@ -263,21 +264,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 AppButton(
                   label: 'دخول كمستخدم',
-                  icon: Icons.person,
+                  icon: LucideIcons.user,
                   color: AppColors.success,
                   onPressed: _isLoading ? null : () => _quickLogin('user'),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 AppButton(
                   label: 'دخول كموظف',
-                  icon: Icons.delivery_dining,
+                  icon: LucideIcons.bike,
                   color: AppColors.info,
                   onPressed: _isLoading ? null : () => _quickLogin('agent'),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 AppButton(
                   label: 'دخول كمشرف',
-                  icon: Icons.shield,
+                  icon: LucideIcons.shield,
                   color: AppColors.error,
                   onPressed: _isLoading ? null : () => _quickLogin('admin'),
                 ),

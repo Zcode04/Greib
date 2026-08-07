@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/theme/theme_controller.dart';
@@ -46,7 +47,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
             child: const Icon(
-              Icons.rocket_launch,
+              LucideIcons.rocket,
               color: AppColors.accentPrimary,
               size: 18,
             ),
@@ -74,7 +75,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
               ),
               child: IconButton(
                 icon: Icon(
-                  Icons.arrow_back_ios_new,
+                  LucideIcons.chevronLeft,
                   size: 18,
                   color: theme.colorScheme.onSurface,
                 ),
@@ -97,7 +98,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
             ),
             child: IconButton(
               icon: Icon(
-                isDark ? Icons.light_mode : Icons.dark_mode,
+                isDark ? LucideIcons.sun : LucideIcons.moon,
                 size: 20,
               ),
               onPressed: () {
@@ -119,7 +120,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
             child: IconButton(
-              icon: const Icon(Icons.language, size: 20),
+              icon: const Icon(LucideIcons.languages, size: 20),
               onPressed: () {
                 context.read<LanguageProvider>().toggleLanguage();
               },
@@ -139,7 +140,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
             child: IconButton(
-              icon: const Icon(Icons.notifications_outlined, size: 20),
+              icon: const Icon(LucideIcons.bell, size: 20),
               onPressed: () => Navigator.pushNamed(context, '/notifications'),
               tooltip: 'الإشعارات',
             ),
@@ -155,7 +156,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
           child: IconButton(
-            icon: const Icon(Icons.person_outline, size: 20),
+            icon: const Icon(LucideIcons.user, size: 20),
             onPressed: () => Navigator.pushNamed(context, '/profile'),
             tooltip: 'البروفايل',
           ),
@@ -194,7 +195,7 @@ class DashboardHeader extends StatelessWidget implements PreferredSizeWidget {
       foregroundColor: Colors.black,
       actions: [
         IconButton(
-          icon: const Icon(Icons.logout),
+          icon: const Icon(LucideIcons.logOut),
           onPressed: () {
             AuthService.instance.logout();
             Navigator.pushNamedAndRemoveUntil(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/mock_data/mock_data.dart';
 import '../../core/permissions/permissions.dart';
@@ -37,7 +38,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                     color: AppColors.error.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(AppRadii.lg),
                   ),
-                  child: const Icon(Icons.lock, size: 32, color: AppColors.error),
+                  child: const Icon(LucideIcons.lock, size: 32, color: AppColors.error),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
@@ -47,7 +48,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                 const SizedBox(height: AppSpacing.md),
                 AppButton(
                   label: 'العودة للرئيسية',
-                  icon: Icons.home,
+                  icon: LucideIcons.home,
                   onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
                 ),
               ],
@@ -64,7 +65,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(LucideIcons.logOut),
             onPressed: () {
               AuthService.instance.logout();
               Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
@@ -78,9 +79,9 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
         selectedIndex: _selectedTab,
         onDestinationSelected: (index) => setState(() => _selectedTab = index),
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.assignment), label: 'المهام'),
-          NavigationDestination(icon: Icon(Icons.check_circle), label: 'منجز'),
-          NavigationDestination(icon: Icon(Icons.chat_bubble), label: 'الشات'),
+          NavigationDestination(icon: Icon(LucideIcons.clipboardList), label: 'المهام'),
+          NavigationDestination(icon: Icon(LucideIcons.checkCircle), label: 'منجز'),
+          NavigationDestination(icon: Icon(LucideIcons.messagesSquare), label: 'الشات'),
         ],
       ),
     );
@@ -115,7 +116,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
 
         if (tasks.isEmpty)
           EmptyState(
-            icon: Icons.check_circle,
+            icon: LucideIcons.checkCircle,
             title: 'لا توجد مهام حالية',
             description: 'ستظهر المهام الجديدة هنا',
           )
@@ -151,7 +152,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                         Expanded(
                           child: AppButton(
                             label: 'قبول',
-                            icon: Icons.check,
+                            icon: LucideIcons.check,
                             color: AppColors.success,
                             isFullWidth: false,
                             onPressed: () {
@@ -168,7 +169,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                         Expanded(
                           child: AppButton(
                             label: 'تحديث الحالة',
-                            icon: Icons.update,
+                            icon: LucideIcons.refreshCw,
                             color: AppColors.info,
                             isFullWidth: false,
                             type: ButtonType.secondary,
@@ -208,7 +209,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                 color: AppColors.success.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Icon(Icons.check_circle, color: AppColors.success, size: 24),
+              child: const Icon(LucideIcons.checkCircle, color: AppColors.success, size: 24),
             ),
             title: const Text('توصيل طلب طعام'),
             subtitle: const Text('تم التسليم - ٢٠٢٤/١٢/١'),
@@ -235,7 +236,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                 color: AppColors.success.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Icon(Icons.check_circle, color: AppColors.success, size: 24),
+              child: const Icon(LucideIcons.checkCircle, color: AppColors.success, size: 24),
             ),
             title: const Text('توصيل أدوية'),
             subtitle: const Text('تم التسليم - ٢٠٢٤/١١/٣٠'),
@@ -273,7 +274,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                 color: AppColors.info.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Icon(Icons.admin_panel_settings, color: AppColors.info),
+              child: const Icon(LucideIcons.shield, color: AppColors.info),
             ),
             title: const Text('الإدارة'),
             subtitle: const Text('التقرير اليومي جاهز'),
@@ -301,7 +302,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                 color: AppColors.success.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Icon(Icons.group, color: AppColors.success),
+              child: const Icon(LucideIcons.users, color: AppColors.success),
             ),
             title: const Text('فريق التوصيل'),
             subtitle: const Text('تم تسليم طلب الممزر ✅'),
@@ -338,7 +339,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
           const SizedBox(height: AppSpacing.xl),
           AppButton(
             label: 'قيد التوصيل',
-            icon: Icons.delivery_dining,
+            icon: LucideIcons.bike,
             color: AppColors.info,
             onPressed: () {
               Navigator.pop(context);
@@ -350,7 +351,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
           const SizedBox(height: AppSpacing.md),
           AppButton(
             label: 'تم التسليم',
-            icon: Icons.check_circle,
+            icon: LucideIcons.checkCircle,
             color: AppColors.success,
             onPressed: () {
               Navigator.pop(context);
@@ -362,7 +363,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
           const SizedBox(height: AppSpacing.md),
           AppButton(
             label: 'تأخير',
-            icon: Icons.warning,
+            icon: LucideIcons.alertTriangle,
             color: AppColors.warning,
             onPressed: () {
               Navigator.pop(context);

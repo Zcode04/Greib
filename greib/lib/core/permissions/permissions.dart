@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 // أدوار المستخدمين
 enum UserRole { admin, agent, user }
@@ -145,11 +146,11 @@ class PermissionService {
   static IconData roleIcon(UserRole role) {
     switch (role) {
       case UserRole.admin:
-        return Icons.shield;
+        return LucideIcons.shield;
       case UserRole.agent:
-        return Icons.delivery_dining;
+        return LucideIcons.bike;
       case UserRole.user:
-        return Icons.person;
+        return LucideIcons.user;
     }
   }
 

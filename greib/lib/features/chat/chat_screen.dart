@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/mock_data/mock_data.dart';
 import '../../core/permissions/permissions.dart';
 import '../../core/theme/design_tokens.dart';
@@ -101,12 +102,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
         actions: [
           if (role == UserRole.admin)
             IconButton(
-              icon: const Icon(Icons.group_add),
+              icon: const Icon(LucideIcons.userPlus),
               onPressed: () => _showCreateGroupDialog(context),
               tooltip: 'إنشاء مجموعة',
             ),
           IconButton(
-            icon: const Icon(Icons.support_agent),
+              icon: const Icon(LucideIcons.headphones),
             onPressed: () => Navigator.pushNamed(context, '/support'),
             tooltip: 'تذاكر الدعم',
           ),
@@ -120,7 +121,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
               controller: _searchController,
               decoration: const InputDecoration(
                 hintText: 'ابحث في المحادثات...',
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: Icon(LucideIcons.search),
               ),
               onChanged: (value) {
                 setState(() {});
@@ -264,7 +265,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
               decoration: const InputDecoration(
                 labelText: 'اسم المجموعة',
                 hintText: 'مثال: فريق الشارقة',
-                prefixIcon: Icon(Icons.group),
+                prefixIcon: Icon(LucideIcons.users),
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -290,7 +291,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
             const SizedBox(height: AppSpacing.lg),
             AppButton(
               label: 'إنشاء المجموعة',
-              icon: Icons.check,
+              icon: LucideIcons.check,
               onPressed: () {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -472,7 +473,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             child: Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.attach_file),
+                  icon: const Icon(LucideIcons.paperclip),
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -508,7 +509,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 CircleAvatar(
                   backgroundColor: theme.colorScheme.primary,
                   child: IconButton(
-                    icon: const Icon(Icons.send, color: Colors.white),
+                    icon: const Icon(LucideIcons.send, color: Colors.white),
                     onPressed: _sendMessage,
                   ),
                 ),

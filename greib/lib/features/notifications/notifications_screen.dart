@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/notifications/notification_manager.dart';
 import '../../shared_widgets/app_button.dart';
@@ -43,7 +44,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         children: [
           if (notifManager.notifications.isEmpty)
             EmptyState(
-              icon: Icons.notifications_off,
+              icon: LucideIcons.bellOff,
               title: 'لا توجد إشعارات',
               description: 'ستظهر الإشعارات هنا عند وصولها',
             )
@@ -111,7 +112,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           if (notifManager.notifications.isNotEmpty)
             AppButton(
               label: 'مسح الكل',
-              icon: Icons.delete_sweep,
+              icon: LucideIcons.trash2,
               isOutlined: true,
               color: AppColors.error,
               onPressed: () {
@@ -127,15 +128,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   IconData _getIconForType(String type) {
     switch (type) {
       case 'order':
-        return Icons.receipt_long;
+        return LucideIcons.receipt;
       case 'order_update':
-        return Icons.update;
+        return LucideIcons.refreshCw;
       case 'chat':
-        return Icons.chat_bubble;
+        return LucideIcons.messagesSquare;
       case 'system':
-        return Icons.settings;
+        return LucideIcons.settings;
       default:
-        return Icons.notifications;
+        return LucideIcons.bell;
     }
   }
 }

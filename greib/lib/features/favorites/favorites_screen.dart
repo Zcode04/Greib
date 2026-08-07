@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/loading_states.dart';
 import '../tracking/tracking_screen.dart';
@@ -83,7 +84,7 @@ class FavoritesScreen extends StatelessWidget {
   Widget _buildFavoritesTab(BuildContext context, ThemeData theme) {
     if (favoriteRestaurants.isEmpty) {
       return EmptyState(
-        icon: Icons.favorite_border,
+        icon: LucideIcons.heart,
         title: 'لا توجد مفضلات',
         description: 'أضف مطاعم ومتاجر إلى المفضلة',
         actionLabel: 'استكشف الخدمات',
@@ -121,7 +122,7 @@ class FavoritesScreen extends StatelessWidget {
                 Text(item['cuisine']!),
                 Row(
                   children: [
-                    const Icon(Icons.star, size: 14, color: AppColors.warning),
+                    const Icon(LucideIcons.star, size: 14, color: AppColors.warning),
                     const SizedBox(width: AppSpacing.xs),
                     Text(item['rating']!),
                   ],
@@ -129,7 +130,7 @@ class FavoritesScreen extends StatelessWidget {
               ],
             ),
             trailing: IconButton(
-              icon: const Icon(Icons.favorite, color: AppColors.error),
+              icon: const Icon(LucideIcons.heart, color: AppColors.error),
               onPressed: () {},
             ),
           ),
@@ -141,7 +142,7 @@ class FavoritesScreen extends StatelessWidget {
   Widget _buildHistoryTab(BuildContext context, ThemeData theme) {
     if (recentOrders.isEmpty) {
       return EmptyState(
-        icon: Icons.history,
+        icon: LucideIcons.history,
         title: 'لا توجد طلبات سابقة',
         description: 'ستظهر طلباتك السابقة هنا',
         actionLabel: 'تصفح الخدمات',
@@ -166,7 +167,7 @@ class FavoritesScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
               child: Icon(
-                Icons.receipt_long,
+                LucideIcons.receipt,
                 color: AppColors.primary,
                 size: 24,
               ),

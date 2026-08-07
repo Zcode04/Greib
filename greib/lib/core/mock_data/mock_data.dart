@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../theme/design_tokens.dart';
 
 // ==================== نماذج البيانات (Models) ====================
@@ -389,35 +390,35 @@ class MockData {
   static IconData getIconByName(String name) {
     switch (name) {
       case 'utensils':
-        return Icons.restaurant;
+        return LucideIcons.utensils;
       case 'pills':
-        return Icons.medical_services;
+        return LucideIcons.pill;
       case 'package':
-        return Icons.inventory_2;
+        return LucideIcons.package;
       case 'car':
-        return Icons.local_taxi;
+        return LucideIcons.car;
       case 'shopping-cart':
-        return Icons.shopping_cart;
+        return LucideIcons.shoppingCart;
       case 'palmtree':
-        return Icons.park;
+        return LucideIcons.palmtree;
       case 'chat':
-        return Icons.chat_bubble;
+        return LucideIcons.messageCircle;
       case 'home':
-        return Icons.home;
+        return LucideIcons.home;
       case 'profile':
-        return Icons.person;
+        return LucideIcons.user;
       case 'shield':
-        return Icons.shield;
+        return LucideIcons.shield;
       case 'users':
-        return Icons.group;
+        return LucideIcons.users;
       case 'bell':
-        return Icons.notifications;
+        return LucideIcons.bell;
       case 'settings':
-        return Icons.settings;
+        return LucideIcons.settings;
       case 'logout':
-        return Icons.logout;
+        return LucideIcons.logOut;
       default:
-        return Icons.circle;
+        return LucideIcons.circle;
     }
   }
 }

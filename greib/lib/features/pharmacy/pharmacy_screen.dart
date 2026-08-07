@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
 
@@ -63,7 +64,7 @@ class PharmacyScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('الصيدلية'),
-        backgroundColor: const Color(0xFF4CAF50),
+        backgroundColor: AppColors.servicePharmacy,
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -75,7 +76,7 @@ class PharmacyScreen extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF4CAF50), Color(0xFF81C784)],
+                  colors: [AppColors.servicePharmacy, Color(0xFF81C784)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -123,8 +124,8 @@ class PharmacyScreen extends StatelessWidget {
                     const SizedBox(height: AppSpacing.md),
                     AppButton(
                       label: 'ارفع صورة الوصفة',
-                      icon: Icons.upload_file,
-                      color: const Color(0xFF4CAF50),
+                      icon: LucideIcons.upload,
+                      color: AppColors.servicePharmacy,
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -155,7 +156,7 @@ class PharmacyScreen extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4CAF50).withValues(alpha: 0.08),
+                      color: AppColors.servicePharmacy.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(AppRadii.md),
                     ),
                     child: Center(
@@ -177,11 +178,11 @@ class PharmacyScreen extends StatelessWidget {
                       const SizedBox(height: AppSpacing.xs),
                       Row(
                         children: [
-                          const Icon(Icons.star, size: 14, color: AppColors.warning),
+                          const Icon(LucideIcons.star, size: 14, color: AppColors.warning),
                           const SizedBox(width: AppSpacing.xs),
                           Text(pharmacy['rating']!),
                           const SizedBox(width: AppSpacing.md),
-                          const Icon(Icons.schedule, size: 14),
+                          const Icon(LucideIcons.clock, size: 14),
                           const SizedBox(width: AppSpacing.xs),
                           Text(pharmacy['time']!),
                         ],
@@ -211,7 +212,7 @@ class PharmacyScreen extends StatelessWidget {
                       const Text(
                         'اطلب الآن',
                         style: TextStyle(
-                          color: Color(0xFF4CAF50),
+                          color: AppColors.servicePharmacy,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),

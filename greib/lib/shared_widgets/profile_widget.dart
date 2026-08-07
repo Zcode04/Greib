@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/mock_data/mock_data.dart';
 import '../../core/permissions/permissions.dart';
@@ -71,7 +72,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                   ),
                 ),
                 child: Icon(
-                  roleEnum != null ? PermissionService.roleIcon(roleEnum) : Icons.person,
+                  roleEnum != null ? PermissionService.roleIcon(roleEnum) : LucideIcons.user,
                   size: 48,
                   color: roleEnum != null ? PermissionService.roleColor(roleEnum) : AppColors.primary,
                 ),
@@ -113,7 +114,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                 controller: _nameController,
                 decoration: const InputDecoration(
                   labelText: 'الاسم',
-                  prefixIcon: Icon(Icons.person_outline),
+                  prefixIcon: Icon(LucideIcons.user),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -122,7 +123,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                 keyboardType: TextInputType.phone,
                 decoration: const InputDecoration(
                   labelText: 'رقم الهاتف',
-                  prefixIcon: Icon(Icons.phone_outlined),
+                  prefixIcon: Icon(LucideIcons.phone),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -131,7 +132,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
                   labelText: 'البريد الإلكتروني',
-                  prefixIcon: Icon(Icons.email_outlined),
+                  prefixIcon: Icon(LucideIcons.mail),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -139,7 +140,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                 controller: _addressController,
                 decoration: const InputDecoration(
                   labelText: 'العنوان',
-                  prefixIcon: Icon(Icons.location_on_outlined),
+                  prefixIcon: Icon(LucideIcons.mapPin),
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
@@ -148,7 +149,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                   Expanded(
                     child: AppButton(
                       label: 'حفظ',
-                      icon: Icons.save,
+                      icon: LucideIcons.save,
                       onPressed: () {
                         setState(() {
                           _isEditing = false;
@@ -163,7 +164,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                   Expanded(
                     child: AppButton(
                       label: 'إلغاء',
-                      icon: Icons.close,
+                      icon: LucideIcons.x,
                       isOutlined: true,
                       onPressed: () {
                         setState(() {
@@ -179,16 +180,16 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                 ],
               ),
             ] else ...[
-              _buildInfoRow(context, Icons.person_outline, 'الاسم', widget.profile.name),
-              _buildInfoRow(context, Icons.phone_outlined, 'الهاتف', widget.profile.phone),
-              _buildInfoRow(context, Icons.email_outlined, 'البريد', widget.profile.email),
+              _buildInfoRow(context, LucideIcons.user, 'الاسم', widget.profile.name),
+              _buildInfoRow(context, LucideIcons.phone, 'الهاتف', widget.profile.phone),
+              _buildInfoRow(context, LucideIcons.mail, 'البريد', widget.profile.email),
               if (widget.profile.address != null)
-                _buildInfoRow(context, Icons.location_on_outlined, 'العنوان', widget.profile.address!),
+                _buildInfoRow(context, LucideIcons.mapPin, 'العنوان', widget.profile.address!),
               const SizedBox(height: AppSpacing.xl),
               if (widget.isEditable)
                 AppButton(
                   label: 'تعديل البيانات',
-                  icon: Icons.edit,
+                  icon: LucideIcons.pencil,
                   onPressed: () => setState(() {
                     _isEditing = true;
                   }),
@@ -252,7 +253,7 @@ class ProfileScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: AppButton(
                 label: 'تسجيل الخروج',
-                icon: Icons.logout,
+                icon: LucideIcons.logOut,
                 color: AppColors.error,
                 onPressed: () {
                   Navigator.pushNamedAndRemoveUntil(

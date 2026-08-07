@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
 
@@ -96,7 +97,7 @@ class _TrackingScreenState extends State<TrackingScreen>
                             boxShadow: AppShadows.md,
                           ),
                           child: const Icon(
-                            Icons.delivery_dining,
+                            LucideIcons.bike,
                             color: Colors.white,
                             size: 16,
                           ),
@@ -139,7 +140,7 @@ class _TrackingScreenState extends State<TrackingScreen>
                             borderRadius: BorderRadius.circular(AppRadii.sm),
                           ),
                           child: Icon(
-                            Icons.receipt_long,
+                            LucideIcons.receipt,
                             color: AppColors.primary,
                             size: 20,
                           ),
@@ -203,7 +204,7 @@ class _TrackingScreenState extends State<TrackingScreen>
                           ),
                         ),
                         child: Icon(
-                          isActive ? Icons.check : Icons.circle,
+                          isActive ? LucideIcons.check : LucideIcons.circle,
                           size: 16,
                           color: isActive ? Colors.white : AppColors.neutral400,
                         ),
@@ -252,7 +253,7 @@ class _TrackingScreenState extends State<TrackingScreen>
 
             AppButton(
               label: 'تواصل مع السائق',
-              icon: Icons.phone,
+              icon: LucideIcons.phone,
               color: AppColors.primary,
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -285,7 +286,7 @@ class _MapMarker extends StatelessWidget {
         boxShadow: AppShadows.sm,
       ),
       child: Icon(
-        isOrigin ? Icons.location_on : Icons.flag,
+        isOrigin ? LucideIcons.mapPin : LucideIcons.flag,
         color: Colors.white,
         size: 14,
       ),

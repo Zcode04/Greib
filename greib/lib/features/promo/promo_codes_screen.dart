@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
 
@@ -49,7 +50,7 @@ class _PromoCodesScreenState extends State<PromoCodesScreen> {
                     controller: _codeController,
                     decoration: const InputDecoration(
                       hintText: 'مثال: GREIB10',
-                      prefixIcon: Icon(Icons.local_offer),
+                      prefixIcon: Icon(LucideIcons.tag),
                     ),
                     textCapitalization: TextCapitalization.characters,
                   ),
@@ -85,7 +86,7 @@ class _PromoCodesScreenState extends State<PromoCodesScreen> {
                       borderRadius: BorderRadius.circular(AppRadii.md),
                     ),
                     child: Icon(
-                      Icons.local_offer,
+                      LucideIcons.tag,
                       color: AppColors.secondaryDark,
                       size: 24,
                     ),
@@ -137,11 +138,11 @@ class _PromoCodesScreenState extends State<PromoCodesScreen> {
                   margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(AppSpacing.md),
-                    leading: const Icon(Icons.check_circle, color: AppColors.success),
+                    leading: const Icon(LucideIcons.checkCircle, color: AppColors.success),
                     title: Text(code['code']!),
                     subtitle: Text(code['discount']!),
                     trailing: IconButton(
-                      icon: const Icon(Icons.close, color: AppColors.error),
+                      icon: const Icon(LucideIcons.x, color: AppColors.error),
                       onPressed: () {
                         setState(() {
                           _appliedCodes.remove(code);

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/mock_data/mock_data.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
@@ -111,7 +112,7 @@ class ServiceTemplateScreen extends StatelessWidget {
                       ),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+                      icon: const Icon(LucideIcons.chevronLeft, size: 18),
                       onPressed: () => Navigator.maybePop(context),
                     ),
                   ),
@@ -256,14 +257,14 @@ class ServiceTemplateScreen extends StatelessWidget {
                                         const SizedBox(height: AppSpacing.sm),
                                         Row(
                                           children: [
-                                            Icon(Icons.star, size: 14, color: AppColors.warning),
+                                            Icon(LucideIcons.star, size: 14, color: AppColors.warning),
                                             const SizedBox(width: AppSpacing.xs),
                                             Text(
                                               item['rating']!,
                                               style: theme.textTheme.labelMedium,
                                             ),
                                             const SizedBox(width: AppSpacing.md),
-                                            Icon(Icons.schedule, size: 14, color: AppColors.info),
+                                            Icon(LucideIcons.clock, size: 14, color: AppColors.info),
                                             const SizedBox(width: AppSpacing.xs),
                                             Text(
                                               item['time']!,
@@ -293,7 +294,7 @@ class ServiceTemplateScreen extends StatelessWidget {
                                           vertical: AppSpacing.xs,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: AppColors.accentPrimary,
+                                          color: const Color.fromARGB(255, 224, 246, 190),
                                           borderRadius: BorderRadius.circular(AppRadii.full),
                                         ),
                                         child: const Text(
@@ -318,7 +319,7 @@ class ServiceTemplateScreen extends StatelessWidget {
                         // زر إنشاء طلب جديد لهذه الخدمة
                         AppButton(
                           label: 'اطلب من ${service.title}',
-                          icon: Icons.add_shopping_cart,
+                          icon: LucideIcons.shoppingCart,
                           color: service.color,
                           onPressed: () {
                             showModalBottomSheet(
@@ -357,7 +358,7 @@ class ServiceTemplateScreen extends StatelessWidget {
             decoration: const InputDecoration(
               labelText: 'وصف الطلب',
               hintText: 'اكتب تفاصيل طلبك هنا...',
-              prefixIcon: Icon(Icons.edit),
+              prefixIcon: Icon(LucideIcons.pencil),
             ),
             maxLines: 3,
           ),
@@ -365,13 +366,13 @@ class ServiceTemplateScreen extends StatelessWidget {
           TextField(
             decoration: const InputDecoration(
               labelText: 'موقع التوصيل',
-              prefixIcon: Icon(Icons.location_on),
+              prefixIcon: Icon(LucideIcons.mapPin),
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
           AppButton(
             label: 'إرسال الطلب',
-            icon: Icons.send,
+            icon: LucideIcons.send,
             color: service.color,
             onPressed: () {
               Navigator.pop(context);

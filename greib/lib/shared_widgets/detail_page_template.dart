@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../core/theme/design_tokens.dart';
 import 'app_button.dart';
 
@@ -87,7 +88,7 @@ class DetailPageTemplate extends StatelessWidget {
                       ),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+                      icon: const Icon(LucideIcons.arrowLeft, size: 18),
                       onPressed: () => Navigator.maybePop(context),
                     ),
                   ),
@@ -163,14 +164,14 @@ class DetailPageTemplate extends StatelessWidget {
                             children: [
                               if (price != null)
                                 _DetailChip(
-                                  icon: Icons.payments_outlined,
+                                  icon: LucideIcons.wallet,
                                   label: price!,
                                   color: AppColors.accentPrimary,
                                 ),
                               if (deliveryTime != null) ...[
                                 const SizedBox(width: AppSpacing.sm),
                                 _DetailChip(
-                                  icon: Icons.schedule,
+                                  icon: LucideIcons.clock,
                                   label: deliveryTime!,
                                   color: AppColors.info,
                                 ),
@@ -178,7 +179,7 @@ class DetailPageTemplate extends StatelessWidget {
                               if (rating != null) ...[
                                 const SizedBox(width: AppSpacing.sm),
                                 _DetailChip(
-                                  icon: Icons.star,
+                                  icon: LucideIcons.star,
                                   label: rating!,
                                   color: AppColors.warning,
                                 ),
@@ -207,14 +208,14 @@ class DetailPageTemplate extends StatelessWidget {
                         // أزرار الإجراء
                         AppButton(
                           label: primaryActionLabel,
-                          icon: Icons.arrow_forward,
+                          icon: LucideIcons.arrowRight,
                           onPressed: onPrimaryAction,
                         ),
                         if (secondaryActionLabel != null) ...[
                           const SizedBox(height: AppSpacing.md),
                           AppButton(
                             label: secondaryActionLabel!,
-                            icon: Icons.favorite_border,
+                            icon: LucideIcons.heart,
                             isOutlined: true,
                             onPressed: onSecondaryAction,
                           ),

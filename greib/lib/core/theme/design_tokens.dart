@@ -1,81 +1,11 @@
 import 'package:flutter/material.dart';
+import 'app_colors.dart';
 
-/// نظام التصميم (Design Tokens) لتطبيق "گريب منك"
-/// هوية بصرية: داكن + نيون أخضر + ألوان مميزة لكل خدمة
-class AppColors {
-  // ===== الألوان الأساسية (Dark Identity) =====
-  static const Color backgroundPrimary = Color(0xFF0D0F0D);
-  static const Color backgroundSecondary = Color(0xFF121412);
-  static const Color surfaceCard = Color(0xFF1A1D1A);
-  static const Color surfaceCardElevated = Color(0xFF202420);
-  static const Color surfaceOverlay = Color(0xFF262B26);
-
-  // ===== النيون الأخضر (Accent) =====
-  static const Color accentPrimary = Color(0xFF4ADE80);
-  static const Color accentPrimaryDark = Color(0xFF22C55E);
-  static const Color accentPrimaryLight = Color(0xFF86EFAC);
-  static const Color accentGlow = Color(0x334ADE80);
-
-  // ===== ألوان الخدمات الست =====
-  static const Color serviceFood = Color(0xFF4ADE80);
-  static const Color servicePharmacy = Color(0xFF60A5FA);
-  static const Color serviceCourier = Color(0xFFA78BFA);
-  static const Color serviceRide = Color(0xFFFBBF24);
-  static const Color serviceShopping = Color(0xFFF472B6);
-  static const Color serviceTourism = Color(0xFF2DD4BF);
-
-  // ===== النصوص (Dark) =====
-  static const Color textPrimary = Color(0xFFF2F2F7);
-  static const Color textSecondary = Color(0xFFA1A1AA);
-  static const Color textTertiary = Color(0xFF71717A);
-
-  // ===== الحدود =====
-  static const Color outline = Color(0xFF2E332E);
-  static const Color outlineLight = Color(0xFF3A403A);
-
-  // ===== الحالات =====
-  static const Color success = Color(0xFF4ADE80);
-  static const Color warning = Color(0xFFFBBF24);
-  static const Color error = Color(0xFFF87171);
-  static const Color info = Color(0xFF60A5FA);
-
-  // ===== الوضع الفاتح (ثانوي) =====
-  static const Color lightBackground = Color(0xFFF8FAF8);
-  static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightSurfaceVariant = Color(0xFFF0F4F0);
-  static const Color lightText = Color(0xFF1A1D1A);
-  static const Color lightTextSecondary = Color(0xFF5C635C);
-  static const Color lightTextTertiary = Color(0xFF8E958E);
-  static const Color lightOutline = Color(0xFFD8DED8);
-
-  // ===== ألوان محايدة =====
-  static const Color neutral50 = Color(0xFFFAFAFA);
-  static const Color neutral100 = Color(0xFFF5F5F5);
-  static const Color neutral200 = Color(0xFFE5E5E5);
-  static const Color neutral300 = Color(0xFFD4D4D4);
-  static const Color neutral400 = Color(0xFFA3A3A3);
-  static const Color neutral500 = Color(0xFF737373);
-  static const Color neutral600 = Color(0xFF525252);
-  static const Color neutral700 = Color(0xFF404040);
-  static const Color neutral800 = Color(0xFF262626);
-  static const Color neutral900 = Color(0xFF171717);
-
-  // ===== توافق مع الإصدار السابق =====
-  static const Color primary = accentPrimary;
-  static const Color primaryLight = accentPrimaryLight;
-  static const Color primaryDark = accentPrimaryDark;
-  static const Color secondary = Color(0xFFFBBF24);
-  static const Color secondaryLight = Color(0xFFFCD34D);
-  static const Color secondaryDark = Color(0xFFD97706);
-  static const Color accent = info;
-  static const Color darkBackground = backgroundPrimary;
-  static const Color darkSurface = surfaceCard;
-  static const Color darkSurfaceVariant = surfaceOverlay;
-  static const Color darkText = textPrimary;
-  static const Color darkTextSecondary = textSecondary;
-  static const Color darkTextTertiary = textTertiary;
-  static const Color darkOutline = outline;
-}
+/// ============================================================================
+///  رموز التصميم غير اللونية (مسافات، زوايا، ظلال، خطوط).
+///  الألوان موحّدة في ملف واحد: app_colors.dart  (انظر export أدناه).
+/// ============================================================================
+export 'app_colors.dart';
 
 class AppSpacing {
   static const double xs = 4;

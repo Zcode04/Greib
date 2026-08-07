@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
 
@@ -72,7 +73,7 @@ class ShoppingScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('التسوق والمقاضي'),
-        backgroundColor: const Color(0xFFE91E63),
+        backgroundColor: AppColors.serviceShopping,
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -84,7 +85,7 @@ class ShoppingScreen extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFFE91E63), Color(0xFFF06292)],
+                  colors: [AppColors.serviceShopping, Color(0xFFF06292)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -184,7 +185,7 @@ class ShoppingScreen extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE91E63).withValues(alpha: 0.08),
+                      color: AppColors.serviceShopping.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(AppRadii.md),
                     ),
                     child: Center(
@@ -207,7 +208,7 @@ class ShoppingScreen extends StatelessWidget {
                       Text(
                         store['categories']!,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: const Color(0xFFE91E63),
+                          color: AppColors.serviceShopping,
                         ),
                       ),
                     ],
@@ -219,7 +220,7 @@ class ShoppingScreen extends StatelessWidget {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.star, size: 14, color: AppColors.warning),
+                          const Icon(LucideIcons.star, size: 14, color: AppColors.warning),
                           const SizedBox(width: AppSpacing.xs),
                           Text(store['rating']!),
                         ],
@@ -239,8 +240,8 @@ class ShoppingScreen extends StatelessWidget {
 
             AppButton(
               label: 'أنشئ قائمة مشترياتك',
-              icon: Icons.playlist_add,
-              color: const Color(0xFFE91E63),
+              icon: LucideIcons.listPlus,
+              color: AppColors.serviceShopping,
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(

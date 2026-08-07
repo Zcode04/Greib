@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
 
@@ -47,7 +48,7 @@ class CourierScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('نقل الطرود'),
-        backgroundColor: const Color(0xFF2196F3),
+        backgroundColor: AppColors.serviceCourier,
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -59,7 +60,7 @@ class CourierScreen extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF2196F3), Color(0xFF64B5F6)],
+                  colors: [AppColors.serviceCourier, Color(0xFF64B5F6)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -96,8 +97,8 @@ class CourierScreen extends StatelessWidget {
 
             AppButton(
               label: 'إنشاء طلب شحن جديد',
-              icon: Icons.add_box,
-              color: const Color(0xFF2196F3),
+              icon: LucideIcons.packagePlus,
+              color: AppColors.serviceCourier,
               onPressed: () {
                 showModalBottomSheet(
                   context: context,
@@ -123,7 +124,7 @@ class CourierScreen extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2196F3).withValues(alpha: 0.08),
+                      color: AppColors.serviceCourier.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(AppRadii.md),
                     ),
                     child: Center(
@@ -145,11 +146,11 @@ class CourierScreen extends StatelessWidget {
                       const SizedBox(height: AppSpacing.xs),
                       Row(
                         children: [
-                          const Icon(Icons.schedule, size: 14),
+                          const Icon(LucideIcons.clock, size: 14),
                           const SizedBox(width: AppSpacing.xs),
                           Text(option['time']!),
                           const SizedBox(width: AppSpacing.md),
-                          const Icon(Icons.fitness_center, size: 14),
+                          const Icon(LucideIcons.scale, size: 14),
                           const SizedBox(width: AppSpacing.xs),
                           Text(option['weight']!),
                         ],
@@ -163,7 +164,7 @@ class CourierScreen extends StatelessWidget {
                       Text(
                         option['price']!,
                         style: theme.textTheme.titleSmall?.copyWith(
-                          color: const Color(0xFF2196F3),
+                          color: AppColors.serviceCourier,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -171,7 +172,7 @@ class CourierScreen extends StatelessWidget {
                       const Text(
                         'اختر',
                         style: TextStyle(
-                          color: Color(0xFF2196F3),
+                          color: AppColors.serviceCourier,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -199,14 +200,14 @@ class CourierScreen extends StatelessWidget {
                       decoration: const InputDecoration(
                         labelText: 'رقم التتبع',
                         hintText: 'أدخل رقم التتبع...',
-                        prefixIcon: Icon(Icons.search),
+                        prefixIcon: Icon(LucideIcons.search),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppButton(
                       label: 'تتبع الآن',
-                      icon: Icons.location_searching,
-                      color: const Color(0xFF2196F3),
+                      icon: LucideIcons.locateFixed,
+                      color: AppColors.serviceCourier,
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -248,28 +249,28 @@ class CourierScreen extends StatelessWidget {
             decoration: const InputDecoration(
               labelText: 'وصف الطرد',
               hintText: 'مثال: صندوق ملابس',
-              prefixIcon: Icon(Icons.inventory_2),
+              prefixIcon: Icon(LucideIcons.box),
             ),
           ),
           const SizedBox(height: AppSpacing.md),
           TextField(
             decoration: const InputDecoration(
               labelText: 'موقع الاستلام',
-              prefixIcon: Icon(Icons.location_on),
+              prefixIcon: Icon(LucideIcons.mapPin),
             ),
           ),
           const SizedBox(height: AppSpacing.md),
           TextField(
             decoration: const InputDecoration(
               labelText: 'موقع التوصيل',
-              prefixIcon: Icon(Icons.location_on_outlined),
+              prefixIcon: Icon(LucideIcons.mapPin),
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
           AppButton(
             label: 'إرسال الطلب',
-            icon: Icons.send,
-            color: const Color(0xFF2196F3),
+            icon: LucideIcons.send,
+            color: AppColors.serviceCourier,
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(

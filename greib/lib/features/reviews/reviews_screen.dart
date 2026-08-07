@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
 
@@ -78,8 +79,8 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                             padding: const EdgeInsets.only(right: AppSpacing.xs),
                             child: Icon(
                               index < _selectedRating
-                                  ? Icons.star
-                                  : Icons.star_border,
+                                  ? LucideIcons.star
+                                  : LucideIcons.star,
                               color: AppColors.warning,
                               size: 32,
                             ),
@@ -98,7 +99,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                     const SizedBox(height: AppSpacing.md),
                     AppButton(
                       label: 'إرسال التقييم',
-                      icon: Icons.send,
+                      icon: LucideIcons.send,
                       onPressed: _submitReview,
                     ),
                   ],
@@ -132,7 +133,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                               borderRadius: BorderRadius.circular(AppRadii.full),
                             ),
                             child: Icon(
-                              Icons.person,
+                              LucideIcons.user,
                               color: AppColors.primary,
                               size: 20,
                             ),
@@ -151,8 +152,8 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                                     ...List.generate(5, (index) {
                                       return Icon(
                                         index < (review['rating'] as int)
-                                            ? Icons.star
-                                            : Icons.star_border,
+                                        ? LucideIcons.star
+                                        : LucideIcons.star,
                                         size: 14,
                                         color: AppColors.warning,
                                       );

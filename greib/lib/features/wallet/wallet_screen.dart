@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
 
@@ -69,7 +70,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.stars, color: AppColors.secondaryLight, size: 18),
+                          const Icon(LucideIcons.sparkles, color: AppColors.secondaryLight, size: 18),
                           const SizedBox(width: AppSpacing.xs),
                           Text(
                             '1,250 نقطة',
@@ -184,7 +185,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 borderRadius: BorderRadius.circular(AppRadii.sm),
               ),
               child: Icon(
-                isCredit ? Icons.arrow_downward : Icons.arrow_upward,
+                isCredit ? LucideIcons.arrowDownLeft : LucideIcons.arrowUpRight,
                 color: isCredit ? AppColors.success : AppColors.error,
                 size: 20,
               ),
@@ -229,7 +230,7 @@ class _WalletScreenState extends State<WalletScreen> {
           ),
           child: Row(
             children: [
-              const Icon(Icons.stars, color: AppColors.secondary, size: 28),
+              const Icon(LucideIcons.sparkles, color: AppColors.secondary, size: 28),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
@@ -281,10 +282,10 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Widget _buildRedeemTab(BuildContext context, ThemeData theme) {
     final rewards = [
-      {'title': 'خصم 10%', 'points': '500', 'icon': Icons.percent},
-      {'title': 'توصيل مجاني', 'points': '300', 'icon': Icons.local_shipping},
-      {'title': 'خصم 25 درهم', 'points': '800', 'icon': Icons.card_giftcard},
-      {'title': 'عضوية ذهبية', 'points': '2000', 'icon': Icons.workspace_premium},
+      {'title': 'خصم 10%', 'points': '500', 'icon': LucideIcons.percent},
+      {'title': 'توصيل مجاني', 'points': '300', 'icon': LucideIcons.truck},
+      {'title': 'خصم 25 درهم', 'points': '800', 'icon': LucideIcons.gift},
+      {'title': 'عضوية ذهبية', 'points': '2000', 'icon': LucideIcons.crown},
     ];
 
     return GridView.builder(

@@ -1,0 +1,43 @@
+# Cloudflare Configuration Example
+# This file documents how Cloudflare will be configured for production.
+# No real keys are included here — fill them in during the production setup phase.
+
+# ==================== Cloudflare R2 (Image Storage) ====================
+# Used to store user avatars, restaurant images, product photos, etc.
+# instead of uploading them directly to Firebase Storage.
+
+CLOUDFLARE_ACCOUNT_ID=your_account_id_here
+CLOUDFLARE_R2_BUCKET=greb-menk-assets
+CLOUDFLARE_R2_ACCESS_KEY_ID=your_access_key_id_here
+CLOUDFLARE_R2_SECRET_ACCESS_KEY=your_secret_access_key_here
+CLOUDFLARE_R2_ENDPOINT=https://<account_id>.r2.cloudflarestorage.com
+
+# Public CDN domain for R2 assets (after binding a custom domain in Cloudflare)
+CLOUDFLARE_R2_PUBLIC_DOMAIN=https://assets.grebmenk.com
+
+# ==================== Cloudflare CDN / Proxy ====================
+# The Flutter app and notification-server will be served through Cloudflare.
+# Set the Vercel project domain as the origin.
+
+CLOUDFLARE_ZONE_ID=your_zone_id_here
+CLOUDFLARE_ORIGIN=https://greb-menk-notification-server.vercel.app
+
+# ==================== Example Upload Flow (Flutter) ====================
+# 1. App requests a presigned upload URL from the notification server.
+# 2. App uploads the image directly to R2 using the presigned URL.
+# 3. App saves the returned public URL in Firestore.
+# 4. Images are served from CLOUDFLARE_R2_PUBLIC_DOMAIN with CDN caching.
+
+# ==================== Example Notification Server Route (Next.js API) ====================
+# POST /api/upload/presigned-url
+# Body: { "filename": "avatar_123.jpg", "contentType": "image/jpeg" }
+# Returns: { "uploadUrl": "...", "publicUrl": "https://assets.grebmenk.com/avatar_123.jpg" }
+
+# ==================== Activation Checklist ====================
+# [ ] Create R2 bucket named "greb-menk-assets"
+# [ ] Generate API tokens with R2 edit permissions
+# [ ] Bind custom domain (assets.grebmenk.com) to R2 bucket
+# [ ] Add Vercel domain to Cloudflare as origin
+# [ ] Enable caching rules for static assets
+# [ ] Test upload and CDN delivery in staging
+# [ ] Move keys to environment secrets (never commit real keys)

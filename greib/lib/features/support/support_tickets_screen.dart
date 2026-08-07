@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
 import '../../shared_widgets/loading_states.dart';
@@ -52,7 +53,7 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
         title: const Text('تذاكر الدعم'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_circle_outline),
+            icon: const Icon(LucideIcons.plusCircle),
             onPressed: () => _showCreateTicketDialog(context),
             tooltip: 'إنشاء تذكرة',
           ),
@@ -119,7 +120,7 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
 
     if (tickets.isEmpty) {
       return EmptyState(
-        icon: isOpen ? Icons.support_agent : Icons.history,
+        icon: isOpen ? LucideIcons.headphones : LucideIcons.history,
         title: isOpen ? 'لا توجد تذاكر مفتوحة' : 'لا توجد تذاكر مغلقة',
         description: isOpen
             ? 'أنشئ تذكرة دعم جديدة وسيتم الرد عليك قريباً'
@@ -147,7 +148,7 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
               child: Icon(
-                isOpen ? Icons.support_agent : Icons.check_circle,
+                isOpen ? LucideIcons.headphones : LucideIcons.checkCircle,
                 color: isOpen ? AppColors.primary : AppColors.neutral400,
                 size: 24,
               ),
@@ -282,7 +283,7 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.support_agent, color: AppColors.success, size: 20),
+                  const Icon(LucideIcons.headphones, color: AppColors.success, size: 20),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(

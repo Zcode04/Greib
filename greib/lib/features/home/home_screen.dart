@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/mock_data/mock_data.dart';
 import '../../core/permissions/permissions.dart';
 import '../../core/theme/theme_controller.dart';
-import '../../core/theme/dark_palette.dart';
+import '../../core/theme/app_colors.dart';
 import '../../features/auth/mock_auth.dart';
 import '../../shared_widgets/floating_bottom_nav.dart';
 
@@ -21,44 +22,46 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final user = AuthService.instance.currentUser;
     final role = AuthService.instance.currentRole;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: DarkPalette.background,
+      backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
       extendBody: true, // يسمح للـ navbar بالطفو فوق المحتوى مثل الصورة
-      appBar: _buildAppBar(context, user),
-      drawer: _buildDrawer(context, user, role),
+      appBar: _buildAppBar(context, user, isDark),
+      drawer: _buildDrawer(context, user, role, isDark),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 110),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeroBanner(user),
+            _buildHeroBanner(user, isDark),
             const SizedBox(height: 28),
 
-            _sectionTitle('الخدمة المميزة'),
+            _sectionTitle('الخدمة المميزة', isDark),
             const SizedBox(height: 12),
-            _buildSpotlightCard(),
+            _buildSpotlightCard(isDark),
             const SizedBox(height: 28),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _sectionTitle('خدماتنا'),
+                _sectionTitle('خدماتنا', isDark),
                 Text('تصفح الكل',
-                    style: TextStyle(color: DarkPalette.textMuted, fontSize: 13)),
+                    style: TextStyle(color: isDark ? AppColors.textMuted : AppColors.lightTextTertiary, fontSize: 13)),
               ],
             ),
             const SizedBox(height: 14),
-            _buildServicesRow(),
+            _buildServicesRow(isDark),
             const SizedBox(height: 28),
 
-            _sectionTitle('طلباتك الحالية'),
+            _sectionTitle('طلباتك الحالية', isDark),
             const SizedBox(height: 14),
-            ..._buildOrdersList(),
+            ..._buildOrdersList(isDark),
 
             if (role == UserRole.admin || role == UserRole.agent) ...[
               const SizedBox(height: 28),
-              _sectionTitle('صفحات سريعة'),
+              _sectionTitle('صفحات سريعة', isDark),
               const SizedBox(height: 14),
               _buildQuickActions(context, role),
             ],
@@ -69,31 +72,28 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: _navIndex,
         onTap: (i) {
           setState(() => _navIndex = i);
-          const routes = ['/wallet', '/chat', '/favorites', '/profile'];
+          const routes = ['/wallet', '/chat', '/home', '/favorites', '/profile'];
           if (i < routes.length) Navigator.pushNamed(context, routes[i]);
         },
-        centerIcon: Icons.home_rounded,
-        isCenterActive: true,
-        onCenterTap: () {}, // بالفعل في الرئيسية
         items: const [
           FloatingNavItem(
-            icon: Icons.wallet_outlined,
-            activeIcon: Icons.wallet,
+            icon: LucideIcons.wallet,
             label: 'المحفظة',
           ),
           FloatingNavItem(
-            icon: Icons.chat_bubble_outline,
-            activeIcon: Icons.chat_bubble,
+            icon: LucideIcons.messageCircle,
             label: 'المحادثات',
           ),
           FloatingNavItem(
-            icon: Icons.favorite_border,
-            activeIcon: Icons.favorite,
+            icon: LucideIcons.home,
+            label: 'الرئيسية',
+          ),
+          FloatingNavItem(
+            icon: LucideIcons.heart,
             label: 'المفضلة',
           ),
           FloatingNavItem(
-            icon: Icons.person_outline,
-            activeIcon: Icons.person,
+            icon: LucideIcons.user,
             label: 'البروفايل',
           ),
         ],
@@ -104,9 +104,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // ---------------------------------------------------------------------
   // AppBar
   // ---------------------------------------------------------------------
-  PreferredSizeWidget _buildAppBar(BuildContext context, user) {
+  PreferredSizeWidget _buildAppBar(BuildContext context, user, bool isDark) {
     return AppBar(
-      backgroundColor: DarkPalette.background,
+      backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
       elevation: 0,
       titleSpacing: 20,
       title: Builder(
@@ -119,9 +119,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: DarkPalette.surfaceVariant,
+                  color: isDark ? AppColors.surfaceVariant : AppColors.lightSurfaceVariant,
                 ),
-                child: const Icon(Icons.person, color: Colors.white70, size: 20),
+                child: Icon(LucideIcons.user,
+                    color: isDark ? Colors.white70 : AppColors.lightTextSecondary, size: 20),
               ),
             ),
             const SizedBox(width: 12),
@@ -129,11 +130,13 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('أهلاً بعودتك',
-                    style: TextStyle(color: DarkPalette.textMuted, fontSize: 11)),
+                    style: TextStyle(
+                        color: isDark ? AppColors.textMuted : AppColors.lightTextTertiary,
+                        fontSize: 11)),
                 Text(
                   user?.name ?? 'گريب منك',
-                  style: const TextStyle(
-                    color: DarkPalette.textPrimary,
+                  style: TextStyle(
+                    color: isDark ? AppColors.textPrimary : AppColors.lightText,
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
                   ),
@@ -145,31 +148,39 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       actions: [
         _circleIconButton(
-          icon: Icons.search,
+          icon: LucideIcons.search,
           onTap: () {},
+          isDark: isDark,
         ),
         _circleIconButton(
-          icon: Icons.notifications_outlined,
+          icon: LucideIcons.bell,
           onTap: () => Navigator.pushNamed(context, '/notifications'),
+          isDark: isDark,
+        ),
+        _circleIconButton(
+          icon: isDark ? LucideIcons.sun : LucideIcons.moon,
+          onTap: () => context.read<ThemeController>().toggleTheme(),
+          isDark: isDark,
         ),
         const SizedBox(width: 8),
       ],
     );
   }
 
-  Widget _circleIconButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _circleIconButton({required IconData icon, required VoidCallback onTap, required bool isDark}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Container(
         width: 40,
         height: 40,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: DarkPalette.surfaceVariant,
+          color: isDark ? AppColors.surfaceVariant : AppColors.lightSurfaceVariant,
         ),
         child: IconButton(
           padding: EdgeInsets.zero,
-          icon: Icon(icon, size: 18, color: Colors.white70),
+          icon: Icon(icon,
+              size: 18, color: isDark ? Colors.white70 : AppColors.lightTextSecondary),
           onPressed: onTap,
         ),
       ),
@@ -179,12 +190,14 @@ class _HomeScreenState extends State<HomeScreen> {
   // ---------------------------------------------------------------------
   // Hero Banner ("Explore new collection")
   // ---------------------------------------------------------------------
-  Widget _buildHeroBanner(user) {
+  Widget _buildHeroBanner(user, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: DarkPalette.heroGradient,
+          colors: isDark
+              ? AppColors.heroGradient
+              : const [Color(0xFFE8F5E9), Color(0xFFF1F8E9)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -197,10 +210,10 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'اكتشف خدماتنا\nالجديدة',
                   style: TextStyle(
-                    color: DarkPalette.textPrimary,
+                    color: isDark ? AppColors.textPrimary : AppColors.lightText,
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
                     height: 1.3,
@@ -210,8 +223,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
+                    backgroundColor: isDark ? Colors.white : AppColors.accentPrimaryDark,
+                    foregroundColor: isDark ? Colors.black : Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
@@ -225,8 +238,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Expanded(
             flex: 2,
-            child: Icon(Icons.local_shipping_rounded,
-                color: DarkPalette.neon, size: 72),
+            child: Icon(LucideIcons.truck,
+                color: isDark ? AppColors.neon : AppColors.accentPrimaryDark, size: 72),
           ),
         ],
       ),
@@ -236,15 +249,24 @@ class _HomeScreenState extends State<HomeScreen> {
   // ---------------------------------------------------------------------
   // Spotlight card (البطاقة المميزة الكبيرة)
   // ---------------------------------------------------------------------
-  Widget _buildSpotlightCard() {
+  Widget _buildSpotlightCard(bool isDark) {
     final service = MockData.services.isNotEmpty ? MockData.services.first : null;
+    final neonColor = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: DarkPalette.surfaceElevated,
+        color: isDark ? AppColors.surfaceElevated : AppColors.lightSurface,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [DarkPalette.neonGlow(blur: 30, alpha: 0.12)],
+        boxShadow: isDark
+            ? AppColors.neonGlow(blur: 30, alpha: 0.12)
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
       ),
       child: Row(
         children: [
@@ -252,14 +274,14 @@ class _HomeScreenState extends State<HomeScreen> {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: DarkPalette.neon.withValues(alpha: 0.12),
+              color: neonColor.withValues(alpha: isDark ? 0.12 : 0.15),
               borderRadius: BorderRadius.circular(18),
             ),
             child: Icon(
               service != null
                   ? MockData.getIconByName(service.iconName)
-                  : Icons.local_shipping,
-              color: DarkPalette.neon,
+                  : LucideIcons.truck,
+              color: neonColor,
               size: 28,
             ),
           ),
@@ -270,8 +292,8 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Text(
                   service?.title ?? 'توصيل سريع',
-                  style: const TextStyle(
-                    color: DarkPalette.textPrimary,
+                  style: TextStyle(
+                    color: isDark ? AppColors.textPrimary : AppColors.lightText,
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
                   ),
@@ -279,7 +301,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 4),
                 Text(
                   'متاح الآن بالقرب منك',
-                  style: TextStyle(color: DarkPalette.textMuted, fontSize: 12),
+                  style: TextStyle(
+                      color: isDark ? AppColors.textMuted : AppColors.lightTextTertiary,
+                      fontSize: 12),
                 ),
               ],
             ),
@@ -291,11 +315,13 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Container(
                 width: 36,
                 height: 36,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: DarkPalette.neon,
+                  color: neonColor,
                 ),
-                child: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.black),
+                child: Icon(LucideIcons.chevronRight,
+                    size: 16,
+                    color: isDark ? Colors.black : Colors.white),
               ),
             ),
         ],
@@ -306,7 +332,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // ---------------------------------------------------------------------
   // Services row (مثل صف "Stores" الدائري في الصورة)
   // ---------------------------------------------------------------------
-  Widget _buildServicesRow() {
+  Widget _buildServicesRow(bool isDark) {
     final services = MockData.services;
     return SizedBox(
       height: 90,
@@ -324,26 +350,30 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    color: DarkPalette.surfaceVariant,
+                    color: isDark ? AppColors.surfaceVariant : AppColors.lightSurface,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white10),
+                    border: Border.all(
+                        color: isDark ? Colors.white10 : AppColors.lightOutline),
                   ),
                   child: Icon(MockData.getIconByName(s.iconName),
-                      color: DarkPalette.textPrimary, size: 22),
+                      color: isDark ? AppColors.textPrimary : AppColors.lightText,
+                      size: 22),
                 ),
                 const SizedBox(height: 8),
                 SizedBox(
                   width: 64,
                   child: Text(
                     s.title,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: DarkPalette.textSecondary, fontSize: 11),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
+                        fontSize: 11),
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
           );
         },
       ),
@@ -353,20 +383,22 @@ class _HomeScreenState extends State<HomeScreen> {
   // ---------------------------------------------------------------------
   // Orders list (بطاقات بنفس شكل بطاقة المنتج في الصورة)
   // ---------------------------------------------------------------------
-  List<Widget> _buildOrdersList() {
+  List<Widget> _buildOrdersList(bool isDark) {
     final orders = MockData.demoOrders;
+    final neonColor = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
 
     if (orders.isEmpty) {
       return [
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: DarkPalette.surface,
+            color: isDark ? AppColors.surface : AppColors.lightSurface,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Center(
             child: Text('لا توجد طلبات حالية',
-                style: TextStyle(color: DarkPalette.textMuted)),
+                style: TextStyle(
+                    color: isDark ? AppColors.textMuted : AppColors.lightTextTertiary)),
           ),
         ),
       ];
@@ -377,9 +409,10 @@ class _HomeScreenState extends State<HomeScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: DarkPalette.surface,
+          color: isDark ? AppColors.surface : AppColors.lightSurface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white10),
+          border: Border.all(
+              color: isDark ? Colors.white10 : AppColors.lightOutline),
         ),
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
@@ -390,11 +423,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: DarkPalette.neon.withValues(alpha: 0.1),
+                  color: neonColor.withValues(alpha: isDark ? 0.1 : 0.15),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(MockData.getIconByName(order.serviceType),
-                    color: DarkPalette.neon),
+                    color: neonColor),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -405,8 +438,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       order.description,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: DarkPalette.textPrimary,
+                      style: TextStyle(
+                        color: isDark ? AppColors.textPrimary : AppColors.lightText,
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                       ),
@@ -416,12 +449,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       '${order.pickupLocation} → ${order.deliveryLocation}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: DarkPalette.textMuted, fontSize: 11),
+                      style: TextStyle(
+                          color: isDark ? AppColors.textMuted : AppColors.lightTextTertiary,
+                          fontSize: 11),
                     ),
                   ],
                 ),
               ),
-              _buildStatusBadge(order.status),
+              _buildStatusBadge(order.status, isDark),
             ],
           ),
         ),
@@ -429,27 +464,27 @@ class _HomeScreenState extends State<HomeScreen> {
     }).toList();
   }
 
-  Widget _buildStatusBadge(String status) {
+  Widget _buildStatusBadge(String status, bool isDark) {
     Color color;
     String label;
     switch (status) {
       case 'pending':
-        color = DarkPalette.warning;
+        color = AppColors.warning;
         label = 'قيد الانتظار';
       case 'assigned':
-        color = DarkPalette.info;
+        color = AppColors.info;
         label = 'تم التعيين';
       case 'in_transit':
-        color = DarkPalette.neon;
+        color = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
         label = 'في الطريق';
       case 'delivered':
-        color = DarkPalette.textMuted;
+        color = isDark ? AppColors.textMuted : AppColors.lightTextTertiary;
         label = 'تم التسليم';
       case 'cancelled':
-        color = DarkPalette.error;
+        color = AppColors.error;
         label = 'ملغي';
       default:
-        color = DarkPalette.textMuted;
+        color = isDark ? AppColors.textMuted : AppColors.lightTextTertiary;
         label = status;
     }
     return Container(
@@ -472,10 +507,10 @@ class _HomeScreenState extends State<HomeScreen> {
       runSpacing: 10,
       children: [
         if (role == UserRole.admin)
-          _chip(Icons.admin_panel_settings, 'لوحة المشرفين', DarkPalette.error,
+          _chip(LucideIcons.shieldCheck, 'لوحة المشرفين', AppColors.error,
               () => Navigator.pushNamed(context, '/admin_dashboard')),
         if (role == UserRole.agent || role == UserRole.admin)
-          _chip(Icons.delivery_dining, 'لوحة الوكلاء', DarkPalette.info,
+          _chip(LucideIcons.bike, 'لوحة الوكلاء', AppColors.info,
               () => Navigator.pushNamed(context, '/agent_dashboard')),
       ],
     );
@@ -504,10 +539,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _sectionTitle(String text) {
+  Widget _sectionTitle(String text, bool isDark) {
     return Text(text,
-        style: const TextStyle(
-          color: DarkPalette.textPrimary,
+        style: TextStyle(
+          color: isDark ? AppColors.textPrimary : AppColors.lightText,
           fontWeight: FontWeight.w800,
           fontSize: 18,
         ));
@@ -516,62 +551,94 @@ class _HomeScreenState extends State<HomeScreen> {
   // ---------------------------------------------------------------------
   // Drawer
   // ---------------------------------------------------------------------
-  Widget _buildDrawer(BuildContext context, user, role) {
+  Widget _buildDrawer(BuildContext context, user, role, bool isDark) {
     return Drawer(
-      backgroundColor: DarkPalette.surface,
+      backgroundColor: isDark ? AppColors.surface : AppColors.lightSurface,
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           Container(
             padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
-            decoration: const BoxDecoration(color: DarkPalette.background),
+            decoration: BoxDecoration(
+                color: isDark ? AppColors.background : AppColors.lightBackground),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
                   width: 56,
                   height: 56,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: DarkPalette.surfaceVariant,
+                    color: isDark ? AppColors.surfaceVariant : AppColors.lightSurfaceVariant,
                   ),
-                  child: const Icon(Icons.person, color: DarkPalette.neon, size: 28),
+                  child: Icon(LucideIcons.user,
+                      color: isDark ? AppColors.neon : AppColors.accentPrimaryDark,
+                      size: 28),
                 ),
                 const SizedBox(height: 12),
                 Text(user?.name ?? 'زائر',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                    style: TextStyle(
+                        color: isDark ? Colors.white : AppColors.lightText,
+                        fontWeight: FontWeight.w700)),
                 Text(
                   role != null ? PermissionService.roleLabel(role) : 'غير مسجل',
-                  style: TextStyle(color: DarkPalette.textMuted, fontSize: 12),
+                  style: TextStyle(
+                      color: isDark ? AppColors.textMuted : AppColors.lightTextTertiary,
+                      fontSize: 12),
                 ),
               ],
             ),
           ),
-          _drawerItem(Icons.home, 'الرئيسية', context, selected: true, onTap: () => Navigator.pop(context)),
-          _drawerItem(Icons.wallet, 'المحفظة', context, onTap: () => Navigator.pushNamed(context, '/wallet')),
-          _drawerItem(Icons.favorite, 'المفضلة', context, onTap: () => Navigator.pushNamed(context, '/favorites')),
-          _drawerItem(Icons.chat_bubble, 'المحادثات', context, onTap: () => Navigator.pushNamed(context, '/chat')),
-          _drawerItem(Icons.person, 'البروفايل', context, onTap: () => Navigator.pushNamed(context, '/profile')),
-          _drawerItem(Icons.dark_mode, 'المظهر', context,
+          _drawerItem(LucideIcons.home, 'الرئيسية', context, selected: true,
+              isDark: isDark,
+              onTap: () => Navigator.pop(context)),
+          _drawerItem(LucideIcons.wallet, 'المحفظة', context,
+              isDark: isDark,
+              onTap: () => Navigator.pushNamed(context, '/wallet')),
+          _drawerItem(LucideIcons.heart, 'المفضلة', context,
+              isDark: isDark,
+              onTap: () => Navigator.pushNamed(context, '/favorites')),
+          _drawerItem(LucideIcons.messageCircle, 'المحادثات', context,
+              isDark: isDark,
+              onTap: () => Navigator.pushNamed(context, '/chat')),
+          _drawerItem(LucideIcons.user, 'البروفايل', context,
+              isDark: isDark,
+              onTap: () => Navigator.pushNamed(context, '/profile')),
+          _drawerItem(LucideIcons.moon, 'المظهر', context,
+              isDark: isDark,
               onTap: () => context.read<ThemeController>().toggleTheme()),
-          const Divider(color: Colors.white10),
-          _drawerItem(Icons.logout, 'تسجيل الخروج', context, iconColor: DarkPalette.error, onTap: () {
-            AuthService.instance.logout();
-            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-          }),
+          Divider(color: isDark ? Colors.white10 : AppColors.lightOutline),
+          _drawerItem(LucideIcons.logOut, 'تسجيل الخروج', context,
+              isDark: isDark,
+              iconColor: AppColors.error,
+              onTap: () {
+                AuthService.instance.logout();
+                Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+              }),
         ],
       ),
     );
   }
 
   Widget _drawerItem(IconData icon, String title, BuildContext context,
-      {bool selected = false, Color? iconColor, required VoidCallback onTap}) {
-    final color = iconColor ?? (selected ? DarkPalette.neon : Colors.white70);
+      {bool selected = false, Color? iconColor, required VoidCallback onTap, required bool isDark}) {
+    final accentColor = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+    final color = iconColor ?? (selected ? accentColor : (isDark ? Colors.white70 : AppColors.lightTextSecondary));
     return ListTile(
-      leading: Icon(icon, color: color),
+      leading: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color.withValues(alpha: isDark ? 0.12 : 0.1),
+        ),
+        child: Icon(icon, color: color, size: 18),
+      ),
       title: Text(title,
           style: TextStyle(
-              color: selected ? DarkPalette.neon : Colors.white,
+              color: selected
+                  ? accentColor
+                  : (isDark ? Colors.white : AppColors.lightText),
               fontWeight: selected ? FontWeight.w700 : FontWeight.normal)),
       onTap: onTap,
     );

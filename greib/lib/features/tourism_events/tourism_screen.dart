@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
 
@@ -90,7 +91,7 @@ class TourismScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('السياحة والفعاليات'),
-        backgroundColor: const Color(0xFF00BCD4),
+        backgroundColor: AppColors.serviceTourism,
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -102,7 +103,7 @@ class TourismScreen extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF00BCD4), Color(0xFF80DEEA)],
+                  colors: [AppColors.serviceTourism, Color(0xFF80DEEA)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -143,7 +144,7 @@ class TourismScreen extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF00BCD4).withValues(alpha: 0.08),
+                      color: AppColors.serviceTourism.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(AppRadii.md),
                     ),
                     child: Center(child: Text(event['icon']!, style: const TextStyle(fontSize: 24))),
@@ -155,7 +156,7 @@ class TourismScreen extends StatelessWidget {
                       Text(event['desc']!),
                       Row(
                         children: [
-                          const Icon(Icons.calendar_month, size: 14),
+                          const Icon(LucideIcons.calendar, size: 14),
                           const SizedBox(width: AppSpacing.xs),
                           Text(event['date']!, style: theme.textTheme.bodySmall),
                         ],
@@ -164,7 +165,7 @@ class TourismScreen extends StatelessWidget {
                   ),
                   trailing: TextButton(
                     onPressed: () {},
-                    child: const Text('احجز', style: TextStyle(color: Color(0xFF00BCD4), fontWeight: FontWeight.bold)),
+                    child: const Text('احجز', style: TextStyle(color: AppColors.serviceTourism, fontWeight: FontWeight.bold)),
                   ),
                 ),
               );
@@ -192,7 +193,7 @@ class TourismScreen extends StatelessWidget {
                         height: 90,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF00BCD4).withValues(alpha: 0.08),
+                          color: AppColors.serviceTourism.withValues(alpha: 0.08),
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadii.lg)),
                         ),
                         child: Center(child: Text(place['icon']!, style: const TextStyle(fontSize: 44))),
@@ -207,16 +208,16 @@ class TourismScreen extends StatelessWidget {
                             const SizedBox(height: AppSpacing.sm),
                             Row(
                               children: [
-                                const Icon(Icons.star, size: 14, color: AppColors.warning),
+                                const Icon(LucideIcons.star, size: 14, color: AppColors.warning),
                                 const SizedBox(width: AppSpacing.xs),
                                 Text(place['rating']!, style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold)),
                                 const Spacer(),
-                                Text(place['price']!, style: theme.textTheme.bodySmall?.copyWith(color: const Color(0xFF00BCD4), fontWeight: FontWeight.bold)),
+                                Text(place['price']!, style: theme.textTheme.bodySmall?.copyWith(color: AppColors.serviceTourism, fontWeight: FontWeight.bold)),
                               ],
                             ),
                             Row(
                               children: [
-                                Icon(Icons.location_on, size: 12, color: theme.colorScheme.onSurfaceVariant),
+                                Icon(LucideIcons.mapPin, size: 12, color: theme.colorScheme.onSurfaceVariant),
                                 const SizedBox(width: AppSpacing.xs),
                                 Expanded(child: Text(place['location']!, style: theme.textTheme.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis)),
                               ],
@@ -232,8 +233,8 @@ class TourismScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.xl),
             AppButton(
               label: 'أضف فعالية جديدة',
-              icon: Icons.add_circle_outline,
-              color: const Color(0xFF00BCD4),
+              icon: LucideIcons.plusCircle,
+              color: AppColors.serviceTourism,
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('سيتم إضافة الفعالية قريباً 📅'), backgroundColor: AppColors.info),

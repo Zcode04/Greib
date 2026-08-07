@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
 
@@ -79,8 +80,8 @@ class _MembershipScreenState extends State<MembershipScreen> {
                       ),
                       child: Icon(
                         _currentTier == 'gold'
-                            ? Icons.workspace_premium
-                            : Icons.person,
+                            ? LucideIcons.crown
+                            : LucideIcons.user,
                         color: Colors.white,
                         size: 40,
                       ),
@@ -118,7 +119,7 @@ class _MembershipScreenState extends State<MembershipScreen> {
                         child: Row(
                           children: [
                             Icon(
-                              Icons.check_circle,
+                              LucideIcons.checkCircle,
                               size: 18,
                               color: AppColors.success,
                             ),
@@ -158,8 +159,8 @@ class _MembershipScreenState extends State<MembershipScreen> {
                         ),
                         child: Icon(
                           tier['id'] == 'gold'
-                              ? Icons.workspace_premium
-                              : Icons.person,
+                              ? LucideIcons.crown
+                              : LucideIcons.user,
                           color: tier['color'] as Color,
                           size: 28,
                         ),

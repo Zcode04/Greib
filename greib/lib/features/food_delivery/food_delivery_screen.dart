@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 
 class FoodDeliveryScreen extends StatelessWidget {
@@ -62,7 +63,7 @@ class FoodDeliveryScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('توصيل طعام'),
-        backgroundColor: const Color(0xFFFF9800),
+        backgroundColor: AppColors.serviceFood,
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -74,7 +75,7 @@ class FoodDeliveryScreen extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFFFF9800), Color(0xFFFFB74D)],
+                  colors: [AppColors.serviceFood, Color(0xFFFFB74D)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -149,7 +150,7 @@ class FoodDeliveryScreen extends StatelessWidget {
             height: 80,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: const Color(0xFFFF9800).withValues(alpha: 0.08),
+              color: AppColors.serviceFood.withValues(alpha: 0.08),
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(AppRadii.lg),
               ),
@@ -182,7 +183,7 @@ class FoodDeliveryScreen extends StatelessWidget {
                 const SizedBox(height: AppSpacing.sm),
                 Row(
                   children: [
-                    const Icon(Icons.star, size: 14, color: AppColors.warning),
+                    const Icon(LucideIcons.star, size: 14, color: AppColors.warning),
                     const SizedBox(width: AppSpacing.xs),
                     Text(
                       restaurant['rating']!,
@@ -192,7 +193,7 @@ class FoodDeliveryScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     Icon(
-                      Icons.schedule,
+                      LucideIcons.clock,
                       size: 12,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -207,7 +208,7 @@ class FoodDeliveryScreen extends StatelessWidget {
                 Text(
                   'توصيل: ${restaurant['deliveryFee']}',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: const Color(0xFFFF9800),
+                    color: AppColors.serviceFood,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

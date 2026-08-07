@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../core/theme/design_tokens.dart';
 import 'app_button.dart';
 
@@ -197,7 +198,7 @@ class EmptyState extends StatelessWidget {
               const SizedBox(height: AppSpacing.xl),
               AppButton(
                 label: actionLabel!,
-                icon: Icons.add_circle_outline,
+                icon: LucideIcons.plusCircle,
                 onPressed: onAction,
                 isFullWidth: false,
               ),

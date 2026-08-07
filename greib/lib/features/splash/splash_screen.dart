@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../auth/mock_auth.dart';
 
@@ -119,7 +120,7 @@ class _SplashScreenState extends State<SplashScreen>
                           ],
                         ),
                         child: const Icon(
-                          Icons.rocket_launch,
+                          LucideIcons.rocket,
                           size: 56,
                           color: AppColors.accentPrimary,
                         ),
