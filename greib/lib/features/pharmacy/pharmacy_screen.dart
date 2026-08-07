@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
 
-// صفحة الصيدلية
 class PharmacyScreen extends StatelessWidget {
   const PharmacyScreen({super.key});
 
@@ -67,25 +67,24 @@ class PharmacyScreen extends StatelessWidget {
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // بطاقة ترحيبية
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFF4CAF50), Color(0xFF81C784)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadii.lg),
               ),
               child: Row(
                 children: [
                   const Text('💊', style: TextStyle(fontSize: 40)),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +95,7 @@ class PharmacyScreen extends StatelessWidget {
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           'الصيدليات قريبة منك ونوصل للأدوية لحد باب البيت',
                           style: theme.textTheme.bodyMedium?.copyWith(
@@ -109,12 +108,11 @@ class PharmacyScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
 
-            // رفع وصفة طبية
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -122,7 +120,7 @@ class PharmacyScreen extends StatelessWidget {
                       'عندك وصفة طبية؟',
                       style: theme.textTheme.titleMedium,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     AppButton(
                       label: 'ارفع صورة الوصفة',
                       icon: Icons.upload_file,
@@ -131,7 +129,7 @@ class PharmacyScreen extends StatelessWidget {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('تم استلام الوصفة، سنراجعها ونواصل معك قريباً ✅'),
-                            backgroundColor: Colors.green,
+                            backgroundColor: AppColors.success,
                           ),
                         );
                       },
@@ -140,27 +138,25 @@ class PharmacyScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
 
-            // قسم الصيدليات
             Text(
               'أقرب الصيدليات',
               style: theme.textTheme.headlineMedium,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
 
-            // قائمة الصيدليات
             ...pharmacies.map((pharmacy) {
               return Card(
-                margin: const EdgeInsets.symmetric(vertical: 8),
+                margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                 child: ListTile(
-                  contentPadding: const EdgeInsets.all(12),
+                  contentPadding: const EdgeInsets.all(AppSpacing.md),
                   leading: Container(
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      color: const Color(0xFF4CAF50).withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(AppRadii.md),
                     ),
                     child: Center(
                       child: Text(
@@ -176,17 +172,17 @@ class PharmacyScreen extends StatelessWidget {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(pharmacy['desc']!),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       Row(
                         children: [
-                          const Icon(Icons.star, size: 14, color: Colors.amber),
-                          const SizedBox(width: 4),
+                          const Icon(Icons.star, size: 14, color: AppColors.warning),
+                          const SizedBox(width: AppSpacing.xs),
                           Text(pharmacy['rating']!),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: AppSpacing.md),
                           const Icon(Icons.schedule, size: 14),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: AppSpacing.xs),
                           Text(pharmacy['time']!),
                         ],
                       ),
@@ -197,21 +193,21 @@ class PharmacyScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                         decoration: BoxDecoration(
-                          color: Colors.green.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppColors.success.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(AppRadii.sm),
                         ),
                         child: Text(
                           pharmacy['available']!,
                           style: const TextStyle(
-                            color: Colors.green,
+                            color: AppColors.success,
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: AppSpacing.sm),
                       const Text(
                         'اطلب الآن',
                         style: TextStyle(
@@ -224,7 +220,7 @@ class PharmacyScreen extends StatelessWidget {
                   ),
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),

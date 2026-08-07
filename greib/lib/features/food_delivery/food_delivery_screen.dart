@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/design_tokens.dart';
 
-// صفحة توصيل الطعام
 class FoodDeliveryScreen extends StatelessWidget {
   const FoodDeliveryScreen({super.key});
 
-  // قائمة المطاعم الوهمية
   static const List<Map<String, String>> restaurants = [
     {
       'name': 'مطعم المندي الملكي',
@@ -67,25 +66,24 @@ class FoodDeliveryScreen extends StatelessWidget {
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // بطاقة ترحيبية
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFFFF9800), Color(0xFFFFB74D)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadii.lg),
               ),
               child: Row(
                 children: [
                   const Text('🍽️', style: TextStyle(fontSize: 40)),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +94,7 @@ class FoodDeliveryScreen extends StatelessWidget {
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           'أكثر من ٥٠٠ مطعم حولك',
                           style: theme.textTheme.bodyMedium?.copyWith(
@@ -109,24 +107,22 @@ class FoodDeliveryScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
 
-            // قسم المطاعم
             Text(
               'أشهر المطاعم',
               style: theme.textTheme.headlineMedium,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
 
-            // شبكة المطاعم
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 childAspectRatio: 0.75,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+                crossAxisSpacing: AppSpacing.md,
+                mainAxisSpacing: AppSpacing.md,
               ),
               itemCount: restaurants.length,
               itemBuilder: (context, index) {
@@ -140,7 +136,6 @@ class FoodDeliveryScreen extends StatelessWidget {
     );
   }
 
-  // بطاقة مطعم
   Widget _buildRestaurantCard(
     BuildContext context,
     ThemeData theme,
@@ -150,14 +145,13 @@ class FoodDeliveryScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // صورة المطعم (إيموجي)
           Container(
             height: 80,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: const Color(0xFFFF9800).withValues(alpha: 0.1),
+              color: const Color(0xFFFF9800).withValues(alpha: 0.08),
               borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(12),
+                top: Radius.circular(AppRadii.lg),
               ),
             ),
             child: Center(
@@ -168,7 +162,7 @@ class FoodDeliveryScreen extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -178,42 +172,43 @@ class FoodDeliveryScreen extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   restaurant['cuisine']!,
                   style: theme.textTheme.bodySmall,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: AppSpacing.sm),
                 Row(
                   children: [
-                    const Icon(Icons.star, size: 14, color: Colors.amber),
-                    const SizedBox(width: 2),
+                    const Icon(Icons.star, size: 14, color: AppColors.warning),
+                    const SizedBox(width: AppSpacing.xs),
                     Text(
                       restaurant['rating']!,
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: AppSpacing.sm),
                     Icon(
                       Icons.schedule,
                       size: 12,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
-                    const SizedBox(width: 2),
+                    const SizedBox(width: AppSpacing.xs),
                     Text(
                       restaurant['time']!,
                       style: theme.textTheme.bodySmall,
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   'توصيل: ${restaurant['deliveryFee']}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: const Color(0xFFFF9800),
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],

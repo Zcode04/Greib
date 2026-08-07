@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../core/mock_data/mock_data.dart';
 import '../../core/permissions/permissions.dart';
 import '../../features/auth/mock_auth.dart';
 import '../../shared_widgets/app_button.dart';
+import '../../shared_widgets/loading_states.dart';
 
-// لوحة الوكلاء
 class AgentDashboardScreen extends StatefulWidget {
   const AgentDashboardScreen({super.key});
 
@@ -20,27 +21,37 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
     final theme = Theme.of(context);
     final role = AuthService.instance.currentRole;
 
-    // التحقق من الصلاحية
     if (role != UserRole.agent && role != UserRole.admin) {
       return Scaffold(
         appBar: AppBar(title: const Text('لوحة الوكلاء')),
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.lock, size: 64, color: Colors.red),
-              const SizedBox(height: 16),
-              Text(
-                'ليس لديك صلاحية الوصول',
-                style: theme.textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              AppButton(
-                label: 'العودة للرئيسية',
-                icon: Icons.home,
-                onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
-              ),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(AppRadii.lg),
+                  ),
+                  child: const Icon(Icons.lock, size: 32, color: AppColors.error),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  'ليس لديك صلاحية الوصول',
+                  style: theme.textTheme.titleLarge,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                AppButton(
+                  label: 'العودة للرئيسية',
+                  icon: Icons.home,
+                  onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -49,7 +60,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('لوحة الوكلاء'),
-        backgroundColor: Colors.blue,
+        backgroundColor: AppColors.info,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -88,50 +99,42 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
     }
   }
 
-  // المهام الحالية
   Widget _buildTasksTab(ThemeData theme) {
     final tasks = MockData.demoOrders.where((o) => o.agentId == AuthService.instance.currentUser?.id || o.status == 'pending').toList();
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         Text('المهام الحالية', style: theme.textTheme.headlineMedium),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Text(
           'لديك ${tasks.length} مهام',
           style: theme.textTheme.bodyMedium,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         if (tasks.isEmpty)
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                children: [
-                  const Icon(Icons.check_circle, size: 48, color: Colors.green),
-                  const SizedBox(height: 12),
-                  Text('لا توجد مهام حالية', style: theme.textTheme.titleMedium),
-                ],
-              ),
-            ),
+          EmptyState(
+            icon: Icons.check_circle,
+            title: 'لا توجد مهام حالية',
+            description: 'ستظهر المهام الجديدة هنا',
           )
         else
           ...tasks.map((task) {
             return Card(
-              margin: const EdgeInsets.symmetric(vertical: 6),
+              margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
               child: ListTile(
-                contentPadding: const EdgeInsets.all(12),
+                contentPadding: const EdgeInsets.all(AppSpacing.md),
                 leading: Container(
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.info.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(AppRadii.md),
                   ),
                   child: Icon(
                     MockData.getIconByName(task.serviceType),
-                    color: Colors.blue,
+                    color: AppColors.info,
                     size: 24,
                   ),
                 ),
@@ -139,36 +142,36 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     Text('من: ${task.pickupLocation}'),
                     Text('إلى: ${task.deliveryLocation}'),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.md),
                     Row(
                       children: [
                         Expanded(
                           child: AppButton(
                             label: 'قبول',
                             icon: Icons.check,
-                            color: Colors.green,
+                            color: AppColors.success,
                             isFullWidth: false,
                             onPressed: () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('تم قبول المهمة ✅'),
-                                  backgroundColor: Colors.green,
+                                  backgroundColor: AppColors.success,
                                 ),
                               );
                             },
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: AppButton(
                             label: 'تحديث الحالة',
                             icon: Icons.update,
-                            color: Colors.blue,
+                            color: AppColors.info,
                             isFullWidth: false,
-                            isOutlined: true,
+                            type: ButtonType.secondary,
                             onPressed: () {
                               showModalBottomSheet(
                                 context: context,
@@ -183,68 +186,68 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                 ),
               ),
             );
-          }).toList(),
+          }),
       ],
     );
   }
 
-  // المهام المنجزة
   Widget _buildCompletedTab(ThemeData theme) {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         Text('المهام المنجزة', style: theme.textTheme.headlineMedium),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
-        // أمثلة لمهام منجزة
         Card(
           child: ListTile(
+            contentPadding: const EdgeInsets.all(AppSpacing.md),
             leading: Container(
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.success.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Icon(Icons.check_circle, color: Colors.green, size: 24),
+              child: const Icon(Icons.check_circle, color: AppColors.success, size: 24),
             ),
             title: const Text('توصيل طلب طعام'),
             subtitle: const Text('تم التسليم - ٢٠٢٤/١٢/١'),
             trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.success.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppRadii.sm),
               ),
               child: const Text(
                 'مكتمل',
-                style: TextStyle(color: Colors.green, fontSize: 12),
+                style: TextStyle(color: AppColors.success, fontSize: 12),
               ),
             ),
           ),
         ),
         Card(
           child: ListTile(
+            contentPadding: const EdgeInsets.all(AppSpacing.md),
             leading: Container(
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.success.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Icon(Icons.check_circle, color: Colors.green, size: 24),
+              child: const Icon(Icons.check_circle, color: AppColors.success, size: 24),
             ),
             title: const Text('توصيل أدوية'),
             subtitle: const Text('تم التسليم - ٢٠٢٤/١١/٣٠'),
             trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.success.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppRadii.sm),
               ),
               child: const Text(
                 'مكتمل',
-                style: TextStyle(color: Colors.green, fontSize: 12),
+                style: TextStyle(color: AppColors.success, fontSize: 12),
               ),
             ),
           ),
@@ -253,37 +256,36 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
     );
   }
 
-  // شات الوكيل
   Widget _buildAgentChatTab(ThemeData theme) {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         Text('محادثات العمل', style: theme.textTheme.headlineMedium),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
-        // قائمة محادثات العمل
         Card(
           child: ListTile(
+            contentPadding: const EdgeInsets.all(AppSpacing.md),
             leading: Container(
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.info.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Icon(Icons.admin_panel_settings, color: Colors.blue),
+              child: const Icon(Icons.admin_panel_settings, color: AppColors.info),
             ),
             title: const Text('الإدارة'),
             subtitle: const Text('التقرير اليومي جاهز'),
             trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.info.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppRadii.sm),
               ),
               child: const Text(
                 'شاهد',
-                style: TextStyle(color: Colors.blue, fontSize: 12),
+                style: TextStyle(color: AppColors.info, fontSize: 12),
               ),
             ),
             onTap: () => Navigator.pushNamed(context, '/chat'),
@@ -291,26 +293,27 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
         ),
         Card(
           child: ListTile(
+            contentPadding: const EdgeInsets.all(AppSpacing.md),
             leading: Container(
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.success.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Icon(Icons.group, color: Colors.green),
+              child: const Icon(Icons.group, color: AppColors.success),
             ),
             title: const Text('فريق التوصيل'),
             subtitle: const Text('تم تسليم طلب الممزر ✅'),
             trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.success.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppRadii.sm),
               ),
               child: const Text(
                 'شاهد',
-                style: TextStyle(color: Colors.green, fontSize: 12),
+                style: TextStyle(color: AppColors.success, fontSize: 12),
               ),
             ),
             onTap: () => Navigator.pushNamed(context, '/chat'),
@@ -320,10 +323,9 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
     );
   }
 
-  // نافذة تحديث الحالة
   Widget _buildStatusUpdateSheet(BuildContext context, ThemeData theme, Order task) {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -333,11 +335,11 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
             style: theme.textTheme.titleLarge,
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.xl),
           AppButton(
             label: 'قيد التوصيل',
             icon: Icons.delivery_dining,
-            color: Colors.blue,
+            color: AppColors.info,
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
@@ -345,11 +347,11 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
               );
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           AppButton(
             label: 'تم التسليم',
             icon: Icons.check_circle,
-            color: Colors.green,
+            color: AppColors.success,
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
@@ -357,11 +359,11 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
               );
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           AppButton(
             label: 'تأخير',
             icon: Icons.warning,
-            color: Colors.orange,
+            color: AppColors.warning,
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(

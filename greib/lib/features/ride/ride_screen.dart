@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
 
-// صفحة المواصلات والتنقل
 class RideScreen extends StatelessWidget {
   const RideScreen({super.key});
 
@@ -51,25 +51,24 @@ class RideScreen extends StatelessWidget {
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // بطاقة ترحيبية
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFF9C27B0), Color(0xFFCE93D8)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadii.lg),
               ),
               child: Row(
                 children: [
                   const Text('🚗', style: TextStyle(fontSize: 40)),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,7 +79,7 @@ class RideScreen extends StatelessWidget {
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           'سائقين متاحين حولك الآن',
                           style: theme.textTheme.bodyMedium?.copyWith(
@@ -93,12 +92,11 @@ class RideScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
 
-            // حقول الموقع
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Column(
                   children: [
                     TextField(
@@ -108,7 +106,7 @@ class RideScreen extends StatelessWidget {
                         hintText: 'موقعك الحالي',
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     TextField(
                       decoration: const InputDecoration(
                         labelText: 'وجهتك',
@@ -120,27 +118,25 @@ class RideScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
 
-            // خيارات السيارة
             Text(
               'اختر سيارتك',
               style: theme.textTheme.headlineMedium,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
 
-            // قائمة الخيارات
             ...rideOptions.map((ride) {
               return Card(
-                margin: const EdgeInsets.symmetric(vertical: 6),
+                margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                 child: ListTile(
-                  contentPadding: const EdgeInsets.all(12),
+                  contentPadding: const EdgeInsets.all(AppSpacing.md),
                   leading: Container(
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF9C27B0).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      color: const Color(0xFF9C27B0).withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(AppRadii.md),
                     ),
                     child: Center(
                       child: Text(
@@ -156,17 +152,17 @@ class RideScreen extends StatelessWidget {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(ride['desc']!),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: AppSpacing.xs),
                       Row(
                         children: [
-                          const Icon(Icons.star, size: 14, color: Colors.amber),
-                          const SizedBox(width: 4),
+                          const Icon(Icons.star, size: 14, color: AppColors.warning),
+                          const SizedBox(width: AppSpacing.xs),
                           Text(ride['rating']!),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: AppSpacing.md),
                           const Icon(Icons.schedule, size: 14),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: AppSpacing.xs),
                           Text('يصل خلال ${ride['time']}'),
                         ],
                       ),
@@ -176,16 +172,15 @@ class RideScreen extends StatelessWidget {
                     ride['price']!,
                     style: theme.textTheme.titleSmall?.copyWith(
                       color: const Color(0xFF9C27B0),
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
               );
-            }).toList(),
+            }),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
 
-            // زر طلب سيارة
             AppButton(
               label: 'اطلب سيارة الآن',
               icon: Icons.local_taxi,
@@ -194,7 +189,7 @@ class RideScreen extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('جارٍ البحث عن سائق قريب منك... 🚗'),
-                    backgroundColor: Colors.purple,
+                    backgroundColor: AppColors.info,
                   ),
                 );
               },

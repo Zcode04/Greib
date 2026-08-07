@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/mock_data/mock_data.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
+import '../../shared_widgets/detail_page_template.dart';
 
 // قالب صفحة خدمة موحد لجميع الخدمات الست
 class ServiceTemplateScreen extends StatelessWidget {
@@ -60,169 +62,279 @@ class ServiceTemplateScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final items = _demoItems;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(service.title),
-        backgroundColor: service.color,
-        foregroundColor: Colors.white,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // بطاقة وصف الخدمة
-            Container(
-              padding: const EdgeInsets.all(16),
+      body: Stack(
+        children: [
+          // الخلفية مع توهج بلون الخدمة
+          Positioned.fill(
+            child: Container(
               decoration: BoxDecoration(
-                color: service.color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: isDark
+                      ? [
+                          service.color.withValues(alpha: 0.06),
+                          AppColors.backgroundPrimary,
+                          AppColors.backgroundPrimary,
+                        ]
+                      : [
+                          service.color.withValues(alpha: 0.04),
+                          AppColors.lightBackground,
+                          AppColors.lightBackground,
+                        ],
+                ),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 56,
-                    height: 56,
+            ),
+          ),
+
+          Positioned.fill(
+            child: CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  expandedHeight: 180,
+                  pinned: true,
+                  backgroundColor: isDark
+                      ? AppColors.backgroundPrimary
+                      : AppColors.lightBackground,
+                  leading: Container(
+                    margin: const EdgeInsets.all(AppSpacing.sm),
                     decoration: BoxDecoration(
-                      color: service.color,
-                      borderRadius: BorderRadius.circular(16),
+                      color: isDark
+                          ? AppColors.surfaceCard.withValues(alpha: 0.9)
+                          : AppColors.lightSurface.withValues(alpha: 0.9),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isDark ? AppColors.outline : AppColors.lightOutline,
+                      ),
                     ),
-                    child: Icon(
-                      MockData.getIconByName(service.iconName),
-                      color: Colors.white,
-                      size: 30,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+                      onPressed: () => Navigator.maybePop(context),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            service.color.withValues(alpha: 0.2),
+                            service.color.withValues(alpha: 0.05),
+                          ],
+                        ),
+                        borderRadius: const BorderRadius.vertical(
+                          bottom: Radius.circular(AppRadii.xxl),
+                        ),
+                      ),
+                      child: Center(
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.surfaceCard
+                                : AppColors.lightSurface,
+                            borderRadius: BorderRadius.circular(AppRadii.xxl),
+                            border: Border.all(
+                              color: service.color.withValues(alpha: 0.3),
+                              width: 1.5,
+                            ),
+                            boxShadow: AppShadows.glowGreen,
+                          ),
+                          child: Icon(
+                            MockData.getIconByName(service.iconName),
+                            size: 48,
+                            color: service.color,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.xl),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           service.title,
-                          style: theme.textTheme.titleLarge,
+                          style: theme.textTheme.headlineLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.sm),
                         Text(
                           service.subtitle,
-                          style: theme.textTheme.bodyMedium,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xl),
+
+                        Text(
+                          'الخيارات المتاحة',
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+
+                        ...items.map((item) {
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => DetailPageTemplate(
+                                    title: item['name']!,
+                                    subtitle: item['desc']!,
+                                    icon: MockData.getIconByName(service.iconName),
+                                    accentColor: service.color,
+                                    price: item['price'],
+                                    deliveryTime: item['time'],
+                                    rating: item['rating'],
+                                    description:
+                                        '${item['name']} - ${item['desc']}. متوفر الآن عبر گريب منك.',
+                                    primaryActionLabel: 'اطلب الآن',
+                                    secondaryActionLabel: 'أضف للمفضلة',
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                              padding: const EdgeInsets.all(AppSpacing.md),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColors.surfaceCard
+                                    : AppColors.lightSurface,
+                                borderRadius: BorderRadius.circular(AppRadii.xl),
+                                border: Border.all(
+                                  color: service.color.withValues(alpha: 0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color: service.color.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(AppRadii.md),
+                                    ),
+                                    child: Icon(
+                                      MockData.getIconByName(service.iconName),
+                                      color: service.color,
+                                      size: 24,
+                                    ),
+                                  ),
+                                  const SizedBox(width: AppSpacing.md),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item['name']!,
+                                          style: theme.textTheme.titleMedium?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        const SizedBox(height: AppSpacing.xs),
+                                        Text(
+                                          item['desc']!,
+                                          style: theme.textTheme.bodySmall?.copyWith(
+                                            color: theme.colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                        const SizedBox(height: AppSpacing.sm),
+                                        Row(
+                                          children: [
+                                            Icon(Icons.star, size: 14, color: AppColors.warning),
+                                            const SizedBox(width: AppSpacing.xs),
+                                            Text(
+                                              item['rating']!,
+                                              style: theme.textTheme.labelMedium,
+                                            ),
+                                            const SizedBox(width: AppSpacing.md),
+                                            Icon(Icons.schedule, size: 14, color: AppColors.info),
+                                            const SizedBox(width: AppSpacing.xs),
+                                            Text(
+                                              item['time']!,
+                                              style: theme.textTheme.labelMedium,
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: AppSpacing.sm),
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        item['price']!,
+                                        style: theme.textTheme.titleSmall?.copyWith(
+                                          color: AppColors.accentPrimary,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                      const SizedBox(height: AppSpacing.sm),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: AppSpacing.md,
+                                          vertical: AppSpacing.xs,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.accentPrimary,
+                                          borderRadius: BorderRadius.circular(AppRadii.full),
+                                        ),
+                                        child: const Text(
+                                          'اطلب الآن',
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
+
+                        const SizedBox(height: AppSpacing.lg),
+
+                        // زر إنشاء طلب جديد لهذه الخدمة
+                        AppButton(
+                          label: 'اطلب من ${service.title}',
+                          icon: Icons.add_shopping_cart,
+                          color: service.color,
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (context) => _buildCreateOrderSheet(context, theme),
+                            );
+                          },
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // قائمة الخيارات
-            Text(
-              'الخيارات المتاحة',
-              style: theme.textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 12),
-
-            ...items.map((item) {
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(12),
-                  leading: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: service.color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      MockData.getIconByName(service.iconName),
-                      color: service.color,
-                      size: 24,
-                    ),
-                  ),
-                  title: Text(
-                    item['name']!,
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 4),
-                      Text(item['desc']!),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(Icons.star, size: 14, color: Colors.amber),
-                          const SizedBox(width: 4),
-                          Text(item['rating']!),
-                          const SizedBox(width: 12),
-                          Icon(Icons.schedule, size: 14),
-                          const SizedBox(width: 4),
-                          Text(item['time']!),
-                        ],
-                      ),
-                    ],
-                  ),
-                  trailing: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        item['price']!,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      GestureDetector(
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('تمت إضافة ${item['name']} إلى سلتك 🛒'),
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primary,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'اطلب الآن',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
-              );
-            }).toList(),
-
-            const SizedBox(height: 16),
-
-            // زر إنشاء طلب جديد لهذه الخدمة
-            AppButton(
-              label: 'اطلب من ${service.title}',
-              icon: Icons.add_shopping_cart,
-              color: service.color,
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (context) => _buildCreateOrderSheet(context, theme),
-                );
-              },
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -230,7 +342,7 @@ class ServiceTemplateScreen extends StatelessWidget {
   // نافذة إنشاء طلب
   Widget _buildCreateOrderSheet(BuildContext context, ThemeData theme) {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -240,7 +352,7 @@ class ServiceTemplateScreen extends StatelessWidget {
             style: theme.textTheme.titleLarge,
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.xl),
           TextField(
             decoration: const InputDecoration(
               labelText: 'وصف الطلب',
@@ -249,14 +361,14 @@ class ServiceTemplateScreen extends StatelessWidget {
             ),
             maxLines: 3,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           TextField(
             decoration: const InputDecoration(
               labelText: 'موقع التوصيل',
               prefixIcon: Icon(Icons.location_on),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.xl),
           AppButton(
             label: 'إرسال الطلب',
             icon: Icons.send,
@@ -266,7 +378,7 @@ class ServiceTemplateScreen extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('تم إرسال طلبك بنجاح ✅'),
-                  backgroundColor: Colors.green,
+                  backgroundColor: AppColors.success,
                 ),
               );
             },

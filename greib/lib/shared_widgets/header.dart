@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../core/theme/app_theme.dart';
+import '../core/theme/design_tokens.dart';
 import '../core/theme/theme_controller.dart';
+import '../core/localization/app_localizations.dart';
 import '../core/permissions/permissions.dart';
 import '../features/auth/mock_auth.dart';
 
-// هيدر موحد يُعاد استخدامه في كل الشاشات
 class Header extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool showBackButton;
@@ -34,51 +34,137 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.rocket_launch,
-            color: theme.colorScheme.primary,
-            size: 24,
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppColors.accentPrimary.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(AppRadii.sm),
+              border: Border.all(
+                color: AppColors.accentPrimary.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: const Icon(
+              Icons.rocket_launch,
+              color: AppColors.accentPrimary,
+              size: 18,
+            ),
           ),
-          const SizedBox(width: 8),
-          Text(title),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            title,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
       leading: showBackButton
-          ? IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new),
-              onPressed: () => Navigator.maybePop(context),
+          ? Container(
+              margin: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.surfaceCard
+                    : AppColors.lightSurfaceVariant,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? AppColors.outline : AppColors.lightOutline,
+                ),
+              ),
+              child: IconButton(
+                icon: Icon(
+                  Icons.arrow_back_ios_new,
+                  size: 18,
+                  color: theme.colorScheme.onSurface,
+                ),
+                onPressed: () => Navigator.maybePop(context),
+              ),
             )
           : null,
       actions: [
         if (showDarkModeToggle)
-          IconButton(
-            icon: Icon(
-              isDark ? Icons.light_mode : Icons.dark_mode,
+          Container(
+            margin: const EdgeInsets.all(AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppColors.surfaceCard
+                  : AppColors.lightSurfaceVariant,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isDark ? AppColors.outline : AppColors.lightOutline,
+              ),
             ),
-            onPressed: () {
-              context.read<ThemeController>().toggleTheme();
-            },
-            tooltip: isDark ? 'الوضع النهاري' : 'الوضع الليلي',
+            child: IconButton(
+              icon: Icon(
+                isDark ? Icons.light_mode : Icons.dark_mode,
+                size: 20,
+              ),
+              onPressed: () {
+                context.read<ThemeController>().toggleTheme();
+              },
+              tooltip: isDark ? 'الوضع النهاري' : 'الوضع الليلي',
+            ),
+          ),
+        if (showDarkModeToggle)
+          Container(
+            margin: const EdgeInsets.all(AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppColors.surfaceCard
+                  : AppColors.lightSurfaceVariant,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isDark ? AppColors.outline : AppColors.lightOutline,
+              ),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.language, size: 20),
+              onPressed: () {
+                context.read<LanguageProvider>().toggleLanguage();
+              },
+              tooltip: 'تبديل اللغة',
+            ),
           ),
         if (showNotifications)
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => Navigator.pushNamed(context, '/notifications'),
-            tooltip: 'الإشعارات',
+          Container(
+            margin: const EdgeInsets.all(AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppColors.surfaceCard
+                  : AppColors.lightSurfaceVariant,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isDark ? AppColors.outline : AppColors.lightOutline,
+              ),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.notifications_outlined, size: 20),
+              onPressed: () => Navigator.pushNamed(context, '/notifications'),
+              tooltip: 'الإشعارات',
+            ),
           ),
-        if (actions != null) ...actions!,
-        // زر البروفايل
-        IconButton(
-          icon: const Icon(Icons.person_outline),
-          onPressed: () => Navigator.pushNamed(context, '/profile'),
-          tooltip: 'البروفايل',
+        ...?actions,
+        Container(
+          margin: const EdgeInsets.all(AppSpacing.sm),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceCard : AppColors.lightSurfaceVariant,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isDark ? AppColors.outline : AppColors.lightOutline,
+            ),
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.person_outline, size: 20),
+            onPressed: () => Navigator.pushNamed(context, '/profile'),
+            tooltip: 'البروفايل',
+          ),
         ),
       ],
     );
   }
 }
 
-// هيدر مخصص للوحات التحكم
 class DashboardHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final String role;
@@ -97,12 +183,15 @@ class DashboardHeader extends StatelessWidget implements PreferredSizeWidget {
     final roleEnum = PermissionService.roleFromString(role);
     final roleColor = roleEnum != null
         ? PermissionService.roleColor(roleEnum)
-        : AppColors.primary;
+        : AppColors.accentPrimary;
 
     return AppBar(
-      title: Text(title),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.w700),
+      ),
       backgroundColor: roleColor,
-      foregroundColor: Colors.white,
+      foregroundColor: Colors.black,
       actions: [
         IconButton(
           icon: const Icon(Icons.logout),

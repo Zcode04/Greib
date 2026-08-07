@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../core/notifications/notification_manager.dart';
 import '../../shared_widgets/app_button.dart';
+import '../../shared_widgets/loading_states.dart';
 
-// شاشة الإشعارات
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
@@ -14,7 +15,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
-    // تحميل الإشعارات الوهمية
     NotificationManager.instance.loadMockNotifications();
   }
 
@@ -39,34 +39,28 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
           if (notifManager.notifications.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  children: [
-                    Icon(Icons.notifications_off, size: 64, color: theme.colorScheme.onSurfaceVariant),
-                    const SizedBox(height: 16),
-                    Text('لا توجد إشعارات', style: theme.textTheme.titleMedium),
-                  ],
-                ),
-              ),
+            EmptyState(
+              icon: Icons.notifications_off,
+              title: 'لا توجد إشعارات',
+              description: 'ستظهر الإشعارات هنا عند وصولها',
             )
           else
             ...notifManager.notifications.map((notif) {
               return Card(
-                margin: const EdgeInsets.symmetric(vertical: 6),
+                margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                 child: ListTile(
+                  contentPadding: const EdgeInsets.all(AppSpacing.md),
                   leading: Container(
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
                       color: notif.isRead
                           ? theme.colorScheme.surfaceContainerHighest
-                          : theme.colorScheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                          : theme.colorScheme.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(AppRadii.md),
                     ),
                     child: Icon(
                       _getIconForType(notif.type),
@@ -79,14 +73,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   title: Text(
                     notif.title,
                     style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: notif.isRead ? FontWeight.normal : FontWeight.bold,
+                      fontWeight: notif.isRead ? FontWeight.normal : FontWeight.w700,
                     ),
                   ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(notif.body),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(
                         notif.timestamp.toString().substring(0, 16),
                         style: theme.textTheme.bodySmall,
@@ -99,7 +93,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           width: 8,
                           height: 8,
                           decoration: const BoxDecoration(
-                            color: Colors.blue,
+                            color: AppColors.primary,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -112,14 +106,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   },
                 ),
               );
-            }).toList(),
-          const SizedBox(height: 16),
+            }),
+          const SizedBox(height: AppSpacing.lg),
           if (notifManager.notifications.isNotEmpty)
             AppButton(
               label: 'مسح الكل',
               icon: Icons.delete_sweep,
               isOutlined: true,
-              color: theme.colorScheme.error,
+              color: AppColors.error,
               onPressed: () {
                 notifManager.clearAll();
                 setState(() {});

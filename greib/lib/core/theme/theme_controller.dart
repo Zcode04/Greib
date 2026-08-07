@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-// متحكم الوضع الليلي والنهاري
+// متحكم الوضع الليلي والنهاري - الداكن هو الافتراضي (Dark as Default)
 class ThemeController extends ChangeNotifier {
-  bool _isDarkMode = false;
+  bool _isDarkMode = true;
 
   bool get isDarkMode => _isDarkMode;
   ThemeMode get themeMode => _isDarkMode ? ThemeMode.dark : ThemeMode.light;

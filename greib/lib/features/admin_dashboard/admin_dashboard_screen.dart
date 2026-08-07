@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../core/mock_data/mock_data.dart';
 import '../../core/permissions/permissions.dart';
 import '../../features/auth/mock_auth.dart';
 import '../../shared_widgets/app_button.dart';
 
-// لوحة المشرفين
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
 
@@ -20,27 +20,37 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final theme = Theme.of(context);
     final role = AuthService.instance.currentRole;
 
-    // التحقق من الصلاحية
     if (role != UserRole.admin) {
       return Scaffold(
         appBar: AppBar(title: const Text('لوحة المشرفين')),
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.lock, size: 64, color: Colors.red),
-              const SizedBox(height: 16),
-              Text(
-                'ليس لديك صلاحية الوصول',
-                style: theme.textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              AppButton(
-                label: 'العودة للرئيسية',
-                icon: Icons.home,
-                onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
-              ),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(AppRadii.lg),
+                  ),
+                  child: const Icon(Icons.lock, size: 32, color: AppColors.error),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  'ليس لديك صلاحية الوصول',
+                  style: theme.textTheme.titleLarge,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                AppButton(
+                  label: 'العودة للرئيسية',
+                  icon: Icons.home,
+                  onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -49,7 +59,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('لوحة المشرفين'),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.error,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -91,62 +101,60 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     }
   }
 
-  // لوحة الإحصائيات
   Widget _buildDashboard(ThemeData theme) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('نظرة عامة', style: theme.textTheme.headlineMedium),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
 
-          // بطاقات الإحصائيات
           GridView.count(
             crossAxisCount: 2,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
+            crossAxisSpacing: AppSpacing.md,
+            mainAxisSpacing: AppSpacing.md,
             childAspectRatio: 1.5,
             children: [
-              _buildStatCard(theme, 'الطلبات', '12', Icons.receipt_long, Colors.blue),
-              _buildStatCard(theme, 'المستخدمين', '1,234', Icons.people, Colors.green),
-              _buildStatCard(theme, 'الوكلاء', '18', Icons.delivery_dining, Colors.orange),
-              _buildStatCard(theme, 'الإيرادات', '45,600', Icons.monetization_on, Colors.purple),
+              _buildStatCard(theme, 'الطلبات', '12', Icons.receipt_long, AppColors.info),
+              _buildStatCard(theme, 'المستخدمين', '1,234', Icons.people, AppColors.success),
+              _buildStatCard(theme, 'الوكلاء', '18', Icons.delivery_dining, AppColors.secondary),
+              _buildStatCard(theme, 'الإيرادات', '45,600', Icons.monetization_on, AppColors.info),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.xl),
 
-          // آخر الطلبات
           Text('آخر الطلبات', style: theme.textTheme.headlineMedium),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
 
           ...MockData.demoOrders.map((order) {
             return Card(
-              margin: const EdgeInsets.symmetric(vertical: 6),
+              margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
               child: ListTile(
+                contentPadding: const EdgeInsets.all(AppSpacing.md),
                 title: Text(order.description),
                 subtitle: Text('${order.pickupLocation} → ${order.deliveryLocation}'),
                 trailing: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                   decoration: BoxDecoration(
                     color: order.status == 'pending'
-                        ? Colors.orange.withValues(alpha: 0.1)
-                        : Colors.green.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                        ? AppColors.warning.withValues(alpha: 0.1)
+                        : AppColors.success.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(AppRadii.sm),
                   ),
                   child: Text(
                     order.status == 'pending' ? 'قيد الانتظار' : 'قيد التنفيذ',
                     style: TextStyle(
                       fontSize: 12,
-                      color: order.status == 'pending' ? Colors.orange : Colors.green,
+                      color: order.status == 'pending' ? AppColors.warning : AppColors.success,
                     ),
                   ),
                 ),
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -155,7 +163,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget _buildStatCard(ThemeData theme, String title, String value, IconData icon, Color color) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -165,7 +173,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               height: 36,
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadii.sm),
               ),
               child: Icon(icon, color: color, size: 20),
             ),
@@ -178,32 +186,30 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  // تبويب إدارة الطلبات
   Widget _buildOrdersTab(ThemeData theme) {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         Text('إدارة الطلبات', style: theme.textTheme.headlineMedium),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
-        // أزرار الإجراءات
         Row(
           children: [
             Expanded(
               child: AppButton(
                 label: 'كل الطلبات',
                 icon: Icons.list,
-                isOutlined: true,
-                color: Colors.blue,
+                type: ButtonType.secondary,
+                color: AppColors.info,
                 onPressed: () {},
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: AppButton(
                 label: 'تعيين وكيل',
                 icon: Icons.person_add,
-                color: Colors.blue,
+                color: AppColors.info,
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('تم تعيين وكيل للطلبات المحددة ✅')),
@@ -213,47 +219,46 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
-        // قائمة الطلبات
         ...MockData.demoOrders.map((order) {
           return Card(
-            margin: const EdgeInsets.symmetric(vertical: 6),
+            margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
             child: ExpansionTile(
               leading: Icon(
                 MockData.getIconByName(order.serviceType),
-                color: Colors.blue,
+                color: AppColors.info,
               ),
               title: Text(order.description),
               subtitle: Text('حالة: ${order.status}'),
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(AppSpacing.lg),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('الاستلام: ${order.pickupLocation}'),
                       Text('التوصيل: ${order.deliveryLocation}'),
                       Text('السعر: ${order.price} درهم'),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.md),
                       Row(
                         children: [
                           Expanded(
                             child: AppButton(
                               label: 'تعيين وكيل',
                               icon: Icons.person_pin,
-                              isOutlined: true,
-                              color: Colors.blue,
+                              type: ButtonType.secondary,
+                              color: AppColors.info,
                               onPressed: () {},
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.md),
                           Expanded(
                             child: AppButton(
                               label: 'إلغاء',
                               icon: Icons.cancel,
-                              isOutlined: true,
-                              color: Colors.red,
+                              type: ButtonType.secondary,
+                              color: AppColors.error,
                               onPressed: () {},
                             ),
                           ),
@@ -265,63 +270,61 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ],
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }
 
-  // تبويب إدارة المستخدمين
   Widget _buildUsersTab(ThemeData theme) {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         Text('إدارة المستخدمين', style: theme.textTheme.headlineMedium),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
-        // قائمة المستخدمين
         ...MockData.demoAccounts.map((user) {
           final roleEnum = PermissionService.roleFromString(user.role);
           return Card(
-            margin: const EdgeInsets.symmetric(vertical: 6),
+            margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
             child: ListTile(
+              contentPadding: const EdgeInsets.all(AppSpacing.md),
               leading: CircleAvatar(
                 backgroundColor: roleEnum != null
-                    ? PermissionService.roleColor(roleEnum).withValues(alpha: 0.2)
-                    : Colors.grey.withValues(alpha: 0.2),
+                    ? PermissionService.roleColor(roleEnum).withValues(alpha: 0.15)
+                    : AppColors.neutral300.withValues(alpha: 0.15),
                 child: Icon(
                   roleEnum != null ? PermissionService.roleIcon(roleEnum) : Icons.person,
-                  color: roleEnum != null ? PermissionService.roleColor(roleEnum) : Colors.grey,
+                  color: roleEnum != null ? PermissionService.roleColor(roleEnum) : AppColors.neutral500,
                 ),
               ),
               title: Text(user.name),
               subtitle: Text(user.email),
               trailing: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                 decoration: BoxDecoration(
                   color: roleEnum != null
                       ? PermissionService.roleColor(roleEnum).withValues(alpha: 0.1)
-                      : Colors.grey.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                      : AppColors.neutral300.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppRadii.sm),
                 ),
                 child: Text(
                   roleEnum != null ? PermissionService.roleLabel(roleEnum) : user.role,
                   style: TextStyle(
                     fontSize: 12,
-                    color: roleEnum != null ? PermissionService.roleColor(roleEnum) : Colors.grey,
+                    color: roleEnum != null ? PermissionService.roleColor(roleEnum) : AppColors.neutral500,
                   ),
                 ),
               ),
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }
 
-  // تبويب إدارة المجموعات
   Widget _buildGroupsTab(ThemeData theme) {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -330,7 +333,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             AppButton(
               label: 'مجموعة جديدة',
               icon: Icons.add,
-              color: Colors.red,
+              color: AppColors.error,
               isFullWidth: false,
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -340,55 +343,57 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
-        // المجموعات
         Card(
           child: ListTile(
+            contentPadding: const EdgeInsets.all(AppSpacing.md),
             leading: Container(
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.info.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Icon(Icons.group, color: Colors.blue),
+              child: const Icon(Icons.group, color: AppColors.info),
             ),
             title: const Text('فريق التوصيل - دبي'),
             subtitle: const Text('٣ أعضاء'),
-            trailing: const Icon(Icons.arrow_forward_ios),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
           ),
         ),
         Card(
           child: ListTile(
+            contentPadding: const EdgeInsets.all(AppSpacing.md),
             leading: Container(
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.success.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Icon(Icons.group, color: Colors.green),
+              child: const Icon(Icons.group, color: AppColors.success),
             ),
             title: const Text('خدمة العملاء'),
             subtitle: const Text('٥ أعضاء'),
-            trailing: const Icon(Icons.arrow_forward_ios),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
           ),
         ),
         Card(
           child: ListTile(
+            contentPadding: const EdgeInsets.all(AppSpacing.md),
             leading: Container(
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.purple.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.secondary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Icon(Icons.group, color: Colors.purple),
+              child: Icon(Icons.group, color: AppColors.secondaryDark),
             ),
             title: const Text('الإدارة العليا'),
             subtitle: const Text('٢ أعضاء'),
-            trailing: const Icon(Icons.arrow_forward_ios),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
           ),
         ),
       ],

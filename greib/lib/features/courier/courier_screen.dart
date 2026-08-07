@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
 
-// صفحة نقل الطرود (Courier)
 class CourierScreen extends StatelessWidget {
   const CourierScreen({super.key});
 
@@ -51,25 +51,24 @@ class CourierScreen extends StatelessWidget {
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // بطاقة ترحيبية
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFF2196F3), Color(0xFF64B5F6)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadii.lg),
               ),
               child: Row(
                 children: [
                   const Text('📦', style: TextStyle(fontSize: 40)),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,7 +79,7 @@ class CourierScreen extends StatelessWidget {
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           'من المستندات للأثاث الكبير',
                           style: theme.textTheme.bodyMedium?.copyWith(
@@ -93,9 +92,8 @@ class CourierScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
 
-            // إنشاء طلب شحن جديد
             AppButton(
               label: 'إنشاء طلب شحن جديد',
               icon: Icons.add_box,
@@ -108,27 +106,25 @@ class CourierScreen extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
 
-            // خيارات التوصيل
             Text(
               'خيارات التوصيل',
               style: theme.textTheme.headlineMedium,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
 
-            // قائمة الخيارات
             ...courierOptions.map((option) {
               return Card(
-                margin: const EdgeInsets.symmetric(vertical: 8),
+                margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                 child: ListTile(
-                  contentPadding: const EdgeInsets.all(12),
+                  contentPadding: const EdgeInsets.all(AppSpacing.md),
                   leading: Container(
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2196F3).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      color: const Color(0xFF2196F3).withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(AppRadii.md),
                     ),
                     child: Center(
                       child: Text(
@@ -144,17 +140,17 @@ class CourierScreen extends StatelessWidget {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(option['desc']!),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       Row(
                         children: [
                           const Icon(Icons.schedule, size: 14),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: AppSpacing.xs),
                           Text(option['time']!),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: AppSpacing.md),
                           const Icon(Icons.fitness_center, size: 14),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: AppSpacing.xs),
                           Text(option['weight']!),
                         ],
                       ),
@@ -168,10 +164,10 @@ class CourierScreen extends StatelessWidget {
                         option['price']!,
                         style: theme.textTheme.titleSmall?.copyWith(
                           color: const Color(0xFF2196F3),
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       const Text(
                         'اختر',
                         style: TextStyle(
@@ -184,14 +180,13 @@ class CourierScreen extends StatelessWidget {
                   ),
                 ),
               );
-            }).toList(),
+            }),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
 
-            // تتبع الطرد
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -199,7 +194,7 @@ class CourierScreen extends StatelessWidget {
                       'تتبع طردك',
                       style: theme.textTheme.titleMedium,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     TextField(
                       decoration: const InputDecoration(
                         labelText: 'رقم التتبع',
@@ -207,7 +202,7 @@ class CourierScreen extends StatelessWidget {
                         prefixIcon: Icon(Icons.search),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     AppButton(
                       label: 'تتبع الآن',
                       icon: Icons.location_searching,
@@ -216,7 +211,7 @@ class CourierScreen extends StatelessWidget {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('جارٍ البحث عن طردك... 🔍'),
-                            backgroundColor: Colors.blue,
+                            backgroundColor: AppColors.info,
                           ),
                         );
                       },
@@ -231,14 +226,13 @@ class CourierScreen extends StatelessWidget {
     );
   }
 
-  // نافذة إنشاء طلب شحن
   Widget _buildNewShipmentSheet(BuildContext context, ThemeData theme) {
     return Padding(
       padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        left: AppSpacing.lg,
+        right: AppSpacing.lg,
+        top: AppSpacing.lg,
+        bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -249,7 +243,7 @@ class CourierScreen extends StatelessWidget {
             style: theme.textTheme.titleLarge,
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.xl),
           TextField(
             decoration: const InputDecoration(
               labelText: 'وصف الطرد',
@@ -257,21 +251,21 @@ class CourierScreen extends StatelessWidget {
               prefixIcon: Icon(Icons.inventory_2),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           TextField(
             decoration: const InputDecoration(
               labelText: 'موقع الاستلام',
               prefixIcon: Icon(Icons.location_on),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           TextField(
             decoration: const InputDecoration(
               labelText: 'موقع التوصيل',
               prefixIcon: Icon(Icons.location_on_outlined),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.xl),
           AppButton(
             label: 'إرسال الطلب',
             icon: Icons.send,
@@ -281,7 +275,7 @@ class CourierScreen extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('تم إرسال طلب الشحن بنجاح ✅'),
-                  backgroundColor: Colors.green,
+                  backgroundColor: AppColors.success,
                 ),
               );
             },

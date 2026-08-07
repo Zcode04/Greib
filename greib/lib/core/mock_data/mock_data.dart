@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/design_tokens.dart';
 
 // ==================== نماذج البيانات (Models) ====================
 
@@ -7,7 +8,7 @@ class UserAccount {
   final String name;
   final String email;
   final String phone;
-  final String role; // admin / agent / user
+  final String role;
   final String avatar;
 
   const UserAccount({
@@ -60,7 +61,7 @@ class Order {
   final String id;
   final String userId;
   final String serviceType;
-  final String status; // pending / assigned / in_transit / delivered / cancelled
+  final String status;
   final String description;
   final double price;
   final String? agentId;
@@ -105,7 +106,7 @@ class ChatConversation {
   final String title;
   final List<String> participantIds;
   final List<ChatMessage> messages;
-  final String type; // direct / group
+  final String type;
   final String? createdBy;
 
   const ChatConversation({
@@ -118,8 +119,6 @@ class ChatConversation {
   });
 }
 
-// ==================== ملف تعريف المستخدم ====================
-
 class AppUserProfile {
   final String id;
   final String name;
@@ -128,6 +127,8 @@ class AppUserProfile {
   final String email;
   final String? address;
   final String? avatarUrl;
+  final String membershipTier;
+  final int loyaltyPoints;
 
   const AppUserProfile({
     required this.id,
@@ -137,6 +138,8 @@ class AppUserProfile {
     required this.email,
     this.address,
     this.avatarUrl,
+    this.membershipTier = 'regular',
+    this.loyaltyPoints = 1250,
   });
 
   Map<String, dynamic> toJson() => {
@@ -147,6 +150,8 @@ class AppUserProfile {
         'email': email,
         'address': address,
         'avatarUrl': avatarUrl,
+        'membershipTier': membershipTier,
+        'loyaltyPoints': loyaltyPoints,
       };
 
   factory AppUserProfile.fromJson(Map<String, dynamic> json) => AppUserProfile(
@@ -157,13 +162,14 @@ class AppUserProfile {
         email: json['email'],
         address: json['address'],
         avatarUrl: json['avatarUrl'],
+        membershipTier: json['membershipTier'] ?? 'regular',
+        loyaltyPoints: json['loyaltyPoints'] ?? 0,
       );
 }
 
 // ==================== البيانات الوهمية (Mock Data) ====================
 
 class MockData {
-  // حسابات تجريبية
   static const List<UserAccount> demoAccounts = [
     UserAccount(
       id: 'u1',
@@ -199,6 +205,8 @@ class MockData {
       phone: '+971501234567',
       email: 'user@greib.com',
       address: 'دبي، الممزر، شارع 14',
+      membershipTier: 'gold',
+      loyaltyPoints: 1250,
     ),
     AppUserProfile(
       id: 'a1',
@@ -207,6 +215,8 @@ class MockData {
       phone: '+971502345678',
       email: 'agent@greib.com',
       address: 'دبي، القصيص',
+      membershipTier: 'regular',
+      loyaltyPoints: 850,
     ),
     AppUserProfile(
       id: 'adm1',
@@ -215,10 +225,11 @@ class MockData {
       phone: '+971503456789',
       email: 'admin@greib.com',
       address: 'أبوظبي، مدينة خليفة',
+      membershipTier: 'gold',
+      loyaltyPoints: 2100,
     ),
   ];
 
-  // الطلبات الوهمية
   static const List<Order> demoOrders = [
     Order(
       id: 'ord1',
@@ -254,7 +265,6 @@ class MockData {
     ),
   ];
 
-  // محادثات وهمية
   static const List<ChatConversation> demoConversations = [
     ChatConversation(
       id: 'chat1',
@@ -301,7 +311,6 @@ class MockData {
     ),
   ];
 
-  // الإشعارات الوهمية
   static const List<Map<String, String>> demoNotifications = [
     {
       'id': 'n1',
@@ -332,7 +341,7 @@ class MockData {
           title: 'توصيل طعام',
           subtitle: 'من مطعمك المفضل',
           iconName: 'utensils',
-          color: const Color(0xFFFF9800),
+          color: AppColors.serviceFood,
           route: '/food',
         ),
         ServiceCategory(
@@ -340,7 +349,7 @@ class MockData {
           title: 'الصيدلية',
           subtitle: 'أدوية ووصفات',
           iconName: 'pills',
-          color: const Color(0xFF4CAF50),
+          color: AppColors.servicePharmacy,
           route: '/pharmacy',
         ),
         ServiceCategory(
@@ -348,7 +357,7 @@ class MockData {
           title: 'نقل طرود',
           subtitle: 'توصيل سريع',
           iconName: 'package',
-          color: const Color(0xFF2196F3),
+          color: AppColors.serviceCourier,
           route: '/courier',
         ),
         ServiceCategory(
@@ -356,7 +365,7 @@ class MockData {
           title: 'المواصلات',
           subtitle: 'تنقل براحة',
           iconName: 'car',
-          color: const Color(0xFF9C27B0),
+          color: AppColors.serviceRide,
           route: '/ride',
         ),
         ServiceCategory(
@@ -364,7 +373,7 @@ class MockData {
           title: 'تسوق ومقاضي',
           subtitle: 'كل احتياجاتك',
           iconName: 'shopping-cart',
-          color: const Color(0xFFE91E63),
+          color: AppColors.serviceShopping,
           route: '/shopping',
         ),
         ServiceCategory(
@@ -372,12 +381,11 @@ class MockData {
           title: 'سياحة وفعاليات',
           subtitle: 'استكشف المكان',
           iconName: 'palmtree',
-          color: const Color(0xFF00BCD4),
+          color: AppColors.serviceTourism,
           route: '/tourism',
         ),
       ];
 
-  // دالة لإرجاع أيقونة من اسم
   static IconData getIconByName(String name) {
     switch (name) {
       case 'utensils':

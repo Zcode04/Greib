@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../core/mock_data/mock_data.dart';
-import '../core/permissions/permissions.dart';
-import 'app_button.dart';
+import '../../core/theme/design_tokens.dart';
+import '../../core/mock_data/mock_data.dart';
+import '../../core/permissions/permissions.dart';
+import '../../shared_widgets/app_button.dart';
 
-// مكوّن موحّد لعرض وتعديل بيانات المستخدم لأي نوع حساب
 class ProfileWidget extends StatefulWidget {
   final AppUserProfile profile;
   final bool isEditable;
@@ -49,59 +49,65 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     final roleEnum = PermissionService.roleFromString(widget.profile.role);
 
     return Card(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(AppSpacing.lg),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // صورة البروفايل
             Center(
               child: Container(
                 width: 96,
                 height: 96,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: (roleEnum != null ? PermissionService.roleColor(roleEnum) : theme.colorScheme.primary).withValues(alpha: 0.15),
+                  gradient: LinearGradient(
+                    colors: [
+                      (roleEnum != null ? PermissionService.roleColor(roleEnum) : AppColors.primary)
+                          .withValues(alpha: 0.2),
+                      (roleEnum != null ? PermissionService.roleColor(roleEnum) : AppColors.primary)
+                          .withValues(alpha: 0.08),
+                    ],
+                  ),
                 ),
                 child: Icon(
                   roleEnum != null ? PermissionService.roleIcon(roleEnum) : Icons.person,
                   size: 48,
-                  color: roleEnum != null ? PermissionService.roleColor(roleEnum) : theme.colorScheme.primary,
+                  color: roleEnum != null ? PermissionService.roleColor(roleEnum) : AppColors.primary,
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.lg),
 
-            // الاسم
             Center(
               child: Text(
                 widget.profile.name,
-                style: theme.textTheme.titleLarge,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.sm),
 
-            // الدور
             Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: (roleEnum != null ? PermissionService.roleColor(roleEnum) : theme.colorScheme.primary).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
+                  color: (roleEnum != null ? PermissionService.roleColor(roleEnum) : AppColors.primary)
+                      .withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppRadii.full),
                 ),
                 child: Text(
                   roleEnum != null ? PermissionService.roleLabel(roleEnum) : 'مستخدم',
                   style: TextStyle(
-                    color: roleEnum != null ? PermissionService.roleColor(roleEnum) : theme.colorScheme.primary,
+                    color: roleEnum != null ? PermissionService.roleColor(roleEnum) : AppColors.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
 
-            // حقول البيانات
             if (_isEditing) ...[
               TextField(
                 controller: _nameController,
@@ -110,7 +116,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                   prefixIcon: Icon(Icons.person_outline),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               TextField(
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
@@ -119,7 +125,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                   prefixIcon: Icon(Icons.phone_outlined),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -128,7 +134,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                   prefixIcon: Icon(Icons.email_outlined),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               TextField(
                 controller: _addressController,
                 decoration: const InputDecoration(
@@ -136,7 +142,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                   prefixIcon: Icon(Icons.location_on_outlined),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.xl),
               Row(
                 children: [
                   Expanded(
@@ -153,7 +159,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                       },
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: AppButton(
                       label: 'إلغاء',
@@ -173,14 +179,13 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                 ],
               ),
             ] else ...[
-              // عرض البيانات
-              _buildInfoRow(theme, Icons.person_outline, 'الاسم', widget.profile.name),
-              _buildInfoRow(theme, Icons.phone_outlined, 'الهاتف', widget.profile.phone),
-              _buildInfoRow(theme, Icons.email_outlined, 'البريد', widget.profile.email),
+              _buildInfoRow(context, Icons.person_outline, 'الاسم', widget.profile.name),
+              _buildInfoRow(context, Icons.phone_outlined, 'الهاتف', widget.profile.phone),
+              _buildInfoRow(context, Icons.email_outlined, 'البريد', widget.profile.email),
               if (widget.profile.address != null)
-                _buildInfoRow(theme, Icons.location_on_outlined, 'العنوان', widget.profile.address!),
-              if (widget.isEditable) ...[
-                const SizedBox(height: 20),
+                _buildInfoRow(context, Icons.location_on_outlined, 'العنوان', widget.profile.address!),
+              const SizedBox(height: AppSpacing.xl),
+              if (widget.isEditable)
                 AppButton(
                   label: 'تعديل البيانات',
                   icon: Icons.edit,
@@ -188,7 +193,6 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                     _isEditing = true;
                   }),
                 ),
-              ],
             ],
           ],
         ),
@@ -196,27 +200,28 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     );
   }
 
-  Widget _buildInfoRow(ThemeData theme, IconData icon, String label, String value) {
+  Widget _buildInfoRow(BuildContext context, IconData icon, String label, String value) {
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Row(
         children: [
           Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+              color: AppColors.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(AppRadii.sm),
             ),
-            child: Icon(icon, size: 20, color: theme.colorScheme.primary),
+            child: Icon(icon, size: 20, color: AppColors.primary),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label, style: theme.textTheme.bodySmall),
-                const SizedBox(height: 2),
+                const SizedBox(height: AppSpacing.xs),
                 Text(value, style: theme.textTheme.titleMedium),
               ],
             ),
@@ -227,14 +232,11 @@ class _ProfileWidgetState extends State<ProfileWidget> {
   }
 }
 
-// شاشة البروفايل الكاملة
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    // الحصول على البروفايل من البيانات الوهمية
     final profile = MockData.demoProfiles.first;
 
     return Scaffold(
@@ -245,13 +247,13 @@ class ProfileScreen extends StatelessWidget {
         child: Column(
           children: [
             ProfileWidget(profile: profile),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: AppButton(
                 label: 'تسجيل الخروج',
                 icon: Icons.logout,
-                color: theme.colorScheme.error,
+                color: AppColors.error,
                 onPressed: () {
                   Navigator.pushNamedAndRemoveUntil(
                     context,

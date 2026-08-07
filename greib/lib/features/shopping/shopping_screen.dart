@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
 
-// صفحة التسوق والمقاضي
 class ShoppingScreen extends StatelessWidget {
   const ShoppingScreen({super.key});
 
@@ -56,7 +56,6 @@ class ShoppingScreen extends StatelessWidget {
     },
   ];
 
-  // تصنيفات لمتاجر
   static const List<Map<String, String>> categories = [
     {'name': 'خضار وفواكه', 'icon': '🥦', 'color': '#4CAF50'},
     {'name': 'مشروبات', 'icon': '🥤', 'color': '#2196F3'},
@@ -77,25 +76,24 @@ class ShoppingScreen extends StatelessWidget {
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // بطاقة ترحيبية
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFFE91E63), Color(0xFFF06292)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadii.lg),
               ),
               child: Row(
                 children: [
                   const Text('🛒', style: TextStyle(fontSize: 40)),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,7 +104,7 @@ class ShoppingScreen extends StatelessWidget {
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           'أكثر من 100 متجر متاح',
                           style: theme.textTheme.bodyMedium?.copyWith(
@@ -119,31 +117,29 @@ class ShoppingScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
 
-            // التصنيفات
             Text(
               'تصنيفات سريعة',
               style: theme.textTheme.headlineMedium,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
 
-            // شبكة التصنيفات
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
                 childAspectRatio: 0.9,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
+                crossAxisSpacing: AppSpacing.md,
+                mainAxisSpacing: AppSpacing.md,
               ),
               itemCount: categories.length,
               itemBuilder: (context, index) {
                 final category = categories[index];
                 return Card(
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadii.lg),
                     onTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -159,7 +155,7 @@ class ShoppingScreen extends StatelessWidget {
                           category['icon']!,
                           style: const TextStyle(fontSize: 28),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppSpacing.sm),
                         Text(
                           category['name']!,
                           style: theme.textTheme.bodySmall,
@@ -171,27 +167,25 @@ class ShoppingScreen extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
 
-            // المتاجر
             Text(
               'أقرب المتاجر',
               style: theme.textTheme.headlineMedium,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
 
-            // قائمة المتاجر
             ...stores.map((store) {
               return Card(
-                margin: const EdgeInsets.symmetric(vertical: 8),
+                margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                 child: ListTile(
-                  contentPadding: const EdgeInsets.all(12),
+                  contentPadding: const EdgeInsets.all(AppSpacing.md),
                   leading: Container(
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE91E63).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      color: const Color(0xFFE91E63).withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(AppRadii.md),
                     ),
                     child: Center(
                       child: Text(
@@ -207,9 +201,9 @@ class ShoppingScreen extends StatelessWidget {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(store['desc']!),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(
                         store['categories']!,
                         style: theme.textTheme.bodySmall?.copyWith(
@@ -225,12 +219,12 @@ class ShoppingScreen extends StatelessWidget {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.star, size: 14, color: Colors.amber),
-                          const SizedBox(width: 2),
+                          const Icon(Icons.star, size: 14, color: AppColors.warning),
+                          const SizedBox(width: AppSpacing.xs),
                           Text(store['rating']!),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(
                         store['time']!,
                         style: theme.textTheme.bodySmall,
@@ -239,11 +233,10 @@ class ShoppingScreen extends StatelessWidget {
                   ),
                 ),
               );
-            }).toList(),
+            }),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.xl),
 
-            // زر إنشاء قائمة مقاضي
             AppButton(
               label: 'أنشئ قائمة مشترياتك',
               icon: Icons.playlist_add,
@@ -252,7 +245,7 @@ class ShoppingScreen extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('تم إنشاء قائمة المشتريات 🛒'),
-                    backgroundColor: Colors.pink,
+                    backgroundColor: AppColors.info,
                   ),
                 );
               },

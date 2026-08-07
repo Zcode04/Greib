@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../core/mock_data/mock_data.dart';
 import '../../core/permissions/permissions.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../features/auth/mock_auth.dart';
 import '../../shared_widgets/app_button.dart';
 
-// شاشة قائمة المحادثات
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
 
@@ -31,7 +31,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
   void _loadConversations() {
     final role = AuthService.instance.currentRole;
 
-    // محادثات افتراضية
     _conversations = [
       {
         'id': 'chat1',
@@ -65,7 +64,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
       },
     ];
 
-    // تصفية حسب الدور
     if (role == UserRole.admin) {
       _conversations.addAll([
         {
@@ -90,19 +88,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
         },
       ]);
     }
-
-    if (role == UserRole.admin) {
-      _conversations.add({
-        'id': 'chat6',
-        'name': 'مجموعة جديدة (مثال)',
-        'lastMessage': 'تم إنشاء المجموعة بنجاح',
-        'time': 'الآن',
-        'unread': 0,
-        'icon': '✨',
-        'type': 'group',
-        'participants': ['adm1'],
-      });
-    }
   }
 
   @override
@@ -120,13 +105,17 @@ class _ChatListScreenState extends State<ChatListScreen> {
               onPressed: () => _showCreateGroupDialog(context),
               tooltip: 'إنشاء مجموعة',
             ),
+          IconButton(
+            icon: const Icon(Icons.support_agent),
+            onPressed: () => Navigator.pushNamed(context, '/support'),
+            tooltip: 'تذاكر الدعم',
+          ),
         ],
       ),
       body: Column(
         children: [
-          // شريط البحث
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: TextField(
               controller: _searchController,
               decoration: const InputDecoration(
@@ -134,16 +123,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 prefixIcon: Icon(Icons.search),
               ),
               onChanged: (value) {
-                // فلترة المحادثات
                 setState(() {});
               },
             ),
           ),
 
-          // قائمة المحادثات
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               itemCount: _conversations.length,
               itemBuilder: (context, index) {
                 final conv = _conversations[index];
@@ -156,7 +143,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
-  // بطاقة محادثة
   Widget _buildConversationTile(
     BuildContext context,
     ThemeData theme,
@@ -165,15 +151,15 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final unread = conv['unread'] as int;
 
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6),
+      margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: ListTile(
-        contentPadding: const EdgeInsets.all(12),
+        contentPadding: const EdgeInsets.all(AppSpacing.md),
         leading: Container(
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: theme.colorScheme.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+            color: theme.colorScheme.primary.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(AppRadii.md),
           ),
           child: Center(
             child: Text(
@@ -189,7 +175,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
               child: Text(
                 conv['name'] as String,
                 style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: unread > 0 ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: unread > 0 ? FontWeight.w700 : FontWeight.normal,
                 ),
               ),
             ),
@@ -216,16 +202,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
             ),
             if (unread > 0)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadii.full),
                 ),
                 child: Text(
                   '$unread',
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -247,7 +233,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
-  // نافذة إنشاء مجموعة
   void _showCreateGroupDialog(BuildContext context) {
     final nameController = TextEditingController();
     final role = AuthService.instance.currentRole;
@@ -259,10 +244,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
       isScrollControlled: true,
       builder: (context) => Padding(
         padding: EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 24,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          left: AppSpacing.lg,
+          right: AppSpacing.lg,
+          top: AppSpacing.lg,
+          bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -273,7 +258,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
               style: Theme.of(context).textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
             TextField(
               controller: nameController,
               decoration: const InputDecoration(
@@ -282,13 +267,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 prefixIcon: Icon(Icons.group),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               'اختر الأعضاء',
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 8),
-            // قائمة الأعضاء المتاحة
+            const SizedBox(height: AppSpacing.md),
             Container(
               constraints: const BoxConstraints(maxHeight: 200),
               child: ListView(
@@ -303,7 +287,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 }).toList(),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             AppButton(
               label: 'إنشاء المجموعة',
               icon: Icons.check,
@@ -316,7 +300,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           ? 'تم إنشاء المجموعة "${nameController.text}" بنجاح ✅'
                           : 'ليس لديك صلاحية إنشاء مجموعات',
                     ),
-                    backgroundColor: canCreate ? Colors.green : Colors.red,
+                    backgroundColor: canCreate ? AppColors.success : AppColors.error,
                   ),
                 );
               },
@@ -328,7 +312,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 }
 
-// شاشة تفاصيل المحادثة
 class ChatDetailScreen extends StatefulWidget {
   final String conversationTitle;
   final String conversationId;
@@ -414,7 +397,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
     _messageController.clear();
 
-    // محاكاة رد آلي
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
@@ -454,22 +436,21 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               width: 8,
               height: 8,
               decoration: const BoxDecoration(
-                color: Colors.green,
+                color: AppColors.success,
                 shape: BoxShape.circle,
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             Text(widget.conversationTitle),
           ],
         ),
       ),
       body: Column(
         children: [
-          // قائمة الرسائل
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final msg = _messages[index];
@@ -478,9 +459,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             ),
           ),
 
-          // حقل الإدخال
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
               color: theme.colorScheme.surface,
               border: Border(
@@ -491,7 +471,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             ),
             child: Row(
               children: [
-                // زر إرفاق
                 IconButton(
                   icon: const Icon(Icons.attach_file),
                   onPressed: () {
@@ -504,30 +483,28 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   },
                 ),
 
-                // حقل النص
                 Expanded(
                   child: TextField(
                     controller: _messageController,
                     decoration: InputDecoration(
                       hintText: 'اكتب رسالتك...',
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(AppRadii.full),
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
                       fillColor: theme.colorScheme.surfaceContainerHighest,
                       contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
+                        horizontal: AppSpacing.lg,
+                        vertical: AppSpacing.md,
                       ),
                     ),
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _sendMessage(),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
 
-                // زر الإرسال
                 CircleAvatar(
                   backgroundColor: theme.colorScheme.primary,
                   child: IconButton(
@@ -543,24 +520,22 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
-  // فقاعة رسالة
   Widget _buildMessageBubble(ThemeData theme, Map<String, dynamic> msg) {
     final isMine = msg['isMine'] as bool;
 
     return Align(
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
+        margin: const EdgeInsets.only(bottom: AppSpacing.md),
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         child: Column(
-          crossAxisAlignment:
-              isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment: isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
             if (!isMine)
               Padding(
-                padding: const EdgeInsets.only(bottom: 4, left: 8),
+                padding: const EdgeInsets.only(bottom: AppSpacing.xs, left: AppSpacing.sm),
                 child: Text(
                   msg['sender'] as String,
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -570,20 +545,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 ),
               ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
               decoration: BoxDecoration(
-                color: isMine
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.surfaceContainerHighest,
+                color: isMine ? theme.colorScheme.primary : theme.colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(16),
-                  topRight: const Radius.circular(16),
-                  bottomLeft: isMine
-                      ? const Radius.circular(16)
-                      : const Radius.circular(4),
-                  bottomRight: isMine
-                      ? const Radius.circular(4)
-                      : const Radius.circular(16),
+                  topLeft: const Radius.circular(AppRadii.lg),
+                  topRight: const Radius.circular(AppRadii.lg),
+                  bottomLeft: isMine ? const Radius.circular(AppRadii.lg) : const Radius.circular(AppRadii.xs),
+                  bottomRight: isMine ? const Radius.circular(AppRadii.xs) : const Radius.circular(AppRadii.lg),
                 ),
               ),
               child: Column(
@@ -596,13 +565,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       fontSize: 15,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     msg['time'] as String,
                     style: TextStyle(
-                      color: isMine
-                          ? Colors.white70
-                          : theme.colorScheme.onSurfaceVariant,
+                      color: isMine ? Colors.white70 : theme.colorScheme.onSurfaceVariant,
                       fontSize: 11,
                     ),
                   ),
