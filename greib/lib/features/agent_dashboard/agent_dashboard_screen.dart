@@ -5,6 +5,7 @@ import '../../core/mock_data/mock_data.dart';
 import '../../core/permissions/permissions.dart';
 import '../../features/auth/mock_auth.dart';
 import '../../shared_widgets/app_button.dart';
+import '../../shared_widgets/header.dart';
 import '../../shared_widgets/loading_states.dart';
 
 class AgentDashboardScreen extends StatefulWidget {
@@ -24,7 +25,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
 
     if (role != UserRole.agent && role != UserRole.admin) {
       return Scaffold(
-        appBar: AppBar(title: const Text('لوحة الوكلاء')),
+        appBar: Header(title: 'لوحة الوكلاء'),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.xl),
@@ -59,10 +60,8 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('لوحة الوكلاء'),
-        backgroundColor: AppColors.info,
-        foregroundColor: Colors.white,
+      appBar: Header(
+        title: 'لوحة الوكلاء',
         actions: [
           IconButton(
             icon: const Icon(LucideIcons.logOut),

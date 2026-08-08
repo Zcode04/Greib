@@ -5,6 +5,7 @@ import '../../core/permissions/permissions.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../features/auth/mock_auth.dart';
 import '../../shared_widgets/app_button.dart';
+import '../../shared_widgets/header.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -97,8 +98,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final role = AuthService.instance.currentRole;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('المحادثات'),
+      appBar: Header(
+        title: 'المحادثات',
         actions: [
           if (role == UserRole.admin)
             IconButton(
@@ -429,22 +430,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: const BoxDecoration(
-                color: AppColors.success,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Text(widget.conversationTitle),
-          ],
-        ),
+      appBar: Header(
+        title: widget.conversationTitle,
+        showBackButton: true,
       ),
       body: Column(
         children: [

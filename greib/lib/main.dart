@@ -6,7 +6,6 @@ import 'core/theme/theme_controller.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/localization/app_localizations.dart' as loc;
 import 'features/auth/mock_auth.dart';
-import 'features/home/home_screen.dart';
 import 'features/food_delivery/food_delivery_screen.dart';
 import 'features/pharmacy/pharmacy_screen.dart';
 import 'features/courier/courier_screen.dart';
@@ -26,6 +25,7 @@ import 'features/reviews/reviews_screen.dart';
 import 'features/membership/membership_screen.dart';
 import 'features/support/support_tickets_screen.dart';
 import 'shared_widgets/profile_widget.dart';
+import 'shared_widgets/main_shell_screen.dart';
 
 void main() {
   runApp(
@@ -68,7 +68,7 @@ class GreibMenkApp extends StatelessWidget {
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
-        '/home': (context) => const HomeScreen(),
+        '/home': (context) => const MainShellScreen(),
         '/food': (context) => const FoodDeliveryScreen(),
         '/pharmacy': (context) => const PharmacyScreen(),
         '/courier': (context) => const CourierScreen(),

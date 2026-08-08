@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
+import '../../shared_widgets/header.dart';
 
 class TourismScreen extends StatelessWidget {
   const TourismScreen({super.key});
@@ -89,10 +90,9 @@ class TourismScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('السياحة والفعاليات'),
-        backgroundColor: AppColors.serviceTourism,
-        foregroundColor: Colors.white,
+      appBar: Header(
+        title: 'السياحة والفعاليات',
+        showBackButton: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),

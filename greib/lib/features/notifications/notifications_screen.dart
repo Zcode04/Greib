@@ -3,6 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/notifications/notification_manager.dart';
 import '../../shared_widgets/app_button.dart';
+import '../../shared_widgets/header.dart';
 import '../../shared_widgets/loading_states.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -25,8 +26,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final notifManager = NotificationManager.instance;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('الإشعارات'),
+      appBar: Header(
+        title: 'الإشعارات',
+        showBackButton: true,
         actions: [
           TextButton(
             onPressed: () {

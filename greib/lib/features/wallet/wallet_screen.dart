@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
+import '../../shared_widgets/header.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -18,9 +19,7 @@ class _WalletScreenState extends State<WalletScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('المحفظة ونقاط الولاء'),
-      ),
+      appBar: Header(title: 'المحفظة ونقاط الولاء'),
       body: Column(
         children: [
           // بطاقة الرصيد

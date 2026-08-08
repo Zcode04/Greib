@@ -5,6 +5,7 @@ import '../../core/mock_data/mock_data.dart';
 import '../../core/permissions/permissions.dart';
 import '../../features/auth/mock_auth.dart';
 import '../../shared_widgets/app_button.dart';
+import '../../shared_widgets/header.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -23,7 +24,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
     if (role != UserRole.admin) {
       return Scaffold(
-        appBar: AppBar(title: const Text('لوحة المشرفين')),
+        appBar: Header(title: 'لوحة المشرفين'),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.xl),
@@ -58,10 +59,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('لوحة المشرفين'),
-        backgroundColor: AppColors.error,
-        foregroundColor: Colors.white,
+      appBar: Header(
+        title: 'لوحة المشرفين',
         actions: [
           IconButton(
             icon: const Icon(LucideIcons.logOut),

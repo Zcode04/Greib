@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
+import '../../shared_widgets/header.dart';
 
 class PromoCodesScreen extends StatefulWidget {
   const PromoCodesScreen({super.key});
@@ -30,8 +31,9 @@ class _PromoCodesScreenState extends State<PromoCodesScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('أكواد الخصم'),
+      appBar: Header(
+        title: 'أكواد الخصم',
+        showBackButton: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),

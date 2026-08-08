@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
+import '../../shared_widgets/header.dart';
 
 class ReviewsScreen extends StatefulWidget {
   const ReviewsScreen({super.key});
@@ -49,8 +50,9 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('التقييمات والمراجعات'),
+      appBar: Header(
+        title: 'التقييمات والمراجعات',
+        showBackButton: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),

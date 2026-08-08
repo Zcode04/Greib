@@ -6,7 +6,6 @@ import '../../core/permissions/permissions.dart';
 import '../../core/theme/theme_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/auth/mock_auth.dart';
-import '../../shared_widgets/floating_bottom_nav.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,7 +15,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _navIndex = 0;
 
   // ---- حالة بطاقة Spotlight القابلة للتمرير ----
   final PageController _spotlightController =
@@ -79,36 +77,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ],
         ),
-      ),
-      bottomNavigationBar: FloatingBottomNav(
-        currentIndex: _navIndex,
-        onTap: (i) {
-          setState(() => _navIndex = i);
-          const routes = ['/wallet', '/chat', '/home', '/favorites', '/profile'];
-          if (i < routes.length) Navigator.pushNamed(context, routes[i]);
-        },
-        items: const [
-          FloatingNavItem(
-            icon: LucideIcons.wallet,
-            label: 'المحفظة',
-          ),
-          FloatingNavItem(
-            icon: LucideIcons.messageCircle,
-            label: 'المحادثات',
-          ),
-          FloatingNavItem(
-            icon: LucideIcons.home,
-            label: 'الرئيسية',
-          ),
-          FloatingNavItem(
-            icon: LucideIcons.heart,
-            label: 'المفضلة',
-          ),
-          FloatingNavItem(
-            icon: LucideIcons.user,
-            label: 'البروفايل',
-          ),
-        ],
       ),
     );
   }

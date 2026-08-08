@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
+import '../../shared_widgets/header.dart';
 
 class MembershipScreen extends StatefulWidget {
   const MembershipScreen({super.key});
@@ -48,8 +49,9 @@ class _MembershipScreenState extends State<MembershipScreen> {
     final currentTierData = _tiers.firstWhere((t) => t['id'] == _currentTier);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('العضوية'),
+      appBar: Header(
+        title: 'العضوية',
+        showBackButton: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),
