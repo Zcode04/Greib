@@ -46,11 +46,6 @@ class CourierScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('نقل الطرود'),
-        backgroundColor: AppColors.serviceCourier,
-        foregroundColor: Colors.white,
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(

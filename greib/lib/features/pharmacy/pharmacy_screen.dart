@@ -62,11 +62,6 @@ class PharmacyScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('الصيدلية'),
-        backgroundColor: AppColors.servicePharmacy,
-        foregroundColor: Colors.white,
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(

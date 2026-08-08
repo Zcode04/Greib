@@ -202,8 +202,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           ],
         ),
         onTap: () {
-          Navigator.push(
-            context,
+          Navigator.of(context, rootNavigator: true).push(
             MaterialPageRoute(
               builder: (context) => ChatDetailScreen(
                 conversationTitle: conv['name'] as String,

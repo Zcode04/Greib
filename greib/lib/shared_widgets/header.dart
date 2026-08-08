@@ -3,7 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/theme/theme_controller.dart';
-import '../core/localization/app_localizations.dart';
+
 import '../core/permissions/permissions.dart';
 import '../features/auth/mock_auth.dart';
 
@@ -123,26 +123,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
               tooltip: isDark ? 'الوضع النهاري' : 'الوضع الليلي',
             ),
           ),
-        if (showDarkModeToggle)
-          Container(
-            margin: const EdgeInsets.all(AppSpacing.sm),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? AppColors.surfaceCard
-                  : AppColors.lightSurfaceVariant,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isDark ? AppColors.outline : AppColors.lightOutline,
-              ),
-            ),
-            child: IconButton(
-              icon: const Icon(LucideIcons.languages, size: 20),
-              onPressed: () {
-                context.read<LanguageProvider>().toggleLanguage();
-              },
-              tooltip: 'تبديل اللغة',
-            ),
-          ),
+
         if (showNotifications)
           Container(
             margin: const EdgeInsets.all(AppSpacing.sm),

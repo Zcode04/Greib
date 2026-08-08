@@ -3,8 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
-import 'core/localization/app_localizations.dart';
-import 'core/localization/app_localizations.dart' as loc;
 import 'features/auth/mock_auth.dart';
 import 'features/admin_dashboard/admin_dashboard_screen.dart';
 import 'features/agent_dashboard/agent_dashboard_screen.dart';
@@ -22,7 +20,6 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeController()),
-        ChangeNotifierProvider(create: (_) => LanguageProvider()),
       ],
       child: const GreibMenkApp(),
     ),
@@ -35,21 +32,18 @@ class GreibMenkApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeController = context.watch<ThemeController>();
-    final langProvider = context.watch<LanguageProvider>();
 
     return MaterialApp(
-      title: loc.AppLocalizations(const Locale('ar')).get('app_name'),
+      title: 'گريب منك',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeController.themeMode,
-      locale: langProvider.locale,
+      locale: const Locale('ar', 'AE'),
       supportedLocales: const [
         Locale('ar', 'AE'),
-        Locale('en', 'US'),
       ],
       localizationsDelegates: const [
-        AppLocalizationsDelegate(),
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,

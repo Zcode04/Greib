@@ -198,8 +198,7 @@ class FavoritesScreen extends StatelessWidget {
               ],
             ),
             onTap: () {
-              Navigator.push(
-                context,
+              Navigator.of(context, rootNavigator: true).push(
                 MaterialPageRoute(
                   builder: (context) => TrackingScreen(orderId: order['id']!),
                 ),

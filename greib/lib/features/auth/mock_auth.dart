@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:provider/provider.dart';
+
 import '../../core/mock_data/mock_data.dart';
 import '../../core/permissions/permissions.dart';
 import '../../core/theme/design_tokens.dart';
-import '../../core/localization/app_localizations.dart';
 import '../../shared_widgets/app_button.dart';
 
 class AuthService extends ChangeNotifier {
@@ -128,9 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final loc = AppLocalizations.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final langProvider = Provider.of<LanguageProvider>(context);
 
     return Scaffold(
       body: Container(
@@ -150,15 +147,6 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Language toggle
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: TextButton.icon(
-                    onPressed: () => langProvider.toggleLanguage(),
-                    icon: const Icon(LucideIcons.languages, size: 18),
-                    label: Text(loc.get('language')),
-                  ),
-                ),
                 const SizedBox(height: AppSpacing.lg),
 
                 // شعار التطبيق
@@ -189,7 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
-                  loc.get('app_name'),
+                  'گريب منك',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.displaySmall?.copyWith(
                     color: AppColors.accentPrimary,
@@ -198,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  loc.get('tagline'),
+                  'تطبيقك الشامل للخدمات',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium,
                 ),
@@ -208,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    labelText: loc.get('email'),
+                    labelText: 'البريد الإلكتروني',
                     prefixIcon: const Icon(LucideIcons.mail),
                   ),
                 ),
@@ -218,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    labelText: loc.get('password'),
+                    labelText: 'كلمة المرور',
                     prefixIcon: const Icon(LucideIcons.lock),
                   ),
                 ),
@@ -240,7 +228,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
 
                 AppButton(
-                  label: loc.get('login'),
+                  label: 'تسجيل الدخول',
                   icon: LucideIcons.logIn,
                   onPressed: _isLoading ? null : _handleLogin,
                   isLoading: _isLoading,

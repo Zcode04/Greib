@@ -71,11 +71,6 @@ class ShoppingScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('التسوق والمقاضي'),
-        backgroundColor: AppColors.serviceShopping,
-        foregroundColor: Colors.white,
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
