@@ -85,7 +85,10 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
           : null,
       actions: [
         Container(
-          margin: const EdgeInsets.all(AppSpacing.sm),
+          margin: const EdgeInsets.symmetric(
+            horizontal: 1,
+            vertical: AppSpacing.sm,
+          ),
           decoration: BoxDecoration(
             color: isDark
                 ? AppColors.surfaceCard
@@ -105,7 +108,10 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
         ),
         if (showDarkModeToggle)
           Container(
-            margin: const EdgeInsets.all(AppSpacing.sm),
+            margin: const EdgeInsets.symmetric(
+              horizontal: 4,
+              vertical: AppSpacing.sm,
+            ),
             decoration: BoxDecoration(
               color: isDark
                   ? AppColors.surfaceCard
@@ -126,7 +132,10 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
 
         if (showNotifications)
           Container(
-            margin: const EdgeInsets.all(AppSpacing.sm),
+            margin: const EdgeInsets.symmetric(
+              horizontal: 4,
+              vertical: AppSpacing.sm,
+            ),
             decoration: BoxDecoration(
               color: isDark
                   ? AppColors.surfaceCard

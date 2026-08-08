@@ -61,22 +61,30 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 _sectionTitle('ولدينا المزيد ', isDark),
                 InkWell(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(20),
                   onTap: () => setState(
                       () => _isServicesGridView = !_isServicesGridView),
-                  child: Padding(
+                  child: Container(
                     padding: const EdgeInsets.symmetric(
-                        vertical: 4, horizontal: 4),
+                        vertical: 6, horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: (isDark
+                              ? AppColors.accentPrimaryLight
+                              : AppColors.accentPrimary)
+                          .withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          _isServicesGridView ? 'عرض أقل' : 'تصفح الكل',
+                          _isServicesGridView ? 'عرض أقل' : 'عرض المزيد',
                           style: TextStyle(
                             color: isDark
                                 ? AppColors.accentPrimaryLight
                                 : AppColors.accentPrimary,
-                            fontSize: 13,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(width: 4),
@@ -221,6 +229,13 @@ class _HomeScreenState extends State<HomeScreen> {
         // زر التبديل
         Center(
           child: TextButton.icon(
+            style: TextButton.styleFrom(
+              backgroundColor: (isDark ? AppColors.neon : AppColors.accentPrimaryDark).withOpacity(0.1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
             onPressed: () => setState(() => _isGridView = !_isGridView),
             icon: Icon(
               _isGridView ? LucideIcons.layoutGrid : LucideIcons.layoutList,
@@ -228,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: isDark ? AppColors.neon : AppColors.accentPrimaryDark,
             ),
             label: Text(
-              _isGridView ? 'عرض شرائحي' : 'عرض الكل',
+              _isGridView ? 'عرض شرائحي' : 'عرض المزيد',
               style: TextStyle(
                 color: isDark ? AppColors.neon : AppColors.accentPrimaryDark,
                 fontWeight: FontWeight.w600,
