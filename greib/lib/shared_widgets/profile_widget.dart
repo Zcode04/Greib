@@ -241,9 +241,6 @@ class ProfileScreen extends StatelessWidget {
     final profile = MockData.demoProfiles.first;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('البروفايل'),
-      ),
       body: SingleChildScrollView(
         child: Column(
           children: [

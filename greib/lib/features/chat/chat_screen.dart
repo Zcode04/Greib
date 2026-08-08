@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import '../../core/mock_data/mock_data.dart';
 import '../../core/permissions/permissions.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../features/auth/mock_auth.dart';
-import '../../shared_widgets/app_button.dart';
 import '../../shared_widgets/header.dart';
 
 class ChatListScreen extends StatefulWidget {
@@ -95,25 +93,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final role = AuthService.instance.currentRole;
 
     return Scaffold(
-      appBar: Header(
-        title: 'المحادثات',
-        actions: [
-          if (role == UserRole.admin)
-            IconButton(
-              icon: const Icon(LucideIcons.userPlus),
-              onPressed: () => _showCreateGroupDialog(context),
-              tooltip: 'إنشاء مجموعة',
-            ),
-          IconButton(
-              icon: const Icon(LucideIcons.headphones),
-            onPressed: () => Navigator.of(context, rootNavigator: true).pushNamed('/support'),
-            tooltip: 'تذاكر الدعم',
-          ),
-        ],
-      ),
       body: Column(
         children: [
           Padding(
@@ -235,83 +216,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
-  void _showCreateGroupDialog(BuildContext context) {
-    final nameController = TextEditingController();
-    final role = AuthService.instance.currentRole;
-    final canCreate = role == UserRole.admin &&
-        PermissionService.canPerform(role, 'create_dynamic_group');
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          left: AppSpacing.lg,
-          right: AppSpacing.lg,
-          top: AppSpacing.lg,
-          bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'إنشاء مجموعة جديدة',
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'اسم المجموعة',
-                hintText: 'مثال: فريق الشارقة',
-                prefixIcon: Icon(LucideIcons.users),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              'اختر الأعضاء',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Container(
-              constraints: const BoxConstraints(maxHeight: 200),
-              child: ListView(
-                shrinkWrap: true,
-                children: MockData.demoAccounts.map((user) {
-                  return CheckboxListTile(
-                    title: Text(user.name),
-                    subtitle: Text(user.role),
-                    value: false,
-                    onChanged: (value) {},
-                  );
-                }).toList(),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            AppButton(
-              label: 'إنشاء المجموعة',
-              icon: LucideIcons.check,
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      canCreate
-                          ? 'تم إنشاء المجموعة "${nameController.text}" بنجاح ✅'
-                          : 'ليس لديك صلاحية إنشاء مجموعات',
-                    ),
-                    backgroundColor: canCreate ? AppColors.success : AppColors.error,
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class ChatDetailScreen extends StatefulWidget {

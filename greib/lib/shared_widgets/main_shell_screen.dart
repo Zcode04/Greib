@@ -25,19 +25,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
   final GlobalKey<NavigatorState> innerNavigatorKey =
       GlobalKey<NavigatorState>();
 
-  static const Map<String, String> _mainRouteTitles = {
-    '/home': 'الرئيسية',
-    '/food': 'توصيل الطعام',
-    '/pharmacy': 'صيدلية',
-    '/courier': 'شحن وتوصيل',
-    '/ride': 'المشاوير',
-    '/shopping': 'التسوق',
-    '/tourism': 'السياحة',
-    '/chat': 'المحادثات',
-    '/wallet': 'المحفظة',
-    '/favorites': 'المفضلة',
-    '/profile': 'البروفايل',
-  };
+
 
   static final Map<String, WidgetBuilder> _mainRouteBuilders = {
     '/home': (_) => HomeScreen(),
@@ -53,20 +41,16 @@ class _MainShellScreenState extends State<MainShellScreen> {
     '/profile': (_) => ProfileScreen(),
   };
 
-  String _currentTitle = 'الرئيسية';
   int _currentNavIndex = 2;
 
   void _handleRouteChanged(String routeName) {
-    final title = _mainRouteTitles[routeName];
-    if (title != null && title != _currentTitle) {
-      setState(() => _currentTitle = title);
-    }
+    // No-op since we don't update title anymore
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Header(title: _currentTitle),
+      appBar: const Header(title: 'گريب منك'),
       extendBody: true,
       body: Navigator(
         key: innerNavigatorKey,

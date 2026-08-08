@@ -162,23 +162,6 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
         ...?actions,
-        Container(
-          margin: const EdgeInsets.all(AppSpacing.sm),
-          decoration: BoxDecoration(
-            color: isDark
-                ? AppColors.surfaceCard
-                : AppColors.lightSurfaceVariant,
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: isDark ? AppColors.outline : AppColors.lightOutline,
-            ),
-          ),
-          child: IconButton(
-            icon: const Icon(LucideIcons.user, size: 20),
-            onPressed: () => Navigator.pushNamed(context, '/profile'),
-            tooltip: 'البروفايل',
-          ),
-        ),
       ],
     );
   }

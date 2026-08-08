@@ -62,19 +62,22 @@ class FavoritesScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('المفضلة والسجل'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'المفضلة'),
-              Tab(text: 'طلباتي السابقة'),
-            ],
-          ),
-        ),
-        body: TabBarView(
+        body: Column(
           children: [
-            _buildFavoritesTab(context, theme),
-            _buildHistoryTab(context, theme),
+            const TabBar(
+              tabs: [
+                Tab(text: 'المفضلة'),
+                Tab(text: 'طلباتي السابقة'),
+              ],
+            ),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  _buildFavoritesTab(context, theme),
+                  _buildHistoryTab(context, theme),
+                ],
+              ),
+            ),
           ],
         ),
       ),
