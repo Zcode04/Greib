@@ -84,6 +84,25 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
             )
           : null,
       actions: [
+        Container(
+          margin: const EdgeInsets.all(AppSpacing.sm),
+          decoration: BoxDecoration(
+            color: isDark
+                ? AppColors.surfaceCard
+                : AppColors.lightSurfaceVariant,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isDark ? AppColors.outline : AppColors.lightOutline,
+            ),
+          ),
+          child: IconButton(
+            icon: const Icon(LucideIcons.search, size: 20),
+            onPressed: () {
+              // TODO: Implement search functionality
+            },
+            tooltip: 'البحث',
+          ),
+        ),
         if (showDarkModeToggle)
           Container(
             margin: const EdgeInsets.all(AppSpacing.sm),
@@ -97,10 +116,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
             child: IconButton(
-              icon: Icon(
-                isDark ? LucideIcons.sun : LucideIcons.moon,
-                size: 20,
-              ),
+              icon: Icon(isDark ? LucideIcons.sun : LucideIcons.moon, size: 20),
               onPressed: () {
                 context.read<ThemeController>().toggleTheme();
               },
@@ -149,7 +165,9 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
         Container(
           margin: const EdgeInsets.all(AppSpacing.sm),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceCard : AppColors.lightSurfaceVariant,
+            color: isDark
+                ? AppColors.surfaceCard
+                : AppColors.lightSurfaceVariant,
             shape: BoxShape.circle,
             border: Border.all(
               color: isDark ? AppColors.outline : AppColors.lightOutline,
@@ -170,11 +188,7 @@ class DashboardHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final String role;
 
-  const DashboardHeader({
-    super.key,
-    required this.title,
-    required this.role,
-  });
+  const DashboardHeader({super.key, required this.title, required this.role});
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -187,10 +201,7 @@ class DashboardHeader extends StatelessWidget implements PreferredSizeWidget {
         : AppColors.accentPrimary;
 
     return AppBar(
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.w700),
-      ),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
       backgroundColor: roleColor,
       foregroundColor: Colors.black,
       actions: [

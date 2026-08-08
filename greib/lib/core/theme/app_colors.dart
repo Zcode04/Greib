@@ -4,12 +4,11 @@ import 'package:flutter/material.dart';
 ///  ملف الألوان الموحّد — المصدر الوحيد للحقيقة (Single Source of Truth)
 /// ============================================================================
 ///
-///  ★ لتغيير هوية التطبيق كاملة: عدّل قسم "الألوان الأساسية" بالأسفل فقط (Primitives).
-///    كل اسم آخر بالملف (والتطبيق كله) يشاور على هذي القيم، فما تحتاج تدور
-///    على اللون بكل مكان — غيّره مرة وحدة وينتشر تلقائياً.
+///  الهوية: Deep Space Black + Electric Violet
+///  أسود عميق فاخر مع لون بنفسجي كهربائي كـ accent
+///  ← احترافي، عالمي، متماسك في كلا الوضعين
 ///
-///  الهوية الحالية: خلفية داكنة (أسود مائل للأخضر) + لون مميز أخضر نيون
-///  (بنفس روح تطبيق Sneaker Shopping المرجعي).
+///  ★ لتغيير هوية التطبيق: عدّل القسم (Primitives) فقط.
 /// ============================================================================
 
 class AppColors {
@@ -17,141 +16,175 @@ class AppColors {
 
   // ==========================================================================
   //  1) الألوان الأساسية (Primitives)
-  //     ↓↓↓ منطقتين تحكم منفصلتين: وحدة للوضع الليلي، ووحدة للوضع النهاري ↓↓↓
-  //     عدّل داخل وحدة واحدة فقط = يتغيّر وضعها بس، ما يأثر على الوضع الثاني
   // ==========================================================================
 
-  // ---------- 🌙 تحكم الوضع الليلي (Dark Mode) — كل شي هنا خاص بالداكن فقط ----------
-  static const Color _inkDark      = Color.fromARGB(255, 1, 1, 11); // خلفية الوضع الليلي (أسود مائل للأخضر الداكن جداً)
-  static const Color _inkMid       = Color.fromARGB(255, 30, 28, 42); // سطح الوضع الليلي (كروت، بطاقات)
-  static const Color _inkLight     = Color.fromARGB(255, 24, 24, 31); // سطح مرتفع بالوضع الليلي (حدود، طبقات فوقية)
-  static const Color _textOnDark      = Color.fromARGB(255, 255, 255, 255); // نص أساسي بالوضع الليلي
-  static const Color _textOnDarkMuted = Color(0xFFA1A1AA); // نص ثانوي بالوضع الليلي
-  // ------------------------------------------------------------------------------
+  // ---------- 🌙 الوضع الليلي (Dark Mode) ----------
+  static const Color _darkBg          = Color(0xFF09090B); // أسود عميق — الخلفية
+  static const Color _darkSurface     = Color(0xFF18181B); // كروت وبطاقات
+  static const Color _darkElevated    = Color(0xFF27272A); // طبقة أعمق (modals, inputs)
+  static const Color _darkBorder      = Color(0xFF3F3F46); // حدود دقيقة
+  static const Color _darkTextPrimary  = Color(0xFFFAFAFA); // نص أساسي أبيض ناعم
+  static const Color _darkTextMuted    = Color(0xFFA1A1AA); // نص ثانوي رمادي
 
-  // ---------- ☀️ تحكم الوضع النهاري (Light Mode) — كل شي هنا خاص بالفاتح فقط ----------
-  static const Color _lightBg      = Color.fromARGB(255, 236, 236, 235); // خلفية الوضع النهاري (الأساسية)
-  static const Color _lightSurface = Color.fromARGB(255, 195, 184, 184); // سطح الوضع النهاري (كروت، بطاقات)
-  static const Color _textOnLight      = Color(0xFF0A090C); // نص أساسي بالوضع النهاري
-  static const Color _textOnLightMuted = Color(0xFF6B6B70); // نص ثانوي بالوضع النهاري
-  // -------------------------------------------------------------------------------
+  // ---------- ☀️ الوضع النهاري (Light Mode) ----------
+  static const Color _lightBg          = Color(0xFFF4F4F5); // خلفية فاتحة محايدة
+  static const Color _lightSurface     = Color(0xFFFFFFFF); // كروت بيضاء نظيفة
+  static const Color _lightElevated    = Color(0xFFF4F4F5); // للـ inputs
+  static const Color _lightBorder      = Color(0xFFE4E4E7); // حدود خفيفة
+  static const Color _lightTextPrimary  = Color(0xFF09090B); // نص أسود
+  static const Color _lightTextMuted    = Color(0xFF71717A); // نص ثانوي
 
-  // ---------- 🎨 مشترك بين الوضعين (اللون المميز يبقى نفسه ليلاً ونهاراً) ----------
-  // أخضر نيون فسفوري (Volt Green) — نفس اللون المميز في صورة Sneaker Shopping App
-  static const Color _gold     = Color(0xFFCCFF00); // الأخضر النيون - اللون المميز للهوية
-  static const Color _goldSoft = Color(0xFFE3FF7A); // نسخة أفتح منه (توهج/خلفيات ثانوية)
-  // -------------------------------------------------------------------------------
+  // ---------- 🎨 Accent — مشترك بين الوضعين ----------
+  // بنفسجي كهربائي (Electric Violet) — احترافي وعالمي
+  static const Color _violet600  = Color(0xFF7C3AED); // اللون المميز الأساسي
+  static const Color _violet400  = Color(0xFFA78BFA); // نسخة أفتح (glows, highlights)
+  static const Color _violet900  = Color(0xFF4C1D95); // للحاويات الداكنة (dark container)
 
-  // ألوان الخدمات الست — نفسها بالوضعين، لأنها هوية كل خدمة مش متعلقة بالثيم
-  static const Color _svcFood      = _gold;
-  static const Color _svcPharmacy  = Color(0xFF60A5FA);
-  static const Color _svcCourier   = Color(0xFFA78BFA);
-  static const Color _svcRide      = Color(0xFFFBBF24);
-  static const Color _svcShopping  = Color(0xFFF472B6);
-  static const Color _svcTourism   = Color(0xFF2DD4BF);
+  // ---------- 🔴 الحالات (States) ----------
+  static const Color _success = Color(0xFF22C55E); // أخضر
+  static const Color _warning = Color(0xFFF59E0B); // برتقالي/ذهبي
+  static const Color _error   = Color(0xFFEF4444); // أحمر
+  static const Color _info    = Color(0xFF3B82F6); // أزرق
 
-  static const Color _success = _gold;
-  static const Color _warning = Color(0xFFFBBF24);
-  static const Color _error   = Color(0xFFF87171);
-  static const Color _info    = Color(0xFF60A5FA);
+  // ---------- 🛍 ألوان الخدمات الست ----------
+  static const Color _svcFood      = Color(0xFFF97316); // برتقالي دافئ — طعام
+  static const Color _svcPharmacy  = Color(0xFF3B82F6); // أزرق — صيدلية
+  static const Color _svcCourier   = Color(0xFFA78BFA); // بنفسجي فاتح — توصيل
+  static const Color _svcRide      = Color(0xFFF59E0B); // ذهبي — مشاوير
+  static const Color _svcShopping  = Color(0xFFEC4899); // وردي — تسوق
+  static const Color _svcTourism   = Color(0xFF14B8A6); // تيل — سياحة
 
   // ==========================================================================
-  //  2) الأسماء الدلالية (Semantic) — لا تعدّل هنا، كلها تشاور على القسم أعلاه
+  //  2) الطبقة الدلالية (Semantic Layer) — لا تعدّل هنا مباشرة
+  //     هذه الأسماء هي ما يستخدمه بقية الكود بالكامل
   // ==========================================================================
 
-  // خلفيات وأسطح (Dark - الوضع الافتراضي)
-  static const Color backgroundPrimary   = Color.fromARGB(255, 6, 31, 122);
-  static const Color backgroundSecondary = Color.fromARGB(255, 3, 47, 128);
-  static const Color surfaceCard         = _inkMid;
-  static const Color surfaceCardElevated = _inkLight;
-  static const Color surfaceOverlay      = _inkLight;
+  // --- خلفيات وأسطح ---
+  static const Color backgroundPrimary   = _darkBg;
+  static const Color backgroundSecondary = _darkSurface;
+  static const Color surfaceCard         = _darkSurface;
+  static const Color surfaceCardElevated = _darkElevated;
+  static const Color surfaceOverlay      = _darkElevated;
 
-  // اللون المميز الأساسي
-  static const Color accentPrimary      = Color.fromARGB(255, 189, 191, 187);
-  static const Color accentPrimaryDark  = _gold;
-  static const Color accentPrimaryLight = _goldSoft;
-  static const Color accentGlow         = _goldSoft;
+  // --- اللون المميز الأساسي ---
+  static const Color accentPrimary      = _violet600; // ← البنفسجي الكهربائي (مش رمادي!)
+  static const Color accentPrimaryDark  = _violet900;
+  static const Color accentPrimaryLight = _violet400;
+  static const Color accentGlow         = _violet400;
 
-  // ألوان الخدمات الست
-  static const Color serviceFood      = _svcFood;
-  static const Color servicePharmacy  = _svcPharmacy;
-  static const Color serviceCourier   = _svcCourier;
-  static const Color serviceRide      = _svcRide;
-  static const Color serviceShopping  = _svcShopping;
-  static const Color serviceTourism   = _svcTourism;
+  // --- ألوان الخدمات ---
+  static const Color serviceFood     = _svcFood;
+  static const Color servicePharmacy = _svcPharmacy;
+  static const Color serviceCourier  = _svcCourier;
+  static const Color serviceRide     = _svcRide;
+  static const Color serviceShopping = _svcShopping;
+  static const Color serviceTourism  = _svcTourism;
 
-  // النصوص (Dark)
-  static const Color textPrimary   = _textOnDark;
-  static const Color textSecondary = _textOnDarkMuted;
+  // --- النصوص (Dark mode — الوضع الافتراضي) ---
+  static const Color textPrimary   = _darkTextPrimary;
+  static const Color textSecondary = _darkTextMuted;
   static const Color textTertiary  = Color(0xFF71717A);
 
-  // الحدود
-  static const Color outline      = _inkLight;
-  static const Color outlineLight = _inkLight;
+  // --- الحدود ---
+  static const Color outline      = _darkBorder;
+  static const Color outlineLight = _darkBorder;
 
-  // الحالات
+  // --- الحالات ---
   static const Color success = _success;
   static const Color warning = _warning;
   static const Color error   = _error;
   static const Color info    = _info;
 
-  // الوضع الفاتح (ثانوي)
+  // --- الوضع الفاتح ---
   static const Color lightBackground     = _lightBg;
   static const Color lightSurface        = _lightSurface;
-  static const Color lightSurfaceVariant = Color(0xFFF0F4F0);
-  static const Color lightText           = _textOnLight;
-  static const Color lightTextSecondary  = _textOnLightMuted;
-  static const Color lightTextTertiary   = Color(0xFF9A9A9E);
-  static const Color lightOutline        = Color(0xFFD8DED8);
+  static const Color lightSurfaceVariant = _lightElevated;
+  static const Color lightText           = _lightTextPrimary;
+  static const Color lightTextSecondary  = _lightTextMuted;
+  static const Color lightTextTertiary   = Color(0xFFA1A1AA);
+  static const Color lightOutline        = _lightBorder;
 
-  // ألوان محايدة (Neutrals) — تدرّج رمادي فعلي، مو ألوان عشوائية
+  // ==========================================================================
+  //  3) أسماء مختصرة للاستخدام السريع
+  //     (مترادفات للأسماء الدلالية أعلاه)
+  // ==========================================================================
+  static const Color primary         = accentPrimary;   // ← بنفسجي الآن ✓
+  static const Color primaryLight    = accentPrimaryLight;
+  static const Color primaryDark     = accentPrimaryDark;
+  static const Color neon            = accentPrimaryLight; // للـ glows والتوهج
+  static const Color neonDark        = accentPrimary;
+  static const Color background      = backgroundPrimary;
+  static const Color surface         = surfaceCard;
+  static const Color surfaceElevated = surfaceCardElevated;
+  static const Color surfaceVariant  = surfaceOverlay;
+  static const Color textMuted       = textTertiary;
+
+  // للتوافق مع الكود القديم
+  static const Color secondary          = Color(0xFF3F3F46);
+  static const Color secondaryLight     = Color(0xFFA1A1AA);
+  static const Color secondaryDark      = Color(0xFF27272A);
+  static const Color accent             = info;
+  static const Color darkBackground     = backgroundPrimary;
+  static const Color darkSurface        = surfaceCard;
+  static const Color darkSurfaceVariant = surfaceOverlay;
+  static const Color darkText           = textPrimary;
+  static const Color darkTextSecondary  = textSecondary;
+  static const Color darkTextTertiary   = textTertiary;
+  static const Color darkOutline        = outline;
+
+  // --- محايدات (Neutrals) ---
   static const Color neutral50  = Color(0xFFFAFAFA);
   static const Color neutral100 = Color(0xFFF4F4F5);
   static const Color neutral200 = Color(0xFFE4E4E7);
   static const Color neutral300 = Color(0xFFD4D4D8);
   static const Color neutral400 = Color(0xFFA1A1AA);
   static const Color neutral500 = Color(0xFF71717A);
-  static const Color neutral600 = Color(0xFF525252);
-  static const Color neutral700 = Color(0xFF404040);
-  static const Color neutral800 = Color(0xFF262626);
-  static const Color neutral900 = Color(0xFF171717);
+  static const Color neutral600 = Color(0xFF52525B);
+  static const Color neutral700 = Color(0xFF3F3F46);
+  static const Color neutral800 = Color(0xFF27272A);
+  static const Color neutral900 = Color(0xFF18181B);
+  static const Color neutral950 = Color(0xFF09090B);
 
-  // أسماء مستعارة مختصرة للاستخدام السريع
-  static const Color primary         = accentPrimary;
-  static const Color neon            = accentPrimary;
-  static const Color neonDark        = accentPrimaryDark;
-  static const Color background      = _inkDark;
-  static const Color surface         = _inkLight;
-  static const Color surfaceElevated = surfaceCardElevated;
-  static const Color surfaceVariant  = surfaceOverlay;
-  static const Color textMuted       = textTertiary;
+  // ==========================================================================
+  //  4) التدرجات الجاهزة
+  // ==========================================================================
 
-  // أسماء متوافقة مع الإصدار السابق (لا تغيرها إلا عند إعادة التصميم)
-  static const Color primaryLight   = Color.fromARGB(255, 156, 176, 174);
-  static const Color primaryDark    = Color.fromARGB(255, 164, 215, 196);
-  static const Color secondary      = neutral200;
-  static const Color secondaryLight = neutral50;
-  static const Color secondaryDark  = neutral300;
-  static const Color accent         = info;
-  static const Color darkBackground = _inkDark;
-  static const Color darkSurface    = surfaceCard;
-  static const Color darkSurfaceVariant = surfaceOverlay;
-  static const Color darkText          = textPrimary;
-  static const Color darkTextSecondary = textSecondary;
-  static const Color darkTextTertiary  = textTertiary;
-  static const Color darkOutline       = outline;
+  /// تدرج البانر الرئيسي: بنفسجي عميق → أزرق داكن (Hero Banner)
+  static const List<Color> heroGradient = [
+    Color(0xFF4C1D95), // بنفسجي عميق
+    Color(0xFF1E3A8A), // أزرق داكن
+    Color(0xFF09090B), // أسود
+  ];
 
-  // تدرج البانر العلوي / الخلفية (Dark Green/Black Gradient)
-  static const List<Color> heroGradient = [Color.fromARGB(255, 178, 115, 209), Color.fromARGB(255, 250, 223, 202), Color(0xFF1A2A1C)];
+  /// تدرج بطاقات الكاتالوج في الوضع الفاتح
+  static const List<Color> catalogCardGradientLight = [
+    Color(0xFF6D28D9), // violet 700
+    Color(0xFF4338CA), // indigo 700
+  ];
 
-  static List<BoxShadow> neonGlow({double blur = 24, double alpha = 0.35}) {
+  /// تدرج بطاقات الكاتالوج في الوضع الداكن — لا يُستخدم (flat surface)
+  static const List<Color> catalogCardGradientDark = [
+    Color(0xFF27272A),
+    Color(0xFF18181B),
+  ];
+
+  // ==========================================================================
+  //  5) ظلال جاهزة
+  // ==========================================================================
+
+  /// توهج البنفسجي (للأزرار والعناصر المميزة)
+  static List<BoxShadow> violetGlow({double blur = 24, double alpha = 0.35}) {
     return [
       BoxShadow(
-        color: const Color.fromARGB(255, 170, 200, 205).withValues(alpha: alpha),
+        color: _violet600.withValues(alpha: alpha),
         blurRadius: blur,
-        spreadRadius: 1,
+        spreadRadius: blur * 0.1,
         offset: const Offset(0, 8),
       ),
     ];
   }
+
+  /// للتوافق مع الكود القديم الذي يستدعي neonGlow
+  static List<BoxShadow> neonGlow({double blur = 24, double alpha = 0.35}) =>
+      violetGlow(blur: blur, alpha: alpha);
 }

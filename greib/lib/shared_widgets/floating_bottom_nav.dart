@@ -1,32 +1,27 @@
 // shared_widgets/floating_bottom_nav.dart
 //
-// شريط تنقل سفلي عائم:
-// - شريط داكن نصف شفاف بحواف دائرية كاملة
-// - جميع الأيقونات موحّدة الشكل والحجم (بدون زر مرتفع/دائري في المنتصف)
-// - الأيقونات من مكتبة Lucide (lucide_icons_flutter)
-// - العنصر المُحدَّد يتميّز بلون النيون فقط (وليس بارتفاع مختلف)
+// شريط تنقل سفلي عائم — المصدر الوحيد للتنقل السفلي في التطبيق
+// (تم حذف floating_nav.dart المكرر)
 //
-// أضف الحزمة في pubspec.yaml:
-//   dependencies:
-//     lucide_icons_flutter: ^3.1.15
+// المميزات:
+// • حاوية زجاجية شفافة مع blur وحواف دائرية
+// • العنصر المحدد: خلفية بنفسجية مضيئة + animation سلس
+// • الأيقونات من مكتبة Lucide
 //
-// الاستخدام:
-//   Scaffold(
-//     body: ...,
-//     extendBody: true, // مهم حتى يطفو الشريط فوق المحتوى
-//     bottomNavigationBar: FloatingBottomNav(
-//       currentIndex: 0,
-//       onTap: (i) => ...,
-//       items: const [
-//         FloatingNavItem(icon: LucideIcons.compass, label: 'استكشف'),
-//         FloatingNavItem(icon: LucideIcons.receipt, label: 'الطلبات'),
-//         FloatingNavItem(icon: LucideIcons.home, label: 'الرئيسية'),
-//         FloatingNavItem(icon: LucideIcons.heart, label: 'المفضلة'),
-//         FloatingNavItem(icon: LucideIcons.messageCircle, label: 'المحادثات'),
-//       ],
-//     ),
+// الاستخدام (في MainShellScreen فقط):
+//   bottomNavigationBar: FloatingBottomNav(
+//     currentIndex: _currentNavIndex,
+//     onTap: (i) => ...,
+//     items: const [
+//       FloatingNavItem(icon: LucideIcons.wallet,        label: 'المحفظة'),
+//       FloatingNavItem(icon: LucideIcons.messageCircle, label: 'المحادثات'),
+//       FloatingNavItem(icon: LucideIcons.home,          label: 'الرئيسية'),
+//       FloatingNavItem(icon: LucideIcons.heart,         label: 'المفضلة'),
+//       FloatingNavItem(icon: LucideIcons.user,          label: 'البروفايل'),
+//     ],
 //   )
 
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 
@@ -50,70 +45,133 @@ class FloatingBottomNav extends StatelessWidget {
     required this.items,
     required this.currentIndex,
     required this.onTap,
-  }) : assert(items.length >= 2 && items.length <= 5,
-            'استخدم بين 2 و5 عناصر ليبقى الشكل متوازناً');
+  }) : assert(
+          items.length >= 2 && items.length <= 5,
+          'استخدم بين 2 و5 عناصر ليبقى الشكل متوازناً',
+        );
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final navBarColor = isDark
-        ? AppColors.surfaceVariant.withValues(alpha: 0.92)
-        : AppColors.lightSurface.withValues(alpha: 0.92);
-    final borderColor = isDark
-        ? Colors.white.withValues(alpha: 0.06)
-        : AppColors.lightOutline;
-    final accentColor = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
-    final inactiveColor = isDark ? AppColors.textMuted : AppColors.lightTextTertiary;
-
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: Container(
-        height: 64,
-        decoration: BoxDecoration(
-          color: navBarColor,
-          borderRadius: BorderRadius.circular(32),
-          border: Border.all(color: borderColor),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Row(
-          children: List.generate(items.length, (index) {
-            final item = items[index];
-            final selected = index == currentIndex;
-            final color = selected ? accentColor : inactiveColor;
-
-            return Expanded(
-              child: InkResponse(
-                onTap: () => onTap(index),
-                radius: 28,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(item.icon, color: color, size: 24),
-                    const SizedBox(height: 4),
-                    AnimatedDefaultTextStyle(
-                      duration: const Duration(milliseconds: 150),
-                      style: TextStyle(
-                        color: color,
-                        fontSize: 11,
-                        fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                      ),
-                      child: Text(item.label),
-                    ),
-                  ],
-                ),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(36),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          child: Container(
+            height: 68,
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppColors.surfaceCard.withValues(alpha: 0.85)
+                  : AppColors.lightSurface.withValues(alpha: 0.92),
+              borderRadius: BorderRadius.circular(36),
+              border: Border.all(
+                color: isDark
+                    ? AppColors.outline.withValues(alpha: 0.6)
+                    : AppColors.lightOutline,
+                width: 1,
               ),
-            );
-          }),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.12),
+                  blurRadius: 32,
+                  offset: const Offset(0, 12),
+                ),
+                if (isDark)
+                  BoxShadow(
+                    color: AppColors.accentPrimary.withValues(alpha: 0.08),
+                    blurRadius: 32,
+                    offset: const Offset(0, 4),
+                  ),
+              ],
+            ),
+            child: Row(
+              children: List.generate(items.length, (index) {
+                final item = items[index];
+                final selected = index == currentIndex;
+
+                return Expanded(
+                  child: _NavTile(
+                    item: item,
+                    selected: selected,
+                    isDark: isDark,
+                    onTap: () => onTap(index),
+                  ),
+                );
+              }),
+            ),
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _NavTile extends StatelessWidget {
+  final FloatingNavItem item;
+  final bool selected;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  const _NavTile({
+    required this.item,
+    required this.selected,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final activeColor = isDark ? AppColors.accentPrimaryLight : AppColors.accentPrimary;
+    final inactiveColor = isDark ? AppColors.textTertiary : AppColors.lightTextSecondary;
+    final iconColor = selected ? activeColor : inactiveColor;
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // --- حاوية الأيقونة مع تأثير بصري عند التحديد ---
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            width: selected ? 44 : 40,
+            height: selected ? 32 : 28,
+            decoration: BoxDecoration(
+              color: selected
+                  ? AppColors.accentPrimary.withValues(alpha: isDark ? 0.2 : 0.12)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: AnimatedScale(
+                scale: selected ? 1.12 : 1.0,
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+                child: Icon(item.icon, color: iconColor, size: 20),
+              ),
+            ),
+          ),
+          const SizedBox(height: 3),
+          // --- النص ---
+          AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 200),
+            style: TextStyle(
+              color: iconColor,
+              fontSize: 10,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+            ),
+            child: Text(
+              item.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }

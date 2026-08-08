@@ -15,12 +15,17 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
   // ---- حالة بطاقة Spotlight القابلة للتمرير ----
   final PageController _spotlightController =
       PageController(viewportFraction: 0.84);
   int _spotlightIndex = 0;
   final Set<String> _favoriteServiceIds = {};
+  bool _isGridView = false; // لبطاقة Spotlight
+  bool _isServicesGridView = false; // لصف "ولدينا المزيد"
+
+  // ---- حالة قسم الكاتالوج (اكتشف كل ما نوفره) ----
+  bool _isCatalogExpanded = false;
+  static const int _catalogCollapsedCount = 4; // عدد الكروت الظاهرة أول مرة
 
   @override
   void dispose() {
@@ -37,8 +42,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
-      extendBody: true, // يسمح للـ navbar بالطفو فوق المحتوى مثل الصورة
-      appBar: _buildAppBar(context, user, isDark),
       drawer: _buildDrawer(context, user, role, isDark),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 110),
@@ -48,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildHeroBanner(user, isDark),
             const SizedBox(height: 28),
 
-            _sectionTitle('الخدمة المميزة', isDark),
+            _sectionTitle('  المميز عندنا', isDark),
             const SizedBox(height: 12),
             _buildSpotlightCard(isDark),
             const SizedBox(height: 28),
@@ -56,13 +59,49 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _sectionTitle('خدماتنا', isDark),
-                Text('تصفح الكل',
-                    style: TextStyle(color: isDark ? AppColors.textMuted : AppColors.lightTextTertiary, fontSize: 13)),
+                _sectionTitle('ولدينا المزيد ', isDark),
+                InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () => setState(
+                      () => _isServicesGridView = !_isServicesGridView),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 4, horizontal: 4),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _isServicesGridView ? 'عرض أقل' : 'تصفح الكل',
+                          style: TextStyle(
+                            color: isDark
+                                ? AppColors.accentPrimaryLight
+                                : AppColors.accentPrimary,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          _isServicesGridView
+                              ? LucideIcons.chevronUp
+                              : LucideIcons.chevronDown,
+                          size: 14,
+                          color: isDark
+                              ? AppColors.accentPrimaryLight
+                              : AppColors.accentPrimary,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 14),
             _buildServicesRow(isDark),
+            const SizedBox(height: 28),
+
+            _sectionTitle('اكتشف كل ما نوفره', isDark),
+            const SizedBox(height: 14),
+            _buildCatalogSection(isDark),
             const SizedBox(height: 28),
 
             _sectionTitle('طلباتك الحالية', isDark),
@@ -81,91 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ---------------------------------------------------------------------
-  // AppBar
-  // ---------------------------------------------------------------------
-  PreferredSizeWidget _buildAppBar(BuildContext context, user, bool isDark) {
-    return AppBar(
-      backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
-      elevation: 0,
-      titleSpacing: 20,
-      title: Builder(
-        builder: (ctx) => Row(
-          children: [
-            GestureDetector(
-              onTap: () => Scaffold.of(ctx).openDrawer(),
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isDark ? AppColors.surfaceVariant : AppColors.lightSurfaceVariant,
-                ),
-                child: Icon(LucideIcons.user,
-                    color: isDark ? Colors.white70 : AppColors.lightTextSecondary, size: 20),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('أهلاً بعودتك',
-                    style: TextStyle(
-                        color: isDark ? AppColors.textMuted : AppColors.lightTextTertiary,
-                        fontSize: 11)),
-                Text(
-                  user?.name ?? 'گريب منك',
-                  style: TextStyle(
-                    color: isDark ? AppColors.textPrimary : AppColors.lightText,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        _circleIconButton(
-          icon: LucideIcons.search,
-          onTap: () {},
-          isDark: isDark,
-        ),
-        _circleIconButton(
-          icon: LucideIcons.bell,
-          onTap: () => Navigator.pushNamed(context, '/notifications'),
-          isDark: isDark,
-        ),
-        _circleIconButton(
-          icon: isDark ? LucideIcons.sun : LucideIcons.moon,
-          onTap: () => context.read<ThemeController>().toggleTheme(),
-          isDark: isDark,
-        ),
-        const SizedBox(width: 8),
-      ],
-    );
-  }
 
-  Widget _circleIconButton({required IconData icon, required VoidCallback onTap, required bool isDark}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: isDark ? AppColors.surfaceVariant : AppColors.lightSurfaceVariant,
-        ),
-        child: IconButton(
-          padding: EdgeInsets.zero,
-          icon: Icon(icon,
-              size: 18, color: isDark ? Colors.white70 : AppColors.lightTextSecondary),
-          onPressed: onTap,
-        ),
-      ),
-    );
-  }
 
   // ---------------------------------------------------------------------
   // Hero Banner ("Explore new collection")
@@ -175,9 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: isDark
-              ? AppColors.heroGradient
-              : const [Color(0xFFE8F5E9), Color(0xFFF1F8E9)],
+          colors: AppColors.heroGradient, // ثابت دائماً، بدون isDark
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -193,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   'اكتشف خدماتنا\nالجديدة',
                   style: TextStyle(
-                    color: isDark ? AppColors.textPrimary : AppColors.lightText,
+                    color: Colors.white, // ثابت - يتماشى مع الخلفية الغامقة/الملونة
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
                     height: 1.3,
@@ -203,8 +156,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark ? Colors.white : AppColors.accentPrimaryDark,
-                    foregroundColor: isDark ? Colors.black : Colors.white,
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
@@ -219,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             flex: 2,
             child: Icon(LucideIcons.truck,
-                color: isDark ? AppColors.neon : AppColors.accentPrimaryDark, size: 72),
+                color: Colors.white, size: 72), // ثابت
           ),
         ],
       ),
@@ -236,51 +189,96 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          height: 232,
-          // PageView بـ viewportFraction < 1 يجعل أطراف البطاقات
-          // المجاورة تظهر على الجانبين، تماماً مثل تلميح Swipe في المرجع
-          child: PageView.builder(
-            controller: _spotlightController,
-            itemCount: services.length,
-            onPageChanged: (i) => setState(() => _spotlightIndex = i),
-            itemBuilder: (context, i) {
-              final s = services[i];
-              return AnimatedScale(
-                scale: i == _spotlightIndex ? 1.0 : 0.93,
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOut,
-                child: AnimatedOpacity(
-                  opacity: i == _spotlightIndex ? 1.0 : 0.6,
-                  duration: const Duration(milliseconds: 220),
-                  child: _spotlightItem(s, isDark),
-                ),
-              );
-            },
-          ),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          child: _isGridView
+              ? _buildSpotlightGrid(services, isDark)
+              : _buildSpotlightCarousel(services, isDark),
         ),
         const SizedBox(height: 10),
-        // مؤشر نقطي صغير أسفل الكاروسيل
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(services.length, (i) {
-            final active = i == _spotlightIndex;
-            final neonColor = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              margin: const EdgeInsets.symmetric(horizontal: 3),
-              width: active ? 18 : 6,
-              height: 6,
-              decoration: BoxDecoration(
-                color: active
-                    ? neonColor
-                    : (isDark ? Colors.white24 : AppColors.lightOutline),
-                borderRadius: BorderRadius.circular(4),
+        // مؤشر النقاط يظهر فقط في وضع الكاروسيل
+        if (!_isGridView)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(services.length, (i) {
+              final active = i == _spotlightIndex;
+              final neonColor = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: active ? 18 : 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: active
+                      ? neonColor
+                      : (isDark ? Colors.white24 : AppColors.lightOutline),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              );
+            }),
+          ),
+        const SizedBox(height: 12),
+        // زر التبديل
+        Center(
+          child: TextButton.icon(
+            onPressed: () => setState(() => _isGridView = !_isGridView),
+            icon: Icon(
+              _isGridView ? LucideIcons.layoutGrid : LucideIcons.layoutList,
+              size: 16,
+              color: isDark ? AppColors.neon : AppColors.accentPrimaryDark,
+            ),
+            label: Text(
+              _isGridView ? 'عرض شرائحي' : 'عرض الكل',
+              style: TextStyle(
+                color: isDark ? AppColors.neon : AppColors.accentPrimaryDark,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
               ),
-            );
-          }),
+            ),
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSpotlightCarousel(List services, bool isDark) {
+    return SizedBox(
+      key: const ValueKey('carousel'),
+      height: 232,
+      child: PageView.builder(
+        controller: _spotlightController,
+        itemCount: services.length,
+        onPageChanged: (i) => setState(() => _spotlightIndex = i),
+        itemBuilder: (context, i) {
+          final s = services[i];
+          return AnimatedScale(
+            scale: i == _spotlightIndex ? 1.0 : 0.93,
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOut,
+            child: AnimatedOpacity(
+              opacity: i == _spotlightIndex ? 1.0 : 0.6,
+              duration: const Duration(milliseconds: 220),
+              child: _spotlightItem(s, isDark),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSpotlightGrid(List services, bool isDark) {
+    return GridView.builder(
+      key: const ValueKey('grid'),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: services.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 14,
+        childAspectRatio: 0.85,
+      ),
+      itemBuilder: (context, i) => _spotlightItem(services[i], isDark),
     );
   }
 
@@ -426,48 +424,281 @@ class _HomeScreenState extends State<HomeScreen> {
   // ---------------------------------------------------------------------
   Widget _buildServicesRow(bool isDark) {
     final services = MockData.services;
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 250),
+      child: _isServicesGridView
+          ? _buildServicesGrid(services, isDark)
+          : _buildServicesHorizontalList(services, isDark),
+    );
+  }
+
+  Widget _buildServicesHorizontalList(List services, bool isDark) {
     return SizedBox(
+      key: const ValueKey('services_row'),
       height: 90,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: services.length,
         separatorBuilder: (_, __) => const SizedBox(width: 16),
-        itemBuilder: (context, i) {
-          final s = services[i];
-          return GestureDetector(
-            onTap: () => Navigator.pushNamed(context, s.route),
-            child: Column(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.surfaceVariant : AppColors.lightSurface,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                        color: isDark ? Colors.white10 : AppColors.lightOutline),
-                  ),
-                  child: Icon(MockData.getIconByName(s.iconName),
-                      color: isDark ? AppColors.textPrimary : AppColors.lightText,
-                      size: 22),
+        itemBuilder: (context, i) => _serviceCircleItem(services[i], isDark),
+      ),
+    );
+  }
+
+  Widget _buildServicesGrid(List services, bool isDark) {
+    return GridView.builder(
+      key: const ValueKey('services_grid'),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: services.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 8,
+        childAspectRatio: 0.75,
+      ),
+      itemBuilder: (context, i) => _serviceCircleItem(services[i], isDark),
+    );
+  }
+
+  Widget _serviceCircleItem(dynamic s, bool isDark) {
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, s.route),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.surfaceVariant : AppColors.lightSurface,
+              shape: BoxShape.circle,
+              border: Border.all(
+                  color: isDark ? Colors.white10 : AppColors.lightOutline),
+            ),
+            child: Icon(MockData.getIconByName(s.iconName),
+                color: isDark ? AppColors.textPrimary : AppColors.lightText,
+                size: 22),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: 64,
+            child: Text(
+              s.title,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                  color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
+                  fontSize: 11),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------
+  // Catalog Section (شبكة كروت بأسلوب متجر: صورة/أيقونة + شارة + سعر)
+  // مع زر "عرض المزيد" أسفل الكروت
+  // ---------------------------------------------------------------------
+  Widget _buildCatalogSection(bool isDark) {
+    final services = MockData.services;
+    if (services.isEmpty) return const SizedBox.shrink();
+
+    final bool canExpand = services.length > _catalogCollapsedCount;
+    final visibleServices = _isCatalogExpanded
+        ? services
+        : services.take(_catalogCollapsedCount).toList();
+
+    return Column(
+      children: [
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          alignment: Alignment.topCenter,
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: visibleServices.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 14,
+              crossAxisSpacing: 14,
+              childAspectRatio: 0.72,
+            ),
+            itemBuilder: (context, i) => _catalogCard(visibleServices[i], isDark),
+          ),
+        ),
+        if (canExpand) ...[
+          const SizedBox(height: 18),
+          _buildShowMoreButton(isDark),
+        ],
+      ],
+    );
+  }
+
+  Widget _catalogCard(dynamic service, bool isDark) {
+    final accentColor = isDark ? AppColors.accentPrimaryLight : AppColors.accentPrimary;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceElevated : null,
+        gradient: isDark
+            ? null
+            : const LinearGradient(
+                colors: AppColors.catalogCardGradientLight,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: isDark
+            ? AppColors.violetGlow(blur: 20, alpha: 0.10)
+            : [
+                BoxShadow(
+                  color: AppColors.accentPrimary.withValues(alpha: 0.20),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
                 ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: 64,
-                  child: Text(
-                    s.title,
-                    textAlign: TextAlign.center,
+              ],
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => Navigator.pushNamed(context, service.route as String),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ---- منطقة الأيقونة + شارة "مميز" ----
+            Expanded(
+              child: Stack(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: isDark ? 0 : 0.14),
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(20),
+                      ),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        MockData.getIconByName(service.iconName as String),
+                        color: isDark ? accentColor : Colors.white,
+                        size: 54,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.error,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'مميز',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ---- النص السفلي ----
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    service.title as String,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
-                        fontSize: 11),
+                      color: isDark ? AppColors.textPrimary : Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 6),
+                  Text(
+                    service.subtitle as String,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: isDark
+                          ? accentColor
+                          : Colors.white.withValues(alpha: 0.85),
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          );
-        },
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------
+  // زر "عرض المزيد" بتصميم كبسولة بارزة، يظهر تحت كروت الكاتالوج
+  // ---------------------------------------------------------------------
+  Widget _buildShowMoreButton(bool isDark) {
+    final neonColor = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+
+    return Center(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(30),
+        onTap: () => setState(() => _isCatalogExpanded = !_isCatalogExpanded),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+          decoration: BoxDecoration(
+            color: neonColor,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: neonColor.withValues(alpha: 0.35),
+                blurRadius: 14,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _isCatalogExpanded ? 'عرض أقل' : 'عرض المزيد',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.black : Colors.white,
+                ),
+              ),
+              const SizedBox(width: 8),
+              AnimatedRotation(
+                duration: const Duration(milliseconds: 280),
+                turns: _isCatalogExpanded ? 0.5 : 0,
+                child: Icon(
+                  LucideIcons.chevronDown,
+                  size: 16,
+                  color: isDark ? Colors.black : Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

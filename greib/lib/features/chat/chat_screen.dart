@@ -109,7 +109,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
             ),
           IconButton(
               icon: const Icon(LucideIcons.headphones),
-            onPressed: () => Navigator.pushNamed(context, '/support'),
+            onPressed: () => Navigator.of(context, rootNavigator: true).pushNamed('/support'),
             tooltip: 'تذاكر الدعم',
           ),
         ],
