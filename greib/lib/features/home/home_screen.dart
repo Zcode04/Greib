@@ -18,6 +18,18 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _navIndex = 0;
 
+  // ---- حالة بطاقة Spotlight القابلة للتمرير ----
+  final PageController _spotlightController =
+      PageController(viewportFraction: 0.84);
+  int _spotlightIndex = 0;
+  final Set<String> _favoriteServiceIds = {};
+
+  @override
+  void dispose() {
+    _spotlightController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = AuthService.instance.currentUser;
@@ -250,14 +262,70 @@ class _HomeScreenState extends State<HomeScreen> {
   // Spotlight card (البطاقة المميزة الكبيرة)
   // ---------------------------------------------------------------------
   Widget _buildSpotlightCard(bool isDark) {
-    final service = MockData.services.isNotEmpty ? MockData.services.first : null;
+    final services = MockData.services;
+    if (services.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 232,
+          // PageView بـ viewportFraction < 1 يجعل أطراف البطاقات
+          // المجاورة تظهر على الجانبين، تماماً مثل تلميح Swipe في المرجع
+          child: PageView.builder(
+            controller: _spotlightController,
+            itemCount: services.length,
+            onPageChanged: (i) => setState(() => _spotlightIndex = i),
+            itemBuilder: (context, i) {
+              final s = services[i];
+              return AnimatedScale(
+                scale: i == _spotlightIndex ? 1.0 : 0.93,
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOut,
+                child: AnimatedOpacity(
+                  opacity: i == _spotlightIndex ? 1.0 : 0.6,
+                  duration: const Duration(milliseconds: 220),
+                  child: _spotlightItem(s, isDark),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 10),
+        // مؤشر نقطي صغير أسفل الكاروسيل
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(services.length, (i) {
+            final active = i == _spotlightIndex;
+            final neonColor = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: active ? 18 : 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: active
+                    ? neonColor
+                    : (isDark ? Colors.white24 : AppColors.lightOutline),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  Widget _spotlightItem(dynamic service, bool isDark) {
     final neonColor = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+    final isFav = _favoriteServiceIds.contains(service.id as String);
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceElevated : AppColors.lightSurface,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         boxShadow: isDark
             ? AppColors.neonGlow(blur: 30, alpha: 0.12)
             : [
@@ -268,63 +336,119 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: neonColor.withValues(alpha: isDark ? 0.12 : 0.15),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Icon(
-              service != null
-                  ? MockData.getIconByName(service.iconName)
-                  : LucideIcons.truck,
-              color: neonColor,
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  service?.title ?? 'توصيل سريع',
-                  style: TextStyle(
-                    color: isDark ? AppColors.textPrimary : AppColors.lightText,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(28),
+        onTap: () => Navigator.pushNamed(context, service.route as String),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // بديل "صورة الحذاء بزاوية جذابة": أيقونة الخدمة داخل
+            // كتلة ملونة مائلة قليلاً لإعطاء نفس الإحساس البصري
+            Expanded(
+              child: Center(
+                child: Transform.rotate(
+                  angle: -0.16,
+                  child: Container(
+                    width: 108,
+                    height: 108,
+                    decoration: BoxDecoration(
+                      color: neonColor.withValues(alpha: isDark ? 0.14 : 0.16),
+                      borderRadius: BorderRadius.circular(26),
+                    ),
+                    child: Transform.rotate(
+                      angle: 0.16, // نعيد الأيقونة نفسها لوضعها المستقيم
+                      child: Icon(
+                        MockData.getIconByName(service.iconName as String),
+                        color: neonColor,
+                        size: 46,
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'متاح الآن بالقرب منك',
-                  style: TextStyle(
-                      color: isDark ? AppColors.textMuted : AppColors.lightTextTertiary,
-                      fontSize: 12),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              service.title as String,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: isDark ? AppColors.textPrimary : AppColors.lightText,
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // بديل السعر الأخضر: نص الخدمة الفرعي بنفس لون Neon
+                Expanded(
+                  child: Text(
+                    service.subtitle as String,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: neonColor,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // أيقونة القلب (المفضلة)
+                _spotlightIconButton(
+                  icon: isFav ? LucideIcons.heart : LucideIcons.heart,
+                  iconColor: isFav
+                      ? AppColors.error
+                      : (isDark ? Colors.white70 : AppColors.lightTextSecondary),
+                  filledBackground: isFav
+                      ? AppColors.error.withValues(alpha: 0.12)
+                      : null,
+                  onTap: () => setState(() {
+                    if (isFav) {
+                      _favoriteServiceIds.remove(service.id as String);
+                    } else {
+                      _favoriteServiceIds.add(service.id as String);
+                    }
+                  }),
+                ),
+                const SizedBox(width: 8),
+                // أيقونة السلة/الإجراء (بلون Neon المميز)
+                _spotlightIconButton(
+                  icon: LucideIcons.shoppingBag,
+                  iconColor: isDark ? Colors.black : Colors.white,
+                  filledBackground: neonColor,
+                  onTap: () => Navigator.pushNamed(context, service.route as String),
                 ),
               ],
             ),
-          ),
-          if (service != null)
-            InkWell(
-              onTap: () => Navigator.pushNamed(context, service.route),
-              borderRadius: BorderRadius.circular(18),
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: neonColor,
-                ),
-                child: Icon(LucideIcons.chevronRight,
-                    size: 16,
-                    color: isDark ? Colors.black : Colors.white),
-              ),
-            ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _spotlightIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    required Color iconColor,
+    Color? filledBackground,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: filledBackground ?? Colors.transparent,
+          border: filledBackground == null
+              ? Border.all(color: iconColor.withValues(alpha: 0.3))
+              : null,
+        ),
+        child: Icon(icon, size: 16, color: iconColor),
       ),
     );
   }
