@@ -168,6 +168,30 @@ class AppUserProfile {
       );
 }
 
+class DoctorProfile {
+  final String id;
+  final String name;
+  final String specialty;
+  final String avatar;
+  final double rating;
+  final int yearsOfExperience;
+  final String hospitalName;
+  final bool isAvailableNow;
+  final double consultationFee;
+
+  const DoctorProfile({
+    required this.id,
+    required this.name,
+    required this.specialty,
+    required this.avatar,
+    required this.rating,
+    required this.yearsOfExperience,
+    required this.hospitalName,
+    required this.isAvailableNow,
+    required this.consultationFee,
+  });
+}
+
 // ==================== البيانات الوهمية (Mock Data) ====================
 
 class MockData {
@@ -335,6 +359,120 @@ class MockData {
       'timestamp': 'منذ ٣٠ دقيقة',
     },
   ];
+
+  static const List<DoctorProfile> mockDoctors = [
+    DoctorProfile(
+      id: 'd1',
+      name: 'د. محمد أحمد',
+      specialty: 'باطنة',
+      avatar: 'https://i.pravatar.cc/150?img=10',
+      rating: 4.8,
+      yearsOfExperience: 12,
+      hospitalName: 'مستشفى الشيخ خليفة بن زايد الجامعي',
+      isAvailableNow: true,
+      consultationFee: 150.0,
+    ),
+    DoctorProfile(
+      id: 'd2',
+      name: 'د. فاطنة حسن',
+      specialty: 'أطفال',
+      avatar: 'https://i.pravatar.cc/150?img=11',
+      rating: 4.9,
+      yearsOfExperience: 8,
+      hospitalName: 'مستشفى توام',
+      isAvailableNow: true,
+      consultationFee: 180.0,
+    ),
+    DoctorProfile(
+      id: 'd3',
+      name: 'د. عمر البكري',
+      specialty: 'أسنان',
+      avatar: 'https://i.pravatar.cc/150?img=12',
+      rating: 4.7,
+      yearsOfExperience: 10,
+      hospitalName: 'مستشفى راشد',
+      isAvailableNow: false,
+      consultationFee: 120.0,
+    ),
+    DoctorProfile(
+      id: 'd4',
+      name: 'د. سارة محمود',
+      specialty: 'جلدية',
+      avatar: 'https://i.pravatar.cc/150?img=13',
+      rating: 4.6,
+      yearsOfExperience: 6,
+      hospitalName: 'مستشفى برجيل',
+      isAvailableNow: true,
+      consultationFee: 200.0,
+    ),
+    DoctorProfile(
+      id: 'd5',
+      name: 'د. ليلى عبدالله',
+      specialty: 'نساء وولادة',
+      avatar: 'https://i.pravatar.cc/150?img=14',
+      rating: 4.9,
+      yearsOfExperience: 15,
+      hospitalName: 'مستشفى الفاطمة',
+      isAvailableNow: true,
+      consultationFee: 220.0,
+    ),
+    DoctorProfile(
+      id: 'd6',
+      name: 'د. خالد رمضان',
+      specialty: 'عظام',
+      avatar: 'https://i.pravatar.cc/150?img=15',
+      rating: 4.5,
+      yearsOfExperience: 14,
+      hospitalName: 'مستشفى العين الدولي',
+      isAvailableNow: false,
+      consultationFee: 250.0,
+    ),
+    DoctorProfile(
+      id: 'd7',
+      name: 'د. أمير صالح',
+      specialty: 'قلب',
+      avatar: 'https://i.pravatar.cc/150?img=16',
+      rating: 4.8,
+      yearsOfExperience: 11,
+      hospitalName: 'مستشفى دبي الدولي',
+      isAvailableNow: true,
+      consultationFee: 300.0,
+    ),
+    DoctorProfile(
+      id: 'd8',
+      name: 'د. نورا الزهراء',
+      specialty: 'طب الأسرة',
+      avatar: 'https://i.pravatar.cc/150?img=17',
+      rating: 4.4,
+      yearsOfExperience: 7,
+      hospitalName: 'مركز الراشد للرعاية الصحية',
+      isAvailableNow: true,
+      consultationFee: 130.0,
+    ),
+  ];
+
+  static Color getSpecialtyColor(String specialty) {
+    switch (specialty) {
+      case 'باطنة':
+        return const Color(0xFF0F5132); // أخضر غامق
+      case 'أطفال':
+        return AppColors.info; // أزرق
+      case 'أسنان':
+        return const Color(0xFFD4A853); // ذهبي
+      case 'جلدية':
+        return AppColors.serviceShopping; // وردي
+      case 'نساء وولادة':
+        return AppColors.accentPrimary; // بنفسجي
+      case 'عظام':
+        return AppColors.warning; // برتقالي
+      case 'قلب':
+        return AppColors.error; // أحمر
+      case 'طب الأسرة':
+        return AppColors.serviceTourism; // تركواز
+      default:
+        return AppColors.accentPrimary;
+    }
+  }
 
   static List<ServiceCategory> get services => [
         ServiceCategory(

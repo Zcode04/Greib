@@ -56,6 +56,11 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildSpotlightCard(isDark),
             const SizedBox(height: 28),
 
+            _sectionTitle('تعرف على أطبائنا', isDark),
+            const SizedBox(height: 12),
+            _buildDoctorsRow(isDark),
+            const SizedBox(height: 28),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -507,6 +512,62 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(
                   color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
                   fontSize: 11),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------
+  // Doctors row (بروفيلات أطباء دائرية أفقية)
+  // ---------------------------------------------------------------------
+  Widget _buildDoctorsRow(bool isDark) {
+    final doctors = MockData.mockDoctors;
+    return SizedBox(
+      height: 104,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: doctors.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 16),
+        itemBuilder: (context, i) => _doctorCircleItem(doctors[i], isDark),
+      ),
+    );
+  }
+
+  Widget _doctorCircleItem(DoctorProfile doctor, bool isDark) {
+    final specialtyColor = MockData.getSpecialtyColor(doctor.specialty);
+    final shortName = doctor.name.replaceFirst('د. ', '');
+
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(
+        context,
+        '/doctor_profile',
+        arguments: doctor,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor:
+                specialtyColor.withValues(alpha: isDark ? 0.15 : 0.12),
+            backgroundImage: NetworkImage(doctor.avatar),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: 64,
+            child: Text(
+              shortName,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: isDark
+                    ? AppColors.textSecondary
+                    : AppColors.lightTextSecondary,
+                fontSize: 11,
+              ),
             ),
           ),
         ],

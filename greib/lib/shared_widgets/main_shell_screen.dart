@@ -10,6 +10,8 @@ import '../features/tourism_events/tourism_screen.dart';
 import '../features/chat/chat_screen.dart';
 import '../features/wallet/wallet_screen.dart';
 import '../features/favorites/favorites_screen.dart';
+import '../features/doctors/doctors_list_screen.dart';
+import '../features/doctors/doctor_profile_screen.dart';
 import '../shared_widgets/profile_widget.dart';
 import '../shared_widgets/floating_bottom_nav.dart';
 import '../shared_widgets/header.dart';
@@ -38,6 +40,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
     '/chat': (_) => ChatListScreen(),
     '/wallet': (_) => WalletScreen(),
     '/favorites': (_) => FavoritesScreen(),
+    '/doctors': (_) => const DoctorsListScreen(),
+    '/doctor_profile': (_) => const DoctorProfileScreen(),
     '/profile': (_) => ProfileScreen(),
   };
 

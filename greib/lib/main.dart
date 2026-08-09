@@ -13,6 +13,8 @@ import 'features/promo/promo_codes_screen.dart';
 import 'features/reviews/reviews_screen.dart';
 import 'features/membership/membership_screen.dart';
 import 'features/support/support_tickets_screen.dart';
+import 'features/doctors/doctors_list_screen.dart';
+import 'features/doctors/doctor_profile_screen.dart';
 import 'shared_widgets/main_shell_screen.dart';
 
 void main() {
@@ -61,6 +63,8 @@ class GreibMenkApp extends StatelessWidget {
         '/reviews': (context) => const ReviewsScreen(),
         '/membership': (context) => const MembershipScreen(),
         '/support': (context) => const SupportTicketsScreen(),
+        '/doctors': (context) => const DoctorsListScreen(),
+        '/doctor_profile': (context) => const DoctorProfileScreen(),
       },
     );
   }
