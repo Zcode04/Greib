@@ -79,7 +79,7 @@ class _CentralServiceCardState extends State<CentralServiceCard>
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(AppRadii.lg - 2),
                     child: service.imageUrl != null
-                        ? Image.network(
+                        ? Image.asset(
                             service.imageUrl!,
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => Icon(

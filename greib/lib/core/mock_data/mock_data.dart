@@ -534,7 +534,7 @@ class MockData {
           iconName: 'truck-moving',
           color: AppColors.serviceMoving,
           route: '/moving',
-          imageUrl: 'https://p16-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/57695cce8fd241f38860c03d714d498f~tplv-h9hire4aei-image.jpeg',
+          imageUrl: 'assets/images/moving.jpg',
         ),
         ServiceCategory(
           id: 'taxi',

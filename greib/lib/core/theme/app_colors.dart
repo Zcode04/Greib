@@ -19,18 +19,18 @@ class AppColors {
   // ==========================================================================
 
   // ---------- 🌙 الوضع الليلي (Dark Mode) ----------
-  static const Color _darkBg          = Color(0xFF09090B); // أسود عميق — الخلفية
-  static const Color _darkSurface     = Color(0xFF18181B); // كروت وبطاقات
-  static const Color _darkElevated    = Color(0xFF27272A); // طبقة أعمق (modals, inputs)
-  static const Color _darkBorder      = Color(0xFF3F3F46); // حدود دقيقة
+  static const Color _darkBg          = Color.fromARGB(255, 13, 11, 21); // أسود عميق — الخلفية
+  static const Color _darkSurface     = Color(0xFF211F2B); // كروت وبطاقات
+  static const Color _darkElevated    = Color(0xFF211F2B); // طبقة أعمق (modals, inputs)
+  static const Color _darkBorder      = Color.fromARGB(255, 15, 18, 23); // حدود دقيقة
   static const Color _darkTextPrimary  = Color(0xFFFAFAFA); // نص أساسي أبيض ناعم
   static const Color _darkTextMuted    = Color(0xFFA1A1AA); // نص ثانوي رمادي
 
   // ---------- ☀️ الوضع النهاري (Light Mode) ----------
   static const Color _lightBg          = Color(0xFFF4F4F5); // خلفية فاتحة محايدة
-  static const Color _lightSurface     = Color(0xFFFFFFFF); // كروت بيضاء نظيفة
+  static const Color _lightSurface     = Color.fromARGB(255, 255, 255, 255); // كروت بيضاء نظيفة
   static const Color _lightElevated    = Color(0xFFF4F4F5); // للـ inputs
-  static const Color _lightBorder      = Color(0xFFE4E4E7); // حدود خفيفة
+  static const Color _lightBorder      = Color.fromARGB(255, 255, 152, 43); // حدود خفيفة
   static const Color _lightTextPrimary  = Color(0xFF09090B); // نص أسود
   static const Color _lightTextMuted    = Color(0xFF71717A); // نص ثانوي
 

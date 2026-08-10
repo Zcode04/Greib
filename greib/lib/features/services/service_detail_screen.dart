@@ -228,6 +228,7 @@ class ServiceDetailScreen extends StatelessWidget {
   Widget _buildHeader(bool isDark) {
     final iconData = MockData.getIconByName(service.iconName);
     final image = service.imageUrl;
+    final isLocal = image != null && image.startsWith('assets/');
 
     return Container(
       decoration: BoxDecoration(
@@ -246,11 +247,17 @@ class ServiceDetailScreen extends StatelessWidget {
             Positioned.fill(
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppRadii.xxl)),
-                child: Image.network(
-                  image,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                ),
+                child: isLocal
+                    ? Image.asset(
+                        image,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      )
+                    : Image.network(
+                        image,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      ),
               ),
             ),
           // طبقة تعتيم خفيفة لقراءة أفضل
