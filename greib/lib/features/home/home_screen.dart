@@ -343,11 +343,24 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     child: Transform.rotate(
                       angle: 0.16, // نعيد الأيقونة نفسها لوضعها المستقيم
-                      child: Icon(
-                        MockData.getIconByName(service.iconName as String),
-                        color: neonColor,
-                        size: 46,
-                      ),
+                      child: (service.imageUrl != null)
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(22),
+                              child: Image.network(
+                                service.imageUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Icon(
+                                  MockData.getIconByName(service.iconName as String),
+                                  color: neonColor,
+                                  size: 46,
+                                ),
+                              ),
+                            )
+                          : Icon(
+                              MockData.getIconByName(service.iconName as String),
+                              color: neonColor,
+                              size: 46,
+                            ),
                     ),
                   ),
                 ),
@@ -497,9 +510,21 @@ class _HomeScreenState extends State<HomeScreen> {
               border: Border.all(
                   color: isDark ? Colors.white10 : AppColors.lightOutline),
             ),
-            child: Icon(MockData.getIconByName(s.iconName),
-                color: isDark ? AppColors.textPrimary : AppColors.lightText,
-                size: 22),
+            child: s.imageUrl != null
+                ? ClipOval(
+                    child: Image.network(
+                      s.imageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Icon(
+                        MockData.getIconByName(s.iconName),
+                        color: isDark ? AppColors.textPrimary : AppColors.lightText,
+                        size: 22,
+                      ),
+                    ),
+                  )
+                : Icon(MockData.getIconByName(s.iconName),
+                    color: isDark ? AppColors.textPrimary : AppColors.lightText,
+                    size: 22),
           ),
           const SizedBox(height: 8),
           SizedBox(
@@ -657,13 +682,28 @@ class _HomeScreenState extends State<HomeScreen> {
                         top: Radius.circular(20),
                       ),
                     ),
-                    child: Center(
-                      child: Icon(
-                        MockData.getIconByName(service.iconName as String),
-                        color: isDark ? accentColor : Colors.white,
-                        size: 54,
-                      ),
-                    ),
+                    child: (service.imageUrl != null)
+                        ? ClipRRect(
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                            child: Image.network(
+                              service.imageUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Center(
+                                child: Icon(
+                                  MockData.getIconByName(service.iconName as String),
+                                  color: isDark ? accentColor : Colors.white,
+                                  size: 54,
+                                ),
+                              ),
+                            ),
+                          )
+                        : Center(
+                            child: Icon(
+                              MockData.getIconByName(service.iconName as String),
+                              color: isDark ? accentColor : Colors.white,
+                              size: 54,
+                            ),
+                          ),
                   ),
                   Positioned(
                     top: 8,

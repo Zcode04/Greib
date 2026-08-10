@@ -7,6 +7,8 @@ import '../features/courier/courier_screen.dart';
 import '../features/ride/ride_screen.dart';
 import '../features/shopping/shopping_screen.dart';
 import '../features/tourism_events/tourism_screen.dart';
+import '../features/services/service_detail_screen.dart';
+import '../core/mock_data/mock_data.dart';
 import '../features/chat/chat_screen.dart';
 import '../features/wallet/wallet_screen.dart';
 import '../features/favorites/favorites_screen.dart';
@@ -38,6 +40,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
     '/shopping': (_) => ShoppingScreen(),
     '/tourism': (_) => TourismScreen(),
     '/chat': (_) => ChatListScreen(),
+    // ===== المسارات الجديدة (١٨ خدمة) — شاشة مخصّصة لكل خدمة =====
+    ..._buildNewServiceRoutes(),
     '/wallet': (_) => WalletScreen(),
     '/favorites': (_) => FavoritesScreen(),
     '/doctors': (_) => const DoctorsListScreen(),
@@ -49,6 +53,22 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
   void _handleRouteChanged(String routeName) {
     // No-op since we don't update title anymore
+  }
+
+  // بناء مسارات الخدمات الجديدة ديناميكياً من قائمة MockData.services
+  static Map<String, WidgetBuilder> _buildNewServiceRoutes() {
+    final newServiceIds = {
+      'moving', 'taxi', 'electricity', 'water', 'laundry', 'clothes',
+      'phones', 'devices', 'appliances', 'office', 'delivery', 'estore',
+      'travel', 'tourism_extra', 'medicine', 'pharmacy_extra', 'consult', 'freight',
+    };
+    final routes = <String, WidgetBuilder>{};
+    for (final service in MockData.services) {
+      if (newServiceIds.contains(service.id)) {
+        routes[service.route] = (_) => ServiceDetailScreen(service: service);
+      }
+    }
+    return routes;
   }
 
   @override

@@ -54,6 +54,26 @@ class AppColors {
   static const Color _svcShopping  = Color(0xFFEC4899); // وردي — تسوق
   static const Color _svcTourism   = Color(0xFF14B8A6); // تيل — سياحة
 
+  // ---------- 🧩 ألوان الخدمات الإضافية (١٨ خدمة) ----------
+  static const Color _svcMoving     = Color(0xFF0EA5E9); // سماوي — نقل
+  static const Color _svcTaxi       = Color(0xFFFACC15); // أصفر — تكاسي
+  static const Color _svcElectricity= Color(0xFFFDE047); // أصفر فاتح — كهرباء
+  static const Color _svcWater      = Color(0xFF38BDF8); // أزرق سماوي — ماء
+  static const Color _svcLaundry    = Color(0xFF22D3EE); // سماوي فاتح — غسيل
+  static const Color _svcClothes    = Color(0xFFFB7185); // وردي فاتح — ملابس
+  static const Color _svcPhones     = Color(0xFF6366F1); // بنفسجي أزرق — هواتف
+  static const Color _svcDevices    = Color(0xFF8B5CF6); // بنفسجي — أجهزة
+  static const Color _svcAppliances = Color(0xFF10B981); // أخضر — أجهزة منزلية
+  static const Color _svcOffice     = Color(0xFF64748B); // رمادي أزرق — معدات مكتبية
+  static const Color _svcDelivery   = Color(0xFFF472B6); // وردي — توصيل
+  static const Color _svcEstore     = Color(0xFFA855F7); // بنفسجي — متاجر إلكترونية
+  static const Color _svcTravel     = Color(0xFF06B6D4); // سماوي — سفر
+  static const Color _svcTourismX   = Color(0xFF14B8A6); // تيل — سياحة (احتياطي)
+  static const Color _svcMedicine   = Color(0xFFEF4444); // أحمر — أدوية
+  static const Color _svcPharmacyX  = Color(0xFF3B82F6); // أزرق — صيدلة (احتياطي)
+  static const Color _svcConsult    = Color(0xFF84CC16); // أخضر ليموني — استشارات طبية
+  static const Color _svcFreight    = Color(0xFFF97316); // برتقالي — نقل بضائع
+
   // ==========================================================================
   //  2) الطبقة الدلالية (Semantic Layer) — لا تعدّل هنا مباشرة
   //     هذه الأسماء هي ما يستخدمه بقية الكود بالكامل
@@ -79,6 +99,26 @@ class AppColors {
   static const Color serviceRide     = _svcRide;
   static const Color serviceShopping = _svcShopping;
   static const Color serviceTourism  = _svcTourism;
+
+  // --- ألوان الخدمات الإضافية ---
+  static const Color serviceMoving     = _svcMoving;
+  static const Color serviceTaxi       = _svcTaxi;
+  static const Color serviceElectricity= _svcElectricity;
+  static const Color serviceWater      = _svcWater;
+  static const Color serviceLaundry    = _svcLaundry;
+  static const Color serviceClothes    = _svcClothes;
+  static const Color servicePhones     = _svcPhones;
+  static const Color serviceDevices    = _svcDevices;
+  static const Color serviceAppliances = _svcAppliances;
+  static const Color serviceOffice     = _svcOffice;
+  static const Color serviceDelivery   = _svcDelivery;
+  static const Color serviceEstore     = _svcEstore;
+  static const Color serviceTravel     = _svcTravel;
+  static const Color serviceTourismX   = _svcTourismX;
+  static const Color serviceMedicine   = _svcMedicine;
+  static const Color servicePharmacyX  = _svcPharmacyX;
+  static const Color serviceConsult    = _svcConsult;
+  static const Color serviceFreight    = _svcFreight;
 
   // --- النصوص (Dark mode — الوضع الافتراضي) ---
   static const Color textPrimary   = _darkTextPrimary;

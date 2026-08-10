@@ -13,6 +13,8 @@ class DoctorsListScreen extends StatefulWidget {
 
 class _DoctorsListScreenState extends State<DoctorsListScreen> {
   String _selectedSpecialty = 'الكل';
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   static const List<String> _specialties = [
     'الكل',
@@ -27,10 +29,28 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   ];
 
   List<DoctorProfile> get _filteredDoctors {
-    if (_selectedSpecialty == 'الكل') return MockData.mockDoctors;
-    return MockData.mockDoctors
-        .where((d) => d.specialty == _selectedSpecialty)
-        .toList();
+    var list = _selectedSpecialty == 'الكل'
+        ? MockData.mockDoctors
+        : MockData.mockDoctors
+            .where((d) => d.specialty == _selectedSpecialty)
+            .toList();
+
+    if (_searchQuery.isNotEmpty) {
+      final q = _searchQuery.toLowerCase();
+      list = list
+          .where((d) =>
+              d.name.toLowerCase().contains(q) ||
+              d.specialty.toLowerCase().contains(q) ||
+              d.hospitalName.toLowerCase().contains(q))
+          .toList();
+    }
+    return list;
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -48,6 +68,60 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ====== شريط البحث ======
+            Container(
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.surfaceVariant
+                    : AppColors.lightSurfaceVariant,
+                borderRadius: BorderRadius.circular(AppRadii.full),
+                border: Border.all(
+                  color: isDark ? AppColors.outline : AppColors.lightOutline,
+                ),
+              ),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (v) => setState(() => _searchQuery = v.trim()),
+                decoration: InputDecoration(
+                  hintText: 'ابحث عن طبيب أو مستشفى...',
+                  hintStyle: TextStyle(
+                    color: isDark
+                        ? AppColors.textMuted
+                        : AppColors.lightTextTertiary,
+                    fontSize: 14,
+                  ),
+                  prefixIcon: Icon(
+                    LucideIcons.search,
+                    size: 18,
+                    color: isDark
+                        ? AppColors.textMuted
+                        : AppColors.lightTextTertiary,
+                  ),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(
+                            LucideIcons.x,
+                            size: 18,
+                            color: isDark
+                                ? AppColors.textMuted
+                                : AppColors.lightTextTertiary,
+                          ),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.md,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
             // شريط تصفية بالتخصص
             SizedBox(
               height: 44,
@@ -99,7 +173,9 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
 
             // قائمة الأطباء
             Text(
-              '${_filteredDoctors.length} طبيب',
+              _searchQuery.isNotEmpty
+                  ? '${_filteredDoctors.length} نتيجة للبحث'
+                  : '${_filteredDoctors.length} طبيب',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: isDark
                     ? AppColors.textMuted

@@ -21,6 +21,25 @@ class PermissionService {
       case '/ride':
       case '/shopping':
       case '/tourism':
+      // الخدمات الجديدة (١٨ خدمة)
+      case '/moving':
+      case '/taxi':
+      case '/electricity':
+      case '/water':
+      case '/laundry':
+      case '/clothes':
+      case '/phones':
+      case '/devices':
+      case '/appliances':
+      case '/office':
+      case '/delivery':
+      case '/estore':
+      case '/travel':
+      case '/tourism_extra':
+      case '/medicine':
+      case '/pharmacy_extra':
+      case '/consult':
+      case '/freight':
         return true;
 
       // الشات متاح للجميع

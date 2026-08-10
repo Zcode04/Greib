@@ -76,10 +76,23 @@ class _CentralServiceCardState extends State<CentralServiceCard>
                       width: 1,
                     ),
                   ),
-                  child: Icon(
-                    MockData.getIconByName(service.iconName),
-                    color: service.color,
-                    size: 28,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(AppRadii.lg - 2),
+                    child: service.imageUrl != null
+                        ? Image.network(
+                            service.imageUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Icon(
+                              MockData.getIconByName(service.iconName),
+                              color: service.color,
+                              size: 28,
+                            ),
+                          )
+                        : Icon(
+                            MockData.getIconByName(service.iconName),
+                            color: service.color,
+                            size: 28,
+                          ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),

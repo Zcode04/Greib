@@ -47,6 +47,7 @@ class ServiceCategory {
   final String iconName;
   final Color color;
   final String route;
+  final String? imageUrl; // صورة مميّزة للخدمة (اختيارية)
 
   const ServiceCategory({
     required this.id,
@@ -55,6 +56,7 @@ class ServiceCategory {
     required this.iconName,
     required this.color,
     required this.route,
+    this.imageUrl,
   });
 }
 
@@ -523,6 +525,170 @@ class MockData {
           color: AppColors.serviceTourism,
           route: '/tourism',
         ),
+
+        // ===== الخدمات الإضافية الجديدة =====
+        ServiceCategory(
+          id: 'moving',
+          title: 'نقل',
+          subtitle: 'نقل عفش وأثاث',
+          iconName: 'truck-moving',
+          color: AppColors.serviceMoving,
+          route: '/moving',
+          imageUrl: 'https://p16-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/57695cce8fd241f38860c03d714d498f~tplv-h9hire4aei-image.jpeg',
+        ),
+        ServiceCategory(
+          id: 'taxi',
+          title: 'تكاسي',
+          subtitle: 'توصيل ركاب',
+          iconName: 'taxi',
+          color: AppColors.serviceTaxi,
+          route: '/taxi',
+          imageUrl: 'https://p16-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/a82074ee3f1142119c3ac58dfb1a6bde~tplv-h9hire4aei-image.jpeg',
+        ),
+        ServiceCategory(
+          id: 'electricity',
+          title: 'الكهرباء',
+          subtitle: 'صيانة وتركيب',
+          iconName: 'zap',
+          color: AppColors.serviceElectricity,
+          route: '/electricity',
+          imageUrl: 'https://p16-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/6d0d08cad4e743cb89536f8195112515~tplv-h9hire4aei-image.jpeg',
+        ),
+        ServiceCategory(
+          id: 'water',
+          title: 'الماء',
+          subtitle: 'توصيل وصيانة',
+          iconName: 'droplet',
+          color: AppColors.serviceWater,
+          route: '/water',
+          imageUrl: 'https://p16-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/e388099b7de04a72a0b429675c872037~tplv-h9hire4aei-image.jpeg',
+        ),
+        ServiceCategory(
+          id: 'laundry',
+          title: 'الغسيل',
+          subtitle: 'غسيل وكيّ',
+          iconName: 'washing-machine',
+          color: AppColors.serviceLaundry,
+          route: '/laundry',
+          imageUrl: 'https://p16-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/ac00df1d838244c8880ab43eb2d6b2dc~tplv-h9hire4aei-image.jpeg',
+        ),
+        ServiceCategory(
+          id: 'clothes',
+          title: 'الملابس',
+          subtitle: 'تفصيل وتعديل',
+          iconName: 'shirt',
+          color: AppColors.serviceClothes,
+          route: '/clothes',
+          imageUrl: 'https://p16-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/13c9992e6f294c4e81c58cf41135d815~tplv-h9hire4aei-image.jpeg',
+        ),
+        ServiceCategory(
+          id: 'phones',
+          title: 'الهواتف',
+          subtitle: 'صيانة وتركيب',
+          iconName: 'smartphone',
+          color: AppColors.servicePhones,
+          route: '/phones',
+          imageUrl: 'https://p16-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/8741f9dc3c114e46a10be3e91397e179~tplv-h9hire4aei-image.jpeg',
+        ),
+        ServiceCategory(
+          id: 'devices',
+          title: 'الأجهزة',
+          subtitle: 'إصلاح وصيانة',
+          iconName: 'laptop',
+          color: AppColors.serviceDevices,
+          route: '/devices',
+          imageUrl: 'https://p16-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/7a2cdc3bd79a4dbeb612b52f45710a14~tplv-h9hire4aei-image.jpeg',
+        ),
+        ServiceCategory(
+          id: 'appliances',
+          title: 'الأجهزة المنزلية',
+          subtitle: 'تركيب وصيانة',
+          iconName: 'refrigerator',
+          color: AppColors.serviceAppliances,
+          route: '/appliances',
+          imageUrl: 'https://p19-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/1b678879cbcd40f9a693f73683b697bd~tplv-h9hire4aei-image.jpeg',
+        ),
+        ServiceCategory(
+          id: 'office',
+          title: 'المعدات المكتبية',
+          subtitle: 'تأجير وبيع',
+          iconName: 'printer',
+          color: AppColors.serviceOffice,
+          route: '/office',
+          imageUrl: 'https://p16-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/b2e5ed955a134cefabfcdf07de0e5ece~tplv-h9hire4aei-image.jpeg',
+        ),
+        ServiceCategory(
+          id: 'delivery',
+          title: 'التوصيل',
+          subtitle: 'توصيل طرود',
+          iconName: 'package-delivery',
+          color: AppColors.serviceDelivery,
+          route: '/delivery',
+          imageUrl: 'https://p16-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/e039d726a70f41a49249d133250fd5fa~tplv-h9hire4aei-image.jpeg',
+        ),
+        ServiceCategory(
+          id: 'estore',
+          title: 'المتاجر الإلكترونية',
+          subtitle: 'تسوّق أونلاين',
+          iconName: 'shopping-bag',
+          color: AppColors.serviceEstore,
+          route: '/estore',
+          imageUrl: 'https://p16-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/2ac5118f095a4ea8a6ba12c7b59e3049~tplv-h9hire4aei-image.jpeg',
+        ),
+        ServiceCategory(
+          id: 'travel',
+          title: 'السفر',
+          subtitle: 'حجوزات طيران',
+          iconName: 'plane',
+          color: AppColors.serviceTravel,
+          route: '/travel',
+          imageUrl: 'https://p16-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/cb83a3e0449149b0a13e4e1e8ec72167~tplv-h9hire4aei-image.jpeg',
+        ),
+        ServiceCategory(
+          id: 'tourism_extra',
+          title: 'السياحة',
+          subtitle: 'رحلات واستكشاف',
+          iconName: 'map-pin-tourism',
+          color: AppColors.serviceTourismX,
+          route: '/tourism_extra',
+          imageUrl: 'https://p19-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/9c766be8b1514042950475b2215f5726~tplv-h9hire4aei-image.jpeg',
+        ),
+        ServiceCategory(
+          id: 'medicine',
+          title: 'الأدوية',
+          subtitle: 'أدوية ومستلزمات',
+          iconName: 'pill-medicine',
+          color: AppColors.serviceMedicine,
+          route: '/medicine',
+          imageUrl: 'https://p16-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/0158ade305b04892bef39f7874876747~tplv-h9hire4aei-image.jpeg',
+        ),
+        ServiceCategory(
+          id: 'pharmacy_extra',
+          title: 'صيدلة',
+          subtitle: 'صيدليات قريبة',
+          iconName: 'cross-pharmacy',
+          color: AppColors.servicePharmacyX,
+          route: '/pharmacy_extra',
+          imageUrl: 'https://p16-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/b5db28b6e22a4854bc5679803cd3e4ee~tplv-h9hire4aei-image.jpeg',
+        ),
+        ServiceCategory(
+          id: 'consult',
+          title: 'حجز لاستشارات طبية',
+          subtitle: 'استشارات عن بُعد',
+          iconName: 'stethoscope',
+          color: AppColors.serviceConsult,
+          route: '/consult',
+          imageUrl: 'https://p16-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/d1e580ed76444e579cdc17370623a96b~tplv-h9hire4aei-image.jpeg',
+        ),
+        ServiceCategory(
+          id: 'freight',
+          title: 'نقل البضائعة',
+          subtitle: 'شحن وتوصيل بضائع',
+          iconName: 'container-freight',
+          color: AppColors.serviceFreight,
+          route: '/freight',
+          imageUrl: 'https://p16-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/6aaac25d00964a7c822747dbe568e71f~tplv-h9hire4aei-image.jpeg',
+        ),
       ];
 
   static IconData getIconByName(String name) {
@@ -539,6 +705,43 @@ class MockData {
         return LucideIcons.shoppingCart;
       case 'palmtree':
         return LucideIcons.palmtree;
+      // ---- أيقونات الخدمات الجديدة ----
+      case 'truck-moving':
+        return LucideIcons.truck;
+      case 'taxi':
+        return LucideIcons.car;
+      case 'zap':
+        return LucideIcons.zap;
+      case 'droplet':
+        return LucideIcons.droplet;
+      case 'washing-machine':
+        return LucideIcons.washingMachine;
+      case 'shirt':
+        return LucideIcons.shirt;
+      case 'smartphone':
+        return LucideIcons.smartphone;
+      case 'laptop':
+        return LucideIcons.laptop;
+      case 'refrigerator':
+        return LucideIcons.refrigerator;
+      case 'printer':
+        return LucideIcons.printer;
+      case 'package-delivery':
+        return LucideIcons.package;
+      case 'shopping-bag':
+        return LucideIcons.shoppingBag;
+      case 'plane':
+        return LucideIcons.plane;
+      case 'map-pin-tourism':
+        return LucideIcons.mapPin;
+      case 'pill-medicine':
+        return LucideIcons.pill;
+      case 'cross-pharmacy':
+        return LucideIcons.cross;
+      case 'stethoscope':
+        return LucideIcons.stethoscope;
+      case 'container-freight':
+        return LucideIcons.container;
       case 'chat':
         return LucideIcons.messageCircle;
       case 'home':
