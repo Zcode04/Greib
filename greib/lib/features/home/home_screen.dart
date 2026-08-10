@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/mock_data/mock_data.dart';
 import '../../core/permissions/permissions.dart';
-import '../../core/theme/theme_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/auth/mock_auth.dart';
 
@@ -42,7 +40,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
-      drawer: _buildDrawer(context, user, role, isDark),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 110),
         child: Column(
@@ -190,9 +187,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // ---- الصورة حرة تمامًا، بدون أي إطار أو صندوق ----
           Positioned(
-            left: -28, // نسمح لها بالخروج قليلاً عن حواف الشاشة لإحساس أكثر حرية
-            top: -4,
-            bottom: -6,
+            left: -30, // نسمح لها بالخروج قليلاً عن حواف الشاشة لإحساس أكثر حرية
+            top: -10,
+            bottom: -10,
             child: Image.asset(
               'assets/images/hero.png',
               fit: BoxFit.contain,
@@ -932,101 +929,5 @@ class _HomeScreenState extends State<HomeScreen> {
           fontWeight: FontWeight.w800,
           fontSize: 18,
         ));
-  }
-
-  // ---------------------------------------------------------------------
-  // Drawer
-  // ---------------------------------------------------------------------
-  Widget _buildDrawer(BuildContext context, user, role, bool isDark) {
-    return Drawer(
-      backgroundColor: isDark ? AppColors.surface : AppColors.lightSurface,
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
-            decoration: BoxDecoration(
-                color: isDark ? AppColors.background : AppColors.lightBackground),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isDark ? AppColors.surfaceVariant : AppColors.lightSurfaceVariant,
-                  ),
-                  child: Icon(LucideIcons.user,
-                      color: isDark ? AppColors.neon : AppColors.accentPrimaryDark,
-                      size: 28),
-                ),
-                const SizedBox(height: 12),
-                Text(user?.name ?? 'زائر',
-                    style: TextStyle(
-                        color: isDark ? Colors.white : AppColors.lightText,
-                        fontWeight: FontWeight.w700)),
-                Text(
-                  role != null ? PermissionService.roleLabel(role) : 'غير مسجل',
-                  style: TextStyle(
-                      color: isDark ? AppColors.textMuted : AppColors.lightTextTertiary,
-                      fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          _drawerItem(LucideIcons.home, 'الرئيسية', context, selected: true,
-              isDark: isDark,
-              onTap: () => Navigator.pop(context)),
-          _drawerItem(LucideIcons.wallet, 'المحفظة', context,
-              isDark: isDark,
-              onTap: () => Navigator.pushNamed(context, '/wallet')),
-          _drawerItem(LucideIcons.heart, 'المفضلة', context,
-              isDark: isDark,
-              onTap: () => Navigator.pushNamed(context, '/favorites')),
-          _drawerItem(LucideIcons.messageCircle, 'المحادثات', context,
-              isDark: isDark,
-              onTap: () => Navigator.pushNamed(context, '/chat')),
-          _drawerItem(LucideIcons.user, 'البروفايل', context,
-              isDark: isDark,
-              onTap: () => Navigator.pushNamed(context, '/profile')),
-          _drawerItem(LucideIcons.moon, 'المظهر', context,
-              isDark: isDark,
-              onTap: () => context.read<ThemeController>().toggleTheme()),
-          Divider(color: isDark ? Colors.white10 : AppColors.lightOutline),
-          _drawerItem(LucideIcons.logOut, 'تسجيل الخروج', context,
-              isDark: isDark,
-              iconColor: AppColors.error,
-              onTap: () {
-                AuthService.instance.logout();
-                Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-              }),
-        ],
-      ),
-    );
-  }
-
-  Widget _drawerItem(IconData icon, String title, BuildContext context,
-      {bool selected = false, Color? iconColor, required VoidCallback onTap, required bool isDark}) {
-    final accentColor = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
-    final color = iconColor ?? (selected ? accentColor : (isDark ? Colors.white70 : AppColors.lightTextSecondary));
-    return ListTile(
-      leading: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color.withValues(alpha: isDark ? 0.12 : 0.1),
-        ),
-        child: Icon(icon, color: color, size: 18),
-      ),
-      title: Text(title,
-          style: TextStyle(
-              color: selected
-                  ? accentColor
-                  : (isDark ? Colors.white : AppColors.lightText),
-              fontWeight: selected ? FontWeight.w700 : FontWeight.normal)),
-      onTap: onTap,
-    );
   }
 }
