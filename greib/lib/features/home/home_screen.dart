@@ -469,12 +469,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildServicesHorizontalList(List services, bool isDark) {
     return SizedBox(
       key: const ValueKey('services_row'),
-      height: 90,
+      height: 150,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: services.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 16),
-        itemBuilder: (context, i) => _serviceCircleItem(services[i], isDark),
+        separatorBuilder: (_, __) => const SizedBox(width: 14),
+        itemBuilder: (context, i) => SizedBox(
+          width: 158,
+          child: _serviceBigCard(services[i], isDark),
+        ),
       ),
     );
   }
@@ -486,60 +489,76 @@ class _HomeScreenState extends State<HomeScreen> {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: services.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 8,
-        childAspectRatio: 0.75,
+        crossAxisCount: 2,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 14,
+        childAspectRatio: 1.7,
       ),
-      itemBuilder: (context, i) => _serviceCircleItem(services[i], isDark),
+      itemBuilder: (context, i) => _serviceBigCard(services[i], isDark),
     );
   }
 
-  Widget _serviceCircleItem(dynamic s, bool isDark) {
+  Widget _serviceBigCard(dynamic s, bool isDark) {
+    final accentColor = isDark ? AppColors.accentPrimaryLight : AppColors.accentPrimary;
+
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, s.route),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.surfaceVariant : AppColors.lightSurface,
-              shape: BoxShape.circle,
-              border: Border.all(
-                  color: isDark ? Colors.white10 : AppColors.lightOutline),
-            ),
-            child: s.imageUrl != null
-                ? ClipOval(
-                    child: Image.network(
-                      s.imageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Icon(
-                        MockData.getIconByName(s.iconName),
-                        color: isDark ? AppColors.textPrimary : AppColors.lightText,
-                        size: 22,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceElevated : AppColors.lightSurface,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+              color: isDark ? Colors.white10 : AppColors.lightOutline),
+          boxShadow: isDark
+              ? null
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                color: accentColor.withValues(alpha: isDark ? 0.14 : 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: s.imageUrl != null
+                  ? ClipOval(
+                      child: Image.network(
+                        s.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Icon(
+                          MockData.getIconByName(s.iconName),
+                          color: accentColor,
+                          size: 24,
+                        ),
                       ),
-                    ),
-                  )
-                : Icon(MockData.getIconByName(s.iconName),
-                    color: isDark ? AppColors.textPrimary : AppColors.lightText,
-                    size: 22),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: 64,
-            child: Text(
+                    )
+                  : Icon(MockData.getIconByName(s.iconName),
+                      color: accentColor, size: 24),
+            ),
+            const SizedBox(height: 12),
+            Text(
               s.title,
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                  color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
-                  fontSize: 11),
+                color: isDark ? AppColors.textPrimary : AppColors.lightText,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
