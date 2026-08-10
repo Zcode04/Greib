@@ -25,6 +25,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final theme = Theme.of(context);
     final notifManager = NotificationManager.instance;
 
+    // ★ تجاوب: نحدد إذا كانت الشاشة ضيقة لتقصير نص الزر
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isCompact = screenWidth < 380;
+
     return Scaffold(
       appBar: Header(
         title: 'الإشعارات',
@@ -37,92 +41,114 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 const SnackBar(content: Text('تم تحديد الكل كمقروء ✅')),
               );
             },
-            child: const Text('تحديد الكل مقروء'),
+            // ★ تجاوب: نص أقصر على الشاشات الضيقة لتقليل الحاجة للتمرير
+            child: Text(isCompact ? 'تحديد الكل' : 'تحديد الكل مقروء'),
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        children: [
-          if (notifManager.notifications.isEmpty)
-            EmptyState(
-              icon: LucideIcons.bellOff,
-              title: 'لا توجد إشعارات',
-              description: 'ستظهر الإشعارات هنا عند وصولها',
-            )
-          else
-            ...notifManager.notifications.map((notif) {
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(AppSpacing.md),
-                  leading: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: notif.isRead
-                          ? theme.colorScheme.surfaceContainerHighest
-                          : theme.colorScheme.primary.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(AppRadii.md),
-                    ),
-                    child: Icon(
-                      _getIconForType(notif.type),
-                      color: notif.isRead
-                          ? theme.colorScheme.onSurfaceVariant
-                          : theme.colorScheme.primary,
-                      size: 24,
-                    ),
-                  ),
-                  title: Text(
-                    notif.title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: notif.isRead ? FontWeight.normal : FontWeight.w700,
-                    ),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(notif.body),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        notif.timestamp.toString().substring(0, 16),
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                  trailing: notif.isRead
-                      ? null
-                      : Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: AppColors.primary,
-                            shape: BoxShape.circle,
+      // ★ تجاوب: LayoutBuilder يحسب المساحة المتاحة فعليًا، ونحدد حداً أقصى
+      // لعرض المحتوى (700) حتى لا تتمدد الكروت بشكل غير مقروء على
+      // الشاشات الكبيرة (تابلت/الشاشات العريضة)، مع توسيطها أفقياً.
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxContentWidth =
+              constraints.maxWidth > 700 ? 700.0 : constraints.maxWidth;
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxContentWidth),
+              child: ListView(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                children: [
+                  if (notifManager.notifications.isEmpty)
+                    EmptyState(
+                      icon: LucideIcons.bellOff,
+                      title: 'لا توجد إشعارات',
+                      description: 'ستظهر الإشعارات هنا عند وصولها',
+                    )
+                  else
+                    ...notifManager.notifications.map((notif) {
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(AppSpacing.md),
+                          leading: Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: notif.isRead
+                                  ? theme.colorScheme.surfaceContainerHighest
+                                  : theme.colorScheme.primary.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(AppRadii.md),
+                            ),
+                            child: Icon(
+                              _getIconForType(notif.type),
+                              color: notif.isRead
+                                  ? theme.colorScheme.onSurfaceVariant
+                                  : theme.colorScheme.primary,
+                              size: 24,
+                            ),
                           ),
+                          title: Text(
+                            notif.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: notif.isRead ? FontWeight.normal : FontWeight.w700,
+                            ),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                notif.body,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: AppSpacing.xs),
+                              Text(
+                                notif.timestamp.toString().substring(0, 16),
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                          trailing: notif.isRead
+                              ? null
+                              : Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.primary,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                          onTap: () {
+                            notifManager.markAsRead(notif.id);
+                            final route = notifManager.getRouteForNotification(notif);
+                            if (route != '/home') {
+                              Navigator.pushNamed(context, route);
+                            }
+                          },
                         ),
-                  onTap: () {
-                    notifManager.markAsRead(notif.id);
-                    final route = notifManager.getRouteForNotification(notif);
-                    if (route != '/home') {
-                      Navigator.pushNamed(context, route);
-                    }
-                  },
-                ),
-              );
-            }),
-          const SizedBox(height: AppSpacing.lg),
-          if (notifManager.notifications.isNotEmpty)
-            AppButton(
-              label: 'مسح الكل',
-              icon: LucideIcons.trash2,
-              isOutlined: true,
-              color: AppColors.error,
-              onPressed: () {
-                notifManager.clearAll();
-                setState(() {});
-              },
+                      );
+                    }),
+                  const SizedBox(height: AppSpacing.lg),
+                  if (notifManager.notifications.isNotEmpty)
+                    AppButton(
+                      label: 'مسح الكل',
+                      icon: LucideIcons.trash2,
+                      isOutlined: true,
+                      color: AppColors.error,
+                      onPressed: () {
+                        notifManager.clearAll();
+                        setState(() {});
+                      },
+                    ),
+                ],
+              ),
             ),
-        ],
+          );
+        },
       ),
     );
   }

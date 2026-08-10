@@ -31,7 +31,16 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    // ★ تجاوب: نحسب عرض الشاشة لتصغير الأيقونات/الهوامش على الشاشات الضيقة
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isCompact = screenWidth < 380;
+
+    final double circleSize = isCompact ? 34 : 40;
+    final double iconSize = isCompact ? 18 : 20;
+    final double actionMargin = isCompact ? 2 : 4;
+
     return AppBar(
+      titleSpacing: 0,
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -53,10 +62,15 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
-          Text(
-            title,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
+          // ★ تجاوب: العنوان الآن Flexible مع ellipsis بدل نص ثابت قد يفيض
+          Flexible(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
@@ -84,74 +98,95 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
             )
           : null,
       actions: [
-        Container(
-          margin: const EdgeInsets.symmetric(
-            horizontal: 1,
-            vertical: AppSpacing.sm,
-          ),
-          decoration: BoxDecoration(
-            color: isDark
-                ? AppColors.surfaceCard
-                : AppColors.lightSurfaceVariant,
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: isDark ? AppColors.outline : AppColors.lightOutline,
-            ),
-          ),
-          child: IconButton(
-            icon: const Icon(LucideIcons.search, size: 20),
-            onPressed: () {
-              // TODO: Implement search functionality
-            },
-            tooltip: 'البحث',
+        // ★ تجاوب: كل أزرار الإجراءات (المدمجة + الخارجية) توضع الآن داخل
+        // شريط قابل للتمرير أفقياً، بحيث لا يحدث Overflow أبداً مهما كان
+        // عدد الأزرار أو ضيق الشاشة — بدل الفيض الأفقي (الخطوط الصفراء/السوداء).
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: EdgeInsets.symmetric(
+                  horizontal: actionMargin,
+                  vertical: AppSpacing.sm,
+                ),
+                width: circleSize,
+                height: circleSize,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppColors.surfaceCard
+                      : AppColors.lightSurfaceVariant,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isDark ? AppColors.outline : AppColors.lightOutline,
+                  ),
+                ),
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  icon: Icon(LucideIcons.search, size: iconSize),
+                  onPressed: () {
+                    // TODO: Implement search functionality
+                  },
+                  tooltip: 'البحث',
+                ),
+              ),
+              if (showDarkModeToggle)
+                Container(
+                  margin: EdgeInsets.symmetric(
+                    horizontal: actionMargin,
+                    vertical: AppSpacing.sm,
+                  ),
+                  width: circleSize,
+                  height: circleSize,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppColors.surfaceCard
+                        : AppColors.lightSurfaceVariant,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isDark ? AppColors.outline : AppColors.lightOutline,
+                    ),
+                  ),
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    icon: Icon(isDark ? LucideIcons.sun : LucideIcons.moon,
+                        size: iconSize),
+                    onPressed: () {
+                      context.read<ThemeController>().toggleTheme();
+                    },
+                    tooltip: isDark ? 'الوضع النهاري' : 'الوضع الليلي',
+                  ),
+                ),
+              if (showNotifications)
+                Container(
+                  margin: EdgeInsets.symmetric(
+                    horizontal: actionMargin,
+                    vertical: AppSpacing.sm,
+                  ),
+                  width: circleSize,
+                  height: circleSize,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppColors.surfaceCard
+                        : AppColors.lightSurfaceVariant,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isDark ? AppColors.outline : AppColors.lightOutline,
+                    ),
+                  ),
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    icon: Icon(LucideIcons.bell, size: iconSize),
+                    onPressed: () => Navigator.pushNamed(context, '/notifications'),
+                    tooltip: 'الإشعارات',
+                  ),
+                ),
+              ...?actions,
+              const SizedBox(width: AppSpacing.xs),
+            ],
           ),
         ),
-        if (showDarkModeToggle)
-          Container(
-            margin: const EdgeInsets.symmetric(
-              horizontal: 4,
-              vertical: AppSpacing.sm,
-            ),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? AppColors.surfaceCard
-                  : AppColors.lightSurfaceVariant,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isDark ? AppColors.outline : AppColors.lightOutline,
-              ),
-            ),
-            child: IconButton(
-              icon: Icon(isDark ? LucideIcons.sun : LucideIcons.moon, size: 20),
-              onPressed: () {
-                context.read<ThemeController>().toggleTheme();
-              },
-              tooltip: isDark ? 'الوضع النهاري' : 'الوضع الليلي',
-            ),
-          ),
-
-        if (showNotifications)
-          Container(
-            margin: const EdgeInsets.symmetric(
-              horizontal: 4,
-              vertical: AppSpacing.sm,
-            ),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? AppColors.surfaceCard
-                  : AppColors.lightSurfaceVariant,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isDark ? AppColors.outline : AppColors.lightOutline,
-              ),
-            ),
-            child: IconButton(
-              icon: const Icon(LucideIcons.bell, size: 20),
-              onPressed: () => Navigator.pushNamed(context, '/notifications'),
-              tooltip: 'الإشعارات',
-            ),
-          ),
-        ...?actions,
       ],
     );
   }
@@ -174,7 +209,12 @@ class DashboardHeader extends StatelessWidget implements PreferredSizeWidget {
         : AppColors.accentPrimary;
 
     return AppBar(
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+      title: Text(
+        title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontWeight: FontWeight.w700),
+      ),
       backgroundColor: roleColor,
       foregroundColor: Colors.black,
       actions: [
