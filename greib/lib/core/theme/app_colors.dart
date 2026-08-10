@@ -19,30 +19,34 @@ class AppColors {
   // ==========================================================================
 
   // ---------- 🌙 الوضع الليلي (Dark Mode) ----------
-  static const Color _darkBg          = Color.fromARGB(255, 13, 11, 21); // أسود عميق — الخلفية
+  // ★ مستوحى من لوحة صورة Smart Home المرجعية (خلفية بنفسجية داكنة دافئة)
+  static const Color _darkBg          = Color.fromARGB(255, 12, 11, 18); // بنفسجي داكن عميق — الخلفية
   static const Color _darkSurface     = Color(0xFF211F2B); // كروت وبطاقات
-  static const Color _darkElevated    = Color(0xFF211F2B); // طبقة أعمق (modals, inputs)
-  static const Color _darkBorder      = Color.fromARGB(255, 15, 18, 23); // حدود دقيقة
+  static const Color _darkElevated    = Color(0xFF2B2938); // طبقة أعمق (modals, inputs)
+  static const Color _darkBorder      = Color(0xFF3F3D4D); // حدود دقيقة
   static const Color _darkTextPrimary  = Color(0xFFFAFAFA); // نص أساسي أبيض ناعم
-  static const Color _darkTextMuted    = Color(0xFFA1A1AA); // نص ثانوي رمادي
+  static const Color _darkTextMuted    = Color(0xFF9C99AA); // نص ثانوي رمادي بنفسجي
 
   // ---------- ☀️ الوضع النهاري (Light Mode) ----------
   static const Color _lightBg          = Color(0xFFF4F4F5); // خلفية فاتحة محايدة
-  static const Color _lightSurface     = Color.fromARGB(255, 255, 255, 255); // كروت بيضاء نظيفة
+  static const Color _lightSurface     = Color(0xFFFFFFFF); // كروت بيضاء نظيفة
   static const Color _lightElevated    = Color(0xFFF4F4F5); // للـ inputs
-  static const Color _lightBorder      = Color.fromARGB(255, 255, 152, 43); // حدود خفيفة
+  static const Color _lightBorder      = Color(0xFFE4E4E7); // حدود خفيفة
   static const Color _lightTextPrimary  = Color(0xFF09090B); // نص أسود
   static const Color _lightTextMuted    = Color(0xFF71717A); // نص ثانوي
 
   // ---------- 🎨 Accent — مشترك بين الوضعين ----------
-  // بنفسجي كهربائي (Electric Violet) — احترافي وعالمي
-  static const Color _violet600  = Color(0xFF7C3AED); // اللون المميز الأساسي
-  static const Color _violet400  = Color(0xFFA78BFA); // نسخة أفتح (glows, highlights)
+  // بنفسجي كهربائي (Electric Violet) — مأخوذ من تدرج صورة Smart Home المرجعية
+  static const Color _violet600  = Color(0xFF7C5CFC); // اللون المميز الأساسي
+  static const Color _violet400  = Color(0xFFC77DFF); // نسخة أفتح (نهاية التدرج، glows, highlights)
   static const Color _violet900  = Color(0xFF4C1D95); // للحاويات الداكنة (dark container)
+
+  // ---------- 🟠 برتقالي التنبيهات (من نفس اللوحة المرجعية) ----------
+  static const Color _accentOrange = Color(0xFFFF8A3D); // برتقالي دافئ — Badges / أزرار ثانوية
 
   // ---------- 🔴 الحالات (States) ----------
   static const Color _success = Color(0xFF22C55E); // أخضر
-  static const Color _warning = Color(0xFFF59E0B); // برتقالي/ذهبي
+  static const Color _warning = Color(0xFFFF8A3D); // برتقالي دافئ (من اللوحة المرجعية)
   static const Color _error   = Color(0xFFEF4444); // أحمر
   static const Color _info    = Color(0xFF3B82F6); // أزرق
 
@@ -91,6 +95,9 @@ class AppColors {
   static const Color accentPrimaryDark  = _violet900;
   static const Color accentPrimaryLight = _violet400;
   static const Color accentGlow         = _violet400;
+
+  // --- اللون المميز الثانوي (برتقالي — Badges / تنبيهات / أزرار ثانوية) ---
+  static const Color accentSecondary    = _accentOrange;
 
   // --- ألوان الخدمات ---
   static const Color serviceFood     = _svcFood;
@@ -189,11 +196,17 @@ class AppColors {
   //  4) التدرجات الجاهزة
   // ==========================================================================
 
-  /// تدرج البانر الرئيسي: بنفسجي عميق → أزرق داكن (Hero Banner)
+  /// تدرج البانر الرئيسي: بنفسجي → وردي فاتح (مطابق للوحة المرجعية Smart Home)
   static const List<Color> heroGradient = [
-    Color(0xFF4C1D95), // بنفسجي عميق
-    Color(0xFF1E3A8A), // أزرق داكن
-    Color(0xFF09090B), // أسود
+    Color(0xFF7C5CFC), // بنفسجي
+    Color(0xFFC77DFF), // بنفسجي فاتح / وردي
+    Color(0xFF17151F), // خلفية داكنة
+  ];
+
+  /// تدرج الحلقة الدائرية (Dial) — نفس أسلوب صورة Smart Home
+  static const List<Color> dialGradient = [
+    Color(0xFF7C5CFC),
+    Color(0xFFC77DFF),
   ];
 
   /// تدرج بطاقات الكاتالوج في الوضع الفاتح
