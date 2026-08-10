@@ -136,31 +136,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
   // ---------------------------------------------------------------------
-  // Hero Banner ("Explore new collection")
+  // Hero Banner — تصميم "حر" بدون Card/Container محيط: الصورة تطفو
+  // مباشرة فوق خلفية الشاشة (بدون حواف، بدون تعتيم، بدون ظل)
   // ---------------------------------------------------------------------
   Widget _buildHeroBanner(user, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: AppColors.heroGradient, // ثابت دائماً، بدون isDark
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Row(
+    final titleColor = isDark ? AppColors.textPrimary : AppColors.lightText;
+
+    return SizedBox(
+      height: 210,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.centerLeft,
         children: [
-          Expanded(
-            flex: 3,
+          // ---- النص والزر (يمين الشاشة لأن الاتجاه RTL) ----
+          Positioned(
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: 170,
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'اكتشف خدماتنا\nالجديدة',
                   style: TextStyle(
-                    color: Colors.white, // ثابت - يتماشى مع الخلفية الغامقة/الملونة
-                    fontSize: 22,
+                    color: titleColor,
+                    fontSize: 21,
                     fontWeight: FontWeight.w800,
                     height: 1.3,
                   ),
@@ -169,8 +171,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
+                    backgroundColor: isDark
+                        ? AppColors.accentPrimaryLight
+                        : AppColors.accentPrimary,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
@@ -182,10 +187,16 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          Expanded(
-            flex: 2,
-            child: Icon(LucideIcons.truck,
-                color: Colors.white, size: 72), // ثابت
+
+          // ---- الصورة حرة تمامًا، بدون أي إطار أو صندوق ----
+          Positioned(
+            left: -28, // نسمح لها بالخروج قليلاً عن حواف الشاشة لإحساس أكثر حرية
+            top: -4,
+            bottom: -6,
+            child: Image.asset(
+              'assets/images/hero.png',
+              fit: BoxFit.contain,
+            ),
           ),
         ],
       ),
