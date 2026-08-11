@@ -14,7 +14,10 @@ class FeaturedProductsSection extends StatefulWidget {
 
 class _FeaturedProductsSectionState extends State<FeaturedProductsSection> {
   String _selectedCategory = 'all'; // التصنيف المُفعّل افتراضياً: الكل
+  bool _isExpanded = false; // حالة توسيع قائمة المنتجات
+  static const int _collapsedCount = 4; // عدد الكروت الظاهرة أول مرة
 
+  // المنتجات بعد الفلترة حسب التصنيف (selectedCategory)
   List<Product> get _filteredProducts {
     if (_selectedCategory == 'all') return MockData.products;
     return MockData.products
@@ -22,32 +25,49 @@ class _FeaturedProductsSectionState extends State<FeaturedProductsSection> {
         .toList();
   }
 
+  // بعد الفلترة، نطبّق التقليص فوقها (قبل التوسيع)
+  List<Product> get _visibleProducts {
+    final filtered = _filteredProducts;
+    return _isExpanded ? filtered : filtered.take(_collapsedCount).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final canExpand = _filteredProducts.length > _collapsedCount;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildCategoryChips(isDark),
         const SizedBox(height: 14),
-        AnimatedSwitcher(
+        // AnimatedSize لأنيميشن سلس عند التوسيع/الطيّ
+        AnimatedSize(
           duration: const Duration(milliseconds: 300),
-          switchInCurve: Curves.easeOut,
-          switchOutCurve: Curves.easeIn,
-          transitionBuilder: (child, animation) => FadeTransition(
-            opacity: animation,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.06),
-                end: Offset.zero,
-              ).animate(animation),
-              child: child,
+          curve: Curves.easeInOut,
+          alignment: Alignment.topCenter,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.06),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
             ),
+            child: _buildProductsGrid(isDark),
           ),
-          child: _buildProductsGrid(isDark),
         ),
+        if (canExpand) ...[
+          const SizedBox(height: 18),
+          _buildShowMoreButton(isDark),
+        ],
       ],
     );
   }
@@ -72,7 +92,10 @@ class _FeaturedProductsSectionState extends State<FeaturedProductsSection> {
           final isSelected = id == _selectedCategory;
 
           return InkWell(
-            onTap: () => setState(() => _selectedCategory = id),
+            onTap: () => setState(() {
+              _selectedCategory = id;
+              _isExpanded = false; // صفّر التوسيع عند تبديل التصنيف
+            }),
             borderRadius: BorderRadius.circular(20),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 220),
@@ -125,10 +148,10 @@ class _FeaturedProductsSectionState extends State<FeaturedProductsSection> {
   // نستخدم ValueKey على التصنيف لكي يتعرف AnimatedSwitcher على التغيير
   // ---------------------------------------------------------------------------
   Widget _buildProductsGrid(bool isDark) {
-    final products = _filteredProducts;
+    final products = _visibleProducts;
 
     return GridView.builder(
-      key: ValueKey(_selectedCategory),
+      key: ValueKey('$_selectedCategory-$_isExpanded'),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: products.length,
@@ -299,6 +322,60 @@ class _FeaturedProductsSectionState extends State<FeaturedProductsSection> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // زر "عرض المزيد / عرض أقل" — نفس تصميم _buildShowMoreButton في الـ Home
+  // (كبسولة بلون accent + سهم chevron مع AnimatedRotation)
+  // ---------------------------------------------------------------------------
+  Widget _buildShowMoreButton(bool isDark) {
+    final neonColor = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+
+    return Center(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(30),
+        onTap: () => setState(() => _isExpanded = !_isExpanded),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+          decoration: BoxDecoration(
+            color: neonColor,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: neonColor.withValues(alpha: 0.35),
+                blurRadius: 14,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _isExpanded ? 'عرض أقل' : 'عرض المزيد',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.black : Colors.white,
+                ),
+              ),
+              const SizedBox(width: 8),
+              AnimatedRotation(
+                duration: const Duration(milliseconds: 280),
+                turns: _isExpanded ? 0.5 : 0,
+                child: Icon(
+                  LucideIcons.chevronDown,
+                  size: 16,
+                  color: isDark ? Colors.black : Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
