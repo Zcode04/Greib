@@ -194,6 +194,27 @@ class DoctorProfile {
   });
 }
 
+class Product {
+  final String id;
+  final String name;
+  // تصنيف المنتج: 'all' | 'women' | 'men' | 'shoes' | 'kids'
+  final String category;
+  final double price;
+  final double? oldPrice; // السعر القديم (اختياري) يُعرض مشطوباً عند وجوده
+  final String imageUrl;
+  final double rating;
+
+  const Product({
+    required this.id,
+    required this.name,
+    required this.category,
+    required this.price,
+    this.oldPrice,
+    required this.imageUrl,
+    required this.rating,
+  });
+}
+
 // ==================== البيانات الوهمية (Mock Data) ====================
 
 class MockData {
@@ -690,6 +711,132 @@ class MockData {
           imageUrl: 'https://p16-cc-image-search-sign-sg.ibyteimg.com/tos-alisg-i-h9hire4aei-sg/6aaac25d00964a7c822747dbe568e71f~tplv-h9hire4aei-image.jpeg',
         ),
       ];
+
+  // قائمة التصنيفات المتاحة للمنتجات (الخمسة المطلوبة)
+  static const List<Map<String, String>> productCategories = [
+    {'id': 'all', 'label': 'الكل'},
+    {'id': 'women', 'label': 'نساء'},
+    {'id': 'men', 'label': 'رجال'},
+    {'id': 'shoes', 'label': 'أحذية'},
+    {'id': 'kids', 'label': 'أطفال'},
+  ];
+
+  static const List<Product> products = [
+    Product(
+      id: 'p1',
+      name: 'حذاء رياضي خفيف',
+      category: 'shoes',
+      price: 199.0,
+      oldPrice: 259.0,
+      imageUrl:
+          'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80',
+      rating: 4.7,
+    ),
+    Product(
+      id: 'p2',
+      name: 'فستان صيفي أنيق',
+      category: 'women',
+      price: 149.0,
+      imageUrl:
+          'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=500&q=80',
+      rating: 4.5,
+    ),
+    Product(
+      id: 'p3',
+      name: 'قميص قطني مريح',
+      category: 'men',
+      price: 89.0,
+      oldPrice: 120.0,
+      imageUrl:
+          'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=500&q=80',
+      rating: 4.3,
+    ),
+    Product(
+      id: 'p4',
+      name: 'حذاء جلدي كلاسيكي',
+      category: 'shoes',
+      price: 279.0,
+      imageUrl:
+          'https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=500&q=80',
+      rating: 4.8,
+    ),
+    Product(
+      id: 'p5',
+      name: 'عباية مطرزة فاخرة',
+      category: 'women',
+      price: 320.0,
+      oldPrice: 390.0,
+      imageUrl:
+          'https://images.unsplash.com/photo-1554412933-514a83d2f3c8?w=500&q=80',
+      rating: 4.9,
+    ),
+    Product(
+      id: 'p6',
+      name: 'بدلة رجالية رسمية',
+      category: 'men',
+      price: 450.0,
+      imageUrl:
+          'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=500&q=80',
+      rating: 4.6,
+    ),
+    Product(
+      id: 'p7',
+      name: 'حذاء أطفال ملوّن',
+      category: 'kids',
+      price: 75.0,
+      oldPrice: 95.0,
+      imageUrl:
+          'https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=500&q=80',
+      rating: 4.4,
+    ),
+    Product(
+      id: 'p8',
+      name: 'تي شيرت أطفال قطني',
+      category: 'kids',
+      price: 45.0,
+      imageUrl:
+          'https://images.unsplash.com/photo-1503944583220-79d8926ad5e2?w=500&q=80',
+      rating: 4.2,
+    ),
+    Product(
+      id: 'p9',
+      name: 'نعال رياضية نسائية',
+      category: 'women',
+      price: 130.0,
+      imageUrl:
+          'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=500&q=80',
+      rating: 4.5,
+    ),
+    Product(
+      id: 'p10',
+      name: 'جاكيت شتوي رجالي',
+      category: 'men',
+      price: 240.0,
+      oldPrice: 300.0,
+      imageUrl:
+          'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500&q=80',
+      rating: 4.7,
+    ),
+    Product(
+      id: 'p11',
+      name: 'صندل أطفال صيفي',
+      category: 'kids',
+      price: 60.0,
+      imageUrl:
+          'https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=500&q=80',
+      rating: 4.1,
+    ),
+    Product(
+      id: 'p12',
+      name: 'حقيبة يد نسائية',
+      category: 'women',
+      price: 210.0,
+      oldPrice: 260.0,
+      imageUrl:
+          'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&q=80',
+      rating: 4.8,
+    ),
+  ];
 
   static IconData getIconByName(String name) {
     switch (name) {

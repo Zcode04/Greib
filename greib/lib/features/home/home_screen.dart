@@ -6,6 +6,7 @@ import '../../core/permissions/permissions.dart';
 import '../../core/theme/theme_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/auth/mock_auth.dart';
+import '../../shared_widgets/featured_products_section.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -115,6 +116,11 @@ class _HomeScreenState extends State<HomeScreen> {
             _sectionTitle('اكتشف كل ما نوفره', isDark),
             const SizedBox(height: 14),
             _buildCatalogSection(isDark),
+            const SizedBox(height: 28),
+
+            _sectionTitle('منتجات مختارة لك', isDark),
+            const SizedBox(height: 14),
+            const FeaturedProductsSection(),
             const SizedBox(height: 28),
 
             _sectionTitle('طلباتك الحالية', isDark),
