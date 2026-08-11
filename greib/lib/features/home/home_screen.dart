@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/mock_data/mock_data.dart';
 import '../../core/permissions/permissions.dart';
+import '../../core/theme/theme_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/auth/mock_auth.dart';
 
@@ -40,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
+      drawer: _buildDrawer(context, user, role, isDark),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 110),
         child: Column(
@@ -133,33 +136,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
   // ---------------------------------------------------------------------
-  // Hero Banner — تصميم "حر" بدون Card/Container محيط: الصورة تطفو
-  // مباشرة فوق خلفية الشاشة (بدون حواف، بدون تعتيم، بدون ظل)
+  // Hero Banner ("Explore new collection")
   // ---------------------------------------------------------------------
   Widget _buildHeroBanner(user, bool isDark) {
-    final titleColor = isDark ? AppColors.textPrimary : AppColors.lightText;
-
-    return SizedBox(
-      height: 210,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.centerLeft,
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: AppColors.heroGradient, // ثابت دائماً، بدون isDark
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Row(
         children: [
-          // ---- النص والزر (يمين الشاشة لأن الاتجاه RTL) ----
-          Positioned(
-            right: 0,
-            top: 0,
-            bottom: 0,
-            width: 170,
+          Expanded(
+            flex: 3,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'اكتشف خدماتنا\nالجديدة',
                   style: TextStyle(
-                    color: titleColor,
-                    fontSize: 21,
+                    color: Colors.white, // ثابت - يتماشى مع الخلفية الغامقة/الملونة
+                    fontSize: 22,
                     fontWeight: FontWeight.w800,
                     height: 1.3,
                   ),
@@ -168,11 +169,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark
-                        ? AppColors.accentPrimaryLight
-                        : AppColors.accentPrimary,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
@@ -184,16 +182,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-
-          // ---- الصورة حرة تمامًا، بدون أي إطار أو صندوق ----
-          Positioned(
-            left: -30, // نسمح لها بالخروج قليلاً عن حواف الشاشة لإحساس أكثر حرية
-            top: -10,
-            bottom: -10,
-            child: Image.asset(
-              'assets/images/hero.png',
-              fit: BoxFit.contain,
-            ),
+          Expanded(
+            flex: 2,
+            child: Icon(LucideIcons.truck,
+                color: Colors.white, size: 72), // ثابت
           ),
         ],
       ),
@@ -240,7 +232,31 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         const SizedBox(height: 12),
         // زر التبديل
-      
+        Center(
+          child: TextButton.icon(
+            style: TextButton.styleFrom(
+              backgroundColor: (isDark ? AppColors.neon : AppColors.accentPrimaryDark).withOpacity(0.1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            onPressed: () => setState(() => _isGridView = !_isGridView),
+            icon: Icon(
+              _isGridView ? LucideIcons.layoutGrid : LucideIcons.layoutList,
+              size: 16,
+              color: isDark ? AppColors.neon : AppColors.accentPrimaryDark,
+            ),
+            label: Text(
+              _isGridView ? 'عرض شرائحي' : 'عرض المزيد',
+              style: TextStyle(
+                color: isDark ? AppColors.neon : AppColors.accentPrimaryDark,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -327,11 +343,24 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     child: Transform.rotate(
                       angle: 0.16, // نعيد الأيقونة نفسها لوضعها المستقيم
-                      child: Icon(
-                        MockData.getIconByName(service.iconName as String),
-                        color: neonColor,
-                        size: 46,
-                      ),
+                      child: (service.imageUrl != null)
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(22),
+                              child: Image.network(
+                                service.imageUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Icon(
+                                  MockData.getIconByName(service.iconName as String),
+                                  color: neonColor,
+                                  size: 46,
+                                ),
+                              ),
+                            )
+                          : Icon(
+                              MockData.getIconByName(service.iconName as String),
+                              color: neonColor,
+                              size: 46,
+                            ),
                     ),
                   ),
                 ),
@@ -440,12 +469,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildServicesHorizontalList(List services, bool isDark) {
     return SizedBox(
       key: const ValueKey('services_row'),
-      height: 90,
+      height: 150,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: services.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 16),
-        itemBuilder: (context, i) => _serviceCircleItem(services[i], isDark),
+        separatorBuilder: (_, __) => const SizedBox(width: 14),
+        itemBuilder: (context, i) => SizedBox(
+          width: 158,
+          child: _serviceBigCard(services[i], isDark),
+        ),
       ),
     );
   }
@@ -457,48 +489,76 @@ class _HomeScreenState extends State<HomeScreen> {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: services.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 8,
-        childAspectRatio: 0.75,
+        crossAxisCount: 2,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 14,
+        childAspectRatio: 1.7,
       ),
-      itemBuilder: (context, i) => _serviceCircleItem(services[i], isDark),
+      itemBuilder: (context, i) => _serviceBigCard(services[i], isDark),
     );
   }
 
-  Widget _serviceCircleItem(dynamic s, bool isDark) {
+  Widget _serviceBigCard(dynamic s, bool isDark) {
+    final accentColor = isDark ? AppColors.accentPrimaryLight : AppColors.accentPrimary;
+
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, s.route),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.surfaceVariant : AppColors.lightSurface,
-              shape: BoxShape.circle,
-              border: Border.all(
-                  color: isDark ? Colors.white10 : AppColors.lightOutline),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceElevated : AppColors.lightSurface,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+              color: isDark ? Colors.white10 : AppColors.lightOutline),
+          boxShadow: isDark
+              ? null
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                color: accentColor.withValues(alpha: isDark ? 0.14 : 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: s.imageUrl != null
+                  ? ClipOval(
+                      child: Image.network(
+                        s.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Icon(
+                          MockData.getIconByName(s.iconName),
+                          color: accentColor,
+                          size: 24,
+                        ),
+                      ),
+                    )
+                  : Icon(MockData.getIconByName(s.iconName),
+                      color: accentColor, size: 24),
             ),
-            child: Icon(MockData.getIconByName(s.iconName),
-                color: isDark ? AppColors.textPrimary : AppColors.lightText,
-                size: 22),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: 64,
-            child: Text(
+            const SizedBox(height: 12),
+            Text(
               s.title,
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                  color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
-                  fontSize: 11),
+                color: isDark ? AppColors.textPrimary : AppColors.lightText,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -641,13 +701,28 @@ class _HomeScreenState extends State<HomeScreen> {
                         top: Radius.circular(20),
                       ),
                     ),
-                    child: Center(
-                      child: Icon(
-                        MockData.getIconByName(service.iconName as String),
-                        color: isDark ? accentColor : Colors.white,
-                        size: 54,
-                      ),
-                    ),
+                    child: (service.imageUrl != null)
+                        ? ClipRRect(
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                            child: Image.network(
+                              service.imageUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Center(
+                                child: Icon(
+                                  MockData.getIconByName(service.iconName as String),
+                                  color: isDark ? accentColor : Colors.white,
+                                  size: 54,
+                                ),
+                              ),
+                            ),
+                          )
+                        : Center(
+                            child: Icon(
+                              MockData.getIconByName(service.iconName as String),
+                              color: isDark ? accentColor : Colors.white,
+                              size: 54,
+                            ),
+                          ),
                   ),
                   Positioned(
                     top: 8,
@@ -929,5 +1004,101 @@ class _HomeScreenState extends State<HomeScreen> {
           fontWeight: FontWeight.w800,
           fontSize: 18,
         ));
+  }
+
+  // ---------------------------------------------------------------------
+  // Drawer
+  // ---------------------------------------------------------------------
+  Widget _buildDrawer(BuildContext context, user, role, bool isDark) {
+    return Drawer(
+      backgroundColor: isDark ? AppColors.surface : AppColors.lightSurface,
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
+            decoration: BoxDecoration(
+                color: isDark ? AppColors.background : AppColors.lightBackground),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isDark ? AppColors.surfaceVariant : AppColors.lightSurfaceVariant,
+                  ),
+                  child: Icon(LucideIcons.user,
+                      color: isDark ? AppColors.neon : AppColors.accentPrimaryDark,
+                      size: 28),
+                ),
+                const SizedBox(height: 12),
+                Text(user?.name ?? 'زائر',
+                    style: TextStyle(
+                        color: isDark ? Colors.white : AppColors.lightText,
+                        fontWeight: FontWeight.w700)),
+                Text(
+                  role != null ? PermissionService.roleLabel(role) : 'غير مسجل',
+                  style: TextStyle(
+                      color: isDark ? AppColors.textMuted : AppColors.lightTextTertiary,
+                      fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          _drawerItem(LucideIcons.home, 'الرئيسية', context, selected: true,
+              isDark: isDark,
+              onTap: () => Navigator.pop(context)),
+          _drawerItem(LucideIcons.wallet, 'المحفظة', context,
+              isDark: isDark,
+              onTap: () => Navigator.pushNamed(context, '/wallet')),
+          _drawerItem(LucideIcons.heart, 'المفضلة', context,
+              isDark: isDark,
+              onTap: () => Navigator.pushNamed(context, '/favorites')),
+          _drawerItem(LucideIcons.messageCircle, 'المحادثات', context,
+              isDark: isDark,
+              onTap: () => Navigator.pushNamed(context, '/chat')),
+          _drawerItem(LucideIcons.user, 'البروفايل', context,
+              isDark: isDark,
+              onTap: () => Navigator.pushNamed(context, '/profile')),
+          _drawerItem(LucideIcons.moon, 'المظهر', context,
+              isDark: isDark,
+              onTap: () => context.read<ThemeController>().toggleTheme()),
+          Divider(color: isDark ? Colors.white10 : AppColors.lightOutline),
+          _drawerItem(LucideIcons.logOut, 'تسجيل الخروج', context,
+              isDark: isDark,
+              iconColor: AppColors.error,
+              onTap: () {
+                AuthService.instance.logout();
+                Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+              }),
+        ],
+      ),
+    );
+  }
+
+  Widget _drawerItem(IconData icon, String title, BuildContext context,
+      {bool selected = false, Color? iconColor, required VoidCallback onTap, required bool isDark}) {
+    final accentColor = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+    final color = iconColor ?? (selected ? accentColor : (isDark ? Colors.white70 : AppColors.lightTextSecondary));
+    return ListTile(
+      leading: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color.withValues(alpha: isDark ? 0.12 : 0.1),
+        ),
+        child: Icon(icon, color: color, size: 18),
+      ),
+      title: Text(title,
+          style: TextStyle(
+              color: selected
+                  ? accentColor
+                  : (isDark ? Colors.white : AppColors.lightText),
+              fontWeight: selected ? FontWeight.w700 : FontWeight.normal)),
+      onTap: onTap,
+    );
   }
 }

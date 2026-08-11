@@ -49,6 +49,12 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>نحتاج إلى الوصول إلى الكاميرا لالتقاط صور وإرفاقها في المحادثات</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>نحتاج إلى الوصول إلى الميكروفون لتسجيل الرسائل الصوتية</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>نحتاج إلى الوصول إلى الصور لاختيار صور وإرفاقها في المحادثات</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

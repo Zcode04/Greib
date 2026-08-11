@@ -33,18 +33,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       appBar: Header(
         title: 'الإشعارات',
         showBackButton: true,
-        actions: [
-          TextButton(
-            onPressed: () {
-              notifManager.markAllAsRead();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('تم تحديد الكل كمقروء ✅')),
-              );
-            },
-            // ★ تجاوب: نص أقصر على الشاشات الضيقة لتقليل الحاجة للتمرير
-            child: Text(isCompact ? 'تحديد الكل' : 'تحديد الكل مقروء'),
-          ),
-        ],
       ),
       // ★ تجاوب: LayoutBuilder يحسب المساحة المتاحة فعليًا، ونحدد حداً أقصى
       // لعرض المحتوى (700) حتى لا تتمدد الكروت بشكل غير مقروء على
@@ -60,6 +48,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 children: [
+                  // ★ نُقل هنا من الـ Header ليبقى الهيدر عاماً وخفيفاً
+                  if (notifManager.notifications.isNotEmpty)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: () {
+                          notifManager.markAllAsRead();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('تم تحديد الكل كمقروء ✅')),
+                          );
+                        },
+                        icon: const Icon(LucideIcons.checkCheck, size: 16),
+                        label: Text(isCompact ? 'تحديد الكل' : 'تحديد الكل مقروء'),
+                      ),
+                    ),
                   if (notifManager.notifications.isEmpty)
                     EmptyState(
                       icon: LucideIcons.bellOff,
