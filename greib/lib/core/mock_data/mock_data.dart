@@ -170,6 +170,44 @@ class AppUserProfile {
       );
 }
 
+class Hotel {
+  final String id;
+  final String name;
+  final String location;
+  final String imageUrl;
+  final double rating;
+  final double pricePerNight;
+  final List<String> amenities;
+
+  const Hotel({
+    required this.id,
+    required this.name,
+    required this.location,
+    required this.imageUrl,
+    required this.rating,
+    required this.pricePerNight,
+    required this.amenities,
+  });
+}
+
+class TravelDestination {
+  final String id;
+  final String title;
+  final String country;
+  final String imageUrl;
+  final String description;
+  final double price;
+
+  const TravelDestination({
+    required this.id,
+    required this.title,
+    required this.country,
+    required this.imageUrl,
+    required this.description,
+    required this.price,
+  });
+}
+
 class DoctorProfile {
   final String id;
   final String name;
@@ -835,6 +873,63 @@ class MockData {
       imageUrl:
           'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&q=80',
       rating: 4.8,
+    ),
+  ];
+
+  static const List<Hotel> mockHotels = [
+    Hotel(
+      id: 'h1',
+      name: 'فندق برج العرب',
+      location: 'دبي، الإمارات',
+      imageUrl: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=500&q=80',
+      rating: 5.0,
+      pricePerNight: 4500.0,
+      amenities: ['مسبح', 'سبا', 'واي فاي', 'إطلالة بحرية'],
+    ),
+    Hotel(
+      id: 'h2',
+      name: 'منتجع جزيرة السعديات',
+      location: 'أبوظبي، الإمارات',
+      imageUrl: 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=500&q=80',
+      rating: 4.9,
+      pricePerNight: 1200.0,
+      amenities: ['شاطئ خاص', 'جيم', 'مطاعم فاخرة'],
+    ),
+    Hotel(
+      id: 'h3',
+      name: 'فندق قصر الإمارات',
+      location: 'أبوظبي، الإمارات',
+      imageUrl: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=500&q=80',
+      rating: 5.0,
+      pricePerNight: 2800.0,
+      amenities: ['خدمة غرف', 'مواقف مجانية', 'حدائق'],
+    ),
+  ];
+
+  static const List<TravelDestination> mockTravelDestinations = [
+    TravelDestination(
+      id: 't1',
+      title: 'رحلة سفاري صحراوية',
+      country: 'الإمارات',
+      imageUrl: 'https://images.unsplash.com/photo-1451337517482-694d73e5062a?w=500&q=80',
+      description: 'تجربة القيادة على الكثبان الرملية وعشاء تقليدي تحت النجوم.',
+      price: 250.0,
+    ),
+    TravelDestination(
+      id: 't2',
+      title: 'جولة في جبال حتا',
+      country: 'دبي',
+      imageUrl: 'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=500&q=80',
+      description: 'استكشف الجبال الخلابة والبحيرات الزرقاء.',
+      price: 150.0,
+    ),
+    TravelDestination(
+      id: 't3',
+      title: 'جولة جزيرة النخلة بالهليكوبتر',
+      country: 'دبي',
+      imageUrl: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=500&q=80',
+      description: 'شاهد معالم دبي المذهلة من السماء.',
+      price: 850.0,
     ),
   ];
 

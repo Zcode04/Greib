@@ -7,6 +7,8 @@ import '../../core/theme/theme_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/auth/mock_auth.dart';
 import '../../shared_widgets/featured_products_section.dart';
+import '../../shared_widgets/glass_container.dart';
+import '../../shared_widgets/animated_background.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -40,92 +42,101 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
       drawer: _buildDrawer(context, user, role, isDark),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 110),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeroBanner(user, isDark),
-            const SizedBox(height: 28),
-
-            _sectionTitle('  المميز عندنا', isDark),
-            const SizedBox(height: 12),
-            _buildSpotlightCard(isDark),
-            const SizedBox(height: 28),
-
-            _sectionTitle('تعرف على أطبائنا', isDark),
-            const SizedBox(height: 12),
-            _buildDoctorsRow(isDark),
-            const SizedBox(height: 28),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Stack(
+        children: [
+          const AnimatedBackground(),
+          SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 110),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _sectionTitle('ولدينا المزيد ', isDark),
-                InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  onTap: () => setState(
-                      () => _isServicesGridView = !_isServicesGridView),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 6, horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: (isDark
-                              ? AppColors.accentPrimaryLight
-                              : AppColors.accentPrimary)
-                          .withOpacity(0.1),
+                _buildHeroBanner(user, isDark),
+                const SizedBox(height: 28),
+
+                _sectionTitle('✨ المميز عندنا', isDark),
+                const SizedBox(height: 12),
+                _buildSpotlightCard(isDark),
+                const SizedBox(height: 28),
+
+                _sectionTitle('🏨 الفنادق المختارة', isDark),
+                const SizedBox(height: 12),
+                _buildHotelsRow(isDark),
+                const SizedBox(height: 28),
+
+                _sectionTitle('✈️ وجهات سفر مميزة', isDark),
+                const SizedBox(height: 12),
+                _buildTravelRow(isDark),
+                const SizedBox(height: 28),
+
+                _sectionTitle('👨‍⚕️ تعرف على أطبائنا', isDark),
+                const SizedBox(height: 12),
+                _buildDoctorsRow(isDark),
+                const SizedBox(height: 28),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _sectionTitle('🚀 ولدينا المزيد ', isDark),
+                    InkWell(
                       borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          _isServicesGridView ? 'عرض أقل' : 'عرض المزيد',
-                          style: TextStyle(
-                            color: isDark
-                                ? AppColors.accentPrimaryLight
-                                : AppColors.accentPrimary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      onTap: () => setState(
+                          () => _isServicesGridView = !_isServicesGridView),
+                      child: GlassContainer(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 6, horizontal: 12),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _isServicesGridView ? 'عرض أقل' : 'عرض المزيد',
+                              style: TextStyle(
+                                color: isDark
+                                    ? AppColors.accentPrimaryLight
+                                    : AppColors.accentPrimary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              _isServicesGridView
+                                  ? LucideIcons.chevronUp
+                                  : LucideIcons.chevronDown,
+                              size: 14,
+                              color: isDark
+                                  ? AppColors.accentPrimaryLight
+                                  : AppColors.accentPrimary,
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          _isServicesGridView
-                              ? LucideIcons.chevronUp
-                              : LucideIcons.chevronDown,
-                          size: 14,
-                          color: isDark
-                              ? AppColors.accentPrimaryLight
-                              : AppColors.accentPrimary,
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
+                const SizedBox(height: 14),
+                _buildServicesRow(isDark),
+                const SizedBox(height: 28),
+
+                _sectionTitle('🛍 منتجات مختارة لك', isDark),
+                const SizedBox(height: 14),
+                const FeaturedProductsSection(),
+                const SizedBox(height: 28),
+
+                _sectionTitle('📦 طلباتك الحالية', isDark),
+                const SizedBox(height: 14),
+                ..._buildOrdersList(isDark),
+
+                if (role == UserRole.admin || role == UserRole.agent) ...[
+                  const SizedBox(height: 28),
+                  _sectionTitle('⚙️ صفحات سريعة', isDark),
+                  const SizedBox(height: 14),
+                  _buildQuickActions(context, role),
+                ],
               ],
             ),
-            const SizedBox(height: 14),
-            _buildServicesRow(isDark),
-            const SizedBox(height: 28),
-
-            _sectionTitle('منتجات مختارة لك', isDark),
-            const SizedBox(height: 14),
-            const FeaturedProductsSection(),
-            const SizedBox(height: 28),
-
-            _sectionTitle('طلباتك الحالية', isDark),
-            const SizedBox(height: 14),
-            ..._buildOrdersList(isDark),
-
-            if (role == UserRole.admin || role == UserRole.agent) ...[
-              const SizedBox(height: 28),
-              _sectionTitle('صفحات سريعة', isDark),
-              const SizedBox(height: 14),
-              _buildQuickActions(context, role),
-            ],
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -136,16 +147,11 @@ class _HomeScreenState extends State<HomeScreen> {
   // Hero Banner ("Explore new collection")
   // ---------------------------------------------------------------------
   Widget _buildHeroBanner(user, bool isDark) {
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: AppColors.heroGradient, // ثابت دائماً، بدون isDark
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(28),
-      ),
+      borderRadius: BorderRadius.circular(28),
+      color: isDark ? AppColors.accentPrimaryDark : AppColors.accentPrimary,
+      opacity: 0.2,
       child: Row(
         children: [
           Expanded(
@@ -156,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   'اكتشف خدماتنا\nالجديدة',
                   style: TextStyle(
-                    color: Colors.white, // ثابت - يتماشى مع الخلفية الغامقة/الملونة
+                    color: isDark ? Colors.white : AppColors.lightText,
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
                     height: 1.3,
@@ -166,8 +172,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
+                    backgroundColor: isDark ? AppColors.neon : AppColors.accentPrimary,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
@@ -181,8 +188,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Expanded(
             flex: 2,
-            child: Icon(LucideIcons.truck,
-                color: Colors.white, size: 72), // ثابت
+            child: Icon(LucideIcons.sparkles,
+                color: isDark ? AppColors.neon : AppColors.accentPrimary, size: 72),
           ),
         ],
       ),
@@ -232,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Center(
           child: TextButton.icon(
             style: TextButton.styleFrom(
-              backgroundColor: (isDark ? AppColors.neon : AppColors.accentPrimaryDark).withOpacity(0.1),
+              backgroundColor: (isDark ? AppColors.neon : AppColors.accentPrimaryDark).withValues(alpha: 0.1),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -303,61 +310,59 @@ class _HomeScreenState extends State<HomeScreen> {
     final neonColor = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
     final isFav = _favoriteServiceIds.contains(service.id as String);
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8),
+    return GlassContainer(
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceElevated : AppColors.lightSurface,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: isDark
-            ? AppColors.neonGlow(blur: 30, alpha: 0.12)
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-      ),
+      borderRadius: BorderRadius.circular(28),
+      opacity: isDark ? 0.05 : 0.1,
+      boxShadow: isDark
+          ? AppColors.neonGlow(blur: 20, alpha: 0.1)
+          : [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
       child: InkWell(
         borderRadius: BorderRadius.circular(28),
         onTap: () => Navigator.pushNamed(context, service.route as String),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // بديل "صورة الحذاء بزاوية جذابة": أيقونة الخدمة داخل
-            // كتلة ملونة مائلة قليلاً لإعطاء نفس الإحساس البصري
             Expanded(
               child: Center(
-                child: Transform.rotate(
-                  angle: -0.16,
-                  child: Container(
-                    width: 108,
-                    height: 108,
-                    decoration: BoxDecoration(
-                      color: neonColor.withValues(alpha: isDark ? 0.14 : 0.16),
-                      borderRadius: BorderRadius.circular(26),
-                    ),
-                    child: Transform.rotate(
-                      angle: 0.16, // نعيد الأيقونة نفسها لوضعها المستقيم
-                      child: (service.imageUrl != null)
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(22),
-                              child: Image.network(
-                                service.imageUrl!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Icon(
-                                  MockData.getIconByName(service.iconName as String),
-                                  color: neonColor,
-                                  size: 46,
+                child: Hero(
+                  tag: 'service_${service.id}',
+                  child: Transform.rotate(
+                    angle: -0.1,
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: neonColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Transform.rotate(
+                        angle: 0.1,
+                        child: (service.imageUrl != null)
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: Image.network(
+                                  service.imageUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Icon(
+                                    MockData.getIconByName(service.iconName as String),
+                                    color: neonColor,
+                                    size: 40,
+                                  ),
                                 ),
+                              )
+                            : Icon(
+                                MockData.getIconByName(service.iconName as String),
+                                color: neonColor,
+                                size: 40,
                               ),
-                            )
-                          : Icon(
-                              MockData.getIconByName(service.iconName as String),
-                              color: neonColor,
-                              size: 46,
-                            ),
+                      ),
                     ),
                   ),
                 ),
@@ -378,7 +383,6 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // بديل السعر الأخضر: نص الخدمة الفرعي بنفس لون Neon
                 Expanded(
                   child: Text(
                     service.subtitle as String,
@@ -387,19 +391,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                       color: neonColor,
                       fontWeight: FontWeight.w800,
-                      fontSize: 14,
+                      fontSize: 13,
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                // أيقونة القلب (المفضلة)
                 _spotlightIconButton(
                   icon: isFav ? LucideIcons.heart : LucideIcons.heart,
                   iconColor: isFav
                       ? AppColors.error
                       : (isDark ? Colors.white70 : AppColors.lightTextSecondary),
                   filledBackground: isFav
-                      ? AppColors.error.withValues(alpha: 0.12)
+                      ? AppColors.error.withValues(alpha: 0.15)
                       : null,
                   onTap: () => setState(() {
                     if (isFav) {
@@ -409,10 +411,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                   }),
                 ),
-                const SizedBox(width: 8),
-                // أيقونة السلة/الإجراء (بلون Neon المميز)
+                const SizedBox(width: 6),
                 _spotlightIconButton(
-                  icon: LucideIcons.shoppingBag,
+                  icon: LucideIcons.arrowLeft,
                   iconColor: isDark ? Colors.black : Colors.white,
                   filledBackground: neonColor,
                   onTap: () => Navigator.pushNamed(context, service.route as String),
@@ -498,25 +499,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _serviceBigCard(dynamic s, bool isDark) {
     final accentColor = isDark ? AppColors.accentPrimaryLight : AppColors.accentPrimary;
 
-    return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, s.route),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.surfaceElevated : AppColors.lightSurface,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-              color: isDark ? Colors.white10 : AppColors.lightOutline),
-          boxShadow: isDark
-              ? null
-              : [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-        ),
+    return GlassContainer(
+      padding: const EdgeInsets.all(16),
+      borderRadius: BorderRadius.circular(22),
+      opacity: isDark ? 0.05 : 0.08,
+      child: InkWell(
+        onTap: () => Navigator.pushNamed(context, s.route),
+        borderRadius: BorderRadius.circular(22),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -556,6 +545,124 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------
+  // Hotels row
+  // ---------------------------------------------------------------------
+  Widget _buildHotelsRow(bool isDark) {
+    final hotels = MockData.mockHotels;
+    return SizedBox(
+      height: 200,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: hotels.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 16),
+        itemBuilder: (context, i) => _hotelItem(hotels[i], isDark),
+      ),
+    );
+  }
+
+  Widget _hotelItem(Hotel hotel, bool isDark) {
+    return GlassContainer(
+      width: 260,
+      borderRadius: BorderRadius.circular(24),
+      padding: EdgeInsets.zero,
+      opacity: isDark ? 0.05 : 0.1,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              child: Image.network(
+                hotel.imageUrl,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(hotel.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.star, color: Colors.amber, size: 14),
+                        const SizedBox(width: 4),
+                        Text(hotel.rating.toString(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(hotel.location, style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 12)),
+                const SizedBox(height: 8),
+                Text('${hotel.pricePerNight} درهم / الليلة', style: TextStyle(color: isDark ? AppColors.neon : AppColors.accentPrimary, fontWeight: FontWeight.w700)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------
+  // Travel row
+  // ---------------------------------------------------------------------
+  Widget _buildTravelRow(bool isDark) {
+    final destinations = MockData.mockTravelDestinations;
+    return SizedBox(
+      height: 240,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: destinations.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 16),
+        itemBuilder: (context, i) => _travelItem(destinations[i], isDark),
+      ),
+    );
+  }
+
+  Widget _travelItem(TravelDestination dest, bool isDark) {
+    return GlassContainer(
+      width: 180,
+      borderRadius: BorderRadius.circular(24),
+      padding: EdgeInsets.zero,
+      opacity: isDark ? 0.05 : 0.1,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              child: Image.network(
+                dest.imageUrl,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(dest.title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 4),
+                Text(dest.country, style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 11)),
+                const SizedBox(height: 8),
+                Text('يبدأ من ${dest.price} درهم', style: TextStyle(color: isDark ? AppColors.neon : AppColors.accentPrimary, fontWeight: FontWeight.w700, fontSize: 12)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -640,16 +747,12 @@ class _HomeScreenState extends State<HomeScreen> {
       ];
     }
 
-    return orders.take(3).map((order) {
-      return Container(
+    return orders.take(3).map<Widget>((order) {
+      return GlassContainer(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.surface : AppColors.lightSurface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-              color: isDark ? Colors.white10 : AppColors.lightOutline),
-        ),
+        borderRadius: BorderRadius.circular(20),
+        opacity: isDark ? 0.05 : 0.08,
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: () => Navigator.pushNamed(context, '/tracking'),
