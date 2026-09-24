@@ -65,8 +65,9 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: false,
       title: Text(
         'گريب منك',
-        style: theme.textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w800,
+        style: theme.textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w900,
+          fontSize: 24,
           color: isDark ? AppColors.textPrimary : AppColors.lightText,
         ),
       ),

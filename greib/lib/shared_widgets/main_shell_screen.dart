@@ -114,12 +114,6 @@ class _MainShellScreenState extends State<MainShellScreen> {
             context.push(targetRoute);
           },
         ),
-      if (!isGuest && _currentIndex == 0)
-        HeaderAction(
-          icon: LucideIcons.plus,
-          tooltip: 'إنشاء جديد',
-          onPressed: () => context.push('/create'),
-        ),
     ];
   }
 

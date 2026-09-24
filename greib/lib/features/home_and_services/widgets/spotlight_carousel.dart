@@ -20,6 +20,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   int _spotlightIndex = 0;
   final Set<String> _favoriteServiceIds = {};
   bool _isGridView = false;
+  int _visiblePostsCount = 2;
 
   @override
   void dispose() {
@@ -38,7 +39,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
           child: _isGridView
-              ? _buildSpotlightGrid(services)
+              ? _buildSpotlightPosts(services)
               : _buildSpotlightCarousel(services),
         ),
         const SizedBox(height: 10),
@@ -76,12 +77,12 @@ class _SpotlightSectionState extends State<SpotlightSection> {
             // ★ تسمية مميزة لا تتكرر مع بقية أزرار الصفحة («عرض المزيد»
             // تظهر في قسمي الخدمات والمنتجات) + أيقونة تشرح الناتج.
             icon: Icon(
-              _isGridView ? LucideIcons.layoutList : LucideIcons.layoutGrid,
+              _isGridView ? LucideIcons.galleryHorizontal : LucideIcons.layoutList,
               size: 16,
               color: widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark,
             ),
             label: Text(
-              _isGridView ? 'عرض الشرائح' : 'عرض الشبكة',
+              _isGridView ? 'عرض الشرائح' : 'عرض كمنشورات',
               style: TextStyle(
                 color: widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark,
                 fontWeight: FontWeight.w600,
@@ -119,19 +120,179 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     );
   }
 
-  Widget _buildSpotlightGrid(List<ServiceCategory> services) {
-    return GridView.builder(
-      key: const ValueKey('grid'),
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: services.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 14,
-        crossAxisSpacing: 14,
-        childAspectRatio: 0.85,
+  Widget _buildSpotlightPosts(List<ServiceCategory> services) {
+    final visibleCount = _visiblePostsCount > services.length ? services.length : _visiblePostsCount;
+    return Column(
+      children: [
+        ListView.separated(
+          key: const ValueKey('posts'),
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: visibleCount,
+          separatorBuilder: (_, __) => const SizedBox(height: 16),
+          itemBuilder: (context, i) => _spotlightPostItem(services[i]),
+        ),
+        if (visibleCount < services.length)
+          Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: TextButton.icon(
+              style: TextButton.styleFrom(
+                backgroundColor: (widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark).withValues(alpha: 0.1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              onPressed: () => setState(() => _visiblePostsCount++),
+              icon: Icon(
+                LucideIcons.chevronDown,
+                size: 16,
+                color: widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark,
+              ),
+              label: Text(
+                'عرض المزيد',
+                style: TextStyle(
+                  color: widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _spotlightPostItem(ServiceCategory service) {
+    final neonColor = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: widget.isDark ? AppColors.surfaceCard : AppColors.lightSurfaceVariant,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: widget.isDark ? AppColors.outline : AppColors.lightOutline,
+        ),
       ),
-      itemBuilder: (context, i) => _spotlightItem(services[i]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header (like FB post header)
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: neonColor.withValues(alpha: 0.15),
+                  child: Icon(MockData.getIconByName(service.iconName), color: neonColor, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        service.title,
+                        style: TextStyle(
+                          color: widget.isDark ? AppColors.textPrimary : AppColors.lightText,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                      Text(
+                        service.subtitle,
+                        style: TextStyle(
+                          color: neonColor,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Image / Content
+          if (service.imageUrl != null)
+            Image.network(
+              service.imageUrl!,
+              height: 200,
+              fit: BoxFit.cover,
+            )
+          else
+            Container(
+              height: 200,
+              color: neonColor.withValues(alpha: 0.1),
+              child: Icon(MockData.getIconByName(service.iconName), color: neonColor, size: 60),
+            ),
+            
+          // Action Buttons
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _postActionButton(
+                  icon: LucideIcons.shoppingBag,
+                  label: 'طلب الآن',
+                  color: neonColor,
+                  onTap: () => context.push(service.route),
+                ),
+                _postActionButton(
+                  icon: _favoriteServiceIds.contains(service.id) ? LucideIcons.checkSquare : LucideIcons.bookmarkPlus,
+                  label: 'للقائمة',
+                  color: widget.isDark ? Colors.white70 : AppColors.lightTextSecondary,
+                  onTap: () {
+                    setState(() {
+                      if (_favoriteServiceIds.contains(service.id)) {
+                        _favoriteServiceIds.remove(service.id);
+                      } else {
+                        _favoriteServiceIds.add(service.id);
+                      }
+                    });
+                  },
+                ),
+                _postActionButton(
+                  icon: LucideIcons.share2,
+                  label: 'مشاركة',
+                  color: widget.isDark ? Colors.white70 : AppColors.lightTextSecondary,
+                  onTap: () {},
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _postActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: color),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
