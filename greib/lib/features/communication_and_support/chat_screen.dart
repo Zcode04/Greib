@@ -14,7 +14,6 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/permissions/permissions.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../features/auth/mock_auth.dart';
-import '../../shared_widgets/header.dart';
 
 // ---------------------------------------------------------------------------
 //  أدوات مساعدة متجاوبة (Responsive helpers)

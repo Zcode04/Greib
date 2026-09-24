@@ -11,7 +11,6 @@ import '../features/home_and_services/home_screen.dart';
 import '../features/wallet_and_finance/wallet_screen.dart';
 import '../core/widgets/super_header.dart'; // تمت الإضافة
 import 'floating_bottom_nav.dart';
-import 'header.dart';
 import 'profile_widget.dart';
 
 class _ShellTab {
@@ -125,22 +124,22 @@ class _MainShellScreenState extends State<MainShellScreen> {
     // استخدم SuperHeader بدلاً من Header العادي إذا كنا في الشاشة الرئيسية (index 0)
     // هذا سيعطي تجربة "Super App" مع زر الموقع، الإشعارات المتطورة، والبحث المدمج.
     return Scaffold(
-      appBar: _currentIndex == 0
-          ? const SuperHeader()
-          : Header(
-              title: activeTab.title,
-              actions: _buildHeaderActions(context).map((a) {
+      appBar: SuperHeader(
+        title: _currentIndex == 0 ? null : activeTab.title,
+        extraActions: _currentIndex == 0 
+            ? null 
+            : _buildHeaderActions(context).map((a) {
                 return IconButton(
                   icon: Badge(
                     isLabelVisible: a.badgeCount > 0,
                     label: Text('${a.badgeCount}'),
-                    child: Icon(a.icon),
+                    child: Icon(a.icon, size: 18),
                   ),
                   tooltip: a.tooltip,
                   onPressed: a.onPressed,
                 );
               }).toList(),
-            ),
+      ),
       body: _buildBody(_currentIndex),
       bottomNavigationBar: FloatingBottomNav(
         currentIndex: _currentIndex,
