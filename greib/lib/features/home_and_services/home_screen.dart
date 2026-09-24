@@ -11,7 +11,7 @@ import '../../shared_widgets/animated_list_item.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 // Widgets
-import 'widgets/hero_banner.dart';
+import 'widgets/trending_stories.dart';
 import 'widgets/spotlight_carousel.dart';
 import 'widgets/services_grid.dart';
 import 'widgets/hotels_section.dart';
@@ -48,7 +48,19 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AnimatedListItem(index: 0, child: HeroBanner(isDark: isDark)),
+                AnimatedListItem(
+                  index: 0,
+                  child: SectionHeader(
+                    title: 'رائج الآن',
+                    icon: LucideIcons.flame,
+                    iconColor: const Color(0xFFFF6B35),
+                    showAction: false,
+                  ),
+                ),
+                AnimatedListItem(
+                  index: 0,
+                  child: TrendingStoriesSection(isDark: isDark),
+                ),
                 const SizedBox(height: 28),
 
                 AnimatedListItem(
