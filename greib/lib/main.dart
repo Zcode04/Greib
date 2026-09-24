@@ -1,30 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'core/location/location_controller.dart';
+import 'core/notifications/notification_manager.dart';
+import 'core/storage/app_prefs.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
-import 'features/auth/mock_auth.dart';
-import 'features/admin_dashboard/admin_dashboard_screen.dart';
-import 'features/agent_dashboard/agent_dashboard_screen.dart';
-import 'features/notifications/notifications_screen.dart';
-import 'features/splash/splash_screen.dart';
-import 'features/tracking/tracking_screen.dart';
-import 'features/promo/promo_codes_screen.dart';
-import 'features/reviews/reviews_screen.dart';
-import 'features/membership/membership_screen.dart';
-import 'features/support/support_tickets_screen.dart';
-import 'features/doctors/doctors_list_screen.dart';
-import 'features/doctors/doctor_profile_screen.dart';
-import 'shared_widgets/main_shell_screen.dart';
+import 'core/router/app_router.dart';
+import 'features/auth/auth_service.dart';
 
-void main() {
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ThemeController()),
-      ],
-      child: const GreibMenkApp(),
-    ),
+Future<void> main() async {
+  // نُهيّئ القنوات الأصلية + التخزين المحلي قبل بناء الواجهة،
+  // حتى يبدأ التطبيق بالوضع الليلي/التبويب اللذين اختارهما المستخدم سابقاً.
+  WidgetsFlutterBinding.ensureInitialized();
+  await AppPrefs.init();
+
+  runApp(buildGreibMenkApp());
+}
+
+/// يبني التطبيق مع كل المتحكمات المشتركة (Singleton + ChangeNotifier).
+/// مفصولة عن `main()` لكي تُستخدم في الاختبارات دون تشغيل التطبيق كاملاً.
+Widget buildGreibMenkApp() {
+  return MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (_) => ThemeController()),
+      ChangeNotifierProvider<AuthService>.value(value: AuthService.instance),
+      ChangeNotifierProvider<NotificationManager>.value(
+        value: NotificationManager.instance,
+      ),
+      ChangeNotifierProvider<LocationController>.value(
+        value: LocationController(),
+      ),
+    ],
+    child: const GreibMenkApp(),
   );
 }
 
@@ -35,7 +43,7 @@ class GreibMenkApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeController = context.watch<ThemeController>();
 
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'گريب منك',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
@@ -50,22 +58,7 @@ class GreibMenkApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      initialRoute: '/splash',
-      routes: {
-        '/splash': (context) => const SplashScreen(),
-        '/login': (context) => const LoginScreen(),
-        '/home': (context) => const MainShellScreen(),
-        '/admin_dashboard': (context) => const AdminDashboardScreen(),
-        '/agent_dashboard': (context) => const AgentDashboardScreen(),
-        '/notifications': (context) => const NotificationsScreen(),
-        '/tracking': (context) => const TrackingScreen(),
-        '/promo': (context) => const PromoCodesScreen(),
-        '/reviews': (context) => const ReviewsScreen(),
-        '/membership': (context) => const MembershipScreen(),
-        '/support': (context) => const SupportTicketsScreen(),
-        '/doctors': (context) => const DoctorsListScreen(),
-        '/doctor_profile': (context) => const DoctorProfileScreen(),
-      },
+      routerConfig: AppRouter.router,
     );
   }
 }

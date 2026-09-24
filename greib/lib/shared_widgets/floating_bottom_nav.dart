@@ -23,15 +23,19 @@
 
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../core/theme/app_colors.dart';
+import '../core/theme/design_tokens.dart';
 
 class FloatingNavItem {
   final IconData icon;
   final String label;
 
+  /// عدد الشارات (رسائل/إشعارات غير مقروءة). صفر أو null = بلا شارة.
+  final int? badgeCount;
+
   const FloatingNavItem({
     required this.icon,
     required this.label,
+    this.badgeCount,
   });
 }
 
@@ -125,53 +129,95 @@ class _NavTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = isDark ? AppColors.accentPrimaryLight : AppColors.accentPrimary;
+    final activeColor = isDark ? AppColors.accentPrimary : AppColors.accentPrimaryDark;
     final inactiveColor = isDark ? AppColors.textTertiary : AppColors.lightTextSecondary;
     final iconColor = selected ? activeColor : inactiveColor;
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // --- حاوية الأيقونة مع تأثير بصري عند التحديد ---
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
-            width: selected ? 44 : 40,
-            height: selected ? 32 : 28,
-            decoration: BoxDecoration(
-              color: selected
-                  ? AppColors.accentPrimary.withValues(alpha: isDark ? 0.2 : 0.12)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: AnimatedScale(
-                scale: selected ? 1.12 : 1.0,
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOut,
-                child: Icon(item.icon, color: iconColor, size: 20),
+    return Semantics(
+      label: item.label,
+      button: true,
+      selected: selected,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // --- حاوية الأيقونة مع تأثير بصري عند التحديد ---
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              width: selected ? 44 : 40,
+              height: selected ? 32 : 28,
+              decoration: BoxDecoration(
+                color: selected
+                    ? AppColors.accentPrimary
+                        .withValues(alpha: isDark ? 0.2 : 0.12)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: AnimatedScale(
+                  scale: selected ? 1.12 : 1.0,
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Icon(item.icon, color: iconColor, size: 20),
+                      _buildBadge(),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 3),
-          // --- النص ---
-          AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 200),
-            style: TextStyle(
-              color: iconColor,
-              fontSize: 10,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+            const SizedBox(height: 3),
+            // --- النص ---
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              style: TextStyle(
+                color: iconColor,
+                fontSize: 10,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+              ),
+              child: Text(
+                item.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            child: Text(
-              item.label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// شارة العدد (رسائل/إشعارات غير مقروءة) أعلى أيقونة التبويب.
+  Widget _buildBadge() {
+    final count = item.badgeCount ?? 0;
+    if (count <= 0) return const SizedBox.shrink();
+
+    return Positioned(
+      top: -7,
+      left: -9,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+        constraints: const BoxConstraints(minWidth: 16),
+        decoration: BoxDecoration(
+          color: AppColors.error,
+          borderRadius: BorderRadius.circular(AppRadii.full),
+          border: Border.all(color: AppColors.surfaceCard, width: 1.5),
+        ),
+        child: Text(
+          count > 9 ? '+9' : '$count',
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 9,
+            height: 1.2,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
           ),
-        ],
+        ),
       ),
     );
   }

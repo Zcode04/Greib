@@ -1,6 +1,10 @@
 # تهيئة محلل Flutter لتطبيق "گريب منك"
-# نستثني مجلد build/ المولّد (يحوي مصادر اختبارية لـ Firebase pods)
-# لكي يبقى `flutter analyze` نظيفًا دون أخطاء من كود خارجي مولّد.
+#
+# • نفعّل حزمة flutter_lints القياسية (كانت مثبّتة في pubspec ومعطّلة).
+# • نستثني مجلد build/ المولّد (يحوي مصادر اختبارية لـ Firebase pods)
+#   لكي يبقى `flutter analyze` نظيفًا دون أخطاء من كود خارجي مولّد.
+include: package:flutter_lints/flutter.yaml
+
 analyzer:
   exclude:
     - build/**

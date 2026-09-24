@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/theme/theme_controller.dart';
 
 import '../core/permissions/permissions.dart';
+import '../core/notifications/notification_manager.dart';
 import '../features/auth/mock_auth.dart';
 
 class Header extends StatelessWidget implements PreferredSizeWidget {
@@ -12,7 +14,17 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
   final bool showBackButton;
   final bool showNotifications;
   final bool showDarkModeToggle;
+  final bool showSearchButton;
+
+  /// زر فتح القائمة الجانبية (Drawer) — يُستخدم في الهيكل الرئيسي فقط.
+  final bool showMenuButton;
   final List<Widget>? actions;
+
+  bool get hasActions =>
+      showSearchButton ||
+      showDarkModeToggle ||
+      showNotifications ||
+      (actions?.isNotEmpty ?? false);
 
   const Header({
     super.key,
@@ -20,6 +32,8 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
     this.showBackButton = false,
     this.showNotifications = true,
     this.showDarkModeToggle = true,
+    this.showSearchButton = true,
+    this.showMenuButton = false,
     this.actions,
   });
 
@@ -35,9 +49,12 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final isCompact = screenWidth < 380;
 
-    final double circleSize = isCompact ? 34 : 40;
     final double iconSize = isCompact ? 18 : 20;
-    final double actionMargin = isCompact ? 2 : 4;
+
+    // عدد الإشعارات غير المقروءة لعرضه كشارة على الجرس.
+    final unreadNotifications = context.select<NotificationManager, int>(
+      (manager) => manager.unreadCount,
+    );
 
     return AppBar(
       titleSpacing: 0,
@@ -48,16 +65,16 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: AppColors.accentPrimary.withValues(alpha: 0.15),
+              color: AppColors.accentFor(isDark).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(AppRadii.sm),
               border: Border.all(
-                color: AppColors.accentPrimary.withValues(alpha: 0.3),
+                color: AppColors.accentFor(isDark).withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
-            child: const Icon(
+            child: Icon(
               LucideIcons.rocket,
-              color: AppColors.accentPrimary,
+              color: AppColors.accentFor(isDark),
               size: 18,
             ),
           ),
@@ -93,100 +110,83 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                   size: 18,
                   color: theme.colorScheme.onSurface,
                 ),
-                onPressed: () => Navigator.maybePop(context),
+                onPressed: () {
+                  if (context.canPop()) context.pop();
+                },
               ),
+            )
+          : showMenuButton
+          ? IconButton(
+              icon: Icon(
+                LucideIcons.menu,
+                size: 20,
+                color: theme.colorScheme.onSurface,
+              ),
+              tooltip: 'القائمة',
+              onPressed: () => Scaffold.of(context).openDrawer(),
             )
           : null,
       actions: [
-        // ★ تجاوب: كل أزرار الإجراءات (المدمجة + الخارجية) توضع الآن داخل
-        // شريط قابل للتمرير أفقياً، بحيث لا يحدث Overflow أبداً مهما كان
-        // عدد الأزرار أو ضيق الشاشة — بدل الفيض الأفقي (الخطوط الصفراء/السوداء).
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                margin: EdgeInsets.symmetric(
-                  horizontal: actionMargin,
-                  vertical: AppSpacing.sm,
-                ),
-                width: circleSize,
-                height: circleSize,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.surfaceCard
-                      : AppColors.lightSurfaceVariant,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isDark ? AppColors.outline : AppColors.lightOutline,
-                  ),
-                ),
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  icon: Icon(LucideIcons.search, size: iconSize),
-                  onPressed: () {
-                    // TODO: Implement search functionality
-                  },
-                  tooltip: 'البحث',
+        // ★ تصميم حديث: تجميع الأيقونات في كبسولة (Pill) واحدة بدلاً من دوائر متكررة.
+        if (hasActions)
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: 6,
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.surfaceCard
+                    : AppColors.lightSurfaceVariant,
+                borderRadius: BorderRadius.circular(AppRadii.full),
+                border: Border.all(
+                  color: isDark ? AppColors.outline : AppColors.lightOutline,
+                  width: 1,
                 ),
               ),
-              if (showDarkModeToggle)
-                Container(
-                  margin: EdgeInsets.symmetric(
-                    horizontal: actionMargin,
-                    vertical: AppSpacing.sm,
-                  ),
-                  width: circleSize,
-                  height: circleSize,
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.surfaceCard
-                        : AppColors.lightSurfaceVariant,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isDark ? AppColors.outline : AppColors.lightOutline,
-                    ),
-                  ),
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    icon: Icon(isDark ? LucideIcons.sun : LucideIcons.moon,
-                        size: iconSize),
-                    onPressed: () {
-                      context.read<ThemeController>().toggleTheme();
-                    },
-                    tooltip: isDark ? 'الوضع النهاري' : 'الوضع الليلي',
-                  ),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (showSearchButton)
+                      IconButton(
+                        icon: Icon(LucideIcons.search, size: iconSize),
+                        onPressed: () => context.push('/search'),
+                        tooltip: 'البحث',
+                      ),
+                    if (showDarkModeToggle)
+                      IconButton(
+                        icon: Icon(
+                          isDark ? LucideIcons.sun : LucideIcons.moon,
+                          size: iconSize,
+                        ),
+                        onPressed: () {
+                          context.read<ThemeController>().toggleTheme();
+                        },
+                        tooltip: isDark ? 'الوضع النهاري' : 'الوضع الليلي',
+                      ),
+                    if (showNotifications)
+                      IconButton(
+                        icon: Badge(
+                          isLabelVisible: unreadNotifications > 0,
+                          label: Text(
+                            unreadNotifications > 9
+                                ? '+9'
+                                : '$unreadNotifications',
+                          ),
+                          child: Icon(LucideIcons.bell, size: iconSize),
+                        ),
+                        onPressed: () => context.push('/notifications'),
+                        tooltip: 'الإشعارات',
+                      ),
+                    ...?actions,
+                  ],
                 ),
-              if (showNotifications)
-                Container(
-                  margin: EdgeInsets.symmetric(
-                    horizontal: actionMargin,
-                    vertical: AppSpacing.sm,
-                  ),
-                  width: circleSize,
-                  height: circleSize,
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.surfaceCard
-                        : AppColors.lightSurfaceVariant,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isDark ? AppColors.outline : AppColors.lightOutline,
-                    ),
-                  ),
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    icon: Icon(LucideIcons.bell, size: iconSize),
-                    onPressed: () => Navigator.pushNamed(context, '/notifications'),
-                    tooltip: 'الإشعارات',
-                  ),
-                ),
-              ...?actions,
-              const SizedBox(width: AppSpacing.xs),
-            ],
+              ),
+            ),
           ),
-        ),
       ],
     );
   }
@@ -222,11 +222,7 @@ class DashboardHeader extends StatelessWidget implements PreferredSizeWidget {
           icon: const Icon(LucideIcons.logOut),
           onPressed: () {
             AuthService.instance.logout();
-            Navigator.pushNamedAndRemoveUntil(
-              context,
-              '/login',
-              (route) => false,
-            );
+            context.go('/login');
           },
           tooltip: 'تسجيل الخروج',
         ),

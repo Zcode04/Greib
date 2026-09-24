@@ -4,7 +4,7 @@ import 'design_tokens.dart';
 
 /// ============================================================================
 ///  AppTheme — ثيم التطبيق الموحّد
-///  الهوية: Deep Space Black + Electric Violet
+///  الهوية: Gray 900 + Ice Blue (#BEDBED)
 ///  يعتمد حصرياً على AppColors من design_tokens.dart
 /// ============================================================================
 
@@ -20,14 +20,14 @@ class AppTheme {
 
       colorScheme: const ColorScheme(
         brightness: Brightness.light,
-        primary:            AppColors.accentPrimary,      // Violet 600
-        onPrimary:          Colors.white,
-        primaryContainer:   Color(0xFFEDE9FE),            // Violet 100
-        onPrimaryContainer: AppColors.accentPrimaryDark,
+        primary:            AppColors.accentPrimary,             // ★ اللون الرسمي #BEDBED
+        onPrimary:          AppColors.onAccentPrimary,           // نص داكن (اللون الرسمي فاتح)
+        primaryContainer:   AppColors.accentPrimaryContainer,    // أزرق جليدي فاتح
+        onPrimaryContainer: AppColors.accentPrimaryDark,         // #2A6E98
 
         secondary:              AppColors.secondary,
         onSecondary:            Colors.white,
-        secondaryContainer:     Color(0xFFF4F4F5),
+        secondaryContainer:     AppColors.neutral100,
         onSecondaryContainer:   AppColors.lightTextSecondary,
 
         tertiary:    AppColors.info,
@@ -97,7 +97,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadii.lg),
-          borderSide: const BorderSide(color: AppColors.accentPrimary, width: 2),
+          borderSide: const BorderSide(color: AppColors.accentPrimaryDark, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadii.lg),
@@ -111,7 +111,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.accentPrimary,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.onAccentPrimary,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.full)),
           elevation: AppElevation.xs,
@@ -122,8 +122,8 @@ class AppTheme {
 
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.accentPrimary,
-          side: const BorderSide(color: AppColors.accentPrimary, width: 1.5),
+          foregroundColor: AppColors.accentPrimaryDark,
+          side: const BorderSide(color: AppColors.accentPrimaryDark, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.full)),
           textStyle: const TextStyle(fontFamily: AppTypography.fontFamily, fontSize: 15, fontWeight: FontWeight.w600),
@@ -132,7 +132,7 @@ class AppTheme {
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.accentPrimary,
+          foregroundColor: AppColors.accentPrimaryDark,
           textStyle: const TextStyle(fontFamily: AppTypography.fontFamily, fontSize: 14, fontWeight: FontWeight.w500),
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         ),
@@ -167,13 +167,13 @@ class AppTheme {
         elevation: AppElevation.sm,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const TextStyle(fontFamily: AppTypography.fontFamily, fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.accentPrimary);
+            return const TextStyle(fontFamily: AppTypography.fontFamily, fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.accentPrimaryDark);
           }
           return const TextStyle(fontFamily: AppTypography.fontFamily, fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.lightTextSecondary);
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: AppColors.accentPrimary);
+            return const IconThemeData(color: AppColors.accentPrimaryDark);
           }
           return const IconThemeData(color: AppColors.lightTextSecondary);
         }),
@@ -192,10 +192,10 @@ class AppTheme {
 
       colorScheme: const ColorScheme(
         brightness: Brightness.dark,
-        primary:            AppColors.accentPrimary,      // Violet 600
-        onPrimary:          Colors.white,
-        primaryContainer:   AppColors.accentPrimaryDark,  // Violet 900
-        onPrimaryContainer: AppColors.accentPrimaryLight, // Violet 400
+        primary:            AppColors.accentPrimary,                  // ★ اللون الرسمي #BEDBED
+        onPrimary:          AppColors.onAccentPrimary,                // نص داكن فوق اللون الرسمي
+        primaryContainer:   AppColors.accentPrimaryContainerDark,     // #1C4864
+        onPrimaryContainer: AppColors.accentPrimary,                  // #BEDBED
 
         secondary:              AppColors.secondary,
         onSecondary:            Colors.white,
@@ -283,7 +283,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.accentPrimary,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.onAccentPrimary,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.full)),
           elevation: AppElevation.xs,

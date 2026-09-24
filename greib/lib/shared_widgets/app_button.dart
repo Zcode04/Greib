@@ -8,6 +8,7 @@ class AppButton extends StatelessWidget {
   final IconData? icon;
   final VoidCallback? onPressed;
   final Color? color;
+  final Color? textColor;
   final ButtonType type;
   final bool isLoading;
   final bool isFullWidth;
@@ -19,6 +20,7 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.onPressed,
     this.color,
+    this.textColor,
     this.type = ButtonType.primary,
     this.isLoading = false,
     this.isFullWidth = true,
@@ -123,6 +125,8 @@ class AppButton extends StatelessWidget {
   }
 
   Color _textColor(ButtonType type, Color color) {
+    // أولوية مطلقة للّون الصريح إن مُرِّر من الشاشة.
+    if (textColor != null) return textColor!;
     if (isOutlined) return color;
     if (type == ButtonType.primary) return Colors.white;
     if (type == ButtonType.danger) return Colors.white;

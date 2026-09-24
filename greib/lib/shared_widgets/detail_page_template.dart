@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../core/theme/design_tokens.dart';
 import 'app_button.dart';
@@ -89,7 +90,7 @@ class DetailPageTemplate extends StatelessWidget {
                     ),
                     child: IconButton(
                       icon: const Icon(LucideIcons.arrowLeft, size: 18),
-                      onPressed: () => Navigator.maybePop(context),
+                      onPressed: () { if (context.canPop()) context.pop(); },
                     ),
                   ),
                   flexibleSpace: FlexibleSpaceBar(
@@ -166,7 +167,7 @@ class DetailPageTemplate extends StatelessWidget {
                                 _DetailChip(
                                   icon: LucideIcons.wallet,
                                   label: price!,
-                                  color: AppColors.accentPrimary,
+                                  color: AppColors.accentFor(isDark),
                                 ),
                               if (deliveryTime != null) ...[
                                 const SizedBox(width: AppSpacing.sm),

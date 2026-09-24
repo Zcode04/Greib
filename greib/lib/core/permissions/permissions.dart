@@ -5,47 +5,35 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 enum UserRole { admin, agent, user }
 
 class PermissionService {
+  /// مسارات الخدمات (27) — متاحة للجميع.
+  static const Set<String> serviceRoutes = {
+    '/food', '/pharmacy', '/courier', '/ride', '/shopping', '/tourism',
+    '/cinema', '/banking', '/maps',
+    // الخدمات الإضافية (18)
+    '/moving', '/taxi', '/electricity', '/water', '/laundry', '/clothes',
+    '/phones', '/devices', '/appliances', '/office', '/delivery', '/estore',
+    '/travel', '/tourism_extra', '/medicine', '/pharmacy_extra', '/consult',
+    '/freight',
+  };
+
+  /// مسارات عامة متاحة لأي مستخدم مسجّل.
+  static const Set<String> commonRoutes = {
+    '/home', '/chat', '/notifications', '/tracking', '/orders', '/search',
+    '/wallet', '/favorites', '/profile', '/promo', '/reviews', '/membership',
+    '/support', '/doctors', '/doctor_profile',
+  };
+
   // التحقق من أن المستخدم يملك صلاحية الوصول لشاشة معينة
   static bool canAccess(UserRole? role, String route) {
     if (role == null) return false;
 
+    // 1) الخدمات العامة والشاشات المشتركة: متاحة لكل الأدوار المسجّلة.
+    if (serviceRoutes.contains(route) || commonRoutes.contains(route)) {
+      return true;
+    }
+
+    // 2) الشاشات المحصورة بأدوار محدّدة.
     switch (route) {
-      // الصفحة الرئيسية متاحة للجميع
-      case '/home':
-        return true;
-
-      // صفحات الخدمات متاحة للجميع
-      case '/food':
-      case '/pharmacy':
-      case '/courier':
-      case '/ride':
-      case '/shopping':
-      case '/tourism':
-      // الخدمات الجديدة (١٨ خدمة)
-      case '/moving':
-      case '/taxi':
-      case '/electricity':
-      case '/water':
-      case '/laundry':
-      case '/clothes':
-      case '/phones':
-      case '/devices':
-      case '/appliances':
-      case '/office':
-      case '/delivery':
-      case '/estore':
-      case '/travel':
-      case '/tourism_extra':
-      case '/medicine':
-      case '/pharmacy_extra':
-      case '/consult':
-      case '/freight':
-        return true;
-
-      // الشات متاح للجميع
-      case '/chat':
-        return true;
-
       // لوحة المشرفين - للمشرف فقط
       case '/admin_dashboard':
         return role == UserRole.admin;
@@ -60,14 +48,6 @@ class PermissionService {
       case '/admin_agents':
       case '/admin_groups':
         return role == UserRole.admin;
-
-      // البروفايل - للجميع
-      case '/profile':
-        return true;
-
-      // الإشعارات - للجميع
-      case '/notifications':
-        return true;
 
       default:
         return false;

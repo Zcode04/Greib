@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../core/models/user_model.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/mock_data/mock_data.dart';
@@ -253,11 +255,7 @@ class ProfileScreen extends StatelessWidget {
                 icon: LucideIcons.logOut,
                 color: AppColors.error,
                 onPressed: () {
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/login',
-                    (route) => false,
-                  );
+                  context.go('/login');
                 },
               ),
             ),

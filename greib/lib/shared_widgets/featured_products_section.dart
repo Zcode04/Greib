@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/models/product_model.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../core/mock_data/mock_data.dart';
 import '../core/theme/app_colors.dart';
@@ -77,14 +78,14 @@ class _FeaturedProductsSectionState extends State<FeaturedProductsSection> {
   // ---------------------------------------------------------------------------
   Widget _buildCategoryChips(bool isDark) {
     final accentColor =
-        isDark ? AppColors.accentPrimaryLight : AppColors.accentPrimary;
+        isDark ? AppColors.accentPrimary : AppColors.accentPrimaryDark;
 
     return SizedBox(
       height: 40,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: MockData.productCategories.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        separatorBuilder: (_, _) => const SizedBox(width: 10),
         itemBuilder: (context, i) {
           final cat = MockData.productCategories[i];
           final id = cat['id']!;
@@ -170,7 +171,7 @@ class _FeaturedProductsSectionState extends State<FeaturedProductsSection> {
   // ---------------------------------------------------------------------------
   Widget _productCard(Product product, bool isDark) {
     final accentColor =
-        isDark ? AppColors.accentPrimaryLight : AppColors.accentPrimary;
+        isDark ? AppColors.accentPrimary : AppColors.accentPrimaryDark;
 
     return Container(
       decoration: BoxDecoration(
@@ -212,7 +213,7 @@ class _FeaturedProductsSectionState extends State<FeaturedProductsSection> {
                       width: double.infinity,
                       height: double.infinity,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                      errorBuilder: (_, _, _) => Container(
                         color: Colors.white.withValues(
                             alpha: isDark ? 0 : 0.14),
                         child: Center(

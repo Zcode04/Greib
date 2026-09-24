@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../core/models/service_model.dart';
+import 'package:go_router/go_router.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/mock_data/mock_data.dart';
 
@@ -82,7 +84,7 @@ class _CentralServiceCardState extends State<CentralServiceCard>
                         ? Image.asset(
                             service.imageUrl!,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Icon(
+                            errorBuilder: (_, _, _) => Icon(
                               MockData.getIconByName(service.iconName),
                               color: service.color,
                               size: 28,
@@ -156,7 +158,7 @@ class ServicesGrid extends StatelessWidget {
           service: service,
           onTap: onServiceTap != null
               ? () => onServiceTap!(service)
-              : () => Navigator.pushNamed(context, service.route),
+              : () => context.push(service.route),
         );
       },
     );

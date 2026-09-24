@@ -2,256 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../theme/design_tokens.dart';
 
-// ==================== نماذج البيانات (Models) ====================
-
-class UserAccount {
-  final String id;
-  final String name;
-  final String email;
-  final String phone;
-  final String role;
-  final String avatar;
-
-  const UserAccount({
-    required this.id,
-    required this.name,
-    required this.email,
-    required this.phone,
-    required this.role,
-    required this.avatar,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'email': email,
-        'phone': phone,
-        'role': role,
-        'avatar': avatar,
-      };
-
-  factory UserAccount.fromJson(Map<String, dynamic> json) => UserAccount(
-        id: json['id'],
-        name: json['name'],
-        email: json['email'],
-        phone: json['phone'],
-        role: json['role'],
-        avatar: json['avatar'],
-      );
-}
-
-class ServiceCategory {
-  final String id;
-  final String title;
-  final String subtitle;
-  final String iconName;
-  final Color color;
-  final String route;
-  final String? imageUrl; // صورة مميّزة للخدمة (اختيارية)
-
-  const ServiceCategory({
-    required this.id,
-    required this.title,
-    required this.subtitle,
-    required this.iconName,
-    required this.color,
-    required this.route,
-    this.imageUrl,
-  });
-}
-
-class Order {
-  final String id;
-  final String userId;
-  final String serviceType;
-  final String status;
-  final String description;
-  final double price;
-  final String? agentId;
-  final DateTime? createdAt;
-  final String pickupLocation;
-  final String deliveryLocation;
-
-  const Order({
-    required this.id,
-    required this.userId,
-    required this.serviceType,
-    required this.status,
-    required this.description,
-    required this.price,
-    this.agentId,
-    this.createdAt,
-    required this.pickupLocation,
-    required this.deliveryLocation,
-  });
-}
-
-class ChatMessage {
-  final String id;
-  final String senderId;
-  final String senderName;
-  final String content;
-  final DateTime? timestamp;
-  final bool isRead;
-
-  const ChatMessage({
-    required this.id,
-    required this.senderId,
-    required this.senderName,
-    required this.content,
-    this.timestamp,
-    this.isRead = false,
-  });
-}
-
-class ChatConversation {
-  final String id;
-  final String title;
-  final List<String> participantIds;
-  final List<ChatMessage> messages;
-  final String type;
-  final String? createdBy;
-
-  const ChatConversation({
-    required this.id,
-    required this.title,
-    required this.participantIds,
-    required this.messages,
-    required this.type,
-    this.createdBy,
-  });
-}
-
-class AppUserProfile {
-  final String id;
-  final String name;
-  final String role;
-  final String phone;
-  final String email;
-  final String? address;
-  final String? avatarUrl;
-  final String membershipTier;
-  final int loyaltyPoints;
-
-  const AppUserProfile({
-    required this.id,
-    required this.name,
-    required this.role,
-    required this.phone,
-    required this.email,
-    this.address,
-    this.avatarUrl,
-    this.membershipTier = 'regular',
-    this.loyaltyPoints = 1250,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'role': role,
-        'phone': phone,
-        'email': email,
-        'address': address,
-        'avatarUrl': avatarUrl,
-        'membershipTier': membershipTier,
-        'loyaltyPoints': loyaltyPoints,
-      };
-
-  factory AppUserProfile.fromJson(Map<String, dynamic> json) => AppUserProfile(
-        id: json['id'],
-        name: json['name'],
-        role: json['role'],
-        phone: json['phone'],
-        email: json['email'],
-        address: json['address'],
-        avatarUrl: json['avatarUrl'],
-        membershipTier: json['membershipTier'] ?? 'regular',
-        loyaltyPoints: json['loyaltyPoints'] ?? 0,
-      );
-}
-
-class Hotel {
-  final String id;
-  final String name;
-  final String location;
-  final String imageUrl;
-  final double rating;
-  final double pricePerNight;
-  final List<String> amenities;
-
-  const Hotel({
-    required this.id,
-    required this.name,
-    required this.location,
-    required this.imageUrl,
-    required this.rating,
-    required this.pricePerNight,
-    required this.amenities,
-  });
-}
-
-class TravelDestination {
-  final String id;
-  final String title;
-  final String country;
-  final String imageUrl;
-  final String description;
-  final double price;
-
-  const TravelDestination({
-    required this.id,
-    required this.title,
-    required this.country,
-    required this.imageUrl,
-    required this.description,
-    required this.price,
-  });
-}
-
-class DoctorProfile {
-  final String id;
-  final String name;
-  final String specialty;
-  final String avatar;
-  final double rating;
-  final int yearsOfExperience;
-  final String hospitalName;
-  final bool isAvailableNow;
-  final double consultationFee;
-
-  const DoctorProfile({
-    required this.id,
-    required this.name,
-    required this.specialty,
-    required this.avatar,
-    required this.rating,
-    required this.yearsOfExperience,
-    required this.hospitalName,
-    required this.isAvailableNow,
-    required this.consultationFee,
-  });
-}
-
-class Product {
-  final String id;
-  final String name;
-  // تصنيف المنتج: 'all' | 'women' | 'men' | 'shoes' | 'kids'
-  final String category;
-  final double price;
-  final double? oldPrice; // السعر القديم (اختياري) يُعرض مشطوباً عند وجوده
-  final String imageUrl;
-  final double rating;
-
-  const Product({
-    required this.id,
-    required this.name,
-    required this.category,
-    required this.price,
-    this.oldPrice,
-    required this.imageUrl,
-    required this.rating,
-  });
-}
+import '../models/user_model.dart';
+import '../models/service_model.dart';
+import '../models/order_model.dart';
+import '../models/chat_model.dart';
+import '../models/hotel_model.dart';
+import '../models/travel_model.dart';
+import '../models/doctor_model.dart';
+import '../models/product_model.dart';
 
 // ==================== البيانات الوهمية (Mock Data) ====================
 
@@ -584,6 +342,33 @@ class MockData {
           color: AppColors.serviceTourism,
           route: '/tourism',
         ),
+        ServiceCategory(
+          id: 'cinema',
+          title: 'السينما',
+          subtitle: 'احجز تذكرتك',
+          iconName: 'film',
+          color: AppColors.neon,
+          route: '/cinema',
+          imageUrl: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400&q=80',
+        ),
+        ServiceCategory(
+          id: 'banking',
+          title: 'البنك والمحفظة',
+          subtitle: 'إدارة أموالك',
+          iconName: 'wallet',
+          color: AppColors.success,
+          route: '/banking',
+          imageUrl: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&q=80',
+        ),
+        ServiceCategory(
+          id: 'maps',
+          title: 'الخرائط',
+          subtitle: 'تنقل بذكاء',
+          iconName: 'map',
+          color: AppColors.info,
+          route: '/maps',
+          imageUrl: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=400&q=80',
+        ),
 
         // ===== الخدمات الإضافية الجديدة =====
         ServiceCategory(
@@ -911,7 +696,7 @@ class MockData {
       id: 't1',
       title: 'رحلة سفاري صحراوية',
       country: 'الإمارات',
-      imageUrl: 'https://images.unsplash.com/photo-1451337517482-694d73e5062a?w=500&q=80',
+      imageUrl: 'https://images.unsplash.com/photo-1542314831-c6a4d14d8376?w=500&q=80',
       description: 'تجربة القيادة على الكثبان الرملية وعشاء تقليدي تحت النجوم.',
       price: 250.0,
     ),
@@ -947,6 +732,12 @@ class MockData {
         return LucideIcons.shoppingCart;
       case 'palmtree':
         return LucideIcons.palmtree;
+      case 'film':
+        return LucideIcons.film;
+      case 'wallet':
+        return LucideIcons.wallet;
+      case 'map':
+        return LucideIcons.map;
       // ---- أيقونات الخدمات الجديدة ----
       case 'truck-moving':
         return LucideIcons.truck;

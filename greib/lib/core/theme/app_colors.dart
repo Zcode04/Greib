@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 ///  ملف الألوان الموحّد — المصدر الوحيد للحقيقة (Single Source of Truth)
 /// ============================================================================
 ///
-///  الهوية: Deep Space Black + Electric Violet
-///  أسود عميق فاخر مع لون بنفسجي كهربائي كـ accent
+///  الهوية: Gray 900 + Ice Blue (#BEDBED)
+///  خلفية رمادية داكنة (Gray 900 = #111827) مع لون رسمي أزرق جليدي فاتح
 ///  ← احترافي، عالمي، متماسك في كلا الوضعين
 ///
 ///  ★ لتغيير هوية التطبيق: عدّل القسم (Primitives) فقط.
@@ -18,28 +18,44 @@ class AppColors {
   //  1) الألوان الأساسية (Primitives)
   // ==========================================================================
 
-  // ---------- 🌙 الوضع الليلي (Dark Mode) ----------
-  // ★ مستوحى من لوحة صورة Smart Home المرجعية (خلفية بنفسجية داكنة دافئة)
-  static const Color _darkBg          = Color.fromARGB(255, 12, 11, 18); // بنفسجي داكن عميق — الخلفية
-  static const Color _darkSurface     = Color(0xFF211F2B); // كروت وبطاقات
-  static const Color _darkElevated    = Color(0xFF2B2938); // طبقة أعمق (modals, inputs)
-  static const Color _darkBorder      = Color(0xFF3F3D4D); // حدود دقيقة
-  static const Color _darkTextPrimary  = Color(0xFFFAFAFA); // نص أساسي أبيض ناعم
-  static const Color _darkTextMuted    = Color(0xFF9C99AA); // نص ثانوي رمادي بنفسجي
+  // ---------- ⚫ سلّم الرمادي (Tailwind Gray) — أساس الخلفيات ----------
+  static const Color _gray50  = Color(0xFFF9FAFB);
+  static const Color _gray100 = Color(0xFFF3F4F6);
+  static const Color _gray200 = Color(0xFFE5E7EB);
+  static const Color _gray300 = Color(0xFFD1D5DB);
+  static const Color _gray400 = Color(0xFF9CA3AF);
+  static const Color _gray500 = Color(0xFF6B7280);
+  static const Color _gray600 = Color(0xFF4B5563);
+  static const Color _gray700 = Color(0xFF374151);
+  static const Color _gray800 = Color(0xFF1F2937);
+  static const Color _gray850 = Color(0xFF2B3544); // درجة وسيطة: gray-800 ⟶ gray-700
+  static const Color _gray900 = Color(0xFF111827); // ★ لون الخلفية الرسمي (gray-900)
+  static const Color _gray950 = Color(0xFF030712);
+
+  // ---------- 🌙 الوضع الليلي (Dark Mode) — خلفية Gray 900 ----------
+  static const Color _darkBg          = _gray900;  // #111827 — الخلفية الرسمية
+  static const Color _darkSurface     = _gray800;  // كروت وبطاقات
+  static const Color _darkElevated    = _gray850;  // طبقة أعمق (modals, inputs)
+  static const Color _darkBorder      = _gray700;  // حدود دقيقة
+  static const Color _darkTextPrimary = _gray50;   // نص أساسي أبيض ناعم
+  static const Color _darkTextMuted   = _gray400;  // نص ثانوي رمادي
 
   // ---------- ☀️ الوضع النهاري (Light Mode) ----------
-  static const Color _lightBg          = Color(0xFFF4F4F5); // خلفية فاتحة محايدة
-  static const Color _lightSurface     = Color(0xFFFFFFFF); // كروت بيضاء نظيفة
-  static const Color _lightElevated    = Color(0xFFF4F4F5); // للـ inputs
-  static const Color _lightBorder      = Color(0xFFE4E4E7); // حدود خفيفة
-  static const Color _lightTextPrimary  = Color(0xFF09090B); // نص أسود
-  static const Color _lightTextMuted    = Color(0xFF71717A); // نص ثانوي
+  static const Color _lightBg          = _gray100;            // خلفية فاتحة محايدة
+  static const Color _lightSurface     = Color(0xFFFFFFFF);   // كروت بيضاء نظيفة
+  static const Color _lightElevated    = _gray100;            // للـ inputs
+  static const Color _lightBorder      = _gray200;            // حدود خفيفة
+  static const Color _lightTextPrimary = _gray900;            // نص داكن
+  static const Color _lightTextMuted   = _gray500;            // نص ثانوي
 
-  // ---------- 🎨 Accent — مشترك بين الوضعين ----------
-  // بنفسجي كهربائي (Electric Violet) — مأخوذ من تدرج صورة Smart Home المرجعية
-  static const Color _violet600  = Color(0xFF7C5CFC); // اللون المميز الأساسي
-  static const Color _violet400  = Color(0xFFC77DFF); // نسخة أفتح (نهاية التدرج، glows, highlights)
-  static const Color _violet900  = Color(0xFF4C1D95); // للحاويات الداكنة (dark container)
+  // ---------- 🎨 اللون الرسمي (Brand) — Ice Blue #BEDBED ----------
+  // اللون الرسمي للتطبيق: أزرق جليدي فاتح (rgb 190, 219, 237)
+  static const Color _brand      = Color(0xFFBEDBED); // ★ اللون الرسمي
+  static const Color _brandLight = Color(0xFFDFEDF6); // تدرّج أفتح (highlights / glows)
+  static const Color _brandMid   = Color(0xFF5B93B4); // تدرّج أعمق (وسط التدرجات)
+  static const Color _brandDark  = Color(0xFF2A6E98); // يُقرأ على خلفية فاتحة (نص/أيقونة)
+  static const Color _brandDeep  = Color(0xFF1C4864); // حاوية داكنة (dark container)
+  static const Color _onBrand    = _gray900;          // المحتوى فوق اللون الرسمي (نص/أيقونة)
 
   // ---------- 🟠 برتقالي التنبيهات (من نفس اللوحة المرجعية) ----------
   static const Color _accentOrange = Color(0xFFFF8A3D); // برتقالي دافئ — Badges / أزرار ثانوية
@@ -90,11 +106,14 @@ class AppColors {
   static const Color surfaceCardElevated = _darkElevated;
   static const Color surfaceOverlay      = _darkElevated;
 
-  // --- اللون المميز الأساسي ---
-  static const Color accentPrimary      = _violet600; // ← البنفسجي الكهربائي (مش رمادي!)
-  static const Color accentPrimaryDark  = _violet900;
-  static const Color accentPrimaryLight = _violet400;
-  static const Color accentGlow         = _violet400;
+  // --- اللون المميز الأساسي (اللون الرسمي للتطبيق) ---
+  static const Color accentPrimary              = _brand;      // ★ #BEDBED — اللون الرسمي
+  static const Color accentPrimaryLight         = _brandLight; // درجة أفتح (glows / highlights)
+  static const Color accentPrimaryDark          = _brandDark;  // درجة داكنة تُقرأ على الخلفية الفاتحة
+  static const Color accentPrimaryContainer     = _brandLight; // حاوية فاتحة (light container)
+  static const Color accentPrimaryContainerDark = _brandDeep;  // حاوية داكنة (dark container)
+  static const Color onAccentPrimary            = _onBrand;    // النص/الأيقونة فوق اللون الرسمي
+  static const Color accentGlow                 = _brand;      // توهّج اللون الرسمي
 
   // --- اللون المميز الثانوي (برتقالي — Badges / تنبيهات / أزرار ثانوية) ---
   static const Color accentSecondary    = _accentOrange;
@@ -130,7 +149,7 @@ class AppColors {
   // --- النصوص (Dark mode — الوضع الافتراضي) ---
   static const Color textPrimary   = _darkTextPrimary;
   static const Color textSecondary = _darkTextMuted;
-  static const Color textTertiary  = Color(0xFF71717A);
+  static const Color textTertiary  = _gray500;
 
   // --- الحدود ---
   static const Color outline      = _darkBorder;
@@ -148,18 +167,21 @@ class AppColors {
   static const Color lightSurfaceVariant = _lightElevated;
   static const Color lightText           = _lightTextPrimary;
   static const Color lightTextSecondary  = _lightTextMuted;
-  static const Color lightTextTertiary   = Color(0xFFA1A1AA);
+  static const Color lightTextTertiary   = _gray400;
   static const Color lightOutline        = _lightBorder;
 
   // ==========================================================================
   //  3) أسماء مختصرة للاستخدام السريع
   //     (مترادفات للأسماء الدلالية أعلاه)
   // ==========================================================================
-  static const Color primary         = accentPrimary;   // ← بنفسجي الآن ✓
+  static const Color primary         = accentPrimary;   // ★ اللون الرسمي #BEDBED
   static const Color primaryLight    = accentPrimaryLight;
   static const Color primaryDark     = accentPrimaryDark;
-  static const Color neon            = accentPrimaryLight; // للـ glows والتوهج
-  static const Color neonDark        = accentPrimary;
+  static const Color neon            = accentPrimary;    // للـ glows والتوهج (نفس اللون الرسمي)
+  static const Color neonDark        = accentPrimaryDark;
+  static const Color brand           = _brand;           // ★ اللون الرسمي (190, 219, 237)
+  static const Color onBrand         = _onBrand;         // محتوى داكن فوق اللون الرسمي
+  static const Color gray900         = _gray900;         // ★ لون الخلفية الرسمي
   static const Color background      = backgroundPrimary;
   static const Color surface         = surfaceCard;
   static const Color surfaceElevated = surfaceCardElevated;
@@ -167,9 +189,9 @@ class AppColors {
   static const Color textMuted       = textTertiary;
 
   // للتوافق مع الكود القديم
-  static const Color secondary          = Color(0xFF3F3F46);
-  static const Color secondaryLight     = Color(0xFFA1A1AA);
-  static const Color secondaryDark      = Color(0xFF27272A);
+  static const Color secondary          = _gray700;
+  static const Color secondaryLight     = _gray400;
+  static const Color secondaryDark      = _gray800;
   static const Color accent             = info;
   static const Color darkBackground     = backgroundPrimary;
   static const Color darkSurface        = surfaceCard;
@@ -179,57 +201,61 @@ class AppColors {
   static const Color darkTextTertiary   = textTertiary;
   static const Color darkOutline        = outline;
 
-  // --- محايدات (Neutrals) ---
-  static const Color neutral50  = Color(0xFFFAFAFA);
-  static const Color neutral100 = Color(0xFFF4F4F5);
-  static const Color neutral200 = Color(0xFFE4E4E7);
-  static const Color neutral300 = Color(0xFFD4D4D8);
-  static const Color neutral400 = Color(0xFFA1A1AA);
-  static const Color neutral500 = Color(0xFF71717A);
-  static const Color neutral600 = Color(0xFF52525B);
-  static const Color neutral700 = Color(0xFF3F3F46);
-  static const Color neutral800 = Color(0xFF27272A);
-  static const Color neutral900 = Color(0xFF18181B);
-  static const Color neutral950 = Color(0xFF09090B);
+  // --- محايدات (Neutrals) — سلّم رمادي موحّد (Tailwind Gray) ---
+  static const Color neutral50  = _gray50;
+  static const Color neutral100 = _gray100;
+  static const Color neutral200 = _gray200;
+  static const Color neutral300 = _gray300;
+  static const Color neutral400 = _gray400;
+  static const Color neutral500 = _gray500;
+  static const Color neutral600 = _gray600;
+  static const Color neutral700 = _gray700;
+  static const Color neutral800 = _gray800;
+  static const Color neutral900 = _gray900;  // ★ خلفية التطبيق الرسمية
+  static const Color neutral950 = _gray950;
 
   // ==========================================================================
   //  4) التدرجات الجاهزة
   // ==========================================================================
 
-  /// تدرج البانر الرئيسي: بنفسجي → وردي فاتح (مطابق للوحة المرجعية Smart Home)
+  /// تدرج البانر الرئيسي: اللون الرسمي → أزرق أعمق → خلفية Gray 900
   static const List<Color> heroGradient = [
-    Color(0xFF7C5CFC), // بنفسجي
-    Color(0xFFC77DFF), // بنفسجي فاتح / وردي
-    Color(0xFF17151F), // خلفية داكنة
+    _brand,      // #BEDBED — اللون الرسمي
+    _brandMid,   // أزرق أعمق
+    _gray900,    // خلفية Gray 900
   ];
 
-  /// تدرج الحلقة الدائرية (Dial) — نفس أسلوب صورة Smart Home
+  /// تدرج الحلقة الدائرية (Dial) — اللون الرسمي → أزرق أعمق
   static const List<Color> dialGradient = [
-    Color(0xFF7C5CFC),
-    Color(0xFFC77DFF),
+    _brand,
+    _brandMid,
   ];
 
-  /// تدرج بطاقات الكاتالوج في الوضع الفاتح
+  /// تدرج بطاقات الكاتالوج في الوضع الفاتح (نص أبيض فوقه)
   static const List<Color> catalogCardGradientLight = [
-    Color(0xFF6D28D9), // violet 700
-    Color(0xFF4338CA), // indigo 700
+    _brandDark, // #2A6E98 — يُقرأ معه الأبيض
+    _brandDeep, // #1C4864
   ];
 
   /// تدرج بطاقات الكاتالوج في الوضع الداكن — لا يُستخدم (flat surface)
   static const List<Color> catalogCardGradientDark = [
-    Color(0xFF27272A),
-    Color(0xFF18181B),
+    _gray800,
+    _gray900,
   ];
 
   // ==========================================================================
   //  5) ظلال جاهزة
   // ==========================================================================
 
-  /// توهج البنفسجي (للأزرار والعناصر المميزة)
-  static List<BoxShadow> violetGlow({double blur = 24, double alpha = 0.35}) {
+  /// اللون الرسمي بدرجة مقروءة حسب الوضع:
+  /// ليلي ⇒ اللون الرسمي #BEDBED، نهاري ⇒ الدرجة الداكنة #2A6E98.
+  static Color accentFor(bool isDark) => isDark ? accentPrimary : accentPrimaryDark;
+
+  /// توهّج اللون الرسمي (للأزرار والعناصر المميزة)
+  static List<BoxShadow> brandGlow({double blur = 24, double alpha = 0.35}) {
     return [
       BoxShadow(
-        color: _violet600.withValues(alpha: alpha),
+        color: _brand.withValues(alpha: alpha),
         blurRadius: blur,
         spreadRadius: blur * 0.1,
         offset: const Offset(0, 8),
@@ -237,7 +263,11 @@ class AppColors {
     ];
   }
 
+  /// للتوافق مع الكود القديم الذي يستدعي violetGlow
+  static List<BoxShadow> violetGlow({double blur = 24, double alpha = 0.35}) =>
+      brandGlow(blur: blur, alpha: alpha);
+
   /// للتوافق مع الكود القديم الذي يستدعي neonGlow
   static List<BoxShadow> neonGlow({double blur = 24, double alpha = 0.35}) =>
-      violetGlow(blur: blur, alpha: alpha);
+      brandGlow(blur: blur, alpha: alpha);
 }

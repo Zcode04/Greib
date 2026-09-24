@@ -13,11 +13,12 @@ class GlassContainer extends StatelessWidget {
   final double? width;
   final double? height;
   final List<BoxShadow>? boxShadow;
+  final bool hasGlow;
 
   const GlassContainer({
     super.key,
     required this.child,
-    this.blur = 15.0,
+    this.blur = 20.0,
     this.opacity = 0.1,
     this.color,
     this.borderRadius,
@@ -27,20 +28,96 @@ class GlassContainer extends StatelessWidget {
     this.width,
     this.height,
     this.boxShadow,
+    this.hasGlow = false,
   });
+
+  factory GlassContainer.frosted({
+    Key? key,
+    required Widget child,
+    double blur = 25.0,
+    double opacity = 0.15,
+    Color? color,
+    BorderRadius? borderRadius,
+    Border? border,
+    EdgeInsetsGeometry? padding,
+    EdgeInsetsGeometry? margin,
+    double? width,
+    double? height,
+    bool hasGlow = false,
+  }) {
+    return GlassContainer(
+      key: key,
+      blur: blur,
+      opacity: opacity,
+      color: color,
+      borderRadius: borderRadius,
+      border: border,
+      padding: padding,
+      margin: margin,
+      width: width,
+      height: height,
+      hasGlow: hasGlow,
+      child: child,
+    );
+  }
+
+  factory GlassContainer.elevated({
+    Key? key,
+    required Widget child,
+    double blur = 15.0,
+    double opacity = 0.1,
+    Color? color,
+    BorderRadius? borderRadius,
+    Border? border,
+    EdgeInsetsGeometry? padding,
+    EdgeInsetsGeometry? margin,
+    double? width,
+    double? height,
+    bool hasGlow = false,
+  }) {
+    return GlassContainer(
+      key: key,
+      blur: blur,
+      opacity: opacity,
+      color: color,
+      borderRadius: borderRadius,
+      border: border,
+      padding: padding,
+      margin: margin,
+      width: width,
+      height: height,
+      hasGlow: hasGlow,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.15),
+          blurRadius: 20,
+          offset: const Offset(0, 8),
+        ),
+      ],
+      child: child,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = color ?? (isDark ? Colors.white : Colors.black);
+    final rad = borderRadius ?? BorderRadius.circular(24);
 
     return Container(
       margin: margin,
       decoration: BoxDecoration(
-        boxShadow: boxShadow,
-        borderRadius: borderRadius ?? BorderRadius.circular(20),
+        boxShadow: hasGlow ? [
+          BoxShadow(
+            color: baseColor.withValues(alpha: 0.2),
+            blurRadius: 30,
+            spreadRadius: -5,
+          )
+        ] : boxShadow,
+        borderRadius: rad,
       ),
       child: ClipRRect(
-        borderRadius: borderRadius ?? BorderRadius.circular(20),
+        borderRadius: rad,
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
           child: Container(
@@ -48,11 +125,18 @@ class GlassContainer extends StatelessWidget {
             height: height,
             padding: padding,
             decoration: BoxDecoration(
-              color: (color ?? (isDark ? Colors.white : Colors.black)).withValues(alpha: opacity),
-              borderRadius: borderRadius ?? BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  baseColor.withValues(alpha: opacity * 1.5),
+                  baseColor.withValues(alpha: opacity * 0.5),
+                ],
+              ),
+              borderRadius: rad,
               border: border ?? Border.all(
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
-                width: 1.5,
+                color: baseColor.withValues(alpha: isDark ? 0.2 : 0.1),
+                width: 1.0,
               ),
             ),
             child: child,
