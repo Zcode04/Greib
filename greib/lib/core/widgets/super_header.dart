@@ -19,8 +19,9 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onSearch;
   final VoidCallback? onMore;
   final List<Widget>? extraActions;
+  final bool showBackButton;
 
-  const SuperHeader({super.key, this.title, this.onSearch, this.onMore, this.extraActions});
+  const SuperHeader({super.key, this.title, this.onSearch, this.onMore, this.extraActions, this.showBackButton = false});
 
   @override
   Size get preferredSize => const Size.fromHeight(120);
@@ -59,7 +60,8 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       toolbarHeight: 64,
       titleSpacing: 0,
-      automaticallyImplyLeading: false,
+      automaticallyImplyLeading: showBackButton,
+      leading: showBackButton ? const BackButton() : null,
       actions: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 12),

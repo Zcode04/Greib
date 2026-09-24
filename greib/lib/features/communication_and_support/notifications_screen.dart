@@ -4,7 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/notifications/notification_manager.dart';
 import '../../shared_widgets/app_button.dart';
-import '../../shared_widgets/header.dart';
+import '../../core/widgets/super_header.dart';
 import '../../shared_widgets/loading_states.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -31,7 +31,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final isCompact = screenWidth < 380;
 
     return Scaffold(
-      appBar: Header(
+      appBar: const SuperHeader(
         title: 'الإشعارات',
         showBackButton: true,
       ),

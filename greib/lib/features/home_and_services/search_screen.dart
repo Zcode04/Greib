@@ -4,7 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/mock_data/mock_data.dart';
 import '../../core/models/service_model.dart';
 import '../../core/theme/design_tokens.dart';
-import '../../shared_widgets/header.dart';
+import '../../core/widgets/super_header.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -106,12 +106,9 @@ class _SearchScreenState extends State<SearchScreen> {
         backgroundColor: isDark
             ? AppColors.background
             : AppColors.lightBackground,
-        appBar: const Header(
+        appBar: const SuperHeader(
           title: 'البحث',
           showBackButton: true,
-          showSearchButton: false,
-          showNotifications: false,
-          showDarkModeToggle: false,
         ),
         body: SafeArea(
           child: SingleChildScrollView(
