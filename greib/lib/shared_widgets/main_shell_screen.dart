@@ -114,6 +114,12 @@ class _MainShellScreenState extends State<MainShellScreen> {
             context.push(targetRoute);
           },
         ),
+      if (!isGuest && _currentIndex == 0)
+        HeaderAction(
+          icon: LucideIcons.plus,
+          tooltip: 'إنشاء جديد',
+          onPressed: () => context.push('/create'),
+        ),
     ];
   }
 
@@ -123,22 +129,20 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
     // استخدم SuperHeader بدلاً من Header العادي إذا كنا في الشاشة الرئيسية (index 0)
     // هذا سيعطي تجربة "Super App" مع زر الموقع، الإشعارات المتطورة، والبحث المدمج.
-    return Scaffold(
+return Scaffold(
       appBar: SuperHeader(
         title: _currentIndex == 0 ? null : activeTab.title,
-        extraActions: _currentIndex == 0 
-            ? null 
-            : _buildHeaderActions(context).map((a) {
-                return IconButton(
-                  icon: Badge(
-                    isLabelVisible: a.badgeCount > 0,
-                    label: Text('${a.badgeCount}'),
-                    child: Icon(a.icon, size: 18),
-                  ),
-                  tooltip: a.tooltip,
-                  onPressed: a.onPressed,
-                );
-              }).toList(),
+        extraActions: _buildHeaderActions(context).map((a) {
+          return IconButton(
+            icon: Badge(
+              isLabelVisible: a.badgeCount > 0,
+              label: Text('${a.badgeCount}'),
+              child: Icon(a.icon, size: 18),
+            ),
+            tooltip: a.tooltip,
+            onPressed: a.onPressed,
+          );
+        }).toList(),
       ),
       body: _buildBody(_currentIndex),
       bottomNavigationBar: FloatingBottomNav(

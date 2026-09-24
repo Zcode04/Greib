@@ -59,9 +59,17 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       toolbarHeight: 64,
-      titleSpacing: 0,
+      titleSpacing: showBackButton ? 0 : AppSpacing.md,
       automaticallyImplyLeading: showBackButton,
       leading: showBackButton ? const BackButton() : null,
+      centerTitle: false,
+      title: Text(
+        'گريب منك',
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w800,
+          color: isDark ? AppColors.textPrimary : AppColors.lightText,
+        ),
+      ),
       actions: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 12),
@@ -134,22 +142,18 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                       width: 34,
                       height: 34,
                       decoration: BoxDecoration(
-                        color: AppColors.accentFor(isDark).withValues(alpha: 0.15),
+                        color: const Color(0xFFFF6B35).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(AppRadii.md),
-                        border: Border.all(
-                          color: AppColors.accentFor(isDark).withValues(alpha: 0.3),
-                          width: 1,
-                        ),
                       ),
-                      child: Icon(
-                        LucideIcons.rocket,
-                        color: AppColors.accentFor(isDark),
+                      child: const Icon(
+                        LucideIcons.flame,
+                        color: Color(0xFFFF6B35),
                         size: 18,
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     Text(
-                      'گريب منك',
+                      'رائج الآن',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                         color: isDark ? AppColors.textPrimary : AppColors.lightText,

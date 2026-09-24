@@ -50,15 +50,6 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 AnimatedListItem(
                   index: 0,
-                  child: SectionHeader(
-                    title: 'رائج الآن',
-                    icon: LucideIcons.flame,
-                    iconColor: const Color(0xFFFF6B35),
-                    showAction: false,
-                  ),
-                ),
-                AnimatedListItem(
-                  index: 0,
                   child: TrendingStoriesSection(isDark: isDark),
                 ),
                 const SizedBox(height: 28),
