@@ -22,7 +22,8 @@ import '../../shared_widgets/header.dart';
 //  صحيح سواء في الوضع الرأسي أو الأفقي (Landscape).
 // ---------------------------------------------------------------------------
 const double _kTabletBreakpoint = 600.0;
-const double _kMaxChatAreaWidth = 700.0; // يُقيّد عرض المحادثة على الشاشات العريضة
+const double _kMaxChatAreaWidth =
+    700.0; // يُقيّد عرض المحادثة على الشاشات العريضة
 const double _kMaxBubbleWidth = 480.0; // حد أقصى مريح لقراءة فقاعة الرسالة
 const double _kMaxImageWidth = 280.0; // حد أقصى لفقاعة الصورة
 
@@ -37,16 +38,21 @@ double _chatAreaMaxWidth(BuildContext context) =>
     min(MediaQuery.of(context).size.width, _kMaxChatAreaWidth);
 
 /// أقصى عرض لفقاعة رسالة واحدة (نسبة من الشاشة + حد أقصى مطلق بالبكسل).
-double _bubbleMaxWidth(BuildContext context, {required bool isVoice}) =>
-    min(MediaQuery.of(context).size.width * (isVoice ? 0.82 : 0.78), _kMaxBubbleWidth);
+double _bubbleMaxWidth(BuildContext context, {required bool isVoice}) => min(
+  MediaQuery.of(context).size.width * (isVoice ? 0.82 : 0.78),
+  _kMaxBubbleWidth,
+);
 
 /// أقصى عرض لفقاعة الصورة (نسبة من الشاشة + حد أقصى).
 double _imageMaxWidth(BuildContext context) =>
     min(MediaQuery.of(context).size.width * 0.55, _kMaxImageWidth);
 
 /// ثوابت أحجام دائرية متجاوبة (صغير/متوسط/كبير) لتفادي الأرقام السحرية المتكررة.
-double _responsiveAvatar(BuildContext context, {double phone = 56, double tablet = 72}) =>
-    _isTablet(context) ? tablet : phone;
+double _responsiveAvatar(
+  BuildContext context, {
+  double phone = 56,
+  double tablet = 72,
+}) => _isTablet(context) ? tablet : phone;
 
 // NOTE ON DEPENDENCIES
 // This screen records/plays *real* audio and attaches *real* photos,
@@ -172,43 +178,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: Header(
-        title: 'المحادثات',
-        showNotifications: false,
-        showDarkModeToggle: false,
-      ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.sm),
-            child: Container(
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
-                borderRadius: BorderRadius.circular(AppRadii.full),
-                border: Border.all(
-                  color: isDark ? AppColors.outline : AppColors.lightOutline,
-                ),
-              ),
-              child: TextField(
-                controller: _searchController,
-                textAlign: TextAlign.right,
-                decoration: InputDecoration(
-                  hintText: 'ابحث أو ابدأ محادثة جديدة',
-                  hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  prefixIcon: const Icon(LucideIcons.search),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm,
-                  ),
-                ),
-                onChanged: (_) => setState(() {}),
-              ),
-            ),
-          ),
-
           Expanded(
             child: ListView.separated(
               padding: const EdgeInsets.only(bottom: AppSpacing.lg),
@@ -217,7 +188,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 height: 1,
                 thickness: 1,
                 indent: 76,
-                color: isDark ? AppColors.outline.withValues(alpha: 0.35) : AppColors.lightOutline,
+                color: isDark
+                    ? AppColors.outline.withValues(alpha: 0.35)
+                    : AppColors.lightOutline,
               ),
               itemBuilder: (context, index) {
                 final conv = _conversations[index];
@@ -233,7 +206,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
         elevation: 4,
         onPressed: () {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('محادثة جديدة ✏️'), duration: Duration(seconds: 1)),
+            const SnackBar(
+              content: Text('محادثة جديدة ✏️'),
+              duration: Duration(seconds: 1),
+            ),
           );
         },
         child: const Icon(LucideIcons.messageCircle),
@@ -267,7 +243,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
         );
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
         child: Row(
           children: [
             Stack(
@@ -280,7 +259,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
                     shape: BoxShape.circle,
                   ),
                   child: Center(
-                    child: Text(conv['avatar'] as String, style: TextStyle(fontSize: (unread > 0 ? 26 : 22) * (_isTablet(context) ? 1.2 : 1.0))),
+                    child: Text(
+                      conv['avatar'] as String,
+                      style: TextStyle(
+                        fontSize:
+                            (unread > 0 ? 26 : 22) *
+                            (_isTablet(context) ? 1.2 : 1.0),
+                      ),
+                    ),
                   ),
                 ),
                 if (online)
@@ -317,7 +303,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: unread > 0 ? FontWeight.w700 : FontWeight.w500,
+                            fontWeight: unread > 0
+                                ? FontWeight.w700
+                                : FontWeight.w500,
                           ),
                         ),
                       ),
@@ -327,8 +315,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: unread > 0 ? AppColors.accentPrimary : theme.colorScheme.onSurfaceVariant,
-                            fontWeight: unread > 0 ? FontWeight.w700 : FontWeight.normal,
+                            color: unread > 0
+                                ? AppColors.accentPrimary
+                                : theme.colorScheme.onSurfaceVariant,
+                            fontWeight: unread > 0
+                                ? FontWeight.w700
+                                : FontWeight.normal,
                           ),
                         ),
                       ),
@@ -346,7 +338,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
                             color: unread > 0
                                 ? theme.colorScheme.onSurface
                                 : theme.colorScheme.onSurfaceVariant,
-                            fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.normal,
+                            fontWeight: unread > 0
+                                ? FontWeight.w600
+                                : FontWeight.normal,
                           ),
                         ),
                       ),
@@ -354,7 +348,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       if (unread > 0)
                         Container(
                           padding: const EdgeInsets.all(AppSpacing.xs),
-                          constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+                          constraints: const BoxConstraints(
+                            minWidth: 20,
+                            minHeight: 20,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.accentPrimary,
                             borderRadius: BorderRadius.circular(AppRadii.full),
@@ -375,7 +372,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           ),
                         )
                       else
-                        const Icon(LucideIcons.checkCheck, size: 16, color: AppColors.accentPrimary),
+                        const Icon(
+                          LucideIcons.checkCheck,
+                          size: 16,
+                          color: AppColors.accentPrimary,
+                        ),
                     ],
                   ),
                 ],
@@ -541,7 +542,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   /// Requests the given permission. If the user permanently denied it,
   /// shows an alert that links directly to the OS app settings so they
   /// can re-enable it there.
-  Future<bool> _requestPermission(Permission permission, String deniedMessage) async {
+  Future<bool> _requestPermission(
+    Permission permission,
+    String deniedMessage,
+  ) async {
     final status = await permission.status;
     if (status.isGranted) return true;
 
@@ -557,7 +561,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       if (mounted) _showSettingsAlert(deniedMessage);
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(deniedMessage)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(deniedMessage)));
       }
     }
     return false;
@@ -609,7 +615,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     if (!granted) return;
 
     if (!await _audioRecorder.hasPermission()) {
-      _showErrorMessage('تعذر الحصول على إذن الميكروفون لتسجيل الرسالة الصوتية');
+      _showErrorMessage(
+        'تعذر الحصول على إذن الميكروفون لتسجيل الرسالة الصوتية',
+      );
       return;
     }
 
@@ -622,11 +630,15 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
         debugPrint('Failed to create temp dir: $e');
       }
     }
-    _currentRecordingPath = '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+    _currentRecordingPath =
+        '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
     // Print the full path so we can verify it's writable on the target OS.
     debugPrint('Recording path: $_currentRecordingPath');
-    assert(await dir.exists(), 'Temporary directory must exist before recording');
+    assert(
+      await dir.exists(),
+      'Temporary directory must exist before recording',
+    );
 
     try {
       await _audioRecorder.start(
@@ -665,14 +677,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     _amplitudeSub = _audioRecorder
         .onAmplitudeChanged(const Duration(milliseconds: 150))
         .listen((amp) {
-      // amp.current is in dBFS, roughly -45 (silence) .. 0 (loud).
-      final normalized = ((amp.current + 45) / 45).clamp(0.0, 1.0);
-      final height = 4.0 + normalized * 22.0;
-      if (mounted) setState(() => _liveWaveform.add(height));
-      if (_liveWaveController.hasClients) {
-        _liveWaveController.jumpTo(_liveWaveController.position.maxScrollExtent);
-      }
-    });
+          // amp.current is in dBFS, roughly -45 (silence) .. 0 (loud).
+          final normalized = ((amp.current + 45) / 45).clamp(0.0, 1.0);
+          final height = 4.0 + normalized * 22.0;
+          if (mounted) setState(() => _liveWaveform.add(height));
+          if (_liveWaveController.hasClients) {
+            _liveWaveController.jumpTo(
+              _liveWaveController.position.maxScrollExtent,
+            );
+          }
+        });
   }
 
   /// Stops recording and moves to the preview state — the note is NOT
@@ -805,7 +819,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     if (raw.isEmpty) return List.filled(targetCount, 6.0);
     if (raw.length <= targetCount) {
       return List.generate(targetCount, (i) {
-        final idx = (i * raw.length / targetCount).floor().clamp(0, raw.length - 1);
+        final idx = (i * raw.length / targetCount).floor().clamp(
+          0,
+          raw.length - 1,
+        );
         return raw[idx];
       });
     }
@@ -850,7 +867,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
           child: Wrap(
             children: [
               ListTile(
-                leading: const Icon(LucideIcons.camera, color: AppColors.accentPrimary),
+                leading: const Icon(
+                  LucideIcons.camera,
+                  color: AppColors.accentPrimary,
+                ),
                 title: const Text('التقاط صورة'),
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -858,7 +878,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                 },
               ),
               ListTile(
-                leading: const Icon(LucideIcons.image, color: AppColors.accentPrimary),
+                leading: const Icon(
+                  LucideIcons.image,
+                  color: AppColors.accentPrimary,
+                ),
                 title: const Text('اختيار من المعرض'),
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -873,7 +896,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   }
 
   Future<void> _pickImage(ImageSource source) async {
-    final permission = source == ImageSource.camera ? Permission.camera : Permission.photos;
+    final permission = source == ImageSource.camera
+        ? Permission.camera
+        : Permission.photos;
     final deniedMessage = source == ImageSource.camera
         ? 'يجب السماح باستخدام الكاميرا من إعدادات التطبيق لالتقاط صورة'
         : 'يجب السماح بالوصول إلى الصور من إعدادات التطبيق لاختيار صورة';
@@ -945,10 +970,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     }
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (ctx) => _FullScreenImageViewer(
-          imagePath: imagePath,
-          heroTag: tag,
-        ),
+        builder: (ctx) =>
+            _FullScreenImageViewer(imagePath: imagePath, heroTag: tag),
       ),
     );
   }
@@ -1012,21 +1035,27 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: theme.appBarTheme.backgroundColor ?? theme.colorScheme.surface,
+        backgroundColor:
+            theme.appBarTheme.backgroundColor ?? theme.colorScheme.surface,
         leadingWidth: 40,
         toolbarHeight: isLandscape ? 52 : kToolbarHeight,
         leading: Container(
           margin: const EdgeInsets.all(AppSpacing.xs),
           child: IconButton(
             icon: const Icon(LucideIcons.chevronLeft, size: 22),
-            onPressed: () { if (context.canPop()) context.pop(); },
+            onPressed: () {
+              if (context.canPop()) context.pop();
+            },
           ),
         ),
         titleSpacing: 0,
         title: InkWell(
           onTap: () {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(widget.phone), duration: const Duration(seconds: 1)),
+              SnackBar(
+                content: Text(widget.phone),
+                duration: const Duration(seconds: 1),
+              ),
             );
           },
           child: Row(
@@ -1056,7 +1085,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                       widget.conversationTitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 1),
                     Row(
@@ -1073,7 +1104,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                           ),
                         Expanded(
                           child: Text(
-                            widget.isGroup ? widget.activity : (widget.online ? 'متصل الآن' : widget.activity),
+                            widget.isGroup
+                                ? widget.activity
+                                : (widget.online
+                                      ? 'متصل الآن'
+                                      : widget.activity),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodySmall?.copyWith(
@@ -1094,7 +1129,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
         actions: [
           IconButton(icon: const Icon(LucideIcons.video), onPressed: () {}),
           IconButton(icon: const Icon(LucideIcons.phone), onPressed: () {}),
-          IconButton(icon: const Icon(LucideIcons.moreVertical), onPressed: () {}),
+          IconButton(
+            icon: const Icon(LucideIcons.moreVertical),
+            onPressed: () {},
+          ),
         ],
       ),
       body: Column(
@@ -1103,7 +1141,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
             child: Center(
               // يُقيّد عرض المحادثة ويوسّطها أفقياً على الشاشات العريضة (تابلت/سطح مكتب).
               child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: _chatAreaMaxWidth(context)),
+                constraints: BoxConstraints(
+                  maxWidth: _chatAreaMaxWidth(context),
+                ),
                 child: Container(
                   decoration: BoxDecoration(
                     color: theme.brightness == Brightness.dark
@@ -1125,10 +1165,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
           ),
 
           // SafeArea أسفل الشاشة: تتجنّب تداخل حقل الكتابة مع منطقة الإيماءات.
-          SafeArea(
-            top: false,
-            child: _buildComposer(theme),
-          ),
+          SafeArea(top: false, child: _buildComposer(theme)),
         ],
       ),
     );
@@ -1142,10 +1179,17 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
 
     if (_composerMode == _ComposerMode.recording) {
       return Container(
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: vPadMd),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: vPadMd,
+        ),
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
-          border: Border(top: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.2))),
+          border: Border(
+            top: BorderSide(
+              color: theme.colorScheme.outline.withValues(alpha: 0.2),
+            ),
+          ),
         ),
         child: Row(
           children: [
@@ -1159,7 +1203,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
             const SizedBox(width: AppSpacing.sm),
             Text(
               _formatDuration(_recordSeconds),
-              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
@@ -1197,7 +1243,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
             CircleAvatar(
               backgroundColor: AppColors.accentPrimary,
               child: IconButton(
-                icon: const Icon(LucideIcons.check, color: AppColors.onAccentPrimary, size: 20),
+                icon: const Icon(
+                  LucideIcons.check,
+                  color: AppColors.onAccentPrimary,
+                  size: 20,
+                ),
                 onPressed: _finishRecordingToPreview,
                 tooltip: 'إيقاف ومعاينة',
               ),
@@ -1209,10 +1259,17 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
 
     if (_composerMode == _ComposerMode.preview && _pendingAudioPath != null) {
       return Container(
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: vPad),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: vPad,
+        ),
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
-          border: Border(top: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.2))),
+          border: Border(
+            top: BorderSide(
+              color: theme.colorScheme.outline.withValues(alpha: 0.2),
+            ),
+          ),
         ),
         child: _RecordingPreviewBar(
           audioPath: _pendingAudioPath!,
@@ -1228,7 +1285,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: vPad),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        border: Border(top: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.2))),
+        border: Border(
+          top: BorderSide(
+            color: theme.colorScheme.outline.withValues(alpha: 0.2),
+          ),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -1242,7 +1303,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
             ),
             child: IconButton(
               padding: EdgeInsets.zero,
-              icon: const Icon(LucideIcons.camera, color: AppColors.onAccentPrimary, size: 20),
+              icon: const Icon(
+                LucideIcons.camera,
+                color: AppColors.onAccentPrimary,
+                size: 20,
+              ),
               onPressed: _showAttachmentOptions,
               tooltip: 'إرفاق صورة',
             ),
@@ -1305,13 +1370,20 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       child: Container(
         margin: const EdgeInsets.only(bottom: AppSpacing.sm),
         // حد أقصى مطلق بالبكسل + نسبة من الشاشة، لتفادي الفقاعات العريضة على التابلت.
-        constraints: BoxConstraints(maxWidth: _bubbleMaxWidth(context, isVoice: isVoice)),
+        constraints: BoxConstraints(
+          maxWidth: _bubbleMaxWidth(context, isVoice: isVoice),
+        ),
         child: Column(
-          crossAxisAlignment: isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment: isMine
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
           children: [
             if (!isMine && !isImage)
               Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.xs, left: AppSpacing.sm),
+                padding: const EdgeInsets.only(
+                  bottom: AppSpacing.xs,
+                  left: AppSpacing.sm,
+                ),
                 child: Text(
                   msg['sender'] as String,
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -1324,7 +1396,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
               Container(
                 padding: const EdgeInsets.all(AppSpacing.xs),
                 decoration: BoxDecoration(
-                  color: isMine ? theme.colorScheme.primary : theme.colorScheme.surfaceContainerHighest,
+                  color: isMine
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(AppRadii.md),
                 ),
                 child: Column(
@@ -1341,36 +1415,55 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                         borderRadius: BorderRadius.circular(AppRadii.sm),
                         // عرض يعتمد على نسبة الشاشة مع حد أقصى، وAspectRatio بدل ارتفاع ثابت.
                         child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: _imageMaxWidth(context)),
-                          child: Builder(builder: (context) {
-                            final path = msg['imagePath'] as String?;
-                            final imageChild = path != null && File(path).existsSync()
-                                ? Hero(
-                                    tag: 'img_${msg['id']}',
-                                    child: Image.file(File(path), fit: BoxFit.cover),
-                                  )
-                                : Container(
-                                    color: isMine
-                                        ? theme.colorScheme.primary
-                                        : theme.colorScheme.surfaceContainerHighest,
-                                    child: const Center(child: Text('📷', style: TextStyle(fontSize: 56))),
-                                  );
-                            return AspectRatio(
-                              aspectRatio: 1.0,
-                              child: imageChild,
-                            );
-                          }),
+                          constraints: BoxConstraints(
+                            maxWidth: _imageMaxWidth(context),
+                          ),
+                          child: Builder(
+                            builder: (context) {
+                              final path = msg['imagePath'] as String?;
+                              final imageChild =
+                                  path != null && File(path).existsSync()
+                                  ? Hero(
+                                      tag: 'img_${msg['id']}',
+                                      child: Image.file(
+                                        File(path),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : Container(
+                                      color: isMine
+                                          ? theme.colorScheme.primary
+                                          : theme
+                                                .colorScheme
+                                                .surfaceContainerHighest,
+                                      child: const Center(
+                                        child: Text(
+                                          '📷',
+                                          style: TextStyle(fontSize: 56),
+                                        ),
+                                      ),
+                                    );
+                              return AspectRatio(
+                                aspectRatio: 1.0,
+                                child: imageChild,
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ),
                     if ((msg['content'] as String? ?? '').isNotEmpty) ...[
                       const SizedBox(height: AppSpacing.xs),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xs,
+                        ),
                         child: Text(
                           msg['content'] as String,
                           style: TextStyle(
-                            color: isMine ? Colors.white : theme.colorScheme.onSurface,
+                            color: isMine
+                                ? Colors.white
+                                : theme.colorScheme.onSurface,
                             fontSize: 14,
                           ),
                         ),
@@ -1380,7 +1473,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                     Text(
                       msg['time'] as String,
                       style: TextStyle(
-                        color: isMine ? Colors.white70 : theme.colorScheme.onSurfaceVariant,
+                        color: isMine
+                            ? Colors.white70
+                            : theme.colorScheme.onSurfaceVariant,
                         fontSize: 11,
                       ),
                     ),
@@ -1398,14 +1493,23 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
               )
             else
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm,
+                ),
                 decoration: BoxDecoration(
-                  color: isMine ? AppColors.accentPrimary : theme.colorScheme.surfaceContainerHighest,
+                  color: isMine
+                      ? AppColors.accentPrimary
+                      : theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.only(
                     topLeft: const Radius.circular(AppRadii.lg),
                     topRight: const Radius.circular(AppRadii.lg),
-                    bottomLeft: isMine ? const Radius.circular(AppRadii.lg) : const Radius.circular(AppRadii.xs),
-                    bottomRight: isMine ? const Radius.circular(AppRadii.xs) : const Radius.circular(AppRadii.lg),
+                    bottomLeft: isMine
+                        ? const Radius.circular(AppRadii.lg)
+                        : const Radius.circular(AppRadii.xs),
+                    bottomRight: isMine
+                        ? const Radius.circular(AppRadii.xs)
+                        : const Radius.circular(AppRadii.lg),
                   ),
                 ),
                 child: Row(
@@ -1416,7 +1520,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                       child: Text(
                         msg['content'] as String,
                         style: TextStyle(
-                          color: isMine ? AppColors.onAccentPrimary : theme.colorScheme.onSurface,
+                          color: isMine
+                              ? AppColors.onAccentPrimary
+                              : theme.colorScheme.onSurface,
                           fontSize: 15,
                         ),
                       ),
@@ -1428,7 +1534,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                       child: Text(
                         msg['time'] as String,
                         style: TextStyle(
-                          color: isMine ? Colors.white70 : theme.colorScheme.onSurfaceVariant,
+                          color: isMine
+                              ? Colors.white70
+                              : theme.colorScheme.onSurfaceVariant,
                           fontSize: 11,
                         ),
                       ),
@@ -1451,7 +1559,8 @@ class _RecordingPulseDot extends StatefulWidget {
   State<_RecordingPulseDot> createState() => _RecordingPulseDotState();
 }
 
-class _RecordingPulseDotState extends State<_RecordingPulseDot> with SingleTickerProviderStateMixin {
+class _RecordingPulseDotState extends State<_RecordingPulseDot>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 900),
@@ -1470,7 +1579,10 @@ class _RecordingPulseDotState extends State<_RecordingPulseDot> with SingleTicke
       child: Container(
         width: 10,
         height: 10,
-        decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
+        decoration: const BoxDecoration(
+          color: AppColors.error,
+          shape: BoxShape.circle,
+        ),
       ),
     );
   }
@@ -1574,7 +1686,11 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
   Future<void> _togglePlay() async {
     if (widget.audioPath == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('رسالة تجريبية بدون ملف صوتي حقيقي، سجّل رسالة جديدة لتجربة التشغيل')),
+        const SnackBar(
+          content: Text(
+            'رسالة تجريبية بدون ملف صوتي حقيقي، سجّل رسالة جديدة لتجربة التشغيل',
+          ),
+        ),
       );
       return;
     }
@@ -1623,26 +1739,43 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
     final isMine = widget.isMine;
 
     final totalMs = _totalDuration.inMilliseconds;
-    final playedFraction = totalMs == 0 ? 0.0 : (_position.inMilliseconds / totalMs).clamp(0.0, 1.0);
+    final playedFraction = totalMs == 0
+        ? 0.0
+        : (_position.inMilliseconds / totalMs).clamp(0.0, 1.0);
     final playedBars = (playedFraction * _barCount).floor();
 
     final remaining = _totalDuration - _position;
     final remainingSeconds = remaining.isNegative ? 0 : remaining.inSeconds;
 
-    final bubbleColor = isMine ? AppColors.accentPrimary : theme.colorScheme.surfaceContainerHighest;
-    final onBubble = isMine ? AppColors.onAccentPrimary : theme.colorScheme.onSurface;
-    final playedColor = isMine ? AppColors.onAccentPrimary : theme.colorScheme.primary;
-    final unplayedColor = (isMine ? AppColors.onAccentPrimary : theme.colorScheme.primary).withValues(alpha: 0.35);
+    final bubbleColor = isMine
+        ? AppColors.accentPrimary
+        : theme.colorScheme.surfaceContainerHighest;
+    final onBubble = isMine
+        ? AppColors.onAccentPrimary
+        : theme.colorScheme.onSurface;
+    final playedColor = isMine
+        ? AppColors.onAccentPrimary
+        : theme.colorScheme.primary;
+    final unplayedColor =
+        (isMine ? AppColors.onAccentPrimary : theme.colorScheme.primary)
+            .withValues(alpha: 0.35);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
         color: bubbleColor,
         borderRadius: BorderRadius.only(
           topLeft: const Radius.circular(AppRadii.lg),
           topRight: const Radius.circular(AppRadii.lg),
-          bottomLeft: isMine ? const Radius.circular(AppRadii.lg) : const Radius.circular(AppRadii.xs),
-          bottomRight: isMine ? const Radius.circular(AppRadii.xs) : const Radius.circular(AppRadii.lg),
+          bottomLeft: isMine
+              ? const Radius.circular(AppRadii.lg)
+              : const Radius.circular(AppRadii.xs),
+          bottomRight: isMine
+              ? const Radius.circular(AppRadii.xs)
+              : const Radius.circular(AppRadii.lg),
         ),
       ),
       child: Row(
@@ -1661,7 +1794,10 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
               child: _isLoading
                   ? Padding(
                       padding: const EdgeInsets.all(9),
-                      child: CircularProgressIndicator(strokeWidth: 2, color: onBubble),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: onBubble,
+                      ),
                     )
                   : Icon(
                       _isPlaying ? LucideIcons.pause : LucideIcons.play,
@@ -1686,11 +1822,17 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
                       GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTapDown: (details) {
-                          final fraction = _fractionFromOffset(details.localPosition.dx, width);
+                          final fraction = _fractionFromOffset(
+                            details.localPosition.dx,
+                            width,
+                          );
                           _seekToFraction(fraction);
                         },
                         onHorizontalDragUpdate: (details) {
-                          final fraction = _fractionFromOffset(details.localPosition.dx, width);
+                          final fraction = _fractionFromOffset(
+                            details.localPosition.dx,
+                            width,
+                          );
                           _seekToFraction(fraction);
                         },
                         child: SizedBox(
@@ -1699,7 +1841,8 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
                             clipBehavior: Clip.none,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: List.generate(_barCount, (i) {
                                   final played = i <= playedBars;
@@ -1707,7 +1850,9 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
                                     width: 2.4,
                                     height: _bars[i],
                                     decoration: BoxDecoration(
-                                      color: played ? playedColor : unplayedColor,
+                                      color: played
+                                          ? playedColor
+                                          : unplayedColor,
                                       borderRadius: BorderRadius.circular(2),
                                     ),
                                   );
@@ -1736,7 +1881,9 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
                           Flexible(
                             child: Text(
                               _formatSeconds(
-                                _isPlaying || _position > Duration.zero ? remainingSeconds : widget.durationSeconds,
+                                _isPlaying || _position > Duration.zero
+                                    ? remainingSeconds
+                                    : widget.durationSeconds,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -1761,7 +1908,11 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
                           ),
                           if (isMine) ...[
                             const SizedBox(width: 3),
-                            Icon(LucideIcons.checkCheck, size: 12, color: onBubble.withValues(alpha: 0.85)),
+                            Icon(
+                              LucideIcons.checkCheck,
+                              size: 12,
+                              color: onBubble.withValues(alpha: 0.85),
+                            ),
                           ],
                         ],
                       ),
@@ -1912,7 +2063,9 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
     final barCount = widget.waveformBars.length;
 
     final totalMs = _totalDuration.inMilliseconds;
-    final playedFraction = totalMs == 0 ? 0.0 : (_position.inMilliseconds / totalMs).clamp(0.0, 1.0);
+    final playedFraction = totalMs == 0
+        ? 0.0
+        : (_position.inMilliseconds / totalMs).clamp(0.0, 1.0);
     final playedBars = (playedFraction * barCount).floor();
 
     final remaining = _totalDuration - _position;
@@ -1925,7 +2078,10 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
               ? const SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.error),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.error,
+                  ),
                 )
               : const Icon(LucideIcons.trash2, color: AppColors.error),
           onPressed: _isDeleting ? null : _handleDelete,
@@ -1945,7 +2101,10 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
             child: _isLoading
                 ? const Padding(
                     padding: EdgeInsets.all(9),
-                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.accentPrimary),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.accentPrimary,
+                    ),
                   )
                 : Icon(
                     _isPlaying ? LucideIcons.pause : LucideIcons.play,
@@ -1966,11 +2125,17 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
                   return GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTapDown: (details) {
-                      final fraction = (details.localPosition.dx / width).clamp(0.0, 1.0);
+                      final fraction = (details.localPosition.dx / width).clamp(
+                        0.0,
+                        1.0,
+                      );
                       _seekToFraction(fraction);
                     },
                     onHorizontalDragUpdate: (details) {
-                      final fraction = (details.localPosition.dx / width).clamp(0.0, 1.0);
+                      final fraction = (details.localPosition.dx / width).clamp(
+                        0.0,
+                        1.0,
+                      );
                       _seekToFraction(fraction);
                     },
                     child: SizedBox(
@@ -1989,7 +2154,8 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
                                 decoration: BoxDecoration(
                                   color: played
                                       ? AppColors.accentPrimary
-                                      : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.35),
+                                      : theme.colorScheme.onSurfaceVariant
+                                            .withValues(alpha: 0.35),
                                   borderRadius: BorderRadius.circular(2),
                                 ),
                               );
@@ -2017,9 +2183,13 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
               const SizedBox(height: 2),
               Text(
                 _formatSeconds(
-                  _isPlaying || _position > Duration.zero ? remainingSeconds : widget.durationSeconds,
+                  _isPlaying || _position > Duration.zero
+                      ? remainingSeconds
+                      : widget.durationSeconds,
                 ),
-                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -2029,7 +2199,11 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
         CircleAvatar(
           backgroundColor: AppColors.accentPrimary,
           child: IconButton(
-            icon: const Icon(LucideIcons.send, color: AppColors.onAccentPrimary, size: 18),
+            icon: const Icon(
+              LucideIcons.send,
+              color: AppColors.onAccentPrimary,
+              size: 18,
+            ),
             onPressed: widget.onSend,
             tooltip: 'إرسال',
           ),
@@ -2099,7 +2273,9 @@ class _ImagePreviewSheetState extends State<_ImagePreviewSheet> {
               const Spacer(),
               Text(
                 'معاينة الصورة',
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const Spacer(),
               const SizedBox(width: 48),
@@ -2149,7 +2325,8 @@ class _ImagePreviewSheetState extends State<_ImagePreviewSheet> {
               ),
               icon: const Icon(LucideIcons.send),
               label: const Text('إرسال'),
-              onPressed: () => widget.onSend(widget.captionController.text.trim()),
+              onPressed: () =>
+                  widget.onSend(widget.captionController.text.trim()),
             ),
           ),
         ],
@@ -2178,13 +2355,15 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
 
   Future<void> _share() async {
     try {
-      await Share.shareXFiles([XFile(widget.imagePath)], text: 'صورة من گريب منك');
+      await Share.shareXFiles([
+        XFile(widget.imagePath),
+      ], text: 'صورة من گريب منك');
     } catch (e, st) {
       debugPrint('Share failed: $e\n$st');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تعذر مشاركة الصورة')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('تعذر مشاركة الصورة')));
       }
     }
   }
@@ -2194,16 +2373,15 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
     try {
       // Route through the system share sheet — on both iOS and Android it
       // surfaces a "Save Image" target, so no extra plugin is required.
-      await Share.shareXFiles(
-        [XFile(widget.imagePath)],
-        text: 'حفظ صورة من گريب منك',
-      );
+      await Share.shareXFiles([
+        XFile(widget.imagePath),
+      ], text: 'حفظ صورة من گريب منك');
     } catch (e, st) {
       debugPrint('Save failed: $e\n$st');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تعذر حفظ الصورة')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('تعذر حفظ الصورة')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -2218,7 +2396,9 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
         backgroundColor: Colors.black.withValues(alpha: 0.6),
         leading: IconButton(
           icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
-          onPressed: () { if (context.canPop()) context.pop(); },
+          onPressed: () {
+            if (context.canPop()) context.pop();
+          },
         ),
         actions: [
           IconButton(
@@ -2226,7 +2406,10 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
                 ? const SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
                   )
                 : const Icon(LucideIcons.download, color: Colors.white),
             onPressed: _saving ? null : _save,
