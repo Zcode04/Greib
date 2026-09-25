@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../features/auth/auth_service.dart';
 import '../../shared_widgets/animated_background.dart';
 import '../../shared_widgets/featured_products_section.dart';
+import '../../shared_widgets/latest_products_carousel.dart';
 import '../../shared_widgets/glass_container.dart';
 import '../../shared_widgets/section_header.dart';
 import '../../shared_widgets/animated_list_item.dart';
@@ -52,6 +53,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   index: 0,
                   child: TrendingStoriesSection(isDark: isDark),
                 ),
+                const SizedBox(height: 28),
+
+                AnimatedListItem(
+                  index: 1,
+                  child: SectionHeader(
+                    title: 'الأحدث',
+                    icon: LucideIcons.badgePlus,
+                    iconColor: AppColors.accentFor(isDark),
+                    showAction: false,
+                  ),
+                ),
+                const AnimatedListItem(index: 1, child: LatestProductsCarousel()),
                 const SizedBox(height: 28),
 
                 AnimatedListItem(
