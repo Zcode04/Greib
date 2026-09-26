@@ -103,7 +103,6 @@ class _HomeScreenState extends State<HomeScreen> {
       // القائمة الجانبية (Drawer) انتقلت إلى MainShellScreen — مصدر واحد للتنقل.
       body: Stack(
         children: [
-          const AnimatedBackground(),
           SingleChildScrollView(
             controller: _scrollController,
             padding: EdgeInsets.fromLTRB(20, MediaQuery.paddingOf(context).top + 24, 20, 110),

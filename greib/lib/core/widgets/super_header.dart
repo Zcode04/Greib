@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -52,36 +51,29 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
         final logoSize = collapsed ? 18.0 : 24.0;
         final iconSize = collapsed ? 15.0 : 18.0;
         final btnBox = collapsed ? 28.0 : 32.0;
-        // ★ الهيدر بدون أي خلفية: شفاف تماماً (لا لون ولا بلور) —
-        // الحجم والشكل والأزرار لم تُمس.
         final bgColor = isDark ? AppColors.background : AppColors.lightBackground;
-        
-        return ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: collapsed ? 16.0 : 0.0,
-              sigmaY: collapsed ? 16.0 : 0.0,
-            ),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 280),
-              curve: Curves.easeOut,
-              decoration: BoxDecoration(
-                color: collapsed ? bgColor.withValues(alpha: 0.85) : Colors.transparent,
-                border: Border(
-                  bottom: BorderSide(
-                    color: collapsed 
-                        ? (isDark ? Colors.white12 : Colors.black12) 
-                        : Colors.transparent,
-                    width: 0.5,
-                  ),
-                ),
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeOut,
+          decoration: BoxDecoration(
+            // ★ خلفية صلبة تطابق خلفية التطبيق عند التمرير، شفاف في الأعلى.
+            color: collapsed ? bgColor : Colors.transparent,
+            border: Border(
+              bottom: BorderSide(
+                color: collapsed
+                    ? (isDark ? Colors.white12 : Colors.black12)
+                    : Colors.transparent,
+                width: 0.5,
               ),
-              child: AppBar(
-                toolbarHeight: toolbarH,
-                backgroundColor: Colors.transparent,
-                surfaceTintColor: Colors.transparent,
-                elevation: 0,
-                scrolledUnderElevation: 0,
+            ),
+          ),
+          child: AppBar(
+            toolbarHeight: toolbarH,
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
             titleSpacing: showBackButton ? 0 : AppSpacing.md,
             automaticallyImplyLeading: showBackButton,
             leading: showBackButton ? const BackButton() : null,
@@ -92,8 +84,7 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
               style: theme.textTheme.titleLarge!.copyWith(
                 fontWeight: FontWeight.w900,
                 fontSize: logoSize,
-                color:
-                    isDark ? AppColors.textPrimary : AppColors.lightText,
+                color: isDark ? AppColors.textPrimary : AppColors.lightText,
               ),
               child: const Text('گريب منك'),
             ),
@@ -107,8 +98,7 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                     color: isDark
                         ? AppColors.surfaceCard
                         : AppColors.lightSurfaceVariant,
-                    borderRadius:
-                        BorderRadius.circular(AppRadii.full),
+                    borderRadius: BorderRadius.circular(AppRadii.full),
                     border: Border.all(
                       color: isDark
                           ? AppColors.outline
@@ -126,35 +116,25 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                           iconSize: iconSize,
                           icon: LucideIcons.search,
                           color: theme.colorScheme.onSurface,
-                          onPressed: () =>
-                              _handleSearch(context),
+                          onPressed: () => _handleSearch(context),
                           tooltip: 'بحث عالمي',
                         ),
                         _HeaderIconBtn(
                           box: btnBox,
                           iconSize: iconSize,
-                          icon: isDark
-                              ? LucideIcons.sun
-                              : LucideIcons.moon,
+                          icon: isDark ? LucideIcons.sun : LucideIcons.moon,
                           color: theme.colorScheme.onSurface,
-                          onPressed: () => context
-                              .read<ThemeController>()
-                              .toggleTheme(),
-                          tooltip: isDark
-                              ? 'الوضع النهاري'
-                              : 'الوضع الليلي',
+                          onPressed: () => context.read<ThemeController>().toggleTheme(),
+                          tooltip: isDark ? 'الوضع النهاري' : 'الوضع الليلي',
                         ),
                         _HeaderIconBtn(
                           box: btnBox,
                           iconSize: iconSize,
                           icon: LucideIcons.bell,
-                          badge: unreadNotifications > 9
-                              ? '+9'
-                              : '$unreadNotifications',
+                          badge: unreadNotifications > 9 ? '+9' : '$unreadNotifications',
                           showBadge: unreadNotifications > 0,
                           color: theme.colorScheme.onSurface,
-                          onPressed: () =>
-                              context.push('/notifications'),
+                          onPressed: () => context.push('/notifications'),
                           tooltip: 'الإشعارات',
                         ),
                         ...?extraActions,
@@ -164,11 +144,7 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
             ],
-            // ★ الهيدر الثابت فقط: الشعار + الأيقونات.
-            // أي شيء آخر (رائج / الموقع) يعيش داخل المحتوى القابل للتمرير.
             bottom: null,
-          ),
-            ),
           ),
         );
       },
@@ -201,8 +177,7 @@ class _HeaderIconBtn extends StatelessWidget {
     final btn = IconButton(
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
-      constraints: BoxConstraints(
-          minWidth: box, minHeight: box),
+      constraints: BoxConstraints(minWidth: box, minHeight: box),
       icon: AnimatedContainer(
         duration: const Duration(milliseconds: 280),
         curve: Curves.easeOut,
@@ -215,13 +190,11 @@ class _HeaderIconBtn extends StatelessWidget {
     return IconButton(
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
-      constraints: BoxConstraints(
-          minWidth: box, minHeight: box),
+      constraints: BoxConstraints(minWidth: box, minHeight: box),
       icon: Badge(
         isLabelVisible: true,
         label: Text(badge),
-        child:
-            Icon(icon, size: iconSize, color: color),
+        child: Icon(icon, size: iconSize, color: color),
       ),
       onPressed: onPressed,
       tooltip: tooltip,
