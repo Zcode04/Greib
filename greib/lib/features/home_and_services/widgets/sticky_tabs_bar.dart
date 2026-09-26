@@ -75,7 +75,11 @@ class _StickyTabsBarState extends State<StickyTabsBar>
           ignoring: !widget.visible,
           child: SafeArea(
             bottom: false,
-            child: Align(
+            // ★ Directionality ثابت LTR حتى تبقى topLeft فيزيائية
+            // (في RTL كانت تنعكس لليمين).
+            child: Directionality(
+              textDirection: TextDirection.ltr,
+              child: Align(
               // ★ نفس زاوية زر الموقع الأصلي تماماً (topLeft + left 20)
               alignment: Alignment.topLeft,
               child: Padding(
@@ -124,6 +128,7 @@ class _StickyTabsBarState extends State<StickyTabsBar>
                     );
                   },
                 ),
+              ),
               ),
             ),
           ),
