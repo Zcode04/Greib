@@ -57,7 +57,6 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
           duration: const Duration(milliseconds: 280),
           curve: Curves.easeOut,
           decoration: BoxDecoration(
-            // ★ خلفية صلبة تطابق خلفية التطبيق عند التمرير، شفاف في الأعلى.
             color: collapsed ? bgColor : Colors.transparent,
             border: Border(
               bottom: BorderSide(
@@ -67,6 +66,16 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                 width: 0.5,
               ),
             ),
+            boxShadow: collapsed
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.12),
+                      blurRadius: 16,
+                      spreadRadius: 0,
+                      offset: const Offset(0, 6),
+                    ),
+                  ]
+                : [],
           ),
           child: AppBar(
             toolbarHeight: toolbarH,
