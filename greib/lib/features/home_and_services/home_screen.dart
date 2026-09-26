@@ -15,6 +15,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 // Widgets
 import 'widgets/home_scroll_strip.dart';
 import 'widgets/sticky_location_button.dart';
+import 'widgets/sticky_tabs_bar.dart';
 import 'widgets/trending_stories.dart';
 import 'widgets/spotlight_carousel.dart';
 import 'widgets/services_grid.dart';
@@ -33,6 +34,36 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _isServicesGridView = false;
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _tabsKey = GlobalKey();
+  bool _showStickyTabs = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // يظهر الشريط اللاصق فقط عندما يصل المستخدم لموضع الـ 14 تبويب.
+  void _onScroll() {
+    final ctx = _tabsKey.currentContext;
+    if (ctx == null) return;
+    final box = ctx.findRenderObject() as RenderBox?;
+    if (box == null || !box.attached) return;
+    final pos = box.localToGlobal(Offset.zero).dy;
+    // عتبة الظهور: عندما يقترب أعلى التبويبات من أسفل الهيدر (~140px)
+    final shouldShow = pos < 150;
+    if (shouldShow != _showStickyTabs) {
+      setState(() => _showStickyTabs = shouldShow);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           const AnimatedBackground(),
           SingleChildScrollView(
+            controller: _scrollController,
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 110),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,7 +107,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 const AnimatedListItem(index: 1, child: LatestProductsCarousel()),
                 const SizedBox(height: 14),
                 // شريط تبويبات المتجر (14 تبويب) مباشرة بعد الأحدث
-                const AnimatedListItem(index: 1, child: StoreCategoryTabs()),
+                AnimatedListItem(
+                  key: _tabsKey,
+                  index: 1,
+                  child: const StoreCategoryTabs(),
+                ),
                 const SizedBox(height: 28),
 
                 AnimatedListItem(
@@ -224,8 +260,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          // زر الموقع الثابت — فوق المحتوى، لا يختفي مع التمرير
-          const StickyLocationButton(),
+          // زر الموقع الثابت — فوق المحتوى، لا يختفي مع التمرير.
+          // يُخفى تلقائياً عندما يظهر الشريط اللاصق (الموقع + التبويبات).
+          if (!_showStickyTabs) const StickyLocationButton(),
+          StickyTabsBar(visible: _showStickyTabs),
         ],
       ),
     );
