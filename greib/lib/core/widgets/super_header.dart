@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -53,107 +54,121 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
         final btnBox = collapsed ? 28.0 : 32.0;
         final bgColor = isDark ? AppColors.background : AppColors.lightBackground;
 
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 280),
-          curve: Curves.easeOut,
-          decoration: BoxDecoration(
-            color: collapsed ? bgColor : Colors.transparent,
-            border: Border(
-              bottom: BorderSide(
-                color: collapsed
-                    ? (isDark ? Colors.white12 : Colors.black12)
-                    : Colors.transparent,
-                width: 0.5,
-              ),
+        // ★ تأثير زجاجي (Glassmorphism):
+        // شفافية أعلى لرؤية تأثير الضبابي بوضوح، مع ظل ناعم حقيقي للأسفل
+        return ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: collapsed ? 24.0 : 0.0,
+              sigmaY: collapsed ? 24.0 : 0.0,
             ),
-            boxShadow: collapsed
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.12),
-                      blurRadius: 16,
-                      spreadRadius: 0,
-                      offset: const Offset(0, 6),
-                    ),
-                  ]
-                : [],
-          ),
-          child: AppBar(
-            toolbarHeight: toolbarH,
-            backgroundColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            titleSpacing: showBackButton ? 0 : AppSpacing.md,
-            automaticallyImplyLeading: showBackButton,
-            leading: showBackButton ? const BackButton() : null,
-            centerTitle: false,
-            title: AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 280),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
               curve: Curves.easeOut,
-              style: theme.textTheme.titleLarge!.copyWith(
-                fontWeight: FontWeight.w900,
-                fontSize: logoSize,
-                color: isDark ? AppColors.textPrimary : AppColors.lightText,
+              decoration: BoxDecoration(
+                // شفافية 60% لكي يظهر المحتوى المضبب من الخلف بوضوح
+                color: collapsed
+                    ? bgColor.withValues(alpha: isDark ? 0.85 : 0.90)
+                    : Colors.transparent,
+                border: null,
+                boxShadow: collapsed
+                    ? [
+                        // ظل كبير جداً بلون الخلفية لابتلاع المحتوى الممرر ودمجه بسلاسة
+                        BoxShadow(
+                          color: bgColor,
+                          blurRadius: 40,
+                          spreadRadius: 12,
+                          offset: const Offset(0, 16),
+                        ),
+                        // ظل إضافي أسود ناعم للعمق
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
+                          blurRadius: 20,
+                          spreadRadius: 0,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
+                    : [],
               ),
-              child: const Text('گريب منك'),
-            ),
-            actions: [
-              Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: collapsed ? 10 : 14),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.surfaceCard
-                        : AppColors.lightSurfaceVariant,
-                    borderRadius: BorderRadius.circular(AppRadii.full),
-                    border: Border.all(
-                      color: isDark
-                          ? AppColors.outline
-                          : AppColors.lightOutline,
-                      width: 1,
-                    ),
+              child: AppBar(
+                toolbarHeight: toolbarH,
+                backgroundColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                titleSpacing: showBackButton ? 0 : AppSpacing.md,
+                automaticallyImplyLeading: showBackButton,
+                leading: showBackButton ? const BackButton() : null,
+                centerTitle: false,
+                title: AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.easeOut,
+                  style: theme.textTheme.titleLarge!.copyWith(
+                    fontWeight: FontWeight.w900,
+                    fontSize: logoSize,
+                    color: isDark ? AppColors.textPrimary : AppColors.lightText,
                   ),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _HeaderIconBtn(
-                          box: btnBox,
-                          iconSize: iconSize,
-                          icon: LucideIcons.search,
-                          color: theme.colorScheme.onSurface,
-                          onPressed: () => _handleSearch(context),
-                          tooltip: 'بحث عالمي',
-                        ),
-                        _HeaderIconBtn(
-                          box: btnBox,
-                          iconSize: iconSize,
-                          icon: isDark ? LucideIcons.sun : LucideIcons.moon,
-                          color: theme.colorScheme.onSurface,
-                          onPressed: () => context.read<ThemeController>().toggleTheme(),
-                          tooltip: isDark ? 'الوضع النهاري' : 'الوضع الليلي',
-                        ),
-                        _HeaderIconBtn(
-                          box: btnBox,
-                          iconSize: iconSize,
-                          icon: LucideIcons.bell,
-                          badge: unreadNotifications > 9 ? '+9' : '$unreadNotifications',
-                          showBadge: unreadNotifications > 0,
-                          color: theme.colorScheme.onSurface,
-                          onPressed: () => context.push('/notifications'),
-                          tooltip: 'الإشعارات',
-                        ),
-                        ...?extraActions,
-                      ],
-                    ),
-                  ),
+                  child: const Text('گريب منك'),
                 ),
+                actions: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: collapsed ? 10 : 14),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.surfaceCard
+                            : AppColors.lightSurfaceVariant,
+                        borderRadius: BorderRadius.circular(AppRadii.full),
+                        border: Border.all(
+                          color: isDark
+                              ? AppColors.outline
+                              : AppColors.lightOutline,
+                          width: 1,
+                        ),
+                      ),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _HeaderIconBtn(
+                              box: btnBox,
+                              iconSize: iconSize,
+                              icon: LucideIcons.search,
+                              color: theme.colorScheme.onSurface,
+                              onPressed: () => _handleSearch(context),
+                              tooltip: 'بحث عالمي',
+                            ),
+                            _HeaderIconBtn(
+                              box: btnBox,
+                              iconSize: iconSize,
+                              icon: isDark ? LucideIcons.sun : LucideIcons.moon,
+                              color: theme.colorScheme.onSurface,
+                              onPressed: () => context.read<ThemeController>().toggleTheme(),
+                              tooltip: isDark ? 'الوضع النهاري' : 'الوضع الليلي',
+                            ),
+                            _HeaderIconBtn(
+                              box: btnBox,
+                              iconSize: iconSize,
+                              icon: LucideIcons.bell,
+                              badge: unreadNotifications > 9 ? '+9' : '$unreadNotifications',
+                              showBadge: unreadNotifications > 0,
+                              color: theme.colorScheme.onSurface,
+                              onPressed: () => context.push('/notifications'),
+                              tooltip: 'الإشعارات',
+                            ),
+                            ...?extraActions,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+                bottom: null,
               ),
-            ],
-            bottom: null,
+            ),
           ),
         );
       },
