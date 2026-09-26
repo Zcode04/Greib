@@ -55,6 +55,11 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
           curve: Curves.easeOut,
           child: AppBar(
             toolbarHeight: toolbarH,
+            // ★ هيدر بدون خلفية: شفاف تماماً.
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
             titleSpacing: showBackButton ? 0 : AppSpacing.md,
             automaticallyImplyLeading: showBackButton,
             leading: showBackButton ? const BackButton() : null,
