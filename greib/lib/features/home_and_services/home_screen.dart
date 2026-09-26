@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/permissions/permissions.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/auth/auth_service.dart';
+import '../../core/widgets/header_collapse_state.dart';
 import '../../shared_widgets/animated_background.dart';
 import '../../shared_widgets/featured_products_section.dart';
 import '../../shared_widgets/store_category_tabs.dart';
@@ -48,11 +49,20 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    // إعادة الهيدر لحجمه الكامل عند مغادرة الشاشة.
+    HeaderCollapseState.collapsed.value = false;
     super.dispose();
   }
 
   // يظهر الشريط اللاصق فقط عندما يصل المستخدم لموضع الـ 14 تبويب.
+  // + انكماش الهيدر: أي تمرير (offset > 24) يصغّر الهيدر، والعودة للأعلى تعيده.
   void _onScroll() {
+    final offset =
+        _scrollController.hasClients ? _scrollController.offset : 0.0;
+    final collapsed = offset > 24;
+    if (HeaderCollapseState.collapsed.value != collapsed) {
+      HeaderCollapseState.collapsed.value = collapsed;
+    }
     final ctx = _tabsKey.currentContext;
     if (ctx == null) return;
     final box = ctx.findRenderObject() as RenderBox?;

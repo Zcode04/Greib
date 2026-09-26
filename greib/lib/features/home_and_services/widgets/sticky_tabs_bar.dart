@@ -5,6 +5,7 @@ import '../../../core/location/location_controller.dart';
 import '../../../core/mock_data/mock_data.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/widgets/location_picker.dart';
+import '../../../core/widgets/header_collapse_state.dart';
 import '../../../shared_widgets/store_category_tabs.dart';
 
 /// كبسولة لاصقة واحدة تجمع زر الموقع + الـ 14 تبويب بنفس الحجم.
@@ -64,6 +65,8 @@ class _StickyTabsBarState extends State<StickyTabsBar>
     // نفس أبعاد زر الموقع الأصلي تماماً + عرض متجاوب مع الشاشة.
     final screenW = MediaQuery.of(context).size.width;
     const double itemH = 34.0;
+    // ★ عند انكماش الهيدر: الشريط اللاصق أكبر وملتصق به (top: 0).
+    final collapsed = HeaderCollapseState.collapsed.value;
     return AnimatedSlide(
       duration: const Duration(milliseconds: 280),
       curve: Curves.easeOut,
@@ -77,25 +80,29 @@ class _StickyTabsBarState extends State<StickyTabsBar>
             bottom: false,
             // ★ Directionality ثابت LTR حتى تبقى topLeft فيزيائية
             // (في RTL كانت تنعكس لليمين).
+            // ★ ملتصق بالهيدر المصغّر: top: 0 (بدون فجوة) وأكبر منه.
             child: Directionality(
               textDirection: TextDirection.ltr,
               child: Align(
-              // ★ نفس زاوية زر الموقع الأصلي تماماً (topLeft + left 20)
-              alignment: Alignment.topLeft,
-              child: Padding(
-                padding:
-                    const EdgeInsets.only(top: 8, left: 20),
+                // ★ نفس زاوية زر الموقع الأصلي تماماً (topLeft + left 20)
+                alignment: Alignment.topLeft,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                      top: collapsed ? 0 : 8, left: 20),
                 child: AnimatedBuilder(
                   animation: _merge,
                   builder: (context, _) {
+                    // ★ عند الالتصاق: حشو أكبر (أكبر من الهيدر المصغّر 48).
+                    final pad = collapsed ? 5.0 : 3.0;
+                    final h = collapsed ? 40.0 : itemH;
                     return ConstrainedBox(
                       // ★ عرض متجاوب: لا يتجاوز الشاشة أبداً
                       constraints: BoxConstraints(
                         maxWidth: screenW - 40,
                       ),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 3),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 6, vertical: pad),
                         decoration: BoxDecoration(
                           // ★ نفس ستايل زر الموقع الأصلي حرفياً
                           color: theme.colorScheme.surface
@@ -116,7 +123,7 @@ class _StickyTabsBarState extends State<StickyTabsBar>
                           ],
                         ),
                         child: SizedBox(
-                          height: itemH,
+                          height: h,
                           child: _MergedRow(
                             merge: _merge,
                             grow: _grow,
