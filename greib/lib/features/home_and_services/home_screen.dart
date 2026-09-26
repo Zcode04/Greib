@@ -260,9 +260,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          // زر الموقع الثابت — فوق المحتوى، لا يختفي مع التمرير.
-          // يُخفى تلقائياً عندما يظهر الشريط اللاصق (الموقع + التبويبات).
-          if (!_showStickyTabs) const StickyLocationButton(),
+          // زر الموقع الثابت — في موقعه لوحده، لا يختفي مع التمرير.
+          // كبسولة التبويبات تظهر بجواره عند الوصول لموضع الـ 14 تبويب.
+          const StickyLocationButton(),
           StickyTabsBar(visible: _showStickyTabs),
         ],
       ),
