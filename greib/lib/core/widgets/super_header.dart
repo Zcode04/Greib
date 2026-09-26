@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -53,28 +51,13 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
         final logoSize = collapsed ? 18.0 : 24.0;
         final iconSize = collapsed ? 15.0 : 18.0;
         final btnBox = collapsed ? 28.0 : 32.0;
-        // ★ نفس فكرة الشريط السفلي: المحتوى يمر خلف الهيدر مع بلور.
-        // طبقة زجاجية (لون الخلفية + blur) خلف محتوى الهيدر فقط —
+        // ★ الهيدر بدون أي خلفية: شفاف تماماً (لا لون ولا بلور) —
         // الحجم والشكل والأزرار لم تُمس.
-        return Stack(
-          children: [
-            Positioned.fill(
-              child: ClipRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                  child: Container(
-                    color: (isDark
-                            ? AppColors.background
-                            : AppColors.lightBackground)
-                        .withValues(alpha: 0.7),
-                  ),
-                ),
-              ),
-            ),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 280),
-              curve: Curves.easeOut,
-              child: AppBar(
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeOut,
+          color: Colors.transparent,
+          child: AppBar(
             toolbarHeight: toolbarH,
             // ★ هيدر بدون خلفية: شفاف تماماً.
             backgroundColor: Colors.transparent,
@@ -167,8 +150,6 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
             // أي شيء آخر (رائج / الموقع) يعيش داخل المحتوى القابل للتمرير.
             bottom: null,
           ),
-            ),
-          ],
         );
       },
     );

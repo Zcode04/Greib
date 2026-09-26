@@ -106,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const AnimatedBackground(),
           SingleChildScrollView(
             controller: _scrollController,
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 110),
+            padding: EdgeInsets.fromLTRB(20, MediaQuery.paddingOf(context).top + 24, 20, 110),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

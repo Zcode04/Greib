@@ -135,7 +135,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       // ★ المحتوى يبدأ تحت الهيدر (مسافة عمودية) ولا يتداخل معه —
       // يمتد فقط خلف الشريط السفلي العائم.
       extendBody: true,
-      extendBodyBehindAppBar: false,
+      extendBodyBehindAppBar: true,
       appBar: SuperHeader(
         title: _currentIndex == 0 ? null : activeTab.title,
         extraActions: _buildHeaderActions(context).map((a) {
