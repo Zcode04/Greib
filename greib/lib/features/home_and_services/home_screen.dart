@@ -14,6 +14,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 // Widgets
 import 'widgets/home_scroll_strip.dart';
+import 'widgets/sticky_location_button.dart';
 import 'widgets/trending_stories.dart';
 import 'widgets/spotlight_carousel.dart';
 import 'widgets/services_grid.dart';
@@ -223,6 +224,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+          // زر الموقع الثابت — فوق المحتوى، لا يختفي مع التمرير
+          const StickyLocationButton(),
         ],
       ),
     );
