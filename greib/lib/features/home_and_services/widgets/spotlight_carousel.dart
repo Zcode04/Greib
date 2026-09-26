@@ -330,13 +330,12 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                       height: 100,
                       decoration: BoxDecoration(
                         color: neonColor.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(24),
+                        shape: BoxShape.circle,
                       ),
                       child: Transform.rotate(
                         angle: 0.1,
                         child: (service.imageUrl != null)
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(20),
+                            ? ClipOval(
                                 child: Image.network(
                                   service.imageUrl!,
                                   fit: BoxFit.cover,

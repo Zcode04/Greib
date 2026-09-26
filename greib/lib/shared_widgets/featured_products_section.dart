@@ -3,6 +3,7 @@ import '../core/models/product_model.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../core/mock_data/mock_data.dart';
 import '../core/theme/app_colors.dart';
+import 'store_category_tabs.dart';
 
 /// قسم "منتجات مختارة لك" — شريط تصنيفات أفقي + شبكة منتجات مُفلترة
 /// بأسلوب متجانس مع باقي شاشة الـ Home (نفس الألوان، الزوايا، الظلال).
@@ -14,9 +15,11 @@ class FeaturedProductsSection extends StatefulWidget {
 }
 
 class _FeaturedProductsSectionState extends State<FeaturedProductsSection> {
-  String _selectedCategory = 'all'; // التصنيف المُفعّل افتراضياً: الكل
   bool _isExpanded = false; // حالة توسيع قائمة المنتجات
   static const int _collapsedCount = 4; // عدد الكروت الظاهرة أول مرة
+
+  // التصنيف المفعّل يُقرأ من الشريط العلوي (بعد الأحدث) — الأول "الكل" افتراضياً.
+  String get _selectedCategory => StoreSelectedCategory.notifier.value;
 
   // المنتجات بعد الفلترة حسب التصنيف (selectedCategory)
   // مؤقت: الأقسام الجديدة بلا منتجات بعد — نعرض الكل حتى تُضاف منتجاتها لاحقاً.
@@ -38,116 +41,48 @@ class _FeaturedProductsSectionState extends State<FeaturedProductsSection> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final canExpand = _filteredProducts.length > _collapsedCount;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildCategoryChips(isDark),
-        const SizedBox(height: 14),
-        // AnimatedSize لأنيميشن سلس عند التوسيع/الطيّ
-        AnimatedSize(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          alignment: Alignment.topCenter,
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            switchInCurve: Curves.easeOut,
-            switchOutCurve: Curves.easeIn,
-            transitionBuilder: (child, animation) => FadeTransition(
-              opacity: animation,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 0.06),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: child,
-              ),
-            ),
-            child: _buildProductsGrid(isDark),
-          ),
-        ),
-        if (canExpand) ...[
-          const SizedBox(height: 18),
-          _buildShowMoreButton(isDark),
-        ],
-      ],
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // شريط التصنيفات الأفقي
-  // ---------------------------------------------------------------------------
-  Widget _buildCategoryChips(bool isDark) {
-    final accentColor =
-        isDark ? AppColors.accentPrimary : AppColors.accentPrimaryDark;
-
-    return SizedBox(
-      height: 40,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: MockData.productCategories.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 10),
-        itemBuilder: (context, i) {
-          final cat = MockData.productCategories[i];
-          final id = cat['id']!;
-          final label = cat['label']!;
-          final isSelected = id == _selectedCategory;
-
-          return InkWell(
-            onTap: () => setState(() {
-              _selectedCategory = id;
-              _isExpanded = false; // صفّر التوسيع عند تبديل التصنيف
-            }),
-            borderRadius: BorderRadius.circular(20),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? accentColor
-                    : (isDark ? Colors.transparent : null),
-                gradient: isSelected
-                    ? null
-                    : (isDark
-                        ? null
-                        : const LinearGradient(
-                            colors: AppColors.catalogCardGradientLight,
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          )),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isSelected
-                      ? accentColor
-                      : (isDark
-                          ? Colors.white10
-                          : AppColors.lightOutline),
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: isSelected
-                        ? (isDark ? Colors.black : Colors.white)
-                        : (isDark
-                            ? AppColors.textPrimary
-                            : Colors.white),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
+    return ValueListenableBuilder<String>(
+      valueListenable: StoreSelectedCategory.notifier,
+      builder: (context, selected, child) {
+        final canExpand = _filteredProducts.length > _collapsedCount;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // AnimatedSize لأنيميشن سلس عند التوسيع/الطيّ
+            AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                switchInCurve: Curves.easeOut,
+                switchOutCurve: Curves.easeIn,
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 0.06),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
                   ),
                 ),
+                child: _buildProductsGrid(isDark),
               ),
             ),
-          );
-        },
-      ),
+            if (canExpand) ...[
+              const SizedBox(height: 18),
+              _buildShowMoreButton(isDark),
+            ],
+          ],
+        );
+      },
     );
   }
 
   // ---------------------------------------------------------------------------
-  // شبكة المنتجات (تُفلتر حسب _selectedCategory)
+  // شبكة المنتجات (تُفلتر حسب التصنيف المختار من الشريط العلوي بعد الأحدث)
   // نستخدم ValueKey على التصنيف لكي يتعرف AnimatedSwitcher على التغيير
   // ---------------------------------------------------------------------------
   Widget _buildProductsGrid(bool isDark) {

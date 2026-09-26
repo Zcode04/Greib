@@ -68,7 +68,7 @@ class LocationPickerSheet extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: theme.colorScheme.primary
                                   .withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(AppRadii.md),
+                              shape: BoxShape.circle,
                             ),
                             child: Icon(
                               LucideIcons.mapPin,

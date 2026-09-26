@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../features/auth/auth_service.dart';
 import '../../shared_widgets/animated_background.dart';
 import '../../shared_widgets/featured_products_section.dart';
+import '../../shared_widgets/store_category_tabs.dart';
 import '../../shared_widgets/latest_products_carousel.dart';
 import '../../shared_widgets/glass_container.dart';
 import '../../shared_widgets/section_header.dart';
@@ -71,6 +72,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const AnimatedListItem(index: 1, child: LatestProductsCarousel()),
+                const SizedBox(height: 14),
+                // شريط تبويبات المتجر (14 تبويب) مباشرة بعد الأحدث
+                const AnimatedListItem(index: 1, child: StoreCategoryTabs()),
                 const SizedBox(height: 28),
 
                 AnimatedListItem(

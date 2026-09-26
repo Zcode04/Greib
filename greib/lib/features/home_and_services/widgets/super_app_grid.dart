@@ -115,7 +115,7 @@ class _QuickTileView extends StatelessWidget {
             height: 48,
             decoration: BoxDecoration(
               color: tile.color.withValues(alpha: isDark ? 0.18 : 0.12),
-              borderRadius: BorderRadius.circular(AppRadii.lg),
+              shape: BoxShape.circle,
               border: Border.all(
                 color: tile.color.withValues(alpha: 0.35),
                 width: 1,

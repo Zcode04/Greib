@@ -72,14 +72,13 @@ class _CentralServiceCardState extends State<CentralServiceCard>
                         service.color.withValues(alpha: 0.05),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(AppRadii.lg),
+                    shape: BoxShape.circle,
                     border: Border.all(
                       color: service.color.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(AppRadii.lg - 2),
+                  child: ClipOval(
                     child: service.imageUrl != null
                         ? Image.asset(
                             service.imageUrl!,

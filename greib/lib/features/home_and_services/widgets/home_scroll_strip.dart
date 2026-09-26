@@ -18,7 +18,7 @@ class HomeScrollStrip extends StatelessWidget {
     final city = context.watch<LocationController>().cityName;
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Row(mainAxisSize: MainAxisSize.min, children: [
-        Container(width: 34, height: 34, decoration: BoxDecoration(color: const Color(0xFFFF6B35).withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppRadii.md)), child: const Icon(LucideIcons.flame, color: Color(0xFFFF6B35), size: 18)),
+        Container(width: 34, height: 34, decoration: BoxDecoration(color: const Color(0xFFFF6B35).withValues(alpha: 0.15), shape: BoxShape.circle), child: const Icon(LucideIcons.flame, color: Color(0xFFFF6B35), size: 18)),
         const SizedBox(width: AppSpacing.sm),
         Text('رائج الآن', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800, color: isDark ? AppColors.textPrimary : AppColors.lightText)),
       ]),

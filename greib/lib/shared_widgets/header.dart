@@ -66,7 +66,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
             height: 32,
             decoration: BoxDecoration(
               color: AppColors.accentFor(isDark).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(AppRadii.sm),
+              shape: BoxShape.circle,
               border: Border.all(
                 color: AppColors.accentFor(isDark).withValues(alpha: 0.3),
                 width: 1,

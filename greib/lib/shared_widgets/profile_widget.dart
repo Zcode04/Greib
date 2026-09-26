@@ -214,7 +214,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
             height: 40,
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(AppRadii.sm),
+              shape: BoxShape.circle,
             ),
             child: Icon(icon, size: 20, color: AppColors.primary),
           ),
