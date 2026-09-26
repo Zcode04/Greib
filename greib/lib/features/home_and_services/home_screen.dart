@@ -285,6 +285,29 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+          // تأثير التدرج (Gradient Fade) أعلى المحتوى لدمجه مع الخلفية
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.paddingOf(context).top + 80, // ارتفاع التدرج ليتناسب مع الهيدر
+            child: IgnorePointer(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      isDark ? AppColors.background : AppColors.lightBackground,
+                      (isDark ? AppColors.background : AppColors.lightBackground).withOpacity(0.8),
+                      (isDark ? AppColors.background : AppColors.lightBackground).withOpacity(0.0),
+                    ],
+                    stops: const [0.2, 0.6, 1.0], // يتحكم في سرعة التلاشي
+                  ),
+                ),
+              ),
+            ),
+          ),
           // زر الموقع المنفرد — يختفي أثناء ظهور الكبسولة المدمجة
           // (الكبسولة تحتوي نسختها الخاصة من زر الموقع بنفس الحجم).
           if (!_showStickyTabs) const StickyLocationButton(),

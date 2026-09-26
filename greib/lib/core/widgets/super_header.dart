@@ -56,78 +56,48 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
 
         // ★ تأثير زجاجي (Glassmorphism):
         // شفافية أعلى لرؤية تأثير الضبابي بوضوح، مع ظل ناعم حقيقي للأسفل
-        return ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: collapsed ? 24.0 : 0.0,
-              sigmaY: collapsed ? 24.0 : 0.0,
-            ),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-              decoration: BoxDecoration(
-                // شفافية 60% لكي يظهر المحتوى المضبب من الخلف بوضوح
-                color: collapsed
-                    ? bgColor.withValues(alpha: isDark ? 0.85 : 0.90)
-                    : Colors.transparent,
-                border: null,
-                boxShadow: collapsed
-                    ? [
-                        // ظل كبير جداً بلون الخلفية لابتلاع المحتوى الممرر ودمجه بسلاسة
-                        BoxShadow(
-                          color: bgColor,
-                          blurRadius: 40,
-                          spreadRadius: 12,
-                          offset: const Offset(0, 16),
-                        ),
-                        // ظل إضافي أسود ناعم للعمق
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
-                          blurRadius: 20,
-                          spreadRadius: 0,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : [],
-              ),
-              child: AppBar(
-                toolbarHeight: toolbarH,
-                backgroundColor: Colors.transparent,
-                surfaceTintColor: Colors.transparent,
-                elevation: 0,
-                scrolledUnderElevation: 0,
-                titleSpacing: showBackButton ? 0 : AppSpacing.md,
-                automaticallyImplyLeading: showBackButton,
-                leading: showBackButton ? const BackButton() : null,
-                centerTitle: false,
-                title: AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 280),
-                  curve: Curves.easeOut,
-                  style: theme.textTheme.titleLarge!.copyWith(
-                    fontWeight: FontWeight.w900,
-                    fontSize: logoSize,
-                    color: isDark ? AppColors.textPrimary : AppColors.lightText,
+        // ★ الحاوية الخارجية مسؤولة عن رسم الظل (حتى لا يتم قصه)
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+          child: AppBar(
+                  toolbarHeight: toolbarH,
+                  backgroundColor: Colors.transparent,
+                  surfaceTintColor: Colors.transparent,
+                  elevation: 0,
+                  scrolledUnderElevation: 0,
+                  titleSpacing: showBackButton ? 0 : AppSpacing.md,
+                  automaticallyImplyLeading: showBackButton,
+                  leading: showBackButton ? const BackButton() : null,
+                  centerTitle: false,
+                  title: AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 280),
+                    curve: Curves.easeOut,
+                    style: theme.textTheme.titleLarge!.copyWith(
+                      fontWeight: FontWeight.w900,
+                      fontSize: logoSize,
+                      color: isDark ? AppColors.textPrimary : AppColors.lightText,
+                    ),
+                    child: const Text('گريب منك'),
                   ),
-                  child: const Text('گريب منك'),
-                ),
-                actions: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: collapsed ? 10 : 14),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.surfaceCard
-                            : AppColors.lightSurfaceVariant,
-                        borderRadius: BorderRadius.circular(AppRadii.full),
-                        border: Border.all(
+                  actions: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: collapsed ? 10 : 14),
+                      child: Container(
+                        decoration: BoxDecoration(
                           color: isDark
-                              ? AppColors.outline
-                              : AppColors.lightOutline,
-                          width: 1,
+                              ? AppColors.surfaceCard
+                              : AppColors.lightSurfaceVariant,
+                          borderRadius: BorderRadius.circular(AppRadii.full),
+                          border: Border.all(
+                            color: isDark
+                                ? AppColors.outline
+                                : AppColors.lightOutline,
+                            width: 1,
+                          ),
                         ),
-                      ),
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
@@ -167,11 +137,9 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ],
                 bottom: null,
-              ),
-            ),
           ),
         );
-      },
+    },
     );
   }
 }
