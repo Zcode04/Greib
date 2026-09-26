@@ -12,6 +12,7 @@ import '../../shared_widgets/animated_list_item.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 // Widgets
+import 'widgets/home_scroll_strip.dart';
 import 'widgets/trending_stories.dart';
 import 'widgets/spotlight_carousel.dart';
 import 'widgets/services_grid.dart';
@@ -49,6 +50,11 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const AnimatedListItem(
+                  index: 0,
+                  child: HomeScrollStrip(),
+                ),
+                const SizedBox(height: 14),
                 AnimatedListItem(
                   index: 0,
                   child: TrendingStoriesSection(isDark: isDark),
