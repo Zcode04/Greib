@@ -75,10 +75,10 @@ class _StickyTabsBarState extends State<StickyTabsBar>
             child: Directionality(
               textDirection: TextDirection.ltr,
               child: Align(
-                alignment: Alignment.topLeft,
+                alignment: Alignment.topCenter,
                 child: Padding(
                   padding: EdgeInsets.only(
-                      top: collapsed ? 4 : 8, left: 20),
+                      top: collapsed ? 4 : 8, left: 20, right: 20),
                 child: AnimatedBuilder(
                   animation: _merge,
                   builder: (context, _) {
@@ -257,7 +257,7 @@ class _MergedRow extends StatelessWidget {
                                   height: itemH,
                                   padding:
                                       const EdgeInsets.symmetric(
-                                          horizontal: 5),
+                                          horizontal: 12),
                                   alignment: Alignment.center,
                                   decoration: BoxDecoration(
                                     color: MockData
@@ -274,7 +274,7 @@ class _MergedRow extends StatelessWidget {
                                     MockData.productCategories[i]
                                         ['label']!,
                                     style: TextStyle(
-                                      fontSize: 11,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.w700,
                                       color: MockData
                                                   .productCategories[
