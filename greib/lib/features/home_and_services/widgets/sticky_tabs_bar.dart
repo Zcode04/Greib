@@ -235,62 +235,65 @@ class _MergedRow extends StatelessWidget {
                     final accent = isDark
                         ? AppColors.accentPrimary
                         : AppColors.accentPrimaryDark;
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          for (int i = 0;
-                              i <
-                                  MockData
-                                      .productCategories.length;
-                              i++)
-                            GestureDetector(
-                              onTap: () =>
-                                  StoreSelectedCategory
-                                          .notifier.value =
-                                      MockData
-                                              .productCategories[
-                                          i]['id']!,
-                              child: Container(
-                                height: itemH,
-                                padding:
-                                    const EdgeInsets.symmetric(
-                                        horizontal: 5),
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: MockData
-                                              .productCategories[
-                                          i]['id'] ==
-                                          selected
-                                      ? accent
-                                      : Colors.transparent,
-                                  borderRadius:
-                                      BorderRadius.circular(
-                                          AppRadii.full),
-                                ),
-                                child: Text(
-                                  MockData.productCategories[i]
-                                      ['label']!,
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
+                    return Directionality(
+                      textDirection: TextDirection.rtl,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            for (int i = 0;
+                                i <
+                                    MockData
+                                        .productCategories.length;
+                                i++)
+                              GestureDetector(
+                                onTap: () =>
+                                    StoreSelectedCategory
+                                            .notifier.value =
+                                        MockData
+                                                .productCategories[
+                                            i]['id']!,
+                                child: Container(
+                                  height: itemH,
+                                  padding:
+                                      const EdgeInsets.symmetric(
+                                          horizontal: 5),
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
                                     color: MockData
                                                 .productCategories[
                                             i]['id'] ==
                                             selected
-                                        ? (isDark
-                                            ? Colors.black
-                                            : Colors.white)
-                                        : (isDark
-                                            ? AppColors
-                                                .textSecondary
-                                            : AppColors
-                                                .lightTextSecondary),
+                                        ? accent
+                                        : Colors.transparent,
+                                    borderRadius:
+                                        BorderRadius.circular(
+                                            AppRadii.full),
+                                  ),
+                                  child: Text(
+                                    MockData.productCategories[i]
+                                        ['label']!,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: MockData
+                                                  .productCategories[
+                                              i]['id'] ==
+                                              selected
+                                          ? (isDark
+                                              ? Colors.black
+                                              : Colors.white)
+                                          : (isDark
+                                              ? AppColors
+                                                  .textSecondary
+                                              : AppColors
+                                                  .lightTextSecondary),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
                     );
                   },
