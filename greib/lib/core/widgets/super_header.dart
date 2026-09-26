@@ -57,7 +57,7 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 14),
           child: Container(
             decoration: BoxDecoration(
               color: isDark ? AppColors.surfaceCard : AppColors.lightSurfaceVariant,
@@ -73,16 +73,25 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                     icon: Icon(LucideIcons.search, size: 18, color: theme.colorScheme.onSurface),
                     onPressed: () => _handleSearch(context),
                     tooltip: 'بحث عالمي',
                   ),
                   IconButton(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                     icon: Icon(isDark ? LucideIcons.sun : LucideIcons.moon, size: 18, color: theme.colorScheme.onSurface),
                     onPressed: () => context.read<ThemeController>().toggleTheme(),
                     tooltip: isDark ? 'الوضع النهاري' : 'الوضع الليلي',
                   ),
                   IconButton(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                     icon: Badge(
                       isLabelVisible: unreadNotifications > 0,
                       label: Text(
