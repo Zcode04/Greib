@@ -55,13 +55,17 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // ★ السلوك الصحيح:
-  // - تمرير طبيعي (لأسفل) + تجاوز موضع التبويبات → تظهر وتبقى ظاهرة.
-  // - تمرير عكسي (للأعلى) → تختفي وتبقى مخفية + الهيدر يكبر.
+  // ★ السلوك المطلوب:
+  // - تمرير لأسفل (reverse) + تجاوز موضع التبويبات → تظهر وتبقى ظاهرة.
+  // - التوقف (idle) → لا يتغير أي شيء (تبقى على حالتها).
+  // - سحب عكسي للأعلى (forward) فقط → تختفي + الهيدر يكبر.
   void _onScroll() {
     final dir = _scrollController.position.userScrollDirection;
+    // التوقف: لا تلمس الحالة أبداً — كانت هذه هي الثغرة (كانت تعيد
+    // الحساب بالموضع فتخفي التبويب عند رفع الإصبع).
+    if (dir == ScrollDirection.idle) return;
     if (dir == ScrollDirection.forward) {
-      // تمرير عكسي (للأعلى): تكبير الهيدر + إخفاء التبويبات (مرة واحدة).
+      // سحب عكسي (للأعلى): تكبير الهيدر + إخفاء التبويبات (مرة واحدة).
       if (HeaderCollapseState.collapsed.value) {
         HeaderCollapseState.collapsed.value = false;
       }
@@ -70,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       return;
     }
-    // تمرير طبيعي أو توقف: القرار حسب الموضع — يظهر عند التجاوز ويبقى.
+    // تمرير لأسفل فقط: القرار حسب الموضع — يظهر عند التجاوز ويبقى.
     if (!_scrollController.hasClients) return;
     final offset = _scrollController.offset;
     if (offset > 24 && !HeaderCollapseState.collapsed.value) {
