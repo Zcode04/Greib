@@ -290,7 +290,7 @@ class _HomeScreenState extends State<HomeScreen> {
             top: 0,
             left: 0,
             right: 0,
-            height: MediaQuery.paddingOf(context).top + 80, // ارتفاع التدرج ليتناسب مع الهيدر
+            height: 180, // ارتفاع ثابت وكبير نسبياً لضمان ظهوره تحت الهيدر الشفاف
             child: IgnorePointer(
               child: Container(
                 decoration: BoxDecoration(
@@ -299,10 +299,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     end: Alignment.bottomCenter,
                     colors: [
                       isDark ? AppColors.background : AppColors.lightBackground,
-                      (isDark ? AppColors.background : AppColors.lightBackground).withOpacity(0.8),
-                      (isDark ? AppColors.background : AppColors.lightBackground).withOpacity(0.0),
+                      isDark ? AppColors.background : AppColors.lightBackground, // لون صلب في البداية
+                      (isDark ? AppColors.background : AppColors.lightBackground).withOpacity(0.0), // شفاف في النهاية
                     ],
-                    stops: const [0.2, 0.6, 1.0], // يتحكم في سرعة التلاشي
+                    stops: const [0.0, 0.4, 1.0], // يبدأ صلباً ثم يتلاشى للشفافية
                   ),
                 ),
               ),
