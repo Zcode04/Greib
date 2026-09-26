@@ -75,11 +75,10 @@ class _StickyTabsBarState extends State<StickyTabsBar>
             child: Directionality(
               textDirection: TextDirection.ltr,
               child: Align(
-                // ★ نفس زاوية زر الموقع الأصلي تماماً (topLeft + left 20)
                 alignment: Alignment.topLeft,
                 child: Padding(
                   padding: EdgeInsets.only(
-                      top: collapsed ? 0 : 8, left: 20),
+                      top: collapsed ? 4 : 8, left: 20),
                 child: AnimatedBuilder(
                   animation: _merge,
                   builder: (context, _) {

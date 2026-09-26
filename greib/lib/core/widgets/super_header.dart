@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -53,17 +54,34 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
         final btnBox = collapsed ? 28.0 : 32.0;
         // ★ الهيدر بدون أي خلفية: شفاف تماماً (لا لون ولا بلور) —
         // الحجم والشكل والأزرار لم تُمس.
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 280),
-          curve: Curves.easeOut,
-          color: Colors.transparent,
-          child: AppBar(
-            toolbarHeight: toolbarH,
-            // ★ هيدر بدون خلفية: شفاف تماماً.
-            backgroundColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            elevation: 0,
-            scrolledUnderElevation: 0,
+        final bgColor = isDark ? AppColors.background : AppColors.lightBackground;
+        
+        return ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: collapsed ? 16.0 : 0.0,
+              sigmaY: collapsed ? 16.0 : 0.0,
+            ),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOut,
+              decoration: BoxDecoration(
+                color: collapsed ? bgColor.withValues(alpha: 0.85) : Colors.transparent,
+                border: Border(
+                  bottom: BorderSide(
+                    color: collapsed 
+                        ? (isDark ? Colors.white12 : Colors.black12) 
+                        : Colors.transparent,
+                    width: 0.5,
+                  ),
+                ),
+              ),
+              child: AppBar(
+                toolbarHeight: toolbarH,
+                backgroundColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                scrolledUnderElevation: 0,
             titleSpacing: showBackButton ? 0 : AppSpacing.md,
             automaticallyImplyLeading: showBackButton,
             leading: showBackButton ? const BackButton() : null,
@@ -149,6 +167,8 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
             // ★ الهيدر الثابت فقط: الشعار + الأيقونات.
             // أي شيء آخر (رائج / الموقع) يعيش داخل المحتوى القابل للتمرير.
             bottom: null,
+          ),
+            ),
           ),
         );
       },
