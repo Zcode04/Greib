@@ -132,8 +132,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
     // هذا سيعطي تجربة "Super App" مع زر الموقع، الإشعارات المتطورة، والبحث المدمج.
     return Scaffold(
       backgroundColor: scaffoldBg,
-      // ★ المحتوى يمتد خلف الشريط السفلي العائم فقط حتى يعمل التلاشي عليه.
+      // ★ المحتوى يمتد خلف الهيدر وخلف الشريط السفلي معاً —
+      // نفس الفكرة: المحتوى يمر خلفهما مع بلور (extendBodyBehindAppBar).
       extendBody: true,
+      extendBodyBehindAppBar: true,
       appBar: SuperHeader(
         title: _currentIndex == 0 ? null : activeTab.title,
         extraActions: _buildHeaderActions(context).map((a) {
