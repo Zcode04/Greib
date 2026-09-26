@@ -535,13 +535,22 @@ class MockData {
         ),
       ];
 
-  // قائمة التصنيفات المتاحة للمنتجات (الخمسة المطلوبة)
+  // تبويبات المتجر (الأول "الكل" مفعّل افتراضياً — البقية تُطوَّر لاحقاً)
   static const List<Map<String, String>> productCategories = [
     {'id': 'all', 'label': 'الكل'},
-    {'id': 'women', 'label': 'نساء'},
-    {'id': 'men', 'label': 'رجال'},
-    {'id': 'shoes', 'label': 'أحذية'},
-    {'id': 'kids', 'label': 'أطفال'},
+    {'id': 'electronics', 'label': 'الإلكترونيات'},
+    {'id': 'beauty', 'label': 'الجمال والعطور'},
+    {'id': 'home', 'label': 'المنزل'},
+    {'id': 'grocery', 'label': 'البقالة'},
+    {'id': 'men_fashion', 'label': 'أزياء الرجال'},
+    {'id': 'women_fashion', 'label': 'أزياء النساء'},
+    {'id': 'baby', 'label': 'مستلزمات الأم والبيبي'},
+    {'id': 'toys', 'label': 'الألعاب'},
+    {'id': 'boys_fashion', 'label': 'أزياء الأولاد'},
+    {'id': 'sports', 'label': 'الرياضة'},
+    {'id': 'health', 'label': 'الصحة والتغذية'},
+    {'id': 'cars', 'label': 'السيارات'},
+    {'id': 'best', 'label': 'أحسن المنتجات'},
   ];
 
   static const List<Product> products = [

@@ -19,11 +19,13 @@ class _FeaturedProductsSectionState extends State<FeaturedProductsSection> {
   static const int _collapsedCount = 4; // عدد الكروت الظاهرة أول مرة
 
   // المنتجات بعد الفلترة حسب التصنيف (selectedCategory)
+  // مؤقت: الأقسام الجديدة بلا منتجات بعد — نعرض الكل حتى تُضاف منتجاتها لاحقاً.
   List<Product> get _filteredProducts {
     if (_selectedCategory == 'all') return MockData.products;
-    return MockData.products
+    final match = MockData.products
         .where((p) => p.category == _selectedCategory)
         .toList();
+    return match.isEmpty ? MockData.products : match;
   }
 
   // بعد الفلترة، نطبّق التقليص فوقها (قبل التوسيع)
