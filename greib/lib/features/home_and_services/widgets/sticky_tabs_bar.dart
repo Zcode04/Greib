@@ -27,19 +27,12 @@ class _StickyTabsBarState extends State<StickyTabsBar>
   @override
   void initState() {
     super.initState();
+    // ★ أنيميشن واحد سلس: 600ms easeOutCubic بدون نبضات أو ارتداد.
     _merge = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 450));
+        vsync: this, duration: const Duration(milliseconds: 600));
     _grow = CurvedAnimation(
-        parent: _merge,
-        curve: const Interval(0.0, 0.7, curve: Curves.easeOutBack));
-    _pulse = TweenSequence<double>([
-      TweenSequenceItem(
-          tween: Tween(begin: 1.0, end: 1.18), weight: 40),
-      TweenSequenceItem(
-          tween: Tween(begin: 1.18, end: 1.0), weight: 60),
-    ]).animate(CurvedAnimation(
-        parent: _merge,
-        curve: const Interval(0.3, 1.0, curve: Curves.easeInOut)));
+        parent: _merge, curve: Curves.easeOutCubic);
+    _pulse = Tween(begin: 1.0, end: 1.0).animate(_merge);
     if (widget.visible) _merge.value = 1.0;
   }
 
@@ -67,14 +60,12 @@ class _StickyTabsBarState extends State<StickyTabsBar>
     const double itemH = 34.0;
     // ★ عند انكماش الهيدر: الشريط اللاصق أكبر وملتصق به (top: 0).
     final collapsed = HeaderCollapseState.collapsed.value;
-    return AnimatedSlide(
-      duration: const Duration(milliseconds: 280),
+    // ★ ظهور مباشر خفيف من مكانه (بدون انزلاق/تكبير ثقيل).
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 200),
       curve: Curves.easeOut,
-      offset: widget.visible ? Offset.zero : const Offset(0, -1.2),
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 250),
-        opacity: widget.visible ? 1.0 : 0.0,
-        child: IgnorePointer(
+      opacity: widget.visible ? 1.0 : 0.0,
+      child: IgnorePointer(
           ignoring: !widget.visible,
           child: SafeArea(
             bottom: false,
@@ -140,7 +131,6 @@ class _StickyTabsBarState extends State<StickyTabsBar>
             ),
           ),
         ),
-      ),
     );
   }
 }

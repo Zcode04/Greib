@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/permissions/permissions.dart';
 import '../../core/theme/app_colors.dart';
@@ -54,21 +55,32 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // يظهر الشريط اللاصق فقط عندما يصل المستخدم لموضع الـ 14 تبويب.
-  // + انكماش الهيدر: أي تمرير (offset > 24) يصغّر الهيدر، والعودة للأعلى تعيده.
+  // ★ السلوك الصحيح:
+  // - تمرير طبيعي (لأسفل) + تجاوز موضع التبويبات → تظهر وتبقى ظاهرة.
+  // - تمرير عكسي (للأعلى) → تختفي وتبقى مخفية + الهيدر يكبر.
   void _onScroll() {
-    final offset =
-        _scrollController.hasClients ? _scrollController.offset : 0.0;
-    final collapsed = offset > 24;
-    if (HeaderCollapseState.collapsed.value != collapsed) {
-      HeaderCollapseState.collapsed.value = collapsed;
+    final dir = _scrollController.position.userScrollDirection;
+    if (dir == ScrollDirection.forward) {
+      // تمرير عكسي (للأعلى): تكبير الهيدر + إخفاء التبويبات (مرة واحدة).
+      if (HeaderCollapseState.collapsed.value) {
+        HeaderCollapseState.collapsed.value = false;
+      }
+      if (_showStickyTabs) {
+        setState(() => _showStickyTabs = false);
+      }
+      return;
+    }
+    // تمرير طبيعي أو توقف: القرار حسب الموضع — يظهر عند التجاوز ويبقى.
+    if (!_scrollController.hasClients) return;
+    final offset = _scrollController.offset;
+    if (offset > 24 && !HeaderCollapseState.collapsed.value) {
+      HeaderCollapseState.collapsed.value = true;
     }
     final ctx = _tabsKey.currentContext;
     if (ctx == null) return;
     final box = ctx.findRenderObject() as RenderBox?;
     if (box == null || !box.attached) return;
     final pos = box.localToGlobal(Offset.zero).dy;
-    // عتبة الظهور: عندما يقترب أعلى التبويبات من أسفل الهيدر (~140px)
     final shouldShow = pos < 150;
     if (shouldShow != _showStickyTabs) {
       setState(() => _showStickyTabs = shouldShow);
