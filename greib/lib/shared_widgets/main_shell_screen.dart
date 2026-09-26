@@ -132,10 +132,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
     // هذا سيعطي تجربة "Super App" مع زر الموقع، الإشعارات المتطورة، والبحث المدمج.
     return Scaffold(
       backgroundColor: scaffoldBg,
-      // ★ المحتوى يمتد خلف الهيدر وخلف الشريط السفلي معاً —
-      // نفس الفكرة: المحتوى يمر خلفهما مع بلور (extendBodyBehindAppBar).
+      // ★ المحتوى يبدأ تحت الهيدر (مسافة عمودية) ولا يتداخل معه —
+      // يمتد فقط خلف الشريط السفلي العائم.
       extendBody: true,
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: false,
       appBar: SuperHeader(
         title: _currentIndex == 0 ? null : activeTab.title,
         extraActions: _buildHeaderActions(context).map((a) {
@@ -150,23 +150,11 @@ class _MainShellScreenState extends State<MainShellScreen> {
           );
         }).toList(),
       ),
-      // ★ طبقتا تلاشي زجاجي رفيعتان داخل المحتوى (لا تمس الهيدر ولا الشريط):
-      // واحدة تحت الهيدر مباشرة وواحدة فوق الشريط السفلي، حتى يذوب
-      // المحتوى المار خلفهما بسلاسة بدل القطع الحاد.
+      // ★ شريط تلاشي واحد فوق الشريط السفلي فقط — العلوي حُذف لأن
+      // المحتوى لم يعد يمر خلف الهيدر (مسافة عمودية نظيفة بدل التداخل).
       body: Stack(
         children: [
           _buildBody(_currentIndex),
-          const Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 28,
-            child: IgnorePointer(
-              child: _EdgeFadeStrip(
-                fromTop: true,
-              ),
-            ),
-          ),
           const Positioned(
             bottom: 0,
             left: 0,
