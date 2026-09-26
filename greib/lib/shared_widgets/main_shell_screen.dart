@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -5,6 +7,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../core/mock_data/mock_data.dart';
 import '../core/permissions/permissions.dart';
 import '../core/storage/app_prefs.dart';
+import '../core/theme/app_colors.dart';
 import '../features/auth/auth_service.dart';
 import '../features/communication_and_support/chat_screen.dart';
 import '../features/home_and_services/home_screen.dart';
@@ -120,10 +123,17 @@ class _MainShellScreenState extends State<MainShellScreen> {
   @override
   Widget build(BuildContext context) {
     final activeTab = _tabs[_currentIndex];
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final scaffoldBg =
+        isDark ? AppColors.background : AppColors.lightBackground;
 
     // استخدم SuperHeader بدلاً من Header العادي إذا كنا في الشاشة الرئيسية (index 0)
     // هذا سيعطي تجربة "Super App" مع زر الموقع، الإشعارات المتطورة، والبحث المدمج.
-return Scaffold(
+    return Scaffold(
+      backgroundColor: scaffoldBg,
+      // ★ المحتوى يمتد خلف الشريط السفلي العائم فقط حتى يعمل التلاشي عليه.
+      extendBody: true,
       appBar: SuperHeader(
         title: _currentIndex == 0 ? null : activeTab.title,
         extraActions: _buildHeaderActions(context).map((a) {
@@ -138,7 +148,36 @@ return Scaffold(
           );
         }).toList(),
       ),
-      body: _buildBody(_currentIndex),
+      // ★ طبقتا تلاشي زجاجي رفيعتان داخل المحتوى (لا تمس الهيدر ولا الشريط):
+      // واحدة تحت الهيدر مباشرة وواحدة فوق الشريط السفلي، حتى يذوب
+      // المحتوى المار خلفهما بسلاسة بدل القطع الحاد.
+      body: Stack(
+        children: [
+          _buildBody(_currentIndex),
+          const Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 28,
+            child: IgnorePointer(
+              child: _EdgeFadeStrip(
+                fromTop: true,
+              ),
+            ),
+          ),
+          const Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 28,
+            child: IgnorePointer(
+              child: _EdgeFadeStrip(
+                fromTop: false,
+              ),
+            ),
+          ),
+        ],
+      ),
       bottomNavigationBar: FloatingBottomNav(
         currentIndex: _currentIndex,
         onTap: _onTabSelected,
@@ -150,6 +189,36 @@ return Scaffold(
               ),
             )
             .toList(),
+      ),
+    );
+  }
+}
+
+/// ★ شريط تلاشي زجاجي رفيع (Liquid Glass): لون خلفية الثيم الحالي + blur
+/// + تدرج شفافية في طرفه، يوضع على حافة المحتوى فقط.
+class _EdgeFadeStrip extends StatelessWidget {
+  final bool fromTop;
+
+  const _EdgeFadeStrip({
+    required this.fromTop,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // ★ يقرأ لون الخلفية من الثيم الحالي مباشرة (يتحدث مع الوضع الليلي).
+    final baseColor = Theme.of(context).scaffoldBackgroundColor;
+    return ShaderMask(
+      shaderCallback: (rect) {
+        return LinearGradient(
+          begin: fromTop ? Alignment.topCenter : Alignment.bottomCenter,
+          end: fromTop ? Alignment.bottomCenter : Alignment.topCenter,
+          colors: const [Colors.black, Colors.transparent],
+        ).createShader(rect);
+      },
+      blendMode: BlendMode.dstIn,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(color: baseColor.withValues(alpha: 0.7)),
       ),
     );
   }
