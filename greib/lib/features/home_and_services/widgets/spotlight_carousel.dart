@@ -135,6 +135,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   /// أقصى جزء من البطاقة يظهر من الشريحة التالية (فيس بوك: لمحة عن الجار).
   static const double _kMaxPeek = 48;
 
+  /// نصف قطر «كامل» (rounded-full) لخلفيات الأزرار الكبسولية.
+  static const double _kPillRadius = 999;
+
   /// النسبة بين ارتفاع شريحة العرض وارتفاعها (الهاتف) + سقف للعرض.
   static const double _kCardHeightRatio = 0.86;
   static const double _kMinCardHeight = 200;
@@ -650,7 +653,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
 
   /// زر إجراء يملأ ربع عرض البطاقة (مثل فيسبوك) مع تصغير تلقائي للمحتوى
   /// بدل الفيض على الشاشات الضيقة. تمرير `label: null` ⇒ أيقونة فقط متمركزة،
-  /// و`count` ⇒ رقم بجانبها (أرقام لاتينية مثل 40).
+  /// و`count` ⇒ رقم بجانبها (أرقام لاتينية مثل 40). الخلفية «كبسولة» (pill)
+  /// تغطي الأيقونة والرقم/الكلمة معاً.
   Widget _fbActionButton({
     required IconData icon,
     required String? label,
@@ -661,53 +665,54 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     return Expanded(
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(24),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // ★ كل أيقونة داخل دائرة (rounded-full) بلون شفاف من لونها.
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: color.withValues(alpha: 0.12),
-                  ),
-                  alignment: Alignment.center,
-                  child: Icon(icon, size: 18, color: color),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Container(
+                // خلفية موحّدة تغطي الأيقونة والرقم/الكلمة ⇒ rounded-full.
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(_kPillRadius),
                 ),
-                // لا مسافة/نص عند تجاوزها بأيقونة فقط.
-                if (label != null) ...[
-                  const SizedBox(width: 6),
-                  Text(
-                    label,
-                    maxLines: 1,
-                    style: TextStyle(
-                      color: color,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-                if (count != null) ...[
-                  const SizedBox(width: 5),
-                  Text(
-                    count,
-                    maxLines: 1,
-                    style: TextStyle(
-                      // الرقم أخف من الكلمة ⇒ لا يزاحم الأيقونة.
-                      color: color.withValues(alpha: 0.75),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ],
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, size: 18, color: color),
+                    // لا مسافة/نص عند تجاوزها بأيقونة فقط.
+                    if (label != null) ...[
+                      const SizedBox(width: 6),
+                      Text(
+                        label,
+                        maxLines: 1,
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                    if (count != null) ...[
+                      const SizedBox(width: 5),
+                      Text(
+                        count,
+                        maxLines: 1,
+                        style: TextStyle(
+                          // الرقم أخف من الكلمة ⇒ لا يزاحم الأيقونة.
+                          color: color.withValues(alpha: 0.75),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
           ),
         ),
