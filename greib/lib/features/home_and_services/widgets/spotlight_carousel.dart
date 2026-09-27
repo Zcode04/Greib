@@ -548,19 +548,23 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           ),
 
           // ─── 5. أزرار الإجراءات (تفاعلات) ───
-          // زر «طلب الآن» يأخذ ربع البطاقة، وبقية الأيقونات ثلاث في مجموعة
-          // واحدة متقاربة (Expanded لكل واحدة كان يفرّقها).
+          // «طلب الآن» يأخذ ثلث عرض البطاقة (ملتصق بالزاوية)، والمجموعة الثلاث
+          // تأخذ الباقي (⅔) ⇒ أيقونات أكبر ومنطقة لمس مريحة بلا تصغير.
           Row(
             children: [
-              _fbActionButton(
-                icon: LucideIcons.shoppingBag,
-                label: 'طلب الآن',
-                color: serviceColor,
-                onTap: () => context.push(service.route),
+              Expanded(
+                flex: 1,
+                child: _fbActionButton(
+                  icon: LucideIcons.shoppingBag,
+                  label: 'طلب الآن',
+                  color: serviceColor,
+                  onTap: () => context.push(service.route),
+                ),
               ),
               // مسافة فاصلة قبل مجموعة الأيقونات.
               const SizedBox(width: 8),
               Expanded(
+                flex: 2,
                 child: Padding(
                   // ★ مسافة صغيرة من زاوية النهاية حتى لا تلتصق المجموعة بالحافة.
                   padding: const EdgeInsetsDirectional.only(end: 12),
@@ -641,7 +645,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                             ],
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         _fbActionButton(
                           grouped: true,
                           // ★ أيقونة فقط (بلا كلمة): المحادثة مفهومة من الرمز.
@@ -653,7 +657,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                           count: _countFor(service.id, 40, 2),
                           onTap: () => _showCommentsSheet(service),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         _fbActionButton(
                           grouped: true,
                           // ★ أيقونة فقط (بلا كلمة): المشاركة مفهومة من الرمز.
@@ -944,9 +948,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   /// زر إجراء يملأ ربع عرض البطاقة (مثل فيسبوك) مع تصغير تلقائي للمحتوى
   /// بدل الفيض على الشاشات الضيقة. تمرير `label: null` ⇒ أيقونة فقط متمركزة،
   /// و`count` ⇒ رقم بجانبها (أرقام لاتينية مثل 40). الخلفية «كبسولة» (pill)
-  /// تغطي الأيقونة والرقم/الكلمة معاً. `grouped: true` ⇒ بلا `Expanded`
-  /// خاص به، ليُصفّ داخل مجموعة متقاربة؛ الزر المنفرد يلتصق بزاوية البطاقة
-  /// (start) بدل التوسيط وسط ربعه.
+  /// تغطي الأيقونة والرقم/الكلمة معاً. `grouped: true` ⇒ مقاس أكبر (منطقة لمس
+  /// مريحة) بلا محاذاة زاوية؛ والزر المنفرد يلتصق بزاوية البطاقة (start)
+  /// بدل التوسيط.
   Widget _fbActionButton({
     required IconData icon,
     required String? label,
@@ -955,13 +959,19 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     String? count,
     bool grouped = false,
   }) {
+    // ★ المجموعة الثلاث أكبر قليلاً ⇒ منطقة لمس مريحة (≈52px ارتفاع).
+    final iconSize = grouped ? 20.0 : 18.0;
+    final pillHPad = grouped ? 13.0 : 12.0;
+    final pillVPad = grouped ? 8.0 : 7.0;
+    final countSize = grouped ? 12.5 : 12.0;
+
     final pill = InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(24),
       child: Padding(
         // مسافة 12 فقط للزر المنفرد ⇒ يقترب من الزاوية دون ملامستها.
         padding: EdgeInsets.symmetric(
-          vertical: 8,
+          vertical: grouped ? 9 : 8,
           horizontal: grouped ? 0 : 12,
         ),
         child: Align(
@@ -972,7 +982,10 @@ class _SpotlightSectionState extends State<SpotlightSection> {
             fit: BoxFit.scaleDown,
             child: Container(
               // خلفية موحّدة تغطي الأيقونة والرقم/الكلمة ⇒ rounded-full.
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              padding: EdgeInsets.symmetric(
+                horizontal: pillHPad,
+                vertical: pillVPad,
+              ),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(_kPillRadius),
@@ -981,7 +994,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(icon, size: 18, color: color),
+                  Icon(icon, size: iconSize, color: color),
                   // لا مسافة/نص عند تجاوزها بأيقونة فقط.
                   if (label != null) ...[
                     const SizedBox(width: 6),
@@ -1003,7 +1016,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                       style: TextStyle(
                         // الرقم أخف من الكلمة ⇒ لا يزاحم الأيقونة.
                         color: color.withValues(alpha: 0.75),
-                        fontSize: 12,
+                        fontSize: countSize,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -1016,7 +1029,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
       ),
     );
 
-    return grouped ? pill : Expanded(child: pill);
+    return pill;
   }
 
   Widget _spotlightItem(ServiceCategory service) {
