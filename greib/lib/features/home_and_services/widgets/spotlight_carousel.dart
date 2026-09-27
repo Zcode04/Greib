@@ -495,7 +495,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
               _fbActionButton(
                 icon:
                     isFav ? LucideIcons.bookmarkCheck : LucideIcons.bookmarkPlus,
-                label: 'للقائمة',
+                // ★ أيقونة فقط (بلا كلمة): الإضافة للقائمة مفهومة من الرمز.
+                label: null,
                 color: isFav
                     ? serviceColor
                     : (widget.isDark
@@ -611,10 +612,10 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   }
 
   /// زر إجراء يملأ ثلث عرض البطاقة (مثل فيسبوك) مع تصغير تلقائي للمحتوى
-  /// بدل الفيض على الشاشات الضيقة.
+  /// بدل الفيض على الشاشات الضيقة. تمرير `label: null` ⇒ أيقونة فقط متمركزة.
   Widget _fbActionButton({
     required IconData icon,
-    required String label,
+    required String? label,
     required Color color,
     required VoidCallback onTap,
   }) {
@@ -631,16 +632,19 @@ class _SpotlightSectionState extends State<SpotlightSection> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(icon, size: 20, color: color),
-                const SizedBox(width: 6),
-                Text(
-                  label,
-                  maxLines: 1,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                // لا مسافة/نص عند تجاوزها بأيقونة فقط.
+                if (label != null) ...[
+                  const SizedBox(width: 6),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
