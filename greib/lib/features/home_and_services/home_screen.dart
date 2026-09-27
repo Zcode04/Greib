@@ -93,27 +93,30 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     final role = AuthService.instance.currentRole;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.background : AppColors.lightBackground,
+      backgroundColor: isDark
+          ? AppColors.background
+          : AppColors.lightBackground,
       // القائمة الجانبية (Drawer) انتقلت إلى MainShellScreen — مصدر واحد للتنقل.
       body: Stack(
         children: [
           SingleChildScrollView(
             controller: _scrollController,
             clipBehavior: Clip.none,
-            padding: EdgeInsets.fromLTRB(20, MediaQuery.paddingOf(context).top + 24, 20, 110),
+            padding: EdgeInsets.fromLTRB(
+              20,
+              MediaQuery.paddingOf(context).top + 24,
+              20,
+              110,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const AnimatedListItem(
-                  index: 0,
-                  child: HomeScrollStrip(),
-                ),
+                const AnimatedListItem(index: 0, child: HomeScrollStrip()),
                 const SizedBox(height: 14),
                 AnimatedListItem(
                   index: 0,
@@ -130,7 +133,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     showAction: false,
                   ),
                 ),
-                const AnimatedListItem(index: 1, child: LatestProductsCarousel()),
+                const AnimatedListItem(
+                  index: 1,
+                  child: LatestProductsCarousel(),
+                ),
                 const SizedBox(height: 14),
                 // شريط تبويبات المتجر (14 تبويب) مباشرة بعد الأحدث
                 AnimatedListItem(
@@ -144,12 +150,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   index: 1,
                   child: SectionHeader(
                     title: 'المميز عندنا',
-                    icon: LucideIcons.sparkles,
-                    iconColor: AppColors.accentFor(isDark),
+                    // بلا أيقونة، والجملة في منتصف السطر.
+                    centerTitle: true,
                     showAction: false,
                   ),
                 ),
-                AnimatedListItem(index: 1, child: SpotlightSection(isDark: isDark)),
+                AnimatedListItem(
+                  index: 1,
+                  child: SpotlightSection(isDark: isDark),
+                ),
                 const SizedBox(height: 28),
 
                 AnimatedListItem(
@@ -161,7 +170,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     onActionTap: () => context.push('/tourism'),
                   ),
                 ),
-                AnimatedListItem(index: 2, child: HotelsSection(isDark: isDark)),
+                AnimatedListItem(
+                  index: 2,
+                  child: HotelsSection(isDark: isDark),
+                ),
                 const SizedBox(height: 28),
 
                 AnimatedListItem(
@@ -173,7 +185,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     onActionTap: () => context.push('/travel'),
                   ),
                 ),
-                AnimatedListItem(index: 3, child: TravelSection(isDark: isDark)),
+                AnimatedListItem(
+                  index: 3,
+                  child: TravelSection(isDark: isDark),
+                ),
                 const SizedBox(height: 28),
 
                 AnimatedListItem(
@@ -204,10 +219,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       InkWell(
                         borderRadius: BorderRadius.circular(20),
                         onTap: () => setState(
-                            () => _isServicesGridView = !_isServicesGridView),
+                          () => _isServicesGridView = !_isServicesGridView,
+                        ),
                         child: GlassContainer(
                           padding: const EdgeInsets.symmetric(
-                              vertical: 6, horizontal: 12),
+                            vertical: 6,
+                            horizontal: 12,
+                          ),
                           borderRadius: BorderRadius.circular(20),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -242,7 +260,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 14),
                 AnimatedListItem(
                   index: 5,
-                  child: ServicesGridSection(isDark: isDark, isGridView: _isServicesGridView),
+                  child: ServicesGridSection(
+                    isDark: isDark,
+                    isGridView: _isServicesGridView,
+                  ),
                 ),
                 const SizedBox(height: 28),
 
@@ -255,7 +276,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     onActionTap: () => context.push('/shopping'),
                   ),
                 ),
-                const AnimatedListItem(index: 6, child: FeaturedProductsSection()),
+                const AnimatedListItem(
+                  index: 6,
+                  child: FeaturedProductsSection(),
+                ),
                 const SizedBox(height: 28),
 
                 AnimatedListItem(
@@ -291,7 +315,8 @@ class _HomeScreenState extends State<HomeScreen> {
             top: 0,
             left: 0,
             right: 0,
-            height: 180, // ارتفاع ثابت وكبير نسبياً لضمان ظهوره تحت الهيدر الشفاف
+            height:
+                180, // ارتفاع ثابت وكبير نسبياً لضمان ظهوره تحت الهيدر الشفاف
             child: IgnorePointer(
               child: Container(
                 decoration: BoxDecoration(
@@ -300,10 +325,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     end: Alignment.bottomCenter,
                     colors: [
                       isDark ? AppColors.background : AppColors.lightBackground,
-                      isDark ? AppColors.background : AppColors.lightBackground, // لون صلب في البداية
-                      (isDark ? AppColors.background : AppColors.lightBackground).withOpacity(0.0), // شفاف في النهاية
+                      isDark
+                          ? AppColors.background
+                          : AppColors.lightBackground, // لون صلب في البداية
+                      (isDark
+                              ? AppColors.background
+                              : AppColors.lightBackground)
+                          .withOpacity(0.0), // شفاف في النهاية
                     ],
-                    stops: const [0.0, 0.4, 1.0], // يبدأ صلباً ثم يتلاشى للشفافية
+                    stops: const [
+                      0.0,
+                      0.4,
+                      1.0,
+                    ], // يبدأ صلباً ثم يتلاشى للشفافية
                   ),
                 ),
               ),
@@ -317,5 +351,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
 }

@@ -11,6 +11,9 @@ class SectionHeader extends StatelessWidget {
   final IconData? icon;
   final Color? iconColor;
 
+  /// جملة القسم في منتصف السطر وبلا أيقونة (للعناوين البارزة).
+  final bool centerTitle;
+
   const SectionHeader({
     super.key,
     required this.title,
@@ -19,6 +22,7 @@ class SectionHeader extends StatelessWidget {
     this.showAction = true,
     this.icon,
     this.iconColor,
+    this.centerTitle = false,
   });
 
   @override
@@ -35,29 +39,48 @@ class SectionHeader extends StatelessWidget {
         vertical: AppSpacing.md,
       ),
       child: Row(
+        // ★ centerTitle ⇒ الجملة في منتصف السطر بلا أيقونة.
+        mainAxisAlignment: centerTitle
+            ? MainAxisAlignment.center
+            : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          if (icon != null) ...[
-            Container(
-              width: 30,
-              height: 30,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.14),
-                shape: BoxShape.circle,
+          if (centerTitle)
+            Expanded(
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              child: Icon(icon, size: 16, color: color),
+            )
+          else ...[
+            if (icon != null) ...[
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.14),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 16, color: color),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+            ],
+            Flexible(
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-            const SizedBox(width: AppSpacing.sm),
           ],
-          Flexible(
-            child: Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
           if (showAction)
             TextButton(
               onPressed: onActionTap,

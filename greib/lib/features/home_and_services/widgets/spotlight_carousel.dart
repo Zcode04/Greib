@@ -499,7 +499,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
               children: [
                 _reactionChip(LucideIcons.thumbsUp, AppColors.info),
                 const SizedBox(width: 2),
-                _reactionChip(LucideIcons.heart, AppColors.error),
+                _reactionChip(LucideIcons.thumbsDown, AppColors.error),
               ],
             ),
           ),
