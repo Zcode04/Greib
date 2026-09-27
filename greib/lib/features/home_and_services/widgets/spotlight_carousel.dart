@@ -118,42 +118,55 @@ class _SpotlightSectionState extends State<SpotlightSection> {
             ),
           ),
         const SizedBox(height: 12),
-        Center(
-          child: TextButton.icon(
-            style: TextButton.styleFrom(
-              backgroundColor:
-                  (widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark)
-                      .withValues(alpha: 0.1),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+        // ★ زرّان متباعدان على طرفي الصف: «عرض المزيد» في زاوية اليمين
+        // (بداية السطر في الاتجاه من اليمين) وبزر التبديل في الزاوية الأخرى،
+        // والثاني يظهر فقط في وضع المنشورات عند وجود منشورات مخفية.
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            if (_isGridView && _visiblePostsCount < services.length)
+              _softActionButton(
+                icon: LucideIcons.chevronDown,
+                label: 'عرض المزيد',
+                onPressed: () => setState(() => _visiblePostsCount++),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            ),
-            onPressed: () => setState(() => _isGridView = !_isGridView),
-            // ★ تسمية مميزة لا تتكرر مع بقية أزرار الصفحة («عرض المزيد»
-            // تظهر في قسمي الخدمات والمنتجات) + أيقونة تشرح الناتج.
-            icon: Icon(
-              _isGridView
+            _softActionButton(
+              icon: _isGridView
                   ? LucideIcons.galleryHorizontal
                   : LucideIcons.layoutList,
-              size: 16,
-              color: widget.isDark
-                  ? AppColors.neon
-                  : AppColors.accentPrimaryDark,
+              // ★ تسمية مميزة لا تتكرر مع بقية أزرار الصفحة + أيقونة تشرح الناتج.
+              label: _isGridView ? 'عرض الشرائح' : 'عرض كمنشورات',
+              onPressed: () => setState(() => _isGridView = !_isGridView),
             ),
-            label: Text(
-              _isGridView ? 'عرض الشرائح' : 'عرض كمنشورات',
-              style: TextStyle(
-                color: widget.isDark
-                    ? AppColors.neon
-                    : AppColors.accentPrimaryDark,
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-              ),
-            ),
-          ),
+          ],
         ),
       ],
+    );
+  }
+
+  /// زر «ناعم» موحّد الشكل (خلفية شفافة + زوايا دائرية) لزرّي أسفل المنشورات.
+  Widget _softActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    final tint = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+    return TextButton.icon(
+      style: TextButton.styleFrom(
+        backgroundColor: tint.withValues(alpha: 0.1),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+      onPressed: onPressed,
+      icon: Icon(icon, size: 16, color: tint),
+      label: Text(
+        label,
+        style: TextStyle(
+          color: tint,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+      ),
     );
   }
 
@@ -303,44 +316,6 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                         _spotlightPostItem(services[i]),
                   ),
                 ),
-                if (visibleCount < services.length)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16, bottom: 4),
-                    child: TextButton.icon(
-                      style: TextButton.styleFrom(
-                        backgroundColor:
-                            (widget.isDark
-                                    ? AppColors.neon
-                                    : AppColors.accentPrimaryDark)
-                                .withValues(alpha: 0.1),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                      ),
-                      onPressed: () => setState(() => _visiblePostsCount++),
-                      icon: Icon(
-                        LucideIcons.chevronDown,
-                        size: 16,
-                        color: widget.isDark
-                            ? AppColors.neon
-                            : AppColors.accentPrimaryDark,
-                      ),
-                      label: Text(
-                        'عرض المزيد',
-                        style: TextStyle(
-                          color: widget.isDark
-                              ? AppColors.neon
-                              : AppColors.accentPrimaryDark,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
