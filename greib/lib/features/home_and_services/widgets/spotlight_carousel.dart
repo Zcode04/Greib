@@ -57,7 +57,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
 
   /// تعليقات كل منشور (بيانات وهمية + ما يكتبه المستخدم داخل الورقة).
   final Map<String, List<_PostComment>> _comments = {};
-  bool _isGridView = false;
+  bool _isGridView = true;
   int _visiblePostsCount = 2;
 
   @override
