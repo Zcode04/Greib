@@ -492,51 +492,14 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           // نسبة عرض/ارتفاع ثابتة بدل ارتفاع ثابت ⇒ يتكيّف مع أي شاشة.
           _buildPostImage(imageUrl, serviceColor, service),
 
-          // ─── 4. إحصائيات التفاعل ───
-          // Flexible + قصّ النص ⇒ لا فيض على الشاشات الضيقة أو عند تكبير الخط.
+          // ─── 4. أيقونات التفاعل (بلا أعداد) ───
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
             child: Row(
               children: [
-                Flexible(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _reactionChip(LucideIcons.thumbsUp, AppColors.info),
-                      const SizedBox(width: 2),
-                      _reactionChip(LucideIcons.heart, AppColors.error),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          '٢٫١ ألف',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: widget.isDark
-                                ? AppColors.textSecondary
-                                : AppColors.lightTextSecondary,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    '٣٨ تعليق',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.end,
-                    style: TextStyle(
-                      color: widget.isDark
-                          ? AppColors.textSecondary
-                          : AppColors.lightTextSecondary,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
+                _reactionChip(LucideIcons.thumbsUp, AppColors.info),
+                const SizedBox(width: 2),
+                _reactionChip(LucideIcons.heart, AppColors.error),
               ],
             ),
           ),
