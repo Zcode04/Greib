@@ -247,13 +247,14 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                     padding: EdgeInsets.zero,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: visibleCount,
-                    separatorBuilder: (_, _) => SizedBox(
-                      height: 8,
-                      child: ColoredBox(
-                        color: widget.isDark
-                            ? AppColors.background
-                            : AppColors.lightBackground,
-                      ),
+                    separatorBuilder: (_, _) => Divider(
+                      // ★ خلفية المنشور = خلفية التطبيق ⇒ الفاصل رفيع (وليس
+                      // فجوة بلون مطابق) هو ما يفصل المنشورات كما في فيسبوك.
+                      height: 1,
+                      thickness: 1,
+                      color: widget.isDark
+                          ? AppColors.outline
+                          : AppColors.lightOutline,
                     ),
                     itemBuilder: (context, i) => _spotlightPostItem(services[i]),
                   ),
@@ -310,7 +311,10 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80';
 
     return Container(
-      color: widget.isDark ? AppColors.surfaceCard : Colors.white,
+      // ★ خلفية المنشور = خلفية التطبيق نفسها (لا surfaceCard/أبيض) ⇒ تندمج
+      // البطاقة مع الصفحة من طرف لطرف كما في فيسبوك، والضوء البصري يأتي من
+      // الصورة والفواصل فقط.
+      color: widget.isDark ? AppColors.background : AppColors.lightBackground,
       padding: const EdgeInsets.only(top: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -591,14 +595,17 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     return Container(
       width: 20,
       height: 20,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-        border: Border.all(
-          color: widget.isDark ? AppColors.surfaceCard : Colors.white,
-          width: 1.5,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color,
+          border: Border.all(
+            // حد بنفس لون خلفية المنشور (وإلا ظهرت حلقة فاتحة في الوضع الداكن).
+            color: widget.isDark
+                ? AppColors.background
+                : AppColors.lightBackground,
+            width: 1.5,
+          ),
         ),
-      ),
       child: Icon(icon, size: 11, color: Colors.white),
     );
   }
