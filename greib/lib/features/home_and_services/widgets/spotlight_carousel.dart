@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/mock_data/mock_data.dart';
 import '../../../../core/models/service_model.dart';
 import '../../../../core/widgets/app_sheet.dart';
+import '../../communication_and_support/chat_screen.dart';
 import 'package:flutter/gestures.dart' show Drag;
 
 class SpotlightSection extends StatefulWidget {
@@ -205,6 +206,23 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           color: tint,
           fontWeight: FontWeight.w600,
           fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+  /// «طلب الآن» ⇒ محادثة مباشرة مع مقدّم الخدمة (لا الصفحة التعريفية).
+  void _openServiceChat(ServiceCategory service) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (context) => ChatDetailScreen(
+          conversationTitle: service.title,
+          conversationId: 'service_${service.id}',
+          avatar: service.iconName,
+          phone: '',
+          online: true,
+          activity: 'متصل الآن',
+          isGroup: false,
         ),
       ),
     );
@@ -536,7 +554,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                   icon: LucideIcons.shoppingBag,
                   label: 'طلب الآن',
                   color: serviceColor,
-                  onTap: () => context.push(service.route),
+                  onTap: () => _openServiceChat(service),
                 ),
               ),
               // مسافة فاصلة قبل مجموعة الأيقونات.
