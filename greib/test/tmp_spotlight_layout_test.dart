@@ -223,9 +223,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('reaction sheet: tabs for like/dislike with users', (
-    tester,
-  ) async {
+  testWidgets('reaction sheet: two buttons + tabs with counts', (tester) async {
     tester.view.physicalSize = const Size(412, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -234,25 +232,29 @@ void main() {
     await tester.pump();
     await showPosts(tester);
 
-    // ملاحظة: thumbsUp يظهر أيضاً كشارة إحصاء في صف التفاعلات، لذا نختار
-    // العنصر الثاني (أول زر تفاعل في شريط الإجراءات السفلي).
+    // thumbsUp يظهر أيضاً كشارة إحصاء ⇒ نختار زر شريط الإجراءات.
     await tester.tap(find.byIcon(LucideIcons.thumbsUp).at(1));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('تفاعل المنشور'), findsOneWidget);
-    // تبويبان: إعجاب / عدم إعجاب، وكل اسم بجانبه أيقونة تفاعل.
+    // زرّان في الأعلى + تبويب يحمل الأعداد.
     expect(find.text('إعجاب'), findsOneWidget);
     expect(find.text('عدم إعجاب'), findsOneWidget);
-    expect(find.text('سارة'), findsOneWidget);
-    expect(find.byIcon(LucideIcons.thumbsUp), findsWidgets);
+    expect(find.text('إعجاب (6)'), findsOneWidget);
+    expect(find.text('عدم إعجاب (4)'), findsOneWidget);
 
-    // الانتقال للتبويب الثاني يعرض مستخدمي عدم الإعجاب.
-    await tester.tap(find.text('عدم إعجاب'));
+    // الضغط على «إعجاب» يزيد العداد فوراً (6 ← 7).
+    await tester.tap(find.text('إعجاب'));
+    await tester.pump();
+    expect(find.text('إعجاب (7)'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    // التبويب الثاني يعرض مستخدمي عدم الإعجاب.
+    await tester.tap(find.text('عدم إعجاب (4)'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('ليان'), findsOneWidget);
-    expect(find.text('سارة'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -275,14 +277,12 @@ void main() {
     final sheet = find.byType(DraggableScrollableSheet);
     final before = tester.getRect(sheet).height;
 
-    // سحب للأعلى ⇒ الورقة تتوسع (ظهور مساحة أكبر للمحتوى).
     await tester.drag(find.text('سارة'), const Offset(0, -220));
     await tester.pumpAndSettle();
     final after = tester.getRect(sheet).height;
     expect(after, greaterThan(before));
     expect(find.textContaining('التعليقات'), findsOneWidget);
 
-    // سحب للأسفل ⇒ تنكمش الورقة (ولا تختفي المحتوى).
     await tester.drag(find.text('سارة'), const Offset(0, 400));
     await tester.pumpAndSettle();
     expect(tester.getRect(sheet).height, lessThan(after));
@@ -305,55 +305,54 @@ void main() {
     final sheet = find.byType(DraggableScrollableSheet);
     final before = tester.getRect(sheet).height;
 
-    // السحب على رأس الورقة (نص العنوان) للأعلى ⇒ تتوسع.
     await tester.drag(find.textContaining('التعليقات'), const Offset(0, -200));
     await tester.pumpAndSettle();
     final afterUp = tester.getRect(sheet).height;
     expect(afterUp, greaterThan(before));
 
-    // السحب على الرأس للأسفل ⇒ تنكمش.
     await tester.drag(find.textContaining('التعليقات'), const Offset(0, 200));
     await tester.pumpAndSettle();
     expect(tester.getRect(sheet).height, lessThan(afterUp));
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets(
-    'comments sheet: header drag works from the edge, not just center',
-    (tester) async {
-      tester.view.physicalSize = const Size(412, 900);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.reset);
+  testWidgets('comments sheet: header drag works from the edge', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(412, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
 
-      await tester.pumpWidget(host());
+    await tester.pumpWidget(host());
+    await tester.pump();
+    await showPosts(tester);
+
+    await tester.tap(find.byIcon(LucideIcons.messageCircle).first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    final sheet = find.byType(DraggableScrollableSheet);
+    final before = tester.getRect(sheet).height;
+    final headerBox = tester.getRect(
+      find
+          .ancestor(
+            of: find.textContaining('التعليقات'),
+            matching: find.byType(GestureDetector),
+          )
+          .first,
+    );
+
+    final gesture = await tester.startGesture(
+      Offset(headerBox.left + 8, headerBox.center.dy),
+    );
+    for (var i = 0; i < 12; i++) {
+      await gesture.moveBy(const Offset(0, -15));
       await tester.pump();
-      await showPosts(tester);
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(LucideIcons.messageCircle).first);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-
-      final sheet = find.byType(DraggableScrollableSheet);
-      final header = find.ancestor(
-        of: find.textContaining('التعليقات'),
-        matching: find.byType(GestureDetector),
-      );
-      final before = tester.getRect(sheet).height;
-
-      // السحب من طرف الرأس (يسار الورقة) وليس من المنتصف.
-      final headerBox = tester.getRect(header.first);
-      final edge = Offset(headerBox.left + 8, headerBox.center.dy);
-
-      final gesture = await tester.startGesture(edge);
-      for (var i = 0; i < 12; i++) {
-        await gesture.moveBy(const Offset(0, -15));
-        await tester.pump();
-      }
-      await gesture.up();
-      await tester.pumpAndSettle();
-
-      expect(tester.getRect(sheet).height, greaterThan(before));
-      expect(tester.takeException(), isNull);
-    },
-  );
+    expect(tester.getRect(sheet).height, greaterThan(before));
+    expect(tester.takeException(), isNull);
+  });
 }

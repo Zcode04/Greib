@@ -558,57 +558,119 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                             title: 'تفاعل المنشور',
                             draggable: true,
                             options: (sheetContext) => [
-                              // تبويبان: من أعجب / من لم يعجب.
-                              SizedBox(
-                                height: 240,
-                                child: DefaultTabController(
-                                  length: 2,
-                                  child: Column(
+                              // StatefulBuilder ⇒ الزرّان والأعداد تتحدّث فوراً
+                              // داخل الورقة عند تغيير تفاعل المستخدم.
+                              StatefulBuilder(
+                                builder: (context, setSheetState) {
+                                  final current = _reactions[service.id] ?? 0;
+                                  final idle = widget.isDark
+                                      ? AppColors.textSecondary
+                                      : AppColors.lightTextSecondary;
+                                  final likeCount =
+                                      _kMockLikedUsers.length +
+                                      (current == 1 ? 1 : 0);
+                                  final dislikeCount =
+                                      _kMockDislikedUsers.length +
+                                      (current == -1 ? 1 : 0);
+
+                                  return Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      TabBar(
-                                        labelColor: AppColors.info,
-                                        unselectedLabelColor: widget.isDark
-                                            ? AppColors.textSecondary
-                                            : AppColors.lightTextSecondary,
-                                        indicatorColor: AppColors.info,
-                                        indicatorSize: TabBarIndicatorSize.tab,
-                                        dividerColor: widget.isDark
-                                            ? AppColors.outline
-                                            : AppColors.lightOutline,
-                                        labelStyle: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                        tabs: const [
-                                          Tab(text: 'إعجاب'),
-                                          Tab(text: 'عدم إعجاب'),
+                                      // زرّان: إعجاب / عدم إعجاب.
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: _fbActionButton(
+                                              grouped: true,
+                                              icon: LucideIcons.thumbsUp,
+                                              label: 'إعجاب',
+                                              color: current == 1
+                                                  ? AppColors.info
+                                                  : idle,
+                                              onTap: () => setSheetState(() {
+                                                _reactions[service.id] = 1;
+                                                setState(() {});
+                                              }),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: _fbActionButton(
+                                              grouped: true,
+                                              icon: LucideIcons.thumbsDown,
+                                              label: 'عدم إعجاب',
+                                              color: current == -1
+                                                  ? AppColors.error
+                                                  : idle,
+                                              onTap: () => setSheetState(() {
+                                                _reactions[service.id] = -1;
+                                                setState(() {});
+                                              }),
+                                            ),
+                                          ),
                                         ],
                                       ),
-                                      Expanded(
-                                        child: TabBarView(
-                                          children: [
-                                            _reactionUsersList(
-                                              _kMockLikedUsers,
-                                              LucideIcons.thumbsUp,
-                                              AppColors.info,
-                                            ),
-                                            _reactionUsersList(
-                                              _kMockDislikedUsers,
-                                              LucideIcons.thumbsDown,
-                                              AppColors.error,
-                                            ),
-                                          ],
+                                      const SizedBox(height: 14),
+                                      // ★ تبويب يحمل الأعداد: كم إعجاب وكم
+                                      // عدم إعجاب (يتبع تفاعل المستخدم).
+                                      SizedBox(
+                                        height: 240,
+                                        child: DefaultTabController(
+                                          length: 2,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              TabBar(
+                                                labelColor: AppColors.info,
+                                                unselectedLabelColor: idle,
+                                                indicatorColor: AppColors.info,
+                                                indicatorSize:
+                                                    TabBarIndicatorSize.tab,
+                                                dividerColor: widget.isDark
+                                                    ? AppColors.outline
+                                                    : AppColors.lightOutline,
+                                                labelStyle: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                                tabs: [
+                                                  Tab(
+                                                    text: 'إعجاب ($likeCount)',
+                                                  ),
+                                                  Tab(
+                                                    text:
+                                                        'عدم إعجاب ($dislikeCount)',
+                                                  ),
+                                                ],
+                                              ),
+                                              Expanded(
+                                                child: TabBarView(
+                                                  children: [
+                                                    _reactionUsersList(
+                                                      _kMockLikedUsers,
+                                                      LucideIcons.thumbsUp,
+                                                      AppColors.info,
+                                                    ),
+                                                    _reactionUsersList(
+                                                      _kMockDislikedUsers,
+                                                      LucideIcons.thumbsDown,
+                                                      AppColors.error,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ],
-                                  ),
-                                ),
+                                  );
+                                },
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         _fbActionButton(
                           grouped: true,
                           // ★ أيقونة فقط (بلا كلمة): المحادثة مفهومة من الرمز.
