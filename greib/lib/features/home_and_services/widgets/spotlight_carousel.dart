@@ -26,6 +26,17 @@ class SpotlightSection extends StatefulWidget {
   State<SpotlightSection> createState() => _SpotlightSectionState();
 }
 
+/// تعليق واحد داخل ورقة التعليقات (وهمية أو يكتبها المستخدم).
+class _PostComment {
+  const _PostComment(this.author, this.text, {this.mine = false});
+
+  final String author;
+  final String text;
+
+  /// تعليق المستخدم الحالي ⇒ يُعرض بلون مختلف (فقاعة بلون أنعم).
+  final bool mine;
+}
+
 class _SpotlightSectionState extends State<SpotlightSection> {
   /// نسبة عرض الصفحة في الـ PageView تُحسب من العرض المتاح فعلياً (ليست ثابتة)،
   /// لذلك نحتفظ بالقيمة الحالية لإعادة بناء الـ controller عند تغيّر حجم الشاشة.
@@ -41,6 +52,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   /// تفاعل المنشور لكل خدمة: 0 = بلا، 1 = إعجاب، -1 = عدم إعجاب.
   /// دورة الضغط: بلا ← إعجاب ← عدم إعجاب ← بلا.
   final Map<String, int> _reactions = {};
+
+  /// تعليقات كل منشور (بيانات وهمية + ما يكتبه المستخدم داخل الورقة).
+  final Map<String, List<_PostComment>> _comments = {};
   bool _isGridView = false;
   int _visiblePostsCount = 2;
 
@@ -570,38 +584,62 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                               : (reaction > 0
                                     ? AppColors.info
                                     : AppColors.error),
-                      count: _countFor(service.id, 80, 10),
-                      onTap: () => _showPostActionSheet(
-                        icon: reaction >= 0
-                            ? LucideIcons.thumbsUp
-                            : LucideIcons.thumbsDown,
-                        title: 'تفاعل المنشور',
-                        options: (sheetContext) => [
-                          _postSheetOption(
-                            sheetContext,
-                            icon: LucideIcons.thumbsUp,
-                            label: 'إعجاب',
-                            onSelected: () =>
-                                setState(() => _reactions[service.id] = 1),
+                          count: _countFor(service.id, 80, 10),
+                          onTap: () => _showPostActionSheet(
+                            // ★ بلا أيقونة: الجملة وحدها في رأس الورقة.
+                            title: 'تفاعل المنشور',
+                            options: (sheetContext) => [
+                              // تبويبان: من أعجب / من لم يعجب.
+                              SizedBox(
+                                height: 240,
+                                child: DefaultTabController(
+                                  length: 2,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TabBar(
+                                        labelColor: AppColors.info,
+                                        unselectedLabelColor: widget.isDark
+                                            ? AppColors.textSecondary
+                                            : AppColors.lightTextSecondary,
+                                        indicatorColor: AppColors.info,
+                                        indicatorSize:
+                                            TabBarIndicatorSize.tab,
+                                        dividerColor: widget.isDark
+                                            ? AppColors.outline
+                                            : AppColors.lightOutline,
+                                        labelStyle: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                        tabs: const [
+                                          Tab(text: 'إعجاب'),
+                                          Tab(text: 'عدم إعجاب'),
+                                        ],
+                                      ),
+                                      Expanded(
+                                        child: TabBarView(
+                                          children: [
+                                            _reactionUsersList(
+                                              _kMockLikedUsers,
+                                              LucideIcons.thumbsUp,
+                                              AppColors.info,
+                                            ),
+                                            _reactionUsersList(
+                                              _kMockDislikedUsers,
+                                              LucideIcons.thumbsDown,
+                                              AppColors.error,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          _postSheetOption(
-                            sheetContext,
-                            icon: LucideIcons.thumbsDown,
-                            label: 'عدم إعجاب',
-                            onSelected: () =>
-                                setState(() => _reactions[service.id] = -1),
-                          ),
-                          _postSheetOption(
-                            sheetContext,
-                            icon: LucideIcons.x,
-                            label: 'إلغاء التفاعل',
-                            onSelected: () => setState(
-                              () => _reactions.remove(service.id),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                        ),
                         const SizedBox(width: 6),
                         _fbActionButton(
                           grouped: true,
@@ -611,13 +649,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                           color: widget.isDark
                               ? AppColors.textSecondary
                               : AppColors.lightTextSecondary,
-                        count: _countFor(service.id, 40, 2),
-                        onTap: () => _showPostActionSheet(
-                          icon: LucideIcons.messageCircle,
-                          title: 'الرسائل',
-                          hint: 'الدردشة مع «${service.title}» — قريباً.',
+                          count: _countFor(service.id, 40, 2),
+                          onTap: () => _showCommentsSheet(service),
                         ),
-                      ),
                         const SizedBox(width: 6),
                         _fbActionButton(
                           grouped: true,
@@ -627,13 +661,13 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                           color: widget.isDark
                               ? AppColors.textSecondary
                               : AppColors.lightTextSecondary,
-                        count: _countFor(service.id, 20, 1),
-                        onTap: () => _showPostActionSheet(
-                          icon: LucideIcons.repeat2,
-                          title: 'إعادة النشر',
-                          hint: 'نشر رابط «${service.title}» على صفحتك.',
+                          count: _countFor(service.id, 20, 1),
+                          onTap: () => _showPostActionSheet(
+                            icon: LucideIcons.repeat2,
+                            title: 'إعادة النشر',
+                            hint: 'نشر رابط «${service.title}» على صفحتك.',
+                          ),
                         ),
-                      ),
                       ],
                     ),
                   ),
@@ -651,18 +685,42 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   static String _countFor(String id, int span, int min) =>
       (min + id.hashCode.abs() % span).toString();
 
+  /// ★ ورقة التعليقات: Widget حالة مستقل يملك `TextEditingController` بنفسه
+  /// (تحريره في `dispose` لا يدوياً ⇒ لا «استخدام بعد التحرير» عند الإغلاق)،
+  /// وارتفاعها `maxHeight` لا ثابت ⇒ لا فيض عند فتح لوحة المفاتيح.
+  void _showCommentsSheet(ServiceCategory service) {
+    // قائمة قابلة للتوسيع (ليست const) حتى يضيف المستخدم تعليقاته.
+    final list = _comments.putIfAbsent(
+      service.id,
+      () => [
+        const _PostComment('سارة', 'الخدمة ممتازة وسرعة التنفيذ رهيبة.'),
+        const _PostComment('محمد', 'جرّبتها أمس وأنصح فيها بشدة.'),
+        const _PostComment('ريم', 'هل يوجد خصم للمتابعة الشهرية؟'),
+      ],
+    );
+
+    showAppSheet<void>(
+      context,
+      builder: (_) => _CommentsSheet(
+        service: service,
+        isDark: widget.isDark,
+        comments: list,
+      ),
+    );
+  }
+
   /// ★ ورقة سفلية موحّدة (`showAppSheet`) تظهر عند ضغط أيقونة من أزرار
   /// إجراءات المنشور. محتوى الورقة بسيط (عنوان + خيارات/تلميح) قابل للتطوير.
   void _showPostActionSheet({
-    required IconData icon,
+    IconData? icon,
     required String title,
     String? hint,
     List<Widget> Function(BuildContext sheetContext)? options,
   }) {
-    final secondary =
-        widget.isDark ? AppColors.textSecondary : AppColors.lightTextSecondary;
-    final primary =
-        widget.isDark ? AppColors.textPrimary : AppColors.lightText;
+    final secondary = widget.isDark
+        ? AppColors.textSecondary
+        : AppColors.lightTextSecondary;
+    final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
 
     showAppSheet<void>(
       context,
@@ -673,28 +731,22 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(icon, size: 18, color: secondary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      color: primary,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
+            // ★ الأيقونة اختيارية: ورقة التفاعل تعرض الجملة فقط.
+            if (icon != null) ...[
+              Icon(icon, size: 18, color: secondary),
+              const SizedBox(height: 8),
+            ],
+            Text(
+              title,
+              style: TextStyle(
+                color: primary,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             if (hint != null) ...[
               const SizedBox(height: 8),
-              Text(
-                hint,
-                style: TextStyle(color: secondary, fontSize: 13),
-              ),
+              Text(hint, style: TextStyle(color: secondary, fontSize: 13)),
             ],
             if (options != null) ...[
               const SizedBox(height: 8),
@@ -706,38 +758,74 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     );
   }
 
-  /// صف خيار داخل الورقة السفلية (يغلقها ثم ينفّذ الإجراء).
-  Widget _postSheetOption(
-    BuildContext sheetContext, {
-    required IconData icon,
-    required String label,
-    required VoidCallback onSelected,
-  }) {
-    final primary =
-        widget.isDark ? AppColors.textPrimary : AppColors.lightText;
-    return InkWell(
-      onTap: () {
-        Navigator.of(sheetContext).pop();
-        onSelected();
-      },
-      borderRadius: BorderRadius.circular(10),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          children: [
-            Icon(icon, size: 18, color: primary),
-            const SizedBox(width: 10),
-            Text(
-              label,
-              style: TextStyle(
-                color: primary,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+  /// أسماء مستخدمين وهميين (كما يعرض فيسبوك من تفاعلوا مع المنشور).
+  static const List<String> _kMockLikedUsers = [
+    'سارة',
+    'محمد',
+    'ريم',
+    'خالد',
+    'نور',
+    'يوسف',
+  ];
+
+  static const List<String> _kMockDislikedUsers = [
+    'ليان',
+    'عمر',
+    'هدى',
+    'فهد',
+  ];
+
+  /// قائمة مستخدمين داخل التبويب: صورة رمزية (أول حرف) + الاسم + أيقونة
+  /// التفاعل بجانبه (إعجاب أو عدم إعجاب) بنفس لون التبويب.
+  Widget _reactionUsersList(
+    List<String> names,
+    IconData reactionIcon,
+    Color reactionColor,
+  ) {
+    final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
+
+    return ListView.separated(
+      padding: const EdgeInsets.only(top: 8),
+      itemCount: names.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 6),
+      itemBuilder: (context, i) {
+        final name = names[i];
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: reactionColor.withValues(alpha: 0.15),
+                ),
+                child: Text(
+                  name.characters.first,
+                  style: TextStyle(
+                    color: reactionColor,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: primary, fontSize: 14),
+                ),
+              ),
+              // أيقونة التفاعل بجانب الاسم.
+              Icon(reactionIcon, size: 16, color: reactionColor),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -1053,6 +1141,183 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         ),
         child: Icon(icon, size: 16, color: iconColor),
       ),
+    );
+  }
+}
+
+/// ============================================================================
+///  ورقة التعليقات (Bottom Sheet): قائمة تعليقات + حقل إضافة.
+///  Widget حالة مستقل: يملك الـ controller ويحرّره في dispose، وارتفاعه
+///  maxHeight (لا ثابت) ⇒ يتقلّص مع لوحة المفاتيح بدل الفيض، ويختفي نظيفاً
+///  عند الإغلاق (بلا «استخدام بعد التحرير» ولا شريط تحذير في Debug).
+/// ============================================================================
+class _CommentsSheet extends StatefulWidget {
+  const _CommentsSheet({
+    required this.service,
+    required this.isDark,
+    required this.comments,
+  });
+
+  final ServiceCategory service;
+  final bool isDark;
+  final List<_PostComment> comments;
+
+  @override
+  State<_CommentsSheet> createState() => _CommentsSheetState();
+}
+
+class _CommentsSheetState extends State<_CommentsSheet> {
+  final TextEditingController _input = TextEditingController();
+
+  @override
+  void dispose() {
+    _input.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final text = _input.text.trim();
+    if (text.isEmpty) return;
+    setState(() => widget.comments.add(_PostComment('أنت', text, mine: true)));
+    _input.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = widget.service.color;
+    final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
+    final secondary = widget.isDark
+        ? AppColors.textSecondary
+        : AppColors.lightTextSecondary;
+    final line = widget.isDark ? AppColors.outline : AppColors.lightOutline;
+    final screenHeight = MediaQuery.sizeOf(context).height;
+
+    return ConstrainedBox(
+      // أقصى ارتفاع: 55% من الشاشة، ويتقلّص تلقائياً مع لوحة المفاتيح.
+      constraints: BoxConstraints(maxHeight: screenHeight * 0.55),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+            child: Row(
+              children: [
+                Icon(LucideIcons.messagesSquare, size: 18, color: secondary),
+                const SizedBox(width: 8),
+                Text(
+                  'التعليقات (${widget.comments.length})',
+                  style: TextStyle(
+                    color: primary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(height: 1, color: line),
+          Flexible(
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              itemCount: widget.comments.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 10),
+              itemBuilder: (context, i) => _commentRow(widget.comments[i]),
+            ),
+          ),
+          Divider(height: 1, color: line),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 12, 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _input,
+                    minLines: 1,
+                    maxLines: 3,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) => _submit(),
+                    style: TextStyle(color: primary, fontSize: 14),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintText: 'اكتب تعليقاً…',
+                      hintStyle: TextStyle(color: secondary, fontSize: 13),
+                      filled: true,
+                      fillColor: widget.isDark
+                          ? AppColors.surface
+                          : AppColors.lightBackground,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(999),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(999),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: _submit,
+                  icon: Icon(LucideIcons.send, size: 20, color: accent),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// صف تعليق واحد (صورة رمزية + فقاعة نص).
+  Widget _commentRow(_PostComment c) {
+    final accent = widget.service.color;
+    final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: accent.withValues(alpha: 0.15),
+          ),
+          child: Icon(LucideIcons.user, size: 16, color: accent),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: c.mine
+                  ? accent.withValues(alpha: 0.12)
+                  : (widget.isDark ? AppColors.surfaceCard : Colors.white),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  c.author,
+                  style: TextStyle(
+                    color: primary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(c.text, style: TextStyle(color: primary, fontSize: 13)),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
