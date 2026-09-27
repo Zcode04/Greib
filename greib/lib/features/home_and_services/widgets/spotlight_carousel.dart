@@ -545,64 +545,70 @@ class _SpotlightSectionState extends State<SpotlightSection> {
               // مسافة فاصلة قبل مجموعة الأيقونات.
               const SizedBox(width: 8),
               Expanded(
-                child: FittedBox(
-                  // ★ تصغير المجموعة كلها بدل فيضها على الشاشات الضيقة.
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // ★ تفاعل المنشور بجانب بقية الأيقونات: إعجاب ← ضغط ← عدم
-                      // إعجاب ← ضغط ← بلا.
-                      _fbActionButton(
-                        grouped: true,
-                        icon: reaction >= 0
-                            ? LucideIcons.thumbsUp
-                            : LucideIcons.thumbsDown,
-                        label: null,
-                        color: reaction == 0
-                            ? (widget.isDark
-                                  ? AppColors.textSecondary
-                                  : AppColors.lightTextSecondary)
-                            : (reaction > 0 ? AppColors.info : AppColors.error),
-                        count: _countFor(service.id, 80, 10),
-                        onTap: () => setState(() {
-                          final next = switch (reaction) {
-                            0 => 1,
-                            1 => -1,
-                            _ => 0,
-                          };
-                          if (next == 0) {
-                            _reactions.remove(service.id);
-                          } else {
-                            _reactions[service.id] = next;
-                          }
-                        }),
-                      ),
-                      const SizedBox(width: 6),
-                      _fbActionButton(
-                        grouped: true,
-                        // ★ أيقونة فقط (بلا كلمة): المحادثة مفهومة من الرمز.
-                        icon: LucideIcons.messageCircle,
-                        label: null,
-                        color: widget.isDark
-                            ? AppColors.textSecondary
-                            : AppColors.lightTextSecondary,
-                        count: _countFor(service.id, 40, 2),
-                        onTap: () {},
-                      ),
-                      const SizedBox(width: 6),
-                      _fbActionButton(
-                        grouped: true,
-                        // ★ أيقونة فقط (بلا كلمة): المشاركة مفهومة من الرمز.
-                        icon: LucideIcons.repeat2,
-                        label: null,
-                        color: widget.isDark
-                            ? AppColors.textSecondary
-                            : AppColors.lightTextSecondary,
-                        count: _countFor(service.id, 20, 1),
-                        onTap: () {},
-                      ),
-                    ],
+                child: Padding(
+                  // ★ مسافة صغيرة من زاوية النهاية حتى لا تلتصق المجموعة بالحافة.
+                  padding: const EdgeInsetsDirectional.only(end: 12),
+                  child: FittedBox(
+                    // ★ تصغير المجموعة كلها بدل فيضها على الشاشات الضيقة.
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // ★ تفاعل المنشور بجانب بقية الأيقونات: إعجاب ← ضغط ← عدم
+                        // إعجاب ← ضغط ← بلا.
+                        _fbActionButton(
+                          grouped: true,
+                          icon: reaction >= 0
+                              ? LucideIcons.thumbsUp
+                              : LucideIcons.thumbsDown,
+                          label: null,
+                          color: reaction == 0
+                              ? (widget.isDark
+                                    ? AppColors.textSecondary
+                                    : AppColors.lightTextSecondary)
+                              : (reaction > 0
+                                    ? AppColors.info
+                                    : AppColors.error),
+                          count: _countFor(service.id, 80, 10),
+                          onTap: () => setState(() {
+                            final next = switch (reaction) {
+                              0 => 1,
+                              1 => -1,
+                              _ => 0,
+                            };
+                            if (next == 0) {
+                              _reactions.remove(service.id);
+                            } else {
+                              _reactions[service.id] = next;
+                            }
+                          }),
+                        ),
+                        const SizedBox(width: 6),
+                        _fbActionButton(
+                          grouped: true,
+                          // ★ أيقونة فقط (بلا كلمة): المحادثة مفهومة من الرمز.
+                          icon: LucideIcons.messageCircle,
+                          label: null,
+                          color: widget.isDark
+                              ? AppColors.textSecondary
+                              : AppColors.lightTextSecondary,
+                          count: _countFor(service.id, 40, 2),
+                          onTap: () {},
+                        ),
+                        const SizedBox(width: 6),
+                        _fbActionButton(
+                          grouped: true,
+                          // ★ أيقونة فقط (بلا كلمة): المشاركة مفهومة من الرمز.
+                          icon: LucideIcons.repeat2,
+                          label: null,
+                          color: widget.isDark
+                              ? AppColors.textSecondary
+                              : AppColors.lightTextSecondary,
+                          count: _countFor(service.id, 20, 1),
+                          onTap: () {},
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -724,10 +730,14 @@ class _SpotlightSectionState extends State<SpotlightSection> {
       borderRadius: BorderRadius.circular(24),
       child: Padding(
         // مسافة 12 فقط للزر المنفرد ⇒ يقترب من الزاوية دون ملامستها.
-        padding: EdgeInsets.symmetric(vertical: 8, horizontal: grouped ? 0 : 12),
+        padding: EdgeInsets.symmetric(
+          vertical: 8,
+          horizontal: grouped ? 0 : 12,
+        ),
         child: Align(
-          alignment:
-              grouped ? Alignment.center : AlignmentDirectional.centerStart,
+          alignment: grouped
+              ? Alignment.center
+              : AlignmentDirectional.centerStart,
           child: FittedBox(
             fit: BoxFit.scaleDown,
             child: Container(
