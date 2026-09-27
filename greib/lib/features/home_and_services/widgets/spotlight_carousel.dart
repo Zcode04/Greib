@@ -121,143 +121,292 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   }
 
   Widget _buildSpotlightPosts(List<ServiceCategory> services) {
-    final visibleCount = _visiblePostsCount > services.length ? services.length : _visiblePostsCount;
-    return Column(
-      children: [
-        ListView.separated(
-          key: const ValueKey('posts'),
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: visibleCount,
-          separatorBuilder: (_, __) => const SizedBox(height: 16),
-          itemBuilder: (context, i) => _spotlightPostItem(services[i]),
-        ),
-        if (visibleCount < services.length)
-          Padding(
-            padding: const EdgeInsets.only(top: 16),
-            child: TextButton.icon(
-              style: TextButton.styleFrom(
-                backgroundColor: (widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark).withValues(alpha: 0.1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              ),
-              onPressed: () => setState(() => _visiblePostsCount++),
-              icon: Icon(
-                LucideIcons.chevronDown,
-                size: 16,
-                color: widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark,
-              ),
-              label: Text(
-                'عرض المزيد',
-                style: TextStyle(
-                  color: widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
+    final visibleCount =
+        _visiblePostsCount > services.length ? services.length : _visiblePostsCount;
+
+    return Builder(
+      builder: (context) {
+        // عرض الشاشة الكامل — نستخدمه لتمديد البطاقة من طرف لطرف
+        final screenWidth = MediaQuery.sizeOf(context).width;
+        // الصفحة لها padding أفقي 20px من كل جانب
+        const hPad = 20.0;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Transform.translate يزيح البطاقة 20px يساراً بصرياً فقط
+            // بينما Column لا تزال ترى الارتفاع الصحيح → لا تداخل مع المحتوى
+            Transform.translate(
+              offset: const Offset(-hPad, 0),
+              child: SizedBox(
+                width: screenWidth,
+                child: ListView.separated(
+                  key: const ValueKey('posts'),
+                  shrinkWrap: true,
+                  padding: EdgeInsets.zero,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: visibleCount,
+                  separatorBuilder: (_, _) => SizedBox(
+                    height: 8,
+                    child: ColoredBox(
+                      color: widget.isDark
+                          ? AppColors.background
+                          : AppColors.lightBackground,
+                    ),
+                  ),
+                  itemBuilder: (context, i) => _spotlightPostItem(services[i]),
                 ),
               ),
             ),
-          ),
-      ],
+            if (visibleCount < services.length)
+              Padding(
+                padding: const EdgeInsets.only(top: 16, bottom: 4),
+                child: TextButton.icon(
+                  style: TextButton.styleFrom(
+                    backgroundColor: (widget.isDark
+                            ? AppColors.neon
+                            : AppColors.accentPrimaryDark)
+                        .withValues(alpha: 0.1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  ),
+                  onPressed: () => setState(() => _visiblePostsCount++),
+                  icon: Icon(
+                    LucideIcons.chevronDown,
+                    size: 16,
+                    color: widget.isDark
+                        ? AppColors.neon
+                        : AppColors.accentPrimaryDark,
+                  ),
+                  label: Text(
+                    'عرض المزيد',
+                    style: TextStyle(
+                      color: widget.isDark
+                          ? AppColors.neon
+                          : AppColors.accentPrimaryDark,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
   Widget _spotlightPostItem(ServiceCategory service) {
-    final neonColor = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+    final serviceColor = service.color;
+    final isFav = _favoriteServiceIds.contains(service.id);
     
+    // صورة افتراضية للخدمات التي ليس لها صورة
+    final String imageUrl = service.imageUrl ?? 
+        'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80';
+
     return Container(
-      decoration: BoxDecoration(
-        color: widget.isDark ? AppColors.surfaceCard : AppColors.lightSurfaceVariant,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: widget.isDark ? AppColors.outline : AppColors.lightOutline,
-        ),
-      ),
+      color: widget.isDark ? AppColors.surfaceCard : Colors.white,
+      padding: const EdgeInsets.only(top: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header (like FB post header)
+          // ─── 1. رأس المنشور (Profile) ───
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  backgroundColor: neonColor.withValues(alpha: 0.15),
-                  child: Icon(MockData.getIconByName(service.iconName), color: neonColor, size: 20),
+                // صورة الحساب (أيقونة الخدمة)
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: serviceColor.withValues(alpha: 0.15),
+                    border: Border.all(
+                      color: serviceColor.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Icon(
+                    MockData.getIconByName(service.iconName),
+                    color: serviceColor,
+                    size: 20,
+                  ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
+                // اسم الحساب والوقت
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        service.title,
+                        service.title, // مثل: Brandon (توصيل طعام)
                         style: TextStyle(
                           color: widget.isDark ? AppColors.textPrimary : AppColors.lightText,
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
                         ),
                       ),
-                      Text(
-                        service.subtitle,
-                        style: TextStyle(
-                          color: neonColor,
-                          fontSize: 12,
-                        ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Text(
+                            'Greib · منذ ساعتين · ',
+                            style: TextStyle(
+                              color: widget.isDark
+                                  ? AppColors.textSecondary
+                                  : AppColors.lightTextSecondary,
+                              fontSize: 12,
+                            ),
+                          ),
+                          Icon(
+                            LucideIcons.globe,
+                            size: 12,
+                            color: widget.isDark
+                                ? AppColors.textSecondary
+                                : AppColors.lightTextSecondary,
+                          ),
+                        ],
                       ),
                     ],
+                  ),
+                ),
+                // أيقونات الخيارات
+                Icon(
+                  LucideIcons.ellipsis,
+                  color: widget.isDark
+                      ? AppColors.textSecondary
+                      : AppColors.lightTextSecondary,
+                  size: 20,
+                ),
+                const SizedBox(width: 16),
+                Icon(
+                  LucideIcons.x,
+                  color: widget.isDark
+                      ? AppColors.textSecondary
+                      : AppColors.lightTextSecondary,
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // ─── 2. نص المنشور (Post Text) ───
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              service.subtitle, // مثل: My view (من مطعمك المفضل)
+              style: TextStyle(
+                color: widget.isDark ? AppColors.textPrimary : AppColors.lightText,
+                fontSize: 15,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // ─── 3. صورة المنشور (Edge-to-Edge) ───
+          Image.network(
+            imageUrl,
+            width: double.infinity,
+            height: 260,
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) => _buildIconHero(serviceColor, service),
+          ),
+
+          // ─── 4. إحصائيات التفاعل ───
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    _reactionChip(LucideIcons.thumbsUp, AppColors.info),
+                    const SizedBox(width: 2),
+                    _reactionChip(LucideIcons.heart, AppColors.error),
+                    const SizedBox(width: 6),
+                    Text(
+                      '٢٫١ ألف',
+                      style: TextStyle(
+                        color: widget.isDark
+                            ? AppColors.textSecondary
+                            : AppColors.lightTextSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  '٣٨ تعليق',
+                  style: TextStyle(
+                    color: widget.isDark
+                        ? AppColors.textSecondary
+                        : AppColors.lightTextSecondary,
+                    fontSize: 13,
                   ),
                 ),
               ],
             ),
           ),
-          
-          // Image / Content
-          if (service.imageUrl != null)
-            Image.network(
-              service.imageUrl!,
-              height: 200,
-              fit: BoxFit.cover,
-            )
-          else
-            Container(
-              height: 200,
-              color: neonColor.withValues(alpha: 0.1),
-              child: Icon(MockData.getIconByName(service.iconName), color: neonColor, size: 60),
-            ),
-            
-          // Action Buttons
+
+          // فاصل علوي للأزرار
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Divider(
+              height: 1,
+              color: widget.isDark ? AppColors.outline : AppColors.lightOutline,
+            ),
+          ),
+
+          // ─── 5. أزرار الإجراءات (تفاعلات) ───
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _postActionButton(
-                  icon: LucideIcons.shoppingBag,
-                  label: 'طلب الآن',
-                  color: neonColor,
-                  onTap: () => context.push(service.route),
+                Expanded(
+                  child: _fbActionButton(
+                    icon: LucideIcons.shoppingBag,
+                    label: 'طلب الآن',
+                    color: serviceColor,
+                    onTap: () => context.push(service.route),
+                  ),
                 ),
-                _postActionButton(
-                  icon: _favoriteServiceIds.contains(service.id) ? LucideIcons.checkSquare : LucideIcons.bookmarkPlus,
-                  label: 'للقائمة',
-                  color: widget.isDark ? Colors.white70 : AppColors.lightTextSecondary,
-                  onTap: () {
-                    setState(() {
-                      if (_favoriteServiceIds.contains(service.id)) {
+                Expanded(
+                  child: _fbActionButton(
+                    icon: isFav
+                        ? LucideIcons.bookmarkCheck
+                        : LucideIcons.bookmarkPlus,
+                    label: 'للقائمة',
+                    color: isFav
+                        ? serviceColor
+                        : (widget.isDark
+                            ? AppColors.textSecondary
+                            : AppColors.lightTextSecondary),
+                    onTap: () => setState(() {
+                      if (isFav) {
                         _favoriteServiceIds.remove(service.id);
                       } else {
                         _favoriteServiceIds.add(service.id);
                       }
-                    });
-                  },
+                    }),
+                  ),
                 ),
-                _postActionButton(
-                  icon: LucideIcons.share2,
-                  label: 'مشاركة',
-                  color: widget.isDark ? Colors.white70 : AppColors.lightTextSecondary,
-                  onTap: () {},
+                Expanded(
+                  child: _fbActionButton(
+                    icon: LucideIcons.share2,
+                    label: 'مشاركة',
+                    color: widget.isDark
+                        ? AppColors.textSecondary
+                        : AppColors.lightTextSecondary,
+                    onTap: () {},
+                  ),
                 ),
               ],
             ),
@@ -267,7 +416,60 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     );
   }
 
-  Widget _postActionButton({
+  /// Hero Image: fallback لو فشل تحميل الصورة
+  Widget _buildIconHero(Color serviceColor, ServiceCategory service) {
+    return Container(
+      width: double.infinity,
+      height: 260,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            serviceColor.withValues(alpha: 0.22),
+            serviceColor.withValues(alpha: 0.07),
+          ],
+        ),
+      ),
+      child: Center(
+        child: Container(
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: serviceColor.withValues(alpha: 0.18),
+            border: Border.all(
+              color: serviceColor.withValues(alpha: 0.38),
+              width: 2,
+            ),
+          ),
+          child: Icon(
+            MockData.getIconByName(service.iconName),
+            color: serviceColor,
+            size: 48,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _reactionChip(IconData icon, Color color) {
+    return Container(
+      width: 20,
+      height: 20,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        border: Border.all(
+          color: widget.isDark ? AppColors.surfaceCard : Colors.white,
+          width: 1.5,
+        ),
+      ),
+      child: Icon(icon, size: 11, color: Colors.white),
+    );
+  }
+
+  Widget _fbActionButton({
     required IconData icon,
     required String label,
     required Color color,
@@ -275,18 +477,19 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(4),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 18, color: color),
+            Icon(icon, size: 20, color: color),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
                 color: color,
-                fontSize: 12,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
             ),

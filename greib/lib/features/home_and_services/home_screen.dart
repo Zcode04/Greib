@@ -105,6 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           SingleChildScrollView(
             controller: _scrollController,
+            clipBehavior: Clip.none,
             padding: EdgeInsets.fromLTRB(20, MediaQuery.paddingOf(context).top + 24, 20, 110),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
