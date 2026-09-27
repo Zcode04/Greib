@@ -118,25 +118,31 @@ class _SpotlightSectionState extends State<SpotlightSection> {
             ),
           ),
         const SizedBox(height: 12),
-        // ★ زرّان متباعدان على طرفي الصف: «عرض المزيد» في زاوية اليمين
-        // (بداية السطر في الاتجاه من اليمين) وبزر التبديل في الزاوية الأخرى،
-        // والثاني يظهر فقط في وضع المنشورات عند وجود منشورات مخفية.
+        // ★ زرّان يملآن العرض أفقياً (Expanded لكل منهما ⇒ نصف العرض لكل زر)
+        // على طرفي السطر: «عرض المزيد» في زاوية اليمين (بداية السطر في الاتجاه
+        // من اليمين) وبزر التبديل في الزاوية الأخرى، والثاني يظهر فقط في وضع
+        // المنشورات عند وجود منشورات مخفية.
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            if (_isGridView && _visiblePostsCount < services.length)
-              _softActionButton(
-                icon: LucideIcons.chevronDown,
-                label: 'عرض المزيد',
-                onPressed: () => setState(() => _visiblePostsCount++),
+            if (_isGridView && _visiblePostsCount < services.length) ...[
+              Expanded(
+                child: _softActionButton(
+                  icon: LucideIcons.chevronDown,
+                  label: 'عرض المزيد',
+                  onPressed: () => setState(() => _visiblePostsCount++),
+                ),
               ),
-            _softActionButton(
-              icon: _isGridView
-                  ? LucideIcons.galleryHorizontal
-                  : LucideIcons.layoutList,
-              // ★ تسمية مميزة لا تتكرر مع بقية أزرار الصفحة + أيقونة تشرح الناتج.
-              label: _isGridView ? 'عرض الشرائح' : 'عرض كمنشورات',
-              onPressed: () => setState(() => _isGridView = !_isGridView),
+              const SizedBox(width: 10),
+            ],
+            Expanded(
+              child: _softActionButton(
+                icon: _isGridView
+                    ? LucideIcons.galleryHorizontal
+                    : LucideIcons.layoutList,
+                // ★ تسمية مميزة لا تتكرر مع بقية أزرار الصفحة + أيقونة تشرح الناتج.
+                label: _isGridView ? 'عرض الشرائح' : 'عرض كمنشورات',
+                onPressed: () => setState(() => _isGridView = !_isGridView),
+              ),
             ),
           ],
         ),
@@ -156,6 +162,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         backgroundColor: tint.withValues(alpha: 0.1),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        // ★ الزر يملأ نصف العرض ⇒ توسيط المحتوى داخله.
+        alignment: Alignment.center,
       ),
       onPressed: onPressed,
       icon: Icon(icon, size: 16, color: tint),
