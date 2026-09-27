@@ -223,7 +223,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('reaction sheet: tabs for like/dislike with users', (tester) async {
+  testWidgets('reaction sheet: tabs for like/dislike with users', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(412, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -251,6 +253,39 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('ليان'), findsOneWidget);
     expect(find.text('سارة'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('comments sheet: drag up expands, drag down collapses', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(412, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(host());
+    await tester.pump();
+    await showPosts(tester);
+
+    await tester.tap(find.byIcon(LucideIcons.messageCircle).first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.textContaining('التعليقات'), findsOneWidget);
+    final sheet = find.byType(DraggableScrollableSheet);
+    final before = tester.getRect(sheet).height;
+
+    // سحب للأعلى ⇒ الورقة تتوسع (ظهور مساحة أكبر للمحتوى).
+    await tester.drag(find.text('سارة'), const Offset(0, -220));
+    await tester.pumpAndSettle();
+    final after = tester.getRect(sheet).height;
+    expect(after, greaterThan(before));
+    expect(find.textContaining('التعليقات'), findsOneWidget);
+
+    // سحب للأسفل ⇒ تنكمش الورقة (ولا تختفي المحتوى).
+    await tester.drag(find.text('سارة'), const Offset(0, 400));
+    await tester.pumpAndSettle();
+    expect(tester.getRect(sheet).height, lessThan(after));
     expect(tester.takeException(), isNull);
   });
 }

@@ -588,6 +588,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                           onTap: () => _showPostActionSheet(
                             // ★ بلا أيقونة: الجملة وحدها في رأس الورقة.
                             title: 'تفاعل المنشور',
+                            draggable: true,
                             options: (sheetContext) => [
                               // تبويبان: من أعجب / من لم يعجب.
                               SizedBox(
@@ -603,8 +604,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                                             ? AppColors.textSecondary
                                             : AppColors.lightTextSecondary,
                                         indicatorColor: AppColors.info,
-                                        indicatorSize:
-                                            TabBarIndicatorSize.tab,
+                                        indicatorSize: TabBarIndicatorSize.tab,
                                         dividerColor: widget.isDark
                                             ? AppColors.outline
                                             : AppColors.lightOutline,
@@ -710,12 +710,14 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   }
 
   /// ★ ورقة سفلية موحّدة (`showAppSheet`) تظهر عند ضغط أيقونة من أزرار
-  /// إجراءات المنشور. محتوى الورقة بسيط (عنوان + خيارات/تلميح) قابل للتطوير.
+  /// إجراءات المنشور. `draggable: true` ⇒ ورقة ديناميكية: سحب للأعلى للتكبير
+  /// (مع Snap عند مواضع محددة) وسحب للأسفل للإغلاق.
   void _showPostActionSheet({
     IconData? icon,
     required String title,
     String? hint,
     List<Widget> Function(BuildContext sheetContext)? options,
+    bool draggable = false,
   }) {
     final secondary = widget.isDark
         ? AppColors.textSecondary
@@ -724,37 +726,62 @@ class _SpotlightSectionState extends State<SpotlightSection> {
 
     showAppSheet<void>(
       context,
-      scrollControlled: false,
-      builder: (sheetContext) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ★ الأيقونة اختيارية: ورقة التفاعل تعرض الجملة فقط.
-            if (icon != null) ...[
-              Icon(icon, size: 18, color: secondary),
-              const SizedBox(height: 8),
-            ],
-            Text(
-              title,
-              style: TextStyle(
-                color: primary,
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            if (hint != null) ...[
-              const SizedBox(height: 8),
-              Text(hint, style: TextStyle(color: secondary, fontSize: 13)),
-            ],
-            if (options != null) ...[
-              const SizedBox(height: 8),
-              ...options(sheetContext),
-            ],
+      scrollControlled: draggable,
+      builder: (sheetContext) {
+        // رأس الورقة (أيقونة اختيارية + جملة + تلميح) — مشترك بين النمطين.
+        final header = <Widget>[
+          // ★ الأيقونة اختيارية: ورقة التفاعل تعرض الجملة فقط.
+          if (icon != null) ...[
+            Icon(icon, size: 18, color: secondary),
+            const SizedBox(height: 8),
           ],
-        ),
-      ),
+          Text(
+            title,
+            style: TextStyle(
+              color: primary,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          if (hint != null) ...[
+            const SizedBox(height: 8),
+            Text(hint, style: TextStyle(color: secondary, fontSize: 13)),
+          ],
+        ];
+
+        // نمط ديناميكي: الورقة تتبع إصبع السحب وتتمدد/تنكمش.
+        if (draggable) {
+          return _DraggableSheetBody(
+            initialExtent: 0.5,
+            builder: (context, scrollController) => ListView(
+              controller: scrollController,
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+              children: [
+                ...header,
+                if (options != null) ...[
+                  const SizedBox(height: 8),
+                  ...options(sheetContext),
+                ],
+              ],
+            ),
+          );
+        }
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ...header,
+              if (options != null) ...[
+                const SizedBox(height: 8),
+                ...options(sheetContext),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -768,12 +795,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     'يوسف',
   ];
 
-  static const List<String> _kMockDislikedUsers = [
-    'ليان',
-    'عمر',
-    'هدى',
-    'فهد',
-  ];
+  static const List<String> _kMockDislikedUsers = ['ليان', 'عمر', 'هدى', 'فهد'];
 
   /// قائمة مستخدمين داخل التبويب: صورة رمزية (أول حرف) + الاسم + أيقونة
   /// التفاعل بجانبه (إعجاب أو عدم إعجاب) بنفس لون التبويب.
@@ -1190,13 +1212,13 @@ class _CommentsSheetState extends State<_CommentsSheet> {
         ? AppColors.textSecondary
         : AppColors.lightTextSecondary;
     final line = widget.isDark ? AppColors.outline : AppColors.lightOutline;
-    final screenHeight = MediaQuery.sizeOf(context).height;
 
-    return ConstrainedBox(
-      // أقصى ارتفاع: 55% من الشاشة، ويتقلّص تلقائياً مع لوحة المفاتيح.
-      constraints: BoxConstraints(maxHeight: screenHeight * 0.55),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    // ★ ورقة ديناميكية: السحب للأعلى يكشف المزيد، وللأسفل يغلقها، مع Snap.
+    return _DraggableSheetBody(
+      initialExtent: 0.6,
+      snapSizes: const [0.35, 0.6, 0.92],
+      builder: (context, scrollController) => Column(
+        mainAxisSize: MainAxisSize.max,
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
@@ -1216,8 +1238,11 @@ class _CommentsSheetState extends State<_CommentsSheet> {
             ),
           ),
           Divider(height: 1, color: line),
-          Flexible(
+          // ★ القائمة مرتبطة بـ ScrollController الخاص بالورقة ⇒ السحب داخلها
+          // يمرّرها أولاً، وبعد نهايتها يوسّع/يصغّر الورقة.
+          Expanded(
             child: ListView.separated(
+              controller: scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               itemCount: widget.comments.length,
               separatorBuilder: (_, _) => const SizedBox(height: 10),
@@ -1225,6 +1250,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
             ),
           ),
           Divider(height: 1, color: line),
+          // حقل التعليق + زر الإرسال (ثابت أسفل الورقة لا يمرّر).
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 12, 12),
             child: Row(
@@ -1318,6 +1344,42 @@ class _CommentsSheetState extends State<_CommentsSheet> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// ============================================================================
+///  جسم ورقة سفلية ديناميكي (Draggable): ارتفاعه نسبة من الشاشة ويتغيّر مع
+///  السحب — للأعلى تكبير (حتى 92%) مع Snap عند مواضع محددة، وللأسفل تصغير
+///  حتى الإغلاق. `builder` يستلم `ScrollController` الخاص بالورقة لربطه
+///  بالقائمة الداخلية فتمرّر قائمة التعليقات نفسها.
+/// ============================================================================
+class _DraggableSheetBody extends StatelessWidget {
+  const _DraggableSheetBody({
+    required this.builder,
+    this.initialExtent = 0.5,
+    this.snapSizes = const [0.32, 0.5, 0.92],
+  });
+
+  final Widget Function(BuildContext context, ScrollController controller)
+  builder;
+  final double initialExtent;
+  final List<double> snapSizes;
+
+  static const double _kMinExtent = 0.32;
+  static const double _kMaxExtent = 0.92;
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: initialExtent,
+      minChildSize: _kMinExtent,
+      maxChildSize: _kMaxExtent,
+      // ★ Snap: يتوقف عند المواضع المحددة (تجربة احترافية) بدل التوقف العشوائي.
+      snap: true,
+      snapSizes: snapSizes,
+      builder: (context, controller) => builder(context, controller),
     );
   }
 }
