@@ -288,4 +288,72 @@ void main() {
     expect(tester.getRect(sheet).height, lessThan(after));
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('comments sheet: header is draggable too', (tester) async {
+    tester.view.physicalSize = const Size(412, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(host());
+    await tester.pump();
+    await showPosts(tester);
+
+    await tester.tap(find.byIcon(LucideIcons.messageCircle).first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    final sheet = find.byType(DraggableScrollableSheet);
+    final before = tester.getRect(sheet).height;
+
+    // السحب على رأس الورقة (نص العنوان) للأعلى ⇒ تتوسع.
+    await tester.drag(find.textContaining('التعليقات'), const Offset(0, -200));
+    await tester.pumpAndSettle();
+    final afterUp = tester.getRect(sheet).height;
+    expect(afterUp, greaterThan(before));
+
+    // السحب على الرأس للأسفل ⇒ تنكمش.
+    await tester.drag(find.textContaining('التعليقات'), const Offset(0, 200));
+    await tester.pumpAndSettle();
+    expect(tester.getRect(sheet).height, lessThan(afterUp));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'comments sheet: header drag works from the edge, not just center',
+    (tester) async {
+      tester.view.physicalSize = const Size(412, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(host());
+      await tester.pump();
+      await showPosts(tester);
+
+      await tester.tap(find.byIcon(LucideIcons.messageCircle).first);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      final sheet = find.byType(DraggableScrollableSheet);
+      final header = find.ancestor(
+        of: find.textContaining('التعليقات'),
+        matching: find.byType(GestureDetector),
+      );
+      final before = tester.getRect(sheet).height;
+
+      // السحب من طرف الرأس (يسار الورقة) وليس من المنتصف.
+      final headerBox = tester.getRect(header.first);
+      final edge = Offset(headerBox.left + 8, headerBox.center.dy);
+
+      final gesture = await tester.startGesture(edge);
+      for (var i = 0; i < 12; i++) {
+        await gesture.moveBy(const Offset(0, -15));
+        await tester.pump();
+      }
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(sheet).height, greaterThan(before));
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

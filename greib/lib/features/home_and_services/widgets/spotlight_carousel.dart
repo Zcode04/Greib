@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/mock_data/mock_data.dart';
 import '../../../../core/models/service_model.dart';
 import '../../../../core/widgets/app_sheet.dart';
+import 'package:flutter/gestures.dart' show Drag;
 
 class SpotlightSection extends StatefulWidget {
   final bool isDark;
@@ -752,6 +753,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         // نمط ديناميكي: الورقة تتبع إصبع السحب وتتمدد/تنكمش.
         if (draggable) {
           return _DraggableSheetBody(
+            // ★ مواضع Snap متقاربة ⇒ أي مسافة سحب تقفز لأقرب موضع بدل
+            // الرجوع للوضع الابتدائي (ما كان يوهم بأن التوسيع لا يعمل).
             initialExtent: 0.5,
             builder: (context, scrollController) => ListView(
               controller: scrollController,
@@ -1216,25 +1219,31 @@ class _CommentsSheetState extends State<_CommentsSheet> {
     // ★ ورقة ديناميكية: السحب للأعلى يكشف المزيد، وللأسفل يغلقها، مع Snap.
     return _DraggableSheetBody(
       initialExtent: 0.6,
-      snapSizes: const [0.35, 0.6, 0.92],
+      snapSizes: const [0.35, 0.45, 0.55, 0.6, 0.7, 0.8, 0.92],
       builder: (context, scrollController) => Column(
         mainAxisSize: MainAxisSize.max,
+        // ★ stretch ⇒ الرأس والفواصل تأخذ عرض الورقة كله (منطقة سحب كاملة).
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-            child: Row(
-              children: [
-                Icon(LucideIcons.messagesSquare, size: 18, color: secondary),
-                const SizedBox(width: 8),
-                Text(
-                  'التعليقات (${widget.comments.length})',
-                  style: TextStyle(
-                    color: primary,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
+          // ★ الرأس منطقة سحب أيضاً: للأعلى توسّع الورقة، ولأسفل تصغيرها.
+          _SheetDragArea(
+            controller: scrollController,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+              child: Row(
+                children: [
+                  Icon(LucideIcons.messagesSquare, size: 18, color: secondary),
+                  const SizedBox(width: 8),
+                  Text(
+                    'التعليقات (${widget.comments.length})',
+                    style: TextStyle(
+                      color: primary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           Divider(height: 1, color: line),
@@ -1358,7 +1367,7 @@ class _DraggableSheetBody extends StatelessWidget {
   const _DraggableSheetBody({
     required this.builder,
     this.initialExtent = 0.5,
-    this.snapSizes = const [0.32, 0.5, 0.92],
+    this.snapSizes = const [0.32, 0.42, 0.5, 0.6, 0.7, 0.8, 0.92],
   });
 
   final Widget Function(BuildContext context, ScrollController controller)
@@ -1380,6 +1389,70 @@ class _DraggableSheetBody extends StatelessWidget {
       snap: true,
       snapSizes: snapSizes,
       builder: (context, controller) => builder(context, controller),
+    );
+  }
+}
+
+/// ============================================================================
+///  منطقة سحب داخل الورقة (مثل رأسها): تنشئ نشاط سحب حقيقي
+///  (`ScrollPosition.drag`) على نفس `ScrollController` الخاص بـ
+///  `DraggableScrollableSheet`، فيصبح السحب للأعلى توسّعاً ولأسفل
+///  تصغيراً/إغلاقاً — تماماً كالسحب على القوائم نفسها.
+/// ============================================================================
+class _SheetDragArea extends StatefulWidget {
+  const _SheetDragArea({required this.controller, required this.child});
+
+  final ScrollController controller;
+  final Widget child;
+
+  @override
+  State<_SheetDragArea> createState() => _SheetDragAreaState();
+}
+
+class _SheetDragAreaState extends State<_SheetDragArea> {
+  Drag? _drag;
+
+  @override
+  void dispose() {
+    _drag?.cancel();
+    _drag = null;
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      // ★ عرض كامل ⇒ منطقة السحب تغطي كل عرض الرأس (وليس النص في المنتصف فقط).
+      width: double.infinity,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        excludeFromSemantics: true,
+        onVerticalDragStart: (details) {
+          // ★ نشاط سحب رسمي للإطار ⇒ لا تحذيرات عند إعادة توجيه السحب،
+          // والـ Snap/animation يعملان كما لو سحبت القائمة نفسها.
+          _drag = widget.controller.position.drag(details, () => _drag = null);
+        },
+        onVerticalDragUpdate: (details) {
+          _drag?.update(
+            DragUpdateDetails(
+              delta: Offset(0, details.delta.dy),
+              primaryDelta: details.delta.dy,
+              globalPosition: details.globalPosition,
+              sourceTimeStamp: details.sourceTimeStamp,
+            ),
+          );
+        },
+        onVerticalDragEnd: (details) {
+          // إنهاء السحب ⇒ إطلاق الـ Snap على أقرب موضع.
+          _drag?.end(details);
+          _drag = null;
+        },
+        onVerticalDragCancel: () {
+          _drag?.cancel();
+          _drag = null;
+        },
+        child: widget.child,
+      ),
     );
   }
 }
