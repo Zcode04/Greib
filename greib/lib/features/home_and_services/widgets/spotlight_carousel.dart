@@ -30,8 +30,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   /// لذلك نحتفظ بالقيمة الحالية لإعادة بناء الـ controller عند تغيّر حجم الشاشة.
   static const double _kDefaultViewportFraction = 0.84;
 
-  PageController _spotlightController =
-      PageController(viewportFraction: _kDefaultViewportFraction);
+  PageController _spotlightController = PageController(
+    viewportFraction: _kDefaultViewportFraction,
+  );
   double? _spotlightViewportFraction = _kDefaultViewportFraction;
   int _spotlightIndex = 0;
   final Set<String> _favoriteServiceIds = {};
@@ -80,7 +81,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
               mainAxisSize: MainAxisSize.min,
               children: List.generate(services.length, (i) {
                 final active = i == _spotlightIndex;
-                final neonColor = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+                final neonColor = widget.isDark
+                    ? AppColors.neon
+                    : AppColors.accentPrimaryDark;
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 220),
                   margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -89,7 +92,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                   decoration: BoxDecoration(
                     color: active
                         ? neonColor
-                        : (widget.isDark ? Colors.white24 : AppColors.lightOutline),
+                        : (widget.isDark
+                              ? Colors.white24
+                              : AppColors.lightOutline),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 );
@@ -100,7 +105,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         Center(
           child: TextButton.icon(
             style: TextButton.styleFrom(
-              backgroundColor: (widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark).withValues(alpha: 0.1),
+              backgroundColor:
+                  (widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark)
+                      .withValues(alpha: 0.1),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -110,14 +117,20 @@ class _SpotlightSectionState extends State<SpotlightSection> {
             // ★ تسمية مميزة لا تتكرر مع بقية أزرار الصفحة («عرض المزيد»
             // تظهر في قسمي الخدمات والمنتجات) + أيقونة تشرح الناتج.
             icon: Icon(
-              _isGridView ? LucideIcons.galleryHorizontal : LucideIcons.layoutList,
+              _isGridView
+                  ? LucideIcons.galleryHorizontal
+                  : LucideIcons.layoutList,
               size: 16,
-              color: widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark,
+              color: widget.isDark
+                  ? AppColors.neon
+                  : AppColors.accentPrimaryDark,
             ),
             label: Text(
               _isGridView ? 'عرض الشرائح' : 'عرض كمنشورات',
               style: TextStyle(
-                color: widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark,
+                color: widget.isDark
+                    ? AppColors.neon
+                    : AppColors.accentPrimaryDark,
                 fontWeight: FontWeight.w600,
                 fontSize: 12,
               ),
@@ -154,12 +167,15 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         final bleed = widget.horizontalBleed.clamp(0.0, available / 2);
         final viewportWidth = available + bleed * 2;
         // الهاتف: 84% من العرض (مع لمحة عن التالي). العريض: عمود مقروء متمركز.
-        final cardWidth =
-            (viewportWidth * _kDefaultViewportFraction).clamp(
-                    0.0, _kMaxPostWidth);
+        final cardWidth = (viewportWidth * _kDefaultViewportFraction).clamp(
+          0.0,
+          _kMaxPostWidth,
+        );
         final peek = (viewportWidth - cardWidth).clamp(0.0, _kMaxPeek);
-        final height =
-            (cardWidth * _kCardHeightRatio).clamp(_kMinCardHeight, _kMaxCardHeight);
+        final height = (cardWidth * _kCardHeightRatio).clamp(
+          _kMinCardHeight,
+          _kMaxCardHeight,
+        );
         // النسبة نسبةً لعرض الـ PageView نفسه (cardWidth + peek) لا لعرض الشاشة.
         final fraction = cardWidth / (cardWidth + peek);
 
@@ -213,13 +229,16 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     if (_spotlightViewportFraction == fraction) return;
     _spotlightViewportFraction = fraction;
     _spotlightController.dispose();
-    _spotlightController =
-        PageController(viewportFraction: fraction, initialPage: _spotlightIndex);
+    _spotlightController = PageController(
+      viewportFraction: fraction,
+      initialPage: _spotlightIndex,
+    );
   }
 
   Widget _buildSpotlightPosts(List<ServiceCategory> services) {
-    final visibleCount =
-        _visiblePostsCount > services.length ? services.length : _visiblePostsCount;
+    final visibleCount = _visiblePostsCount > services.length
+        ? services.length
+        : _visiblePostsCount;
 
     return LayoutBuilder(
       // ★ التجاوب: العرض المتاح فعلياً من الـ LayoutBuilder (لا MediaQuery)
@@ -232,8 +251,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         final screenWidth = available + bleed * 2;
         // الهاتف: يملأ العرض كله (فيس بوك). التابلت/العريض: عمود
         // بعرض مقروء ومتمركز.
-        final postWidth =
-            screenWidth > _kMaxPostWidth ? _kMaxPostWidth : screenWidth;
+        final postWidth = screenWidth > _kMaxPostWidth
+            ? _kMaxPostWidth
+            : screenWidth;
 
         return OverflowBox(
           alignment: Alignment.center,
@@ -263,7 +283,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                           ? AppColors.outline
                           : AppColors.lightOutline,
                     ),
-                    itemBuilder: (context, i) => _spotlightPostItem(services[i]),
+                    itemBuilder: (context, i) =>
+                        _spotlightPostItem(services[i]),
                   ),
                 ),
                 if (visibleCount < services.length)
@@ -271,15 +292,18 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                     padding: const EdgeInsets.only(top: 16, bottom: 4),
                     child: TextButton.icon(
                       style: TextButton.styleFrom(
-                        backgroundColor: (widget.isDark
-                                ? AppColors.neon
-                                : AppColors.accentPrimaryDark)
-                            .withValues(alpha: 0.1),
+                        backgroundColor:
+                            (widget.isDark
+                                    ? AppColors.neon
+                                    : AppColors.accentPrimaryDark)
+                                .withValues(alpha: 0.1),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                       ),
                       onPressed: () => setState(() => _visiblePostsCount++),
                       icon: Icon(
@@ -313,9 +337,10 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     final serviceColor = service.color;
     final isFav = _favoriteServiceIds.contains(service.id);
     final reaction = _reactions[service.id] ?? 0;
-    
+
     // صورة افتراضية للخدمات التي ليس لها صورة
-    final String imageUrl = service.imageUrl ?? 
+    final String imageUrl =
+        service.imageUrl ??
         'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80';
 
     return Container(
@@ -362,7 +387,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: widget.isDark ? AppColors.textPrimary : AppColors.lightText,
+                          color: widget.isDark
+                              ? AppColors.textPrimary
+                              : AppColors.lightText,
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
                         ),
@@ -406,14 +433,19 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                   }),
                   borderRadius: BorderRadius.circular(6),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
                     child: Icon(
-                      isFav ? LucideIcons.bookmarkCheck : LucideIcons.bookmarkPlus,
+                      isFav
+                          ? LucideIcons.bookmarkCheck
+                          : LucideIcons.bookmarkPlus,
                       color: isFav
                           ? serviceColor
                           : (widget.isDark
-                              ? AppColors.textSecondary
-                              : AppColors.lightTextSecondary),
+                                ? AppColors.textSecondary
+                                : AppColors.lightTextSecondary),
                       size: 20,
                     ),
                   ),
@@ -430,7 +462,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
             child: Text(
               service.subtitle, // مثل: My view (من مطعمك المفضل)
               style: TextStyle(
-                color: widget.isDark ? AppColors.textPrimary : AppColors.lightText,
+                color: widget.isDark
+                    ? AppColors.textPrimary
+                    : AppColors.lightText,
                 fontSize: 15,
               ),
             ),
@@ -498,7 +532,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           ),
 
           // ─── 5. أزرار الإجراءات (تفاعلات) ───
-          // تملأ عرض البطاقة كاملاً (4 أزرار متساوية) بدون حشو جانبي.
+          // زر «طلب الآن» يأخذ ربع البطاقة، وبقية الأيقونات ثلاث في مجموعة
+          // واحدة متقاربة (Expanded لكل واحدة كان يفرّقها).
           Row(
             children: [
               _fbActionButton(
@@ -507,51 +542,69 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                 color: serviceColor,
                 onTap: () => context.push(service.route),
               ),
-              // ★ تفاعل المنشور بجانب بقية الأيقونات: إعجاب ← ضغط ← عدم
-              // إعجاب ← ضغط ← بلا.
-              _fbActionButton(
-                icon: reaction >= 0
-                    ? LucideIcons.thumbsUp
-                    : LucideIcons.thumbsDown,
-                label: null,
-                color: reaction == 0
-                    ? (widget.isDark
-                        ? AppColors.textSecondary
-                        : AppColors.lightTextSecondary)
-                    : (reaction > 0 ? AppColors.info : AppColors.error),
-                count: _countFor(service.id, 80, 10),
-                onTap: () => setState(() {
-                  final next = switch (reaction) {
-                    0 => 1,
-                    1 => -1,
-                    _ => 0,
-                  };
-                  if (next == 0) {
-                    _reactions.remove(service.id);
-                  } else {
-                    _reactions[service.id] = next;
-                  }
-                }),
-              ),
-              _fbActionButton(
-                // ★ أيقونة فقط (بلا كلمة): المحادثة مفهومة من الرمز.
-                icon: LucideIcons.messageCircle,
-                label: null,
-                color: widget.isDark
-                    ? AppColors.textSecondary
-                    : AppColors.lightTextSecondary,
-                count: _countFor(service.id, 40, 2),
-                onTap: () {},
-              ),
-              _fbActionButton(
-                // ★ أيقونة فقط (بلا كلمة): المشاركة مفهومة من الرمز.
-                icon: LucideIcons.repeat2,
-                label: null,
-                color: widget.isDark
-                    ? AppColors.textSecondary
-                    : AppColors.lightTextSecondary,
-                count: _countFor(service.id, 20, 1),
-                onTap: () {},
+              // مسافة فاصلة قبل مجموعة الأيقونات.
+              const SizedBox(width: 8),
+              Expanded(
+                child: FittedBox(
+                  // ★ تصغير المجموعة كلها بدل فيضها على الشاشات الضيقة.
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // ★ تفاعل المنشور بجانب بقية الأيقونات: إعجاب ← ضغط ← عدم
+                      // إعجاب ← ضغط ← بلا.
+                      _fbActionButton(
+                        grouped: true,
+                        icon: reaction >= 0
+                            ? LucideIcons.thumbsUp
+                            : LucideIcons.thumbsDown,
+                        label: null,
+                        color: reaction == 0
+                            ? (widget.isDark
+                                  ? AppColors.textSecondary
+                                  : AppColors.lightTextSecondary)
+                            : (reaction > 0 ? AppColors.info : AppColors.error),
+                        count: _countFor(service.id, 80, 10),
+                        onTap: () => setState(() {
+                          final next = switch (reaction) {
+                            0 => 1,
+                            1 => -1,
+                            _ => 0,
+                          };
+                          if (next == 0) {
+                            _reactions.remove(service.id);
+                          } else {
+                            _reactions[service.id] = next;
+                          }
+                        }),
+                      ),
+                      const SizedBox(width: 6),
+                      _fbActionButton(
+                        grouped: true,
+                        // ★ أيقونة فقط (بلا كلمة): المحادثة مفهومة من الرمز.
+                        icon: LucideIcons.messageCircle,
+                        label: null,
+                        color: widget.isDark
+                            ? AppColors.textSecondary
+                            : AppColors.lightTextSecondary,
+                        count: _countFor(service.id, 40, 2),
+                        onTap: () {},
+                      ),
+                      const SizedBox(width: 6),
+                      _fbActionButton(
+                        grouped: true,
+                        // ★ أيقونة فقط (بلا كلمة): المشاركة مفهومة من الرمز.
+                        icon: LucideIcons.repeat2,
+                        label: null,
+                        color: widget.isDark
+                            ? AppColors.textSecondary
+                            : AppColors.lightTextSecondary,
+                        count: _countFor(service.id, 20, 1),
+                        onTap: () {},
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
@@ -568,7 +621,10 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   /// صورة المنشور بنسبة عرض/ارتفاع ثابتة (فيس بوك) ⇒ تتبع عرض البطاقة على
   /// أي شاشة، وتدعم روابط الشبكة ومسارات الأصول المحلية معاً.
   Widget _buildPostImage(
-      String imageUrl, Color serviceColor, ServiceCategory service) {
+    String imageUrl,
+    Color serviceColor,
+    ServiceCategory service,
+  ) {
     final isAsset = imageUrl.startsWith('assets/');
 
     return AspectRatio(
@@ -577,14 +633,12 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           ? Image.asset(
               imageUrl,
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) =>
-                  _buildIconHero(serviceColor, service),
+              errorBuilder: (_, _, _) => _buildIconHero(serviceColor, service),
             )
           : Image.network(
               imageUrl,
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) =>
-                  _buildIconHero(serviceColor, service),
+              errorBuilder: (_, _, _) => _buildIconHero(serviceColor, service),
             ),
     );
   }
@@ -636,17 +690,17 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     return Container(
       width: 20,
       height: 20,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color,
-          border: Border.all(
-            // حد بنفس لون خلفية المنشور (وإلا ظهرت حلقة فاتحة في الوضع الداكن).
-            color: widget.isDark
-                ? AppColors.background
-                : AppColors.lightBackground,
-            width: 1.5,
-          ),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        border: Border.all(
+          // حد بنفس لون خلفية المنشور (وإلا ظهرت حلقة فاتحة في الوضع الداكن).
+          color: widget.isDark
+              ? AppColors.background
+              : AppColors.lightBackground,
+          width: 1.5,
         ),
+      ),
       child: Icon(icon, size: 11, color: Colors.white),
     );
   }
@@ -654,74 +708,81 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   /// زر إجراء يملأ ربع عرض البطاقة (مثل فيسبوك) مع تصغير تلقائي للمحتوى
   /// بدل الفيض على الشاشات الضيقة. تمرير `label: null` ⇒ أيقونة فقط متمركزة،
   /// و`count` ⇒ رقم بجانبها (أرقام لاتينية مثل 40). الخلفية «كبسولة» (pill)
-  /// تغطي الأيقونة والرقم/الكلمة معاً.
+  /// تغطي الأيقونة والرقم/الكلمة معاً. `grouped: true` ⇒ بلا `Expanded`
+  /// خاص به، ليُصفّ داخل مجموعة متقاربة؛ الزر المنفرد يلتصق بزاوية البطاقة
+  /// (start) بدل التوسيط وسط ربعه.
   Widget _fbActionButton({
     required IconData icon,
     required String? label,
     required Color color,
     required VoidCallback onTap,
     String? count,
+    bool grouped = false,
   }) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Center(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Container(
-                // خلفية موحّدة تغطي الأيقونة والرقم/الكلمة ⇒ rounded-full.
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(_kPillRadius),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(icon, size: 18, color: color),
-                    // لا مسافة/نص عند تجاوزها بأيقونة فقط.
-                    if (label != null) ...[
-                      const SizedBox(width: 6),
-                      Text(
-                        label,
-                        maxLines: 1,
-                        style: TextStyle(
-                          color: color,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
+    final pill = InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(24),
+      child: Padding(
+        // مسافة 12 فقط للزر المنفرد ⇒ يقترب من الزاوية دون ملامستها.
+        padding: EdgeInsets.symmetric(vertical: 8, horizontal: grouped ? 0 : 12),
+        child: Align(
+          alignment:
+              grouped ? Alignment.center : AlignmentDirectional.centerStart,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Container(
+              // خلفية موحّدة تغطي الأيقونة والرقم/الكلمة ⇒ rounded-full.
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(_kPillRadius),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 18, color: color),
+                  // لا مسافة/نص عند تجاوزها بأيقونة فقط.
+                  if (label != null) ...[
+                    const SizedBox(width: 6),
+                    Text(
+                      label,
+                      maxLines: 1,
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
                       ),
-                    ],
-                    if (count != null) ...[
-                      const SizedBox(width: 5),
-                      Text(
-                        count,
-                        maxLines: 1,
-                        style: TextStyle(
-                          // الرقم أخف من الكلمة ⇒ لا يزاحم الأيقونة.
-                          color: color.withValues(alpha: 0.75),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                    ),
                   ],
-                ),
+                  if (count != null) ...[
+                    const SizedBox(width: 5),
+                    Text(
+                      count,
+                      maxLines: 1,
+                      style: TextStyle(
+                        // الرقم أخف من الكلمة ⇒ لا يزاحم الأيقونة.
+                        color: color.withValues(alpha: 0.75),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ),
         ),
       ),
     );
+
+    return grouped ? pill : Expanded(child: pill);
   }
 
   Widget _spotlightItem(ServiceCategory service) {
-    final neonColor = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+    final neonColor = widget.isDark
+        ? AppColors.neon
+        : AppColors.accentPrimaryDark;
     final isFav = _favoriteServiceIds.contains(service.id);
 
     return GlassContainer(
@@ -787,7 +848,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: widget.isDark ? AppColors.textPrimary : AppColors.lightText,
+                color: widget.isDark
+                    ? AppColors.textPrimary
+                    : AppColors.lightText,
                 fontWeight: FontWeight.w700,
                 fontSize: 15,
               ),
@@ -813,7 +876,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                   icon: LucideIcons.heart,
                   iconColor: isFav
                       ? AppColors.error
-                      : (widget.isDark ? Colors.white70 : AppColors.lightTextSecondary),
+                      : (widget.isDark
+                            ? Colors.white70
+                            : AppColors.lightTextSecondary),
                   filledBackground: isFav
                       ? AppColors.error.withValues(alpha: 0.15)
                       : null,
