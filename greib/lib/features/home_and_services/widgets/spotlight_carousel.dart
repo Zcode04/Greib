@@ -490,7 +490,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
 
           // ─── 3. صورة المنشور (Edge-to-Edge) ───
           // نسبة عرض/ارتفاع ثابتة بدل ارتفاع ثابت ⇒ يتكيّف مع أي شاشة.
-          _buildPostImage(imageUrl, serviceColor, service),
+          _buildPostImagesGallery(imageUrl, serviceColor, service),
 
           // ─── 4. أيقونات التفاعل (بلا أعداد) ───
           Padding(
@@ -883,28 +883,109 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     );
   }
 
-  /// صورة المنشور بنسبة عرض/ارتفاع ثابتة (فيس بوك) ⇒ تتبع عرض البطاقة على
-  /// أي شاشة، وتدعم روابط الشبكة ومسارات الأصول المحلية معاً.
-  Widget _buildPostImage(
+  /// ★ صور البطاقة: كل ما هو مرفق بها (`imageUrls`) أو الصورة الأساسية.
+  List<String> _postImages(ServiceCategory service, String fallback) {
+    final extra = service.imageUrls
+        .where((e) => e.trim().isNotEmpty)
+        .toList(growable: false);
+    if (extra.isEmpty) return [fallback];
+    return [service.imageUrl ?? fallback, ...extra];
+  }
+
+  /// صورة واحدة (شبكة أو أصل) مع بديل أيقونة عند فشل التحميل.
+  Widget _postImageTile(
+    String url,
+    Color serviceColor,
+    ServiceCategory service, {
+    BoxFit fit = BoxFit.cover,
+  }) {
+    return url.startsWith('assets/')
+        ? Image.asset(
+            url,
+            fit: fit,
+            errorBuilder: (_, _, _) => _buildIconHero(serviceColor, service),
+          )
+        : Image.network(
+            url,
+            fit: fit,
+            errorBuilder: (_, _, _) => _buildIconHero(serviceColor, service),
+          );
+  }
+
+  /// معرض صور المنشور: صورة واحدة بنسبة ثابتة، أو صورتان جنباً إلى جنب
+  /// (فيس بوك)، وكلها تفتح معاينة كاملة عند الضغط.
+  Widget _buildPostImagesGallery(
     String imageUrl,
     Color serviceColor,
     ServiceCategory service,
   ) {
-    final isAsset = imageUrl.startsWith('assets/');
+    final images = _postImages(service, imageUrl);
 
-    return AspectRatio(
-      aspectRatio: 1.5,
-      child: isAsset
-          ? Image.asset(
-              imageUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => _buildIconHero(serviceColor, service),
-            )
-          : Image.network(
-              imageUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => _buildIconHero(serviceColor, service),
+    void openPreview() => _openImagePreview(images, service: service);
+
+    if (images.length == 1) {
+      return InkWell(
+        onTap: openPreview,
+        child: AspectRatio(
+          aspectRatio: 1.5,
+          child: _postImageTile(images.first, serviceColor, service),
+        ),
+      );
+    }
+
+    // صورتان+: شبكة بصفّين ⇒ مساحة كبيرة لكل صورة.
+    return InkWell(
+      onTap: openPreview,
+      child: AspectRatio(
+        aspectRatio: 1.5,
+        child: Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: _postImageTile(images[0], serviceColor, service),
             ),
+            const SizedBox(width: 2),
+            Expanded(
+              flex: 2,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: _postImageTile(
+                      images.length > 1 ? images[1] : images.first,
+                      serviceColor,
+                      service,
+                    ),
+                  ),
+                  if (images.length > 2) ...[
+                    const SizedBox(height: 2),
+                    Expanded(
+                      child: _postImageTile(images[2], serviceColor, service),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// ★ معاينة كاملة للصور: شاشة سوداء + PageView (سحب بين الصور) + عدّاد
+  /// وزر إغلاق + تكبير/تصغير بالمزدوج.
+  void _openImagePreview(
+    List<String> images, {
+    required ServiceCategory service,
+  }) {
+    showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'معاينة الصور',
+      barrierColor: Colors.black.withValues(alpha: 0.92),
+      pageBuilder: (_, _, _) =>
+          _ImagePreviewDialog(images: images, service: service),
+      transitionBuilder: (_, animation, _, child) =>
+          FadeTransition(opacity: animation, child: child),
     );
   }
 
@@ -1490,6 +1571,165 @@ class _SheetDragAreaState extends State<_SheetDragArea> {
           _drag = null;
         },
         child: widget.child,
+      ),
+    );
+  }
+}
+
+/// ============================================================================
+///  معاينة صور البطاقة: شاشة كاملة سوداء مع PageView للتنقل بين الصور،
+///  عدّاد «2/3»، زر إغلاق، وتكبير/تصغير بالمزدوج (InteractiveViewer).
+///  تدعم روابط الشبكة ومسارات الأصول المحلية معاً (مع بديل أيقونة).
+/// ============================================================================
+class _ImagePreviewDialog extends StatefulWidget {
+  const _ImagePreviewDialog({required this.images, required this.service});
+
+  final List<String> images;
+  final ServiceCategory service;
+
+  @override
+  State<_ImagePreviewDialog> createState() => _ImagePreviewDialogState();
+}
+
+class _ImagePreviewDialogState extends State<_ImagePreviewDialog> {
+  late final PageController _page = PageController(initialPage: 0);
+  late int _index = 0;
+
+  // ★ التكبير بالنقر المزدوج: بدون تكبير لا يوجد InteractiveViewer إطلاقاً،
+  // حتى لا يبتلع السحب الأفقي (التنقل بين الصور). بعد التكبير يعمل السحب
+  // لتحريك الصورة داخلها.
+  final TransformationController _zoom = TransformationController();
+  int? _zoomedIndex;
+
+  void _toggleZoom(int index) {
+    setState(() {
+      if (_zoomedIndex == index) {
+        _zoomedIndex = null;
+        _zoom.value = Matrix4.identity();
+      } else {
+        _zoomedIndex = index;
+        _zoom.value = Matrix4.identity()..scaleByDouble(2.2, 2.2, 1, 1);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _page.dispose();
+    _zoom.dispose();
+    super.dispose();
+  }
+
+  /// بديل أيقونة عند فشل تحميل الصورة.
+  Widget _fallback() => Center(
+    child: Icon(
+      MockData.getIconByName(widget.service.iconName),
+      size: 72,
+      color: widget.service.color,
+    ),
+  );
+
+  Widget _image(String url) {
+    if (url.startsWith('assets/')) {
+      return Image.asset(
+        url,
+        fit: BoxFit.contain,
+        errorBuilder: (_, _, _) => _fallback(),
+      );
+    }
+    return Image.network(
+      url,
+      fit: BoxFit.contain,
+      loadingBuilder: (context, child, progress) => progress == null
+          ? child
+          : const Center(
+              child: SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+      errorBuilder: (_, _, _) => _fallback(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final many = widget.images.length > 1;
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          PageView.builder(
+            controller: _page,
+            itemCount: widget.images.length,
+            onPageChanged: (i) => setState(() => _index = i),
+            itemBuilder: (context, i) {
+              final image = Center(child: _image(widget.images[i]));
+              return GestureDetector(
+                onDoubleTap: () => _toggleZoom(i),
+                child: _zoomedIndex == i
+                    ? InteractiveViewer(
+                        transformationController: _zoom,
+                        minScale: 1,
+                        maxScale: 4,
+                        clipBehavior: Clip.none,
+                        child: image,
+                      )
+                    : image,
+              );
+            },
+          ),
+          // عدّاد الصور.
+          PositionedDirectional(
+            top: MediaQuery.paddingOf(context).top + 8,
+            start: 16,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.16),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                '${_index + 1}/${widget.images.length}',
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+          ),
+          // زر الإغلاق.
+          PositionedDirectional(
+            top: MediaQuery.paddingOf(context).top + 4,
+            end: 8,
+            child: IconButton(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.close, color: Colors.white),
+            ),
+          ),
+          if (many)
+            Positioned(
+              bottom: MediaQuery.paddingOf(context).bottom + 16,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  widget.images.length,
+                  (i) => AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: i == _index ? 18 : 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(
+                        alpha: i == _index ? 1 : 0.5,
+                      ),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

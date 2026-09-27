@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:greib_menk/features/home_and_services/widgets/spotlight_carousel.dart';
 import 'package:greib_menk/shared_widgets/glass_container.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:greib_menk/core/mock_data/mock_data.dart';
 
 Widget host() {
   return MaterialApp(
@@ -353,6 +354,90 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.getRect(sheet).height, greaterThan(before));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('post images: preview opens and pages through images', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(412, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    // منشور مرفق به أكثر من صورة (بيانات وهمية MockData).
+    final multi = MockData.services.firstWhere((s) => s.imageUrls.length > 1);
+    expect(multi.imageUrls.length, greaterThan(1));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            clipBehavior: Clip.none,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: const Directionality(
+              textDirection: TextDirection.rtl,
+              child: SpotlightSection(isDark: true),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.text('عرض كمنشورات'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // الضغط على صورة البطاقة يفتح المعاينة الكاملة مع العدّاد.
+    // معرض الصور المتعدد = InkWell يلف AspectRatio بداخله أكثر من صورة.
+    Finder? gallery;
+    Finder? findMultiGallery() {
+      final ratios = find.byWidgetPredicate(
+        (w) => w is AspectRatio && w.aspectRatio == 1.5,
+      );
+      for (var i = 0; i < ratios.evaluate().length; i++) {
+        final ar = ratios.at(i);
+        if (find
+                .descendant(of: ar, matching: find.byType(Image))
+                .evaluate()
+                .length >
+            1) {
+          return find.ancestor(of: ar, matching: find.byType(InkWell)).first;
+        }
+      }
+      return null;
+    }
+
+    // تحميل منشورات إضافية حتى يظهر المنشور متعدد الصور.
+    gallery = findMultiGallery();
+    for (var i = 0; i < 6 && gallery == null; i++) {
+      final more = find.text('عرض المزيد');
+      if (more.evaluate().isEmpty) break;
+      await tester.ensureVisible(more.first);
+      await tester.pumpAndSettle();
+      await tester.tap(more.first);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      gallery = findMultiGallery();
+    }
+    expect(gallery, isNotNull, reason: 'لم يُعرض منشور متعدد الصور');
+
+    await tester.ensureVisible(gallery!);
+    await tester.pumpAndSettle();
+    await tester.tap(gallery);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('1/${multi.imageUrls.length + 1}'), findsOneWidget);
+
+    // السحب ينقل الصورة التالية.
+    // في RTL: السحب لليسار ينقل للصورة التالية.
+    await tester.drag(find.byType(PageView), const Offset(-300, 0));
+    await tester.pumpAndSettle();
+    expect(find.text('2/${multi.imageUrls.length + 1}'), findsOneWidget);
+
+    // زر الإغلاق يغلق المعاينة.
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+    expect(find.text('1/${multi.imageUrls.length + 1}'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

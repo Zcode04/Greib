@@ -9,6 +9,9 @@ class ServiceCategory {
   final String route;
   final String? imageUrl;
 
+  /// صور إضافية مرفقة بالبطاقة (معرض صور) — اختيارية.
+  final List<String> imageUrls;
+
   const ServiceCategory({
     required this.id,
     required this.title,
@@ -17,5 +20,6 @@ class ServiceCategory {
     required this.color,
     required this.route,
     this.imageUrl,
+    this.imageUrls = const [],
   });
 }
