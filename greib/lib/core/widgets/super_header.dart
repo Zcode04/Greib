@@ -83,7 +83,7 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                   actions: [
                     Padding(
                       padding: EdgeInsets.symmetric(
-                          horizontal: AppSpacing.sm,
+                          horizontal: AppSpacing.md,
                           vertical: collapsed ? 10 : 14),
                       child: Container(
                         decoration: BoxDecoration(

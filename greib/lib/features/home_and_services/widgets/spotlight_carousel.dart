@@ -1067,7 +1067,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   }) {
     // ★ المجموعة الثلاث أكبر قليلاً ⇒ منطقة لمس مريحة (≈52px ارتفاع).
     final iconSize = grouped ? 20.0 : 18.0;
-    final pillHPad = grouped ? 13.0 : 12.0;
+    // ★ توسيع أفقي للخلفية فقط (الأيقونة/الرقم بلا تغيير) ⇒ مظهر أنيق ومتوازن.
+    final pillHPad = grouped ? 22.0 : 12.0;
     final pillVPad = grouped ? 8.0 : 7.0;
     final countSize = grouped ? 12.5 : 12.0;
 

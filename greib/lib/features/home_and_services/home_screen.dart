@@ -7,7 +7,6 @@ import '../../features/auth/auth_service.dart';
 import '../../core/widgets/header_collapse_state.dart';
 import '../../shared_widgets/animated_background.dart';
 import '../../shared_widgets/featured_products_section.dart';
-import '../../shared_widgets/store_category_tabs.dart';
 import '../../shared_widgets/latest_products_carousel.dart';
 import '../../shared_widgets/glass_container.dart';
 import '../../shared_widgets/section_header.dart';
@@ -133,16 +132,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     showAction: false,
                   ),
                 ),
-                const AnimatedListItem(
-                  index: 1,
-                  child: LatestProductsCarousel(),
-                ),
-                const SizedBox(height: 14),
-                // شريط تبويبات المتجر (14 تبويب) مباشرة بعد الأحدث
+                // مرجع التمرير: التبويبات اللاصقة تظهر عند تجاوز هذا القسم.
                 AnimatedListItem(
                   key: _tabsKey,
                   index: 1,
-                  child: const StoreCategoryTabs(),
+                  child: const LatestProductsCarousel(),
                 ),
                 const SizedBox(height: 28),
 
