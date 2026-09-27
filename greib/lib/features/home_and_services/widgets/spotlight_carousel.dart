@@ -86,7 +86,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
               ? _buildSpotlightPosts(services)
               : _buildSpotlightCarousel(services),
         ),
-        const SizedBox(height: 10),
+        // ★ في وضع المنشورات نقترب من أزرار التفاعل أسفل آخر منشور.
+        SizedBox(height: _isGridView ? 0 : 10),
         if (!_isGridView)
           // ★ FittedBox ⇒ تتقلّص النقاط تلقائياً بدل فيض الصف على الشاشات
           // الضيقة (27 شريحة × 12px تتجاوز عرض الهاتف).
@@ -117,34 +118,65 @@ class _SpotlightSectionState extends State<SpotlightSection> {
               }),
             ),
           ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         // ★ زرّان يملآن العرض أفقياً (Expanded لكل منهما ⇒ نصف العرض لكل زر)
         // على طرفي السطر: «عرض المزيد» في زاوية اليمين (بداية السطر في الاتجاه
         // من اليمين) وبزر التبديل في الزاوية الأخرى، والثاني يظهر فقط في وضع
-        // المنشورات عند وجود منشورات مخفية.
-        Row(
-          children: [
-            if (_isGridView && _visiblePostsCount < services.length) ...[
-              Expanded(
-                child: _softActionButton(
-                  icon: LucideIcons.chevronDown,
-                  label: 'عرض المزيد',
-                  onPressed: () => setState(() => _visiblePostsCount++),
+        // المنشورات عند وجود منشورات مخفية. الصف يتمدّد لحواف الشاشة (مثل
+        // البطاقة تماماً) ليبقى بنفس عرض المنشور ويزداد العرض الأفقي.
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final available = constraints.maxWidth.isFinite
+                ? constraints.maxWidth
+                : MediaQuery.sizeOf(context).width - widget.horizontalBleed * 2;
+            final bleed = widget.horizontalBleed.clamp(0.0, available / 2);
+            final fullWidth = available + bleed * 2;
+            return OverflowBox(
+              alignment: Alignment.center,
+              fit: OverflowBoxFit.deferToChild,
+              minWidth: fullWidth,
+              maxWidth: fullWidth,
+              child: SizedBox(
+                width: fullWidth,
+                child: Row(
+                  children: [
+                    if (_isGridView && _visiblePostsCount < services.length) ...[
+                      Expanded(
+                        child: Padding(
+                          // ★ الزر ينحصر داخل نصفه (بلا ملامسة حواف البطاقة)
+                          // حتى لا تتداخل زواياه المدوّرة مع عناصر الجوار.
+                          padding: const EdgeInsetsDirectional.only(
+                            start: 0,
+                            end: 4,
+                          ),
+                          child: _softActionButton(
+                            icon: LucideIcons.chevronDown,
+                            label: 'عرض المزيد',
+                            onPressed: () =>
+                                setState(() => _visiblePostsCount++),
+                          ),
+                        ),
+                      ),
+                    ],
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsetsDirectional.only(start: 4),
+                        child: _softActionButton(
+                          icon: _isGridView
+                              ? LucideIcons.galleryHorizontal
+                              : LucideIcons.layoutList,
+                          // ★ تسمية مميزة لا تتكرر مع بقية أزرار الصفحة + أيقونة تشرح الناتج.
+                          label: _isGridView ? 'عرض الشرائح' : 'عرض كمنشورات',
+                          onPressed: () =>
+                              setState(() => _isGridView = !_isGridView),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 10),
-            ],
-            Expanded(
-              child: _softActionButton(
-                icon: _isGridView
-                    ? LucideIcons.galleryHorizontal
-                    : LucideIcons.layoutList,
-                // ★ تسمية مميزة لا تتكرر مع بقية أزرار الصفحة + أيقونة تشرح الناتج.
-                label: _isGridView ? 'عرض الشرائح' : 'عرض كمنشورات',
-                onPressed: () => setState(() => _isGridView = !_isGridView),
-              ),
-            ),
-          ],
+            );
+          },
         ),
       ],
     );
@@ -161,8 +193,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
       style: TextButton.styleFrom(
         backgroundColor: tint.withValues(alpha: 0.1),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        // ★ الزر يملأ نصف العرض ⇒ توسيط المحتوى داخله.
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+        // ★ الزر يملأ عرضه ⇒ توسيط المحتوى داخله.
         alignment: Alignment.center,
       ),
       onPressed: onPressed,
