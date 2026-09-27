@@ -388,6 +388,22 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 }
 
+/// معاينة منشور خدمة تُعرض كمرفق في صندوق الكتابة عند فتح المحادثة من
+/// زر «طلب الآن»، وتبقى هناك حتى يرسلها المستخدم بنفسه (نصاً أو تسجيلاً صوتياً).
+class ChatPostPreview {
+  final String title;
+  final String subtitle;
+  final String? imageUrl;
+  final Color color;
+
+  const ChatPostPreview({
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    this.imageUrl,
+  });
+}
+
 class ChatDetailScreen extends StatefulWidget {
   final String conversationTitle;
   final String conversationId;
@@ -396,6 +412,9 @@ class ChatDetailScreen extends StatefulWidget {
   final bool online;
   final String activity;
   final bool isGroup;
+
+  /// مرفق «طلب الآن»: يُعرض في صندوق الكتابة ولا يُرسل إلا بضغط المستخدم.
+  final ChatPostPreview? postPreview;
 
   const ChatDetailScreen({
     super.key,
@@ -406,6 +425,7 @@ class ChatDetailScreen extends StatefulWidget {
     required this.online,
     required this.activity,
     required this.isGroup,
+    this.postPreview,
   });
 
   @override
@@ -439,6 +459,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
 
   // ---- Real image attachment ----
   final ImagePicker _imagePicker = ImagePicker();
+
+  // معاينة المنشور القادمة من زر «طلب الآن»: تظهر كمرفق في صندوق الكتابة،
+  // وتبقى حتى يضغط المستخدم الإرسال (نصاً أو تسجيلاً صوتياً) أو يحذفها.
+  ChatPostPreview? _pendingPost;
 
   // Tracks which voice bubble is currently playing, so starting one
   // pauses any other that's playing — same behaviour as WhatsApp.
@@ -504,6 +528,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   @override
   void initState() {
     super.initState();
+    // ★ «طلب الآن» يفتح المحادثة ومعه معاينة المنشور ⇒ نضعها كمرفق «بانتظار
+    // الإرسال» حتى لا تُرسل تلقائياً؛ المستخدم يختار الإرسال (نصاً/صوتاً).
+    _pendingPost = widget.postPreview;
     // لاحظ ظهور/اختفاء لوحة المفاتيح لإعادة التمرير لأسفل تلقائياً.
     WidgetsBinding.instance.addObserver(this);
   }
@@ -836,6 +863,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   }
 
   void _sendVoiceMessage(String audioPath, int duration) {
+    final post = _pendingPost;
     setState(() {
       _messages.add({
         'id': 'm${DateTime.now().millisecondsSinceEpoch}',
@@ -846,8 +874,17 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
         'duration': duration,
         'time': 'الآن',
         'isMine': true,
+        // ★ إن بقي مرفق المنشور ⇒ يُرسَلان معاً (صورة + تفاصيل + تسجيل صوتي).
+        if (post != null) ...{
+          'isPost': true,
+          'postTitle': post.title,
+          'postSubtitle': post.subtitle,
+          'postImageUrl': post.imageUrl,
+          'postColor': post.color.toARGB32(),
+        },
       });
     });
+    _pendingPost = null;
     _scrollToBottom();
     _simulateReply();
   }
@@ -977,18 +1014,36 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
 
   void _sendMessage() {
     final text = _messageController.text.trim();
-    if (text.isEmpty) return;
+    final post = _pendingPost;
+    // ★ المرفق يعمل كرسالة صالحة بذاته ⇒ الإرسال متاح حتى بلا كتابة نص.
+    if (text.isEmpty && post == null) return;
 
     setState(() {
-      _messages.add({
-        'id': 'm${DateTime.now().millisecondsSinceEpoch}',
-        'sender': 'أنت',
-        'content': text,
-        'time': 'الآن',
-        'isMine': true,
-      });
+      if (post != null) {
+        _messages.add({
+          'id': 'm${DateTime.now().millisecondsSinceEpoch}',
+          'sender': 'أنت',
+          'content': text,
+          'time': 'الآن',
+          'isMine': true,
+          'isPost': true,
+          'postTitle': post.title,
+          'postSubtitle': post.subtitle,
+          'postImageUrl': post.imageUrl,
+          'postColor': post.color.toARGB32(),
+        });
+      } else {
+        _messages.add({
+          'id': 'm${DateTime.now().millisecondsSinceEpoch}',
+          'sender': 'أنت',
+          'content': text,
+          'time': 'الآن',
+          'isMine': true,
+        });
+      }
     });
 
+    _pendingPost = null;
     _messageController.clear();
     _scrollToBottom();
     _simulateReply();
@@ -1171,7 +1226,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   }
 
   Widget _buildComposer(ThemeData theme) {
-    final hasText = _messageController.text.isNotEmpty;
+    final pendingPost = _pendingPost;
+    // ★ المرفق يُعدّ محتوى قابلاً للإرسال ⇒ زر الإرسال يظهر حتى بلا نص.
+    final hasText =
+        _messageController.text.isNotEmpty || pendingPost != null;
     // شاشات أفقية ضيقة الارتفاع: نقلّص الحشوة الرأسية لتفادي طفح شريط التسجيل.
     final vPad = _isLandscape(context) ? AppSpacing.xs : AppSpacing.sm;
     final vPadMd = _isLandscape(context) ? AppSpacing.sm : AppSpacing.md;
@@ -1290,9 +1348,20 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
           ),
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+      // ★ معاينة المنشور فوق صندوق الكتابة (أفقياً) وتبقى بانتظار الإرسال.
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
+          if (pendingPost != null) ...[
+            _PostAttachmentBar(
+              preview: pendingPost,
+              onRemove: () => setState(() => _pendingPost = null),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+          ],
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
           Container(
             width: 40,
             height: 40,
@@ -1354,6 +1423,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
               tooltip: hasText ? 'إرسال' : 'تسجيل صوتي',
             ),
           ),
+            ],
+          ),
         ],
       ),
     );
@@ -1363,6 +1434,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     final isMine = msg['isMine'] as bool;
     final isVoice = msg['isVoice'] as bool? ?? false;
     final isImage = msg['isImage'] as bool? ?? false;
+    final isPost = msg['isPost'] as bool? ?? false;
 
     return Align(
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
@@ -1391,7 +1463,115 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                   ),
                 ),
               ),
-            if (isImage)
+            if (isPost)
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: isMine
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(AppRadii.md),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // تفاصيل المنشور: صورته (إن وُجدت) + عنوانه ونصه.
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (msg['postImageUrl'] != null)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(AppRadii.sm),
+                            child: SizedBox(
+                              width: 64,
+                              height: 64,
+                              child: Image.network(
+                                msg['postImageUrl'] as String,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) =>
+                                    _postFallback(msg, isMine),
+                              ),
+                            ),
+                          ),
+                        if (msg['postImageUrl'] != null)
+                          const SizedBox(width: AppSpacing.sm),
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                msg['postTitle'] as String,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: isMine
+                                      ? Colors.white
+                                      : theme.colorScheme.onSurface,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                msg['postSubtitle'] as String,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: isMine
+                                      ? Colors.white70
+                                      : theme.colorScheme.onSurfaceVariant,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    // نص الرسالة (إن كتبه المستخدم) أو الرسالة الصوتية المرفقة.
+                    if (isVoice)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.xs),
+                        child: _VoiceMessageBubble(
+                          id: msg['id'] as String,
+                          audioPath: msg['audioPath'] as String?,
+                          durationSeconds: msg['duration'] as int? ?? 0,
+                          isMine: isMine,
+                          time: msg['time'] as String,
+                          currentlyPlayingId: _currentlyPlayingId,
+                        ),
+                      )
+                    else if ((msg['content'] as String? ?? '').isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.xs),
+                        child: Text(
+                          msg['content'] as String,
+                          style: TextStyle(
+                            color: isMine
+                                ? Colors.white
+                                : theme.colorScheme.onSurface,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    if (!isVoice) ...[
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        msg['time'] as String,
+                        style: TextStyle(
+                          color: isMine
+                              ? Colors.white70
+                              : theme.colorScheme.onSurfaceVariant,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              )
+            else if (isImage)
               Container(
                 padding: const EdgeInsets.all(AppSpacing.xs),
                 decoration: BoxDecoration(
@@ -1548,9 +1728,103 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       ),
     );
   }
+
+  /// بديل صورة المنشور داخل الفقاعة عند فشل التحميل (أيقونة بلون الخدمة).
+  Widget _postFallback(Map<String, dynamic> msg, bool isMine) {
+    final color = Color(msg['postColor'] as int? ?? 0xFF888888);
+    return Container(
+      color: color.withValues(alpha: isMine ? 0.25 : 0.15),
+      child: Center(
+        child: Icon(
+          LucideIcons.package,
+          color: isMine ? Colors.white : color,
+          size: 28,
+        ),
+      ),
+    );
+  }
 }
 
-/// Small blinking red dot shown while recording, like WhatsApp's rec indicator.
+/// معاينة منشور (مع صورته وتفاصيله) في صندوق الكتابة: تبقى بانتظار إرسال
+/// المستخدم، ويمكن حذفها قبل الإرسال.
+class _PostAttachmentBar extends StatelessWidget {
+  const _PostAttachmentBar({required this.preview, required this.onRemove});
+
+  final ChatPostPreview preview;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(AppRadii.md),
+      ),
+      child: Row(
+        children: [
+          // صورة المنشور (مربّعة) مع بديل أيقونة عند فشل التحميل/غيابها.
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadii.sm),
+            child: SizedBox(
+              width: 56,
+              height: 56,
+              child: preview.imageUrl != null
+                  ? Image.network(
+                      preview.imageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => _postIcon(preview.color),
+                    )
+                  : _postIcon(preview.color),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  preview.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  preview.subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          IconButton(
+            icon: const Icon(LucideIcons.x, size: 18),
+            onPressed: onRemove,
+            tooltip: 'إزالة المرفق',
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _postIcon(Color color) => Container(
+    color: color.withValues(alpha: 0.15),
+    child: Center(
+      child: Icon(LucideIcons.package, color: color, size: 24),
+    ),
+  );
+}
+
 class _RecordingPulseDot extends StatefulWidget {
   const _RecordingPulseDot();
 

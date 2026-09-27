@@ -211,7 +211,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     );
   }
 
-  /// «طلب الآن» ⇒ محادثة مباشرة مع مقدّم الخدمة (لا الصفحة التعريفية).
+  /// «طلب الآن» ⇒ محادثة مباشرة مع مقدّم الخدمة (لا الصفحة التعريفية)،
+  /// ومعها معاينة المنشور (صورته + تفاصيله) كمرفق بانتظار إرسال المستخدم.
   void _openServiceChat(ServiceCategory service) {
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
@@ -223,6 +224,12 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           online: true,
           activity: 'متصل الآن',
           isGroup: false,
+          postPreview: ChatPostPreview(
+            title: service.title,
+            subtitle: service.subtitle,
+            imageUrl: service.imageUrl,
+            color: service.color,
+          ),
         ),
       ),
     );
