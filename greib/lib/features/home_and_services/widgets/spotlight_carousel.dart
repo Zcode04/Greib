@@ -6,6 +6,7 @@ import '../../../../shared_widgets/glass_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/mock_data/mock_data.dart';
 import '../../../../core/models/service_model.dart';
+import '../../../../core/widgets/app_sheet.dart';
 
 class SpotlightSection extends StatefulWidget {
   final bool isDark;
@@ -569,20 +570,38 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                               : (reaction > 0
                                     ? AppColors.info
                                     : AppColors.error),
-                          count: _countFor(service.id, 80, 10),
-                          onTap: () => setState(() {
-                            final next = switch (reaction) {
-                              0 => 1,
-                              1 => -1,
-                              _ => 0,
-                            };
-                            if (next == 0) {
-                              _reactions.remove(service.id);
-                            } else {
-                              _reactions[service.id] = next;
-                            }
-                          }),
-                        ),
+                      count: _countFor(service.id, 80, 10),
+                      onTap: () => _showPostActionSheet(
+                        icon: reaction >= 0
+                            ? LucideIcons.thumbsUp
+                            : LucideIcons.thumbsDown,
+                        title: 'تفاعل المنشور',
+                        options: (sheetContext) => [
+                          _postSheetOption(
+                            sheetContext,
+                            icon: LucideIcons.thumbsUp,
+                            label: 'إعجاب',
+                            onSelected: () =>
+                                setState(() => _reactions[service.id] = 1),
+                          ),
+                          _postSheetOption(
+                            sheetContext,
+                            icon: LucideIcons.thumbsDown,
+                            label: 'عدم إعجاب',
+                            onSelected: () =>
+                                setState(() => _reactions[service.id] = -1),
+                          ),
+                          _postSheetOption(
+                            sheetContext,
+                            icon: LucideIcons.x,
+                            label: 'إلغاء التفاعل',
+                            onSelected: () => setState(
+                              () => _reactions.remove(service.id),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                         const SizedBox(width: 6),
                         _fbActionButton(
                           grouped: true,
@@ -592,9 +611,13 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                           color: widget.isDark
                               ? AppColors.textSecondary
                               : AppColors.lightTextSecondary,
-                          count: _countFor(service.id, 40, 2),
-                          onTap: () {},
+                        count: _countFor(service.id, 40, 2),
+                        onTap: () => _showPostActionSheet(
+                          icon: LucideIcons.messageCircle,
+                          title: 'الرسائل',
+                          hint: 'الدردشة مع «${service.title}» — قريباً.',
                         ),
+                      ),
                         const SizedBox(width: 6),
                         _fbActionButton(
                           grouped: true,
@@ -604,9 +627,13 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                           color: widget.isDark
                               ? AppColors.textSecondary
                               : AppColors.lightTextSecondary,
-                          count: _countFor(service.id, 20, 1),
-                          onTap: () {},
+                        count: _countFor(service.id, 20, 1),
+                        onTap: () => _showPostActionSheet(
+                          icon: LucideIcons.repeat2,
+                          title: 'إعادة النشر',
+                          hint: 'نشر رابط «${service.title}» على صفحتك.',
                         ),
+                      ),
                       ],
                     ),
                   ),
@@ -623,6 +650,96 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   /// أيقونة، ومستقر بين إعادة البناءات (بلا عشوائية تتغيّر كل إطار).
   static String _countFor(String id, int span, int min) =>
       (min + id.hashCode.abs() % span).toString();
+
+  /// ★ ورقة سفلية موحّدة (`showAppSheet`) تظهر عند ضغط أيقونة من أزرار
+  /// إجراءات المنشور. محتوى الورقة بسيط (عنوان + خيارات/تلميح) قابل للتطوير.
+  void _showPostActionSheet({
+    required IconData icon,
+    required String title,
+    String? hint,
+    List<Widget> Function(BuildContext sheetContext)? options,
+  }) {
+    final secondary =
+        widget.isDark ? AppColors.textSecondary : AppColors.lightTextSecondary;
+    final primary =
+        widget.isDark ? AppColors.textPrimary : AppColors.lightText;
+
+    showAppSheet<void>(
+      context,
+      scrollControlled: false,
+      builder: (sheetContext) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 18, color: secondary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      color: primary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (hint != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                hint,
+                style: TextStyle(color: secondary, fontSize: 13),
+              ),
+            ],
+            if (options != null) ...[
+              const SizedBox(height: 8),
+              ...options(sheetContext),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// صف خيار داخل الورقة السفلية (يغلقها ثم ينفّذ الإجراء).
+  Widget _postSheetOption(
+    BuildContext sheetContext, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onSelected,
+  }) {
+    final primary =
+        widget.isDark ? AppColors.textPrimary : AppColors.lightText;
+    return InkWell(
+      onTap: () {
+        Navigator.of(sheetContext).pop();
+        onSelected();
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: primary),
+            const SizedBox(width: 10),
+            Text(
+              label,
+              style: TextStyle(
+                color: primary,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   /// صورة المنشور بنسبة عرض/ارتفاع ثابتة (فيس بوك) ⇒ تتبع عرض البطاقة على
   /// أي شاشة، وتدعم روابط الشبكة ومسارات الأصول المحلية معاً.
