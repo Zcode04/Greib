@@ -1607,6 +1607,30 @@ class _ImagePreviewDialogState extends State<_ImagePreviewDialog>
   bool _zoomed = false;
   Size _viewport = Size.zero;
 
+  // ★ نقرة واحدة على الصورة = تكبير/تصغير (Listener خام ⇒ تعمل في الحالتين،
+  // ويبقى السحب الأفقي للتنقل بين الصور بلا تعارض).
+  Offset? _pressAt;
+  DateTime? _pressedAt;
+
+  static const double _kTapSlop = 12;
+  static const Duration _kTapWindow = Duration(milliseconds: 350);
+
+  void _onPointerDown(PointerDownEvent event) {
+    _pressAt = event.position;
+    _pressedAt = DateTime.now();
+  }
+
+  void _onPointerUp(PointerUpEvent event) {
+    final start = _pressAt;
+    final at = _pressedAt;
+    _pressAt = null;
+    _pressedAt = null;
+    if (start == null || at == null) return;
+    final moved = (event.position - start).distance;
+    final held = DateTime.now().difference(at);
+    if (moved < _kTapSlop && held < _kTapWindow) _toggleZoom();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1698,26 +1722,31 @@ class _ImagePreviewDialogState extends State<_ImagePreviewDialog>
     final many = widget.images.length > 1;
     return Stack(
       children: [
-        PageView.builder(
-          controller: _page,
-          itemCount: widget.images.length,
-          onPageChanged: (i) {
-            // ★ عودة ناعمة للوضع الطبيعي عند الانتقال لصورة أخرى.
-            if (_zoomed) _animateZoomTo(false);
-            setState(() => _index = i);
-          },
-          itemBuilder: (context, i) => InteractiveViewer(
-            transformationController: _zoom,
-            minScale: 1,
-            maxScale: 4,
-            // ★ pan مُفعّل فقط بعد التكبير ⇒ السحب الأفقي ينقل بين الصور
-            // ما دامت الصورة غير مكبّرة.
-            panEnabled: _zoomed,
-            onInteractionEnd: (_) => setState(
-              () => _zoomed = _zoom.value.getMaxScaleOnAxis() > 1.01,
+        Listener(
+          behavior: HitTestBehavior.opaque,
+          onPointerDown: _onPointerDown,
+          onPointerUp: _onPointerUp,
+          child: PageView.builder(
+            controller: _page,
+            itemCount: widget.images.length,
+            onPageChanged: (i) {
+              // ★ عودة ناعمة للوضع الطبيعي عند الانتقال لصورة أخرى.
+              if (_zoomed) _animateZoomTo(false);
+              setState(() => _index = i);
+            },
+            itemBuilder: (context, i) => InteractiveViewer(
+              transformationController: _zoom,
+              minScale: 1,
+              maxScale: 4,
+              // ★ pan مُفعّل فقط بعد التكبير ⇒ السحب الأفقي ينقل بين الصور
+              // ما دامت الصورة غير مكبّرة.
+              panEnabled: _zoomed,
+              onInteractionEnd: (_) => setState(
+                () => _zoomed = _zoom.value.getMaxScaleOnAxis() > 1.01,
+              ),
+              // ★ قرص الإصبعين للتكبير/التصغير (pinch) + زر أعلى الشاشة.
+              child: Center(child: _image(widget.images[i])),
             ),
-            // ★ قرص الإصبعين للتكبير/التصغير (pinch) + زر أعلى الشاشة.
-            child: Center(child: _image(widget.images[i])),
           ),
         ),
         // عدّاد الصور.

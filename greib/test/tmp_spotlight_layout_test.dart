@@ -504,4 +504,67 @@ void main() {
     expect(tester.widget<InteractiveViewer>(viewer).panEnabled, isFalse);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('post images: tapping the image zooms in and out', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(412, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(host());
+    await tester.pump();
+    await tester.tap(find.text('عرض كمنشورات'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    Finder? findMultiGallery() {
+      final ratios = find.byWidgetPredicate(
+        (w) => w is AspectRatio && w.aspectRatio == 1.5,
+      );
+      for (var i = 0; i < ratios.evaluate().length; i++) {
+        final ar = ratios.at(i);
+        if (find
+                .descendant(of: ar, matching: find.byType(Image))
+                .evaluate()
+                .length >
+            1) {
+          return find.ancestor(of: ar, matching: find.byType(InkWell)).first;
+        }
+      }
+      return null;
+    }
+
+    var gallery = findMultiGallery();
+    for (var i = 0; i < 6 && gallery == null; i++) {
+      final more = find.text('عرض المزيد');
+      if (more.evaluate().isEmpty) break;
+      await tester.ensureVisible(more.first);
+      await tester.pumpAndSettle();
+      await tester.tap(more.first);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      gallery = findMultiGallery();
+    }
+    expect(gallery, isNotNull);
+    await tester.ensureVisible(gallery!);
+    await tester.pumpAndSettle();
+    await tester.tap(gallery);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    final viewer = find.byType(InteractiveViewer).last;
+    expect(tester.widget<InteractiveViewer>(viewer).panEnabled, isFalse);
+
+    // نقرة على الصورة ⇒ تكبير.
+    await tester.tap(find.byType(InteractiveViewer).last);
+    await tester.pumpAndSettle();
+    expect(tester.widget<InteractiveViewer>(viewer).panEnabled, isTrue);
+
+    // نقرة أخرى ⇒ تصغير.
+    await tester.tap(find.byType(InteractiveViewer).last);
+    await tester.pumpAndSettle();
+    expect(tester.widget<InteractiveViewer>(viewer).panEnabled, isFalse);
+    expect(tester.takeException(), isNull);
+  });
 }
