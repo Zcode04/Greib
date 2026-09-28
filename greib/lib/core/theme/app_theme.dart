@@ -4,7 +4,7 @@ import 'design_tokens.dart';
 
 /// ============================================================================
 ///  AppTheme — ثيم التطبيق الموحّد
-///  الهوية: Gray 900 + Ice Blue (#BEDBED)
+///  الهوية: Slate 900 + Sapphire (#3B82F6)
 ///  يعتمد حصرياً على AppColors من design_tokens.dart
 /// ============================================================================
 
@@ -20,10 +20,10 @@ class AppTheme {
 
       colorScheme: const ColorScheme(
         brightness: Brightness.light,
-        primary:            AppColors.accentPrimary,             // ★ اللون الرسمي #BEDBED
-        onPrimary:          AppColors.onAccentPrimary,           // نص داكن (اللون الرسمي فاتح)
-        primaryContainer:   AppColors.accentPrimaryContainer,    // أزرق جليدي فاتح
-        onPrimaryContainer: AppColors.accentPrimaryDark,         // #2A6E98
+        primary:            AppColors.accentPrimary,             // ★ اللون الرسمي #3B82F6
+        onPrimary:          AppColors.onAccentPrimary,           // نص أبيض (اللون الرسمي داكن الآن)
+        primaryContainer:   AppColors.accentPrimaryContainer,    // أزرق فاتح
+        onPrimaryContainer: AppColors.accentPrimaryDark,         // #1D4ED8
 
         secondary:              AppColors.secondary,
         onSecondary:            Colors.white,
@@ -192,10 +192,10 @@ class AppTheme {
 
       colorScheme: const ColorScheme(
         brightness: Brightness.dark,
-        primary:            AppColors.accentPrimary,                  // ★ اللون الرسمي #BEDBED
+        primary:            AppColors.accentPrimary,                  // ★ اللون الرسمي #3B82F6
         onPrimary:          AppColors.onAccentPrimary,                // نص داكن فوق اللون الرسمي
         primaryContainer:   AppColors.accentPrimaryContainerDark,     // #1C4864
-        onPrimaryContainer: AppColors.accentPrimary,                  // #BEDBED
+        onPrimaryContainer: AppColors.accentPrimary,                  // #3B82F6
 
         secondary:              AppColors.secondary,
         onSecondary:            Colors.white,

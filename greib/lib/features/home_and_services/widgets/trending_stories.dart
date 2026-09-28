@@ -115,7 +115,7 @@ class _UserRequestCard extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: isDark
-                ? [const Color(0xFF1F2937), const Color(0xFF111827)]
+                ? [const Color(0xFF1B2537), const Color(0xFF0F172A)]
                 : [const Color(0xFFEFF6FF), const Color(0xFFDBEAFE)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,

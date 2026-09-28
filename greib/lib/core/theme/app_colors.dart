@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 ///  ملف الألوان الموحّد — المصدر الوحيد للحقيقة (Single Source of Truth)
 /// ============================================================================
 ///
-///  الهوية: Gray 900 + Ice Blue (#BEDBED)
+///  الهوية: Slate 900 + Sapphire (#3B82F6)
 ///  خلفية رمادية داكنة (Gray 900 = #111827) مع لون رسمي أزرق جليدي فاتح
 ///  ← احترافي، عالمي، متماسك في كلا الوضعين
 ///
@@ -19,52 +19,53 @@ class AppColors {
   // ==========================================================================
 
   // ---------- ⚫ سلّم الرمادي (Tailwind Gray) — أساس الخلفيات ----------
-  static const Color _gray50  = Color(0xFFF9FAFB);
-  static const Color _gray100 = Color(0xFFF3F4F6);
-  static const Color _gray200 = Color(0xFFE5E7EB);
-  static const Color _gray300 = Color(0xFFD1D5DB);
-  static const Color _gray400 = Color(0xFF9CA3AF);
-  static const Color _gray500 = Color(0xFF6B7280);
-  static const Color _gray600 = Color(0xFF4B5563);
-  static const Color _gray700 = Color(0xFF374151);
-  static const Color _gray800 = Color(0xFF1F2937);
-  static const Color _gray850 = Color(0xFF2B3544); // درجة وسيطة: gray-800 ⟶ gray-700
-  static const Color _gray900 = Color(0xFF111827); // ★ لون الخلفية الرسمي (gray-900)
-  static const Color _gray950 = Color(0xFF030712);
+  static const Color _slate50  = Color(0xFFF8FAFC);
+  static const Color _slate100 = Color(0xFFF1F5F9);
+  static const Color _slate200 = Color(0xFFE2E8F0);
+  static const Color _slate300 = Color(0xFFCBD5E1);
+  static const Color _slate400 = Color(0xFF94A3B8);
+  static const Color _slate500 = Color(0xFF64748B);
+  static const Color _slate600 = Color(0xFF475569);
+  static const Color _slate700 = Color(0xFF334155);
+  static const Color _slate800 = Color(0xFF1B2537); // سطح أساسي
+  static const Color _slate850 = Color(0xFF141D2D); // درجة وسيطة: slate-800 ⟶ slate-700
+  static const Color _slate900 = Color(0xFF0F172A); // ★ لون الخلفية الرسمي
+  static const Color _slate950 = Color(0xFF070C17); // أعمق درجة
 
-  // ---------- 🌙 الوضع الليلي (Dark Mode) — خلفية Gray 900 ----------
-  static const Color _darkBg          = _gray900;  // #111827 — الخلفية الرسمية
-  static const Color _darkSurface     = _gray800;  // كروت وبطاقات
-  static const Color _darkElevated    = _gray850;  // طبقة أعمق (modals, inputs)
-  static const Color _darkBorder      = _gray700;  // حدود دقيقة
-  static const Color _darkTextPrimary = _gray50;   // نص أساسي أبيض ناعم
-  static const Color _darkTextMuted   = _gray400;  // نص ثانوي رمادي
+  // ---------- 🌙 الوضع الليلي (Dark Mode) — خلفية Slate 900 ----------
+  // ★ تحسين: فصل واضح بين الخلفية والسطح (كانا متقاربين جداً سابقاً)
+  static const Color _darkBg          = _slate900;  // #0F172A — الخلفية الرسمية
+  static const Color _darkSurface     = _slate800;  // كروت وبطاقات
+  static const Color _darkElevated    = _slate850;  // طبقة أعمق (modals, inputs)
+  static const Color _darkBorder      = _slate700;  // حدود دقيقة
+  static const Color _darkTextPrimary = _slate50;   // نص أساسي أبيض ناعم
+  static const Color _darkTextMuted   = _slate400;  // نص ثانوي رمادي
 
   // ---------- ☀️ الوضع النهاري (Light Mode) ----------
-  static const Color _lightBg          = _gray100;            // خلفية فاتحة محايدة
+  static const Color _lightBg          = _slate100;           // خلفية فاتحة محايدة
   static const Color _lightSurface     = Color(0xFFFFFFFF);   // كروت بيضاء نظيفة
-  static const Color _lightElevated    = _gray100;            // للـ inputs
-  static const Color _lightBorder      = _gray200;            // حدود خفيفة
-  static const Color _lightTextPrimary = _gray900;            // نص داكن
-  static const Color _lightTextMuted   = _gray500;            // نص ثانوي
+  static const Color _lightElevated    = _slate50;            // للـ inputs
+  static const Color _lightBorder      = _slate200;           // حدود خفيفة
+  static const Color _lightTextPrimary = _slate900;           // نص داكن
+  static const Color _lightTextMuted   = _slate500;           // نص ثانوي
 
-  // ---------- 🎨 اللون الرسمي (Brand) — Ice Blue #BEDBED ----------
-  // اللون الرسمي للتطبيق: أزرق جليدي فاتح (rgb 190, 219, 237)
-  static const Color _brand      = Color(0xFFBEDBED); // ★ اللون الرسمي
-  static const Color _brandLight = Color(0xFFDFEDF6); // تدرّج أفتح (highlights / glows)
-  static const Color _brandMid   = Color(0xFF5B93B4); // تدرّج أعمق (وسط التدرجات)
-  static const Color _brandDark  = Color(0xFF2A6E98); // يُقرأ على خلفية فاتحة (نص/أيقونة)
-  static const Color _brandDeep  = Color(0xFF1C4864); // حاوية داكنة (dark container)
-  static const Color _onBrand    = _gray900;          // المحتوى فوق اللون الرسمي (نص/أيقونة)
+  // ---------- 🎨 اللون الرسمي (Brand) — Sapphire #3B82F6 ----------
+  // ★ ترقية: من Ice Blue باهت (#BEDBED) إلى أزرق باكن مشبع — هوية أقوى + توهّج صحيح
+  static const Color _brand      = Color(0xFF3B82F6); // ★ اللون الرسمي
+  static const Color _brandLight = Color(0xFF93C5FD); // تدرّج أفتح (highlights / glows)
+  static const Color _brandMid   = Color(0xFF2563EB); // تدرّج أعمق (وسط التدرجات)
+  static const Color _brandDark  = Color(0xFF1D4ED8); // يُقرأ على خلفية فاتحة (نص/أيقونة)
+  static const Color _brandDeep  = Color(0xFF1E3A8A); // حاوية داكنة (dark container)
+  static const Color _onBrand    = Color(0xFFFFFFFF); // محتوى فوق اللون الرسمي (أبيض)
 
-  // ---------- 🟠 برتقالي التنبيهات (من نفس اللوحة المرجعية) ----------
-  static const Color _accentOrange = Color(0xFFFF8A3D); // برتقالي دافئ — Badges / أزرار ثانوية
+  // ---------- 🟠 برتقالي التنبيهات (كهرماني دافئ) ----------
+  static const Color _accentOrange = Color(0xFFF59E0B); // كهرماني — Badges / أزرار ثانوية
 
   // ---------- 🔴 الحالات (States) ----------
-  static const Color _success = Color(0xFF22C55E); // أخضر
-  static const Color _warning = Color(0xFFFF8A3D); // برتقالي دافئ (من اللوحة المرجعية)
+  static const Color _success = Color(0xFF10B981); // أخضر زمردي (متناسق مع أزرق البريق)
+  static const Color _warning = Color(0xFFF59E0B); // كهرماني
   static const Color _error   = Color(0xFFEF4444); // أحمر
-  static const Color _info    = Color(0xFF3B82F6); // أزرق
+  static const Color _info    = Color(0xFF38BDF8); // سماوي
 
   // ---------- 🛍 ألوان الخدمات الست ----------
   static const Color _svcFood      = Color(0xFFF97316); // برتقالي دافئ — طعام
@@ -107,7 +108,7 @@ class AppColors {
   static const Color surfaceOverlay      = _darkElevated;
 
   // --- اللون المميز الأساسي (اللون الرسمي للتطبيق) ---
-  static const Color accentPrimary              = _brand;      // ★ #BEDBED — اللون الرسمي
+  static const Color accentPrimary              = _brand;      // ★ #3B82F6 — اللون الرسمي
   static const Color accentPrimaryLight         = _brandLight; // درجة أفتح (glows / highlights)
   static const Color accentPrimaryDark          = _brandDark;  // درجة داكنة تُقرأ على الخلفية الفاتحة
   static const Color accentPrimaryContainer     = _brandLight; // حاوية فاتحة (light container)
@@ -149,7 +150,7 @@ class AppColors {
   // --- النصوص (Dark mode — الوضع الافتراضي) ---
   static const Color textPrimary   = _darkTextPrimary;
   static const Color textSecondary = _darkTextMuted;
-  static const Color textTertiary  = _gray500;
+  static const Color textTertiary  = _slate500;
 
   // --- الحدود ---
   static const Color outline      = _darkBorder;
@@ -167,21 +168,21 @@ class AppColors {
   static const Color lightSurfaceVariant = _lightElevated;
   static const Color lightText           = _lightTextPrimary;
   static const Color lightTextSecondary  = _lightTextMuted;
-  static const Color lightTextTertiary   = _gray400;
+  static const Color lightTextTertiary   = _slate400;
   static const Color lightOutline        = _lightBorder;
 
   // ==========================================================================
   //  3) أسماء مختصرة للاستخدام السريع
   //     (مترادفات للأسماء الدلالية أعلاه)
   // ==========================================================================
-  static const Color primary         = accentPrimary;   // ★ اللون الرسمي #BEDBED
+  static const Color primary         = accentPrimary;   // ★ اللون الرسمي #3B82F6
   static const Color primaryLight    = accentPrimaryLight;
   static const Color primaryDark     = accentPrimaryDark;
   static const Color neon            = accentPrimary;    // للـ glows والتوهج (نفس اللون الرسمي)
   static const Color neonDark        = accentPrimaryDark;
   static const Color brand           = _brand;           // ★ اللون الرسمي (190, 219, 237)
   static const Color onBrand         = _onBrand;         // محتوى داكن فوق اللون الرسمي
-  static const Color gray900         = _gray900;         // ★ لون الخلفية الرسمي
+  static const Color gray900         = _slate900;         // ★ لون الخلفية الرسمي
   static const Color background      = backgroundPrimary;
   static const Color surface         = surfaceCard;
   static const Color surfaceElevated = surfaceCardElevated;
@@ -189,9 +190,9 @@ class AppColors {
   static const Color textMuted       = textTertiary;
 
   // للتوافق مع الكود القديم
-  static const Color secondary          = _gray700;
-  static const Color secondaryLight     = _gray400;
-  static const Color secondaryDark      = _gray800;
+  static const Color secondary          = _slate700;
+  static const Color secondaryLight     = _slate400;
+  static const Color secondaryDark      = _slate800;
   static const Color accent             = info;
   static const Color darkBackground     = backgroundPrimary;
   static const Color darkSurface        = surfaceCard;
@@ -202,27 +203,27 @@ class AppColors {
   static const Color darkOutline        = outline;
 
   // --- محايدات (Neutrals) — سلّم رمادي موحّد (Tailwind Gray) ---
-  static const Color neutral50  = _gray50;
-  static const Color neutral100 = _gray100;
-  static const Color neutral200 = _gray200;
-  static const Color neutral300 = _gray300;
-  static const Color neutral400 = _gray400;
-  static const Color neutral500 = _gray500;
-  static const Color neutral600 = _gray600;
-  static const Color neutral700 = _gray700;
-  static const Color neutral800 = _gray800;
-  static const Color neutral900 = _gray900;  // ★ خلفية التطبيق الرسمية
-  static const Color neutral950 = _gray950;
+  static const Color neutral50  = _slate50;
+  static const Color neutral100 = _slate100;
+  static const Color neutral200 = _slate200;
+  static const Color neutral300 = _slate300;
+  static const Color neutral400 = _slate400;
+  static const Color neutral500 = _slate500;
+  static const Color neutral600 = _slate600;
+  static const Color neutral700 = _slate700;
+  static const Color neutral800 = _slate800;
+  static const Color neutral900 = _slate900;  // ★ خلفية التطبيق الرسمية
+  static const Color neutral950 = _slate950;
 
   // ==========================================================================
   //  4) التدرجات الجاهزة
   // ==========================================================================
 
-  /// تدرج البانر الرئيسي: اللون الرسمي → أزرق أعمق → خلفية Gray 900
+  /// تدرج البانر الرئيسي: اللون الرسمي → أزرق أعمق → خلفية Slate 900
   static const List<Color> heroGradient = [
-    _brand,      // #BEDBED — اللون الرسمي
-    _brandMid,   // أزرق أعمق
-    _gray900,    // خلفية Gray 900
+    _brandLight, // #93C5FD — تدرّج أفتح (تباين أفضل مع النص فوقه)
+    _brand,      // #3B82F6 — اللون الرسمي
+    _slate900,   // خلفية Slate 900
   ];
 
   /// تدرج الحلقة الدائرية (Dial) — اللون الرسمي → أزرق أعمق
@@ -233,14 +234,14 @@ class AppColors {
 
   /// تدرج بطاقات الكاتالوج في الوضع الفاتح (نص أبيض فوقه)
   static const List<Color> catalogCardGradientLight = [
-    _brandDark, // #2A6E98 — يُقرأ معه الأبيض
-    _brandDeep, // #1C4864
+    _brandDark, // #1D4ED8 — يُقرأ معه الأبيض
+    _brandDeep, // #1E3A8A
   ];
 
   /// تدرج بطاقات الكاتالوج في الوضع الداكن — لا يُستخدم (flat surface)
   static const List<Color> catalogCardGradientDark = [
-    _gray800,
-    _gray900,
+    _slate800,
+    _slate900,
   ];
 
   // ==========================================================================
@@ -248,7 +249,7 @@ class AppColors {
   // ==========================================================================
 
   /// اللون الرسمي بدرجة مقروءة حسب الوضع:
-  /// ليلي ⇒ اللون الرسمي #BEDBED، نهاري ⇒ الدرجة الداكنة #2A6E98.
+  /// ليلي ⇒ اللون الرسمي #3B82F6، نهاري ⇒ الدرجة الداكنة #1D4ED8.
   static Color accentFor(bool isDark) => isDark ? accentPrimary : accentPrimaryDark;
 
   /// توهّج اللون الرسمي (للأزرار والعناصر المميزة)

@@ -37,7 +37,7 @@ class AppElevation {
 }
 
 class AppShadows {
-  static List<BoxShadow> get glowGreen => [
+  static List<BoxShadow> get brandGlow => [
         BoxShadow(
           color: AppColors.accentGlow,
           blurRadius: 24,
@@ -46,7 +46,7 @@ class AppShadows {
         ),
       ];
 
-  static List<BoxShadow> get glowGreenStrong => [
+  static List<BoxShadow> get brandGlowStrong => [
         BoxShadow(
           color: AppColors.accentGlow,
           blurRadius: 40,
@@ -54,6 +54,10 @@ class AppShadows {
           offset: const Offset(0, 8),
         ),
       ];
+
+  // أسماء قديمة (هوية سابقة) — للتوافق، توجّه للـ brand
+  static List<BoxShadow> get glowGreen => brandGlow;
+  static List<BoxShadow> get glowGreenStrong => brandGlowStrong;
 
   static List<BoxShadow> get xs => [
         BoxShadow(

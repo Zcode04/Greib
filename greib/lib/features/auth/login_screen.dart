@@ -26,14 +26,14 @@ class AppPalette {
     required this.textPrimary,
   });
 
-  /// ★ الهوية الرسمية للتطبيق: خلفية Gray 900 + لون رسمي Ice Blue #BEDBED
+  /// ★ الهوية الرسمية للتطبيق: خلفية Slate 900 + لون رسمي Sapphire #3B82F6
   static const iceBlueGray = AppPalette(
-    primary: Color(0xFFBEDBED), // اللون الرسمي (190, 219, 237)
-    backgroundLight: Color(0xFFF3F4F6), // gray-100
-    backgroundDark: Color(0xFF111827), // ★ gray-900 — خلفية التطبيق الرسمية
+    primary: Color(0xFF3B82F6), // ★ Sapphire — اللون الرسمي
+    backgroundLight: Color(0xFFF1F5F9), // slate-100
+    backgroundDark: Color(0xFF0F172A), // ★ slate-900 — خلفية التطبيق الرسمية
     cardLight: Colors.white,
-    cardDark: Color(0xFF1F2937), // gray-800
-    textPrimary: Color(0xFF111827), // gray-900
+    cardDark: Color(0xFF1B2537), // slate-800
+    textPrimary: Color(0xFF0F172A), // slate-900
   );
 
   static const careemEmerald = AppPalette(
@@ -64,9 +64,8 @@ class AppPalette {
   );
 
   /// المحتوى (نص/أيقونة) فوق اللون الأساسي — داكن إذا كان اللون فاتحاً.
-  /// (اللون الرسمي #BEDBED فاتح ⇒ المحتوى فوقه داكن gray-900).
   Color get onPrimary =>
-      primary.computeLuminance() > 0.5 ? const Color(0xFF111827) : Colors.white;
+      primary.computeLuminance() > 0.5 ? const Color(0xFF0F172A) : Colors.white;
 
   /// اللون الأساسي بدرجة تُقرأ على الخلفية الفاتحة (للنصوص والأيقونات).
   Color get primaryOnLight => primary.computeLuminance() > 0.5
@@ -88,7 +87,7 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({
     super.key,
     this.currentThemeStyle =
-        AppThemeStyle.iceBlueGray, // ★ الهوية الرسمية (gray-900 + #BEDBED)
+        AppThemeStyle.iceBlueGray, // ★ الهوية الرسمية (slate-900 + #3B82F6)
   });
 
   @override
