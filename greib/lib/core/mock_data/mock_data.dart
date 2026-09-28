@@ -710,6 +710,13 @@ class MockData {
       rating: 5.0,
       pricePerNight: 4500.0,
       amenities: ['مسبح', 'سبا', 'واي فاي', 'إطلالة بحرية'],
+      description:
+          'غرفتنا العلوية بإطلالة بانورامية على الخليج، وإفطار شامل في مطعم الطابق 32. احجز الآن واحصل على خصم 20% على الإقامة 3 ليالٍ.',
+      gallery: [
+        'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80',
+        'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&q=80',
+        'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&q=80',
+      ],
     ),
     Hotel(
       id: 'h2',
@@ -720,6 +727,13 @@ class MockData {
       rating: 4.9,
       pricePerNight: 1200.0,
       amenities: ['شاطئ خاص', 'جيم', 'مطاعم فاخرة'],
+      description:
+          'منتجع على شاطئ خاص: مطبخ مفتوح طوال اليوم، وخدمة غرف حتى المساء. مناسب للعائلات وعلى خطوات من المارينا.',
+      gallery: [
+        'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800&q=80',
+        'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80',
+        'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80',
+      ],
     ),
     Hotel(
       id: 'h3',
@@ -730,6 +744,30 @@ class MockData {
       rating: 5.0,
       pricePerNight: 2800.0,
       amenities: ['خدمة غرف', 'مواقف مجانية', 'حدائق'],
+      description:
+          'قصر على طراز معماري كلاسيكي يطل على الحديقة الخلفية، مع قاعة اجتماعات مثالية للمناسبات. موقف مجاني وسيارة كهربائية للنزلاء.',
+      gallery: [
+        'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=80',
+        'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80',
+        'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=800&q=80',
+      ],
+    ),
+    Hotel(
+      id: 'h4',
+      name: 'منتجع واحة الصحراء',
+      location: 'الرياض، السعودية',
+      imageUrl:
+          'https://images.unsplash.com/photo-1584132915807-fd1f5fbc078f?w=500&q=80',
+      rating: 4.7,
+      pricePerNight: 900.0,
+      amenities: ['safari صحراوي', 'مطعم بدوي', 'تأجير خيول'],
+      description:
+          'خيمة فاخرة وسط الكثبان مع عشاء بدوي أصيل ورحلات صحراوية عند الغروب. تجربة هادئة بعيداً عن ضجيج المدينة.',
+      gallery: [
+        'https://images.unsplash.com/photo-1584132915807-fd1f5fbc078f?w=800&q=80',
+        'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&q=80',
+        'https://images.unsplash.com/photo-1517821362941-f7f7536a4a0b?w=800&q=80',
+      ],
     ),
   ];
 
@@ -742,6 +780,15 @@ class MockData {
           'https://images.unsplash.com/photo-1542314831-c6a4d14d8376?w=500&q=80',
       description: 'تجربة القيادة على الكثبان الرملية وعشاء تقليدي تحت النجوم.',
       price: 250.0,
+      duration: 'يوم كامل',
+      tripType: 'جولة صحراوية',
+      rating: 4.9,
+      highlights: ['عشاء بدوي', 'جولات مراكب', 'تصوير احترافي'],
+      gallery: [
+        'https://images.unsplash.com/photo-1542314831-c6a4d14d8376?w=800&q=80',
+        'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&q=80',
+        'https://images.unsplash.com/photo-1517821362941-f7f7536a4a0b?w=800&q=80',
+      ],
     ),
     TravelDestination(
       id: 't2',
@@ -751,6 +798,15 @@ class MockData {
           'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=500&q=80',
       description: 'استكشف الجبال الخلابة والبحيرات الزرقاء.',
       price: 150.0,
+      duration: '5 ساعات',
+      tripType: 'جولة يومية',
+      rating: 4.6,
+      highlights: ['مرشد محلي', 'نقل شامل', 'تأمين مشمول'],
+      gallery: [
+        'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=800&q=80',
+        'https://images.unsplash.com/photo-1548013146-72479768bada?w=800&q=80',
+        'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=80',
+      ],
     ),
     TravelDestination(
       id: 't3',
@@ -760,6 +816,34 @@ class MockData {
           'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=500&q=80',
       description: 'شاهد معالم دبي المذهلة من السماء.',
       price: 850.0,
+      duration: '30 دقيقة',
+      tripType: 'جولة جوية',
+      rating: 4.9,
+      highlights: ['تذكرة هليكوبتر', 'مرشد عربي', 'تصوير بانورامي'],
+      gallery: [
+        'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80',
+        'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=80',
+        'https://images.unsplash.com/photo-1512100356356-de1b84283e18?w=800&q=80',
+      ],
+    ),
+    TravelDestination(
+      id: 't4',
+      title: 'رحلة إلى وادي رم',
+      country: 'عمّان، الأردن',
+      imageUrl:
+          'https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?w=500&q=80',
+      description:
+          'ثلاثة أيام بين وادي رم وبيترا والجبل الأحمر، مع إقامة في خيم مميزة ومرشد بدوي طوال الرحلة.',
+      price: 620.0,
+      duration: '3 أيام',
+      tripType: 'رحلة منظمة',
+      rating: 4.8,
+      highlights: ['إقامة شاملة', 'مرشد بدوي', 'جولة دفع رباعي'],
+      gallery: [
+        'https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?w=800&q=80',
+        'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&q=80',
+        'https://images.unsplash.com/photo-1548013146-72479768bada?w=800&q=80',
+      ],
     ),
   ];
 
