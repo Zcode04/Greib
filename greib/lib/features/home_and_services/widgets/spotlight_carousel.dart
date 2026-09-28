@@ -147,8 +147,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                         child: Padding(
                           // ★ الزر ينحصر داخل نصفه (بلا ملامسة حواف البطاقة)
                           // حتى لا تتداخل زواياه المدوّرة مع عناصر الجوار.
+                          // ★ مسافة عن حافة البداية (يمين) + فاصل مع الزر المجاور.
                           padding: const EdgeInsetsDirectional.only(
-                            start: 0,
+                            start: 12,
                             end: 4,
                           ),
                           child: _softActionButton(
@@ -162,7 +163,11 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                     ],
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsetsDirectional.only(start: 4),
+                        // ★ فاصل مع الزر المجاور + مسافة عن حافة النهاية (يسار).
+                        padding: const EdgeInsetsDirectional.only(
+                          start: 4,
+                          end: 12,
+                        ),
                         child: _softActionButton(
                           icon: _isGridView
                               ? LucideIcons.galleryHorizontal
