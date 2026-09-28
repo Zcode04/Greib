@@ -94,31 +94,41 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _HeaderIconBtn(
-                              box: btnBox,
-                              iconSize: iconSize,
-                              icon: LucideIcons.bell,
-                              badge: unreadNotifications > 9 ? '+9' : '$unreadNotifications',
-                              showBadge: unreadNotifications > 0,
-                              color: theme.colorScheme.onSurface,
-                              onPressed: () => context.push('/notifications'),
-                              tooltip: 'الإشعارات',
+                            // ★ عرض ثابت لكل زر => مسافات أفقية متساوية بين الأيقونات الثلاث
+                            SizedBox(
+                              width: btnBox,
+                              child: _HeaderIconBtn(
+                                box: btnBox,
+                                iconSize: iconSize,
+                                icon: LucideIcons.bell,
+                                badge: unreadNotifications > 9 ? '+9' : '$unreadNotifications',
+                                showBadge: unreadNotifications > 0,
+                                color: theme.colorScheme.onSurface,
+                                onPressed: () => context.push('/notifications'),
+                                tooltip: 'الإشعارات',
+                              ),
                             ),
-                            _HeaderIconBtn(
-                              box: btnBox,
-                              iconSize: iconSize,
-                              icon: isDark ? LucideIcons.sun : LucideIcons.moon,
-                              color: theme.colorScheme.onSurface,
-                              onPressed: () => context.read<ThemeController>().toggleTheme(),
-                              tooltip: isDark ? 'الوضع النهاري' : 'الوضع الليلي',
+                            SizedBox(
+                              width: btnBox,
+                              child: _HeaderIconBtn(
+                                box: btnBox,
+                                iconSize: iconSize,
+                                icon: isDark ? LucideIcons.sun : LucideIcons.moon,
+                                color: theme.colorScheme.onSurface,
+                                onPressed: () => context.read<ThemeController>().toggleTheme(),
+                                tooltip: isDark ? 'الوضع النهاري' : 'الوضع الليلي',
+                              ),
                             ),
-                            _HeaderIconBtn(
-                              box: btnBox,
-                              iconSize: iconSize,
-                              icon: LucideIcons.ellipsisVertical,
-                              color: theme.colorScheme.onSurface,
-                              onPressed: () => onMore?.call(),
-                              tooltip: 'المزيد',
+                            SizedBox(
+                              width: btnBox,
+                              child: _HeaderIconBtn(
+                                box: btnBox,
+                                iconSize: iconSize,
+                                icon: LucideIcons.ellipsisVertical,
+                                color: theme.colorScheme.onSurface,
+                                onPressed: () => onMore?.call(),
+                                tooltip: 'المزيد',
+                              ),
                             ),
                             ...?extraActions,
                           ],

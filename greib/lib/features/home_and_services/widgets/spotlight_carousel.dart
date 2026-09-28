@@ -709,6 +709,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                           ),
                         ),
                       ),
+                      // ★ فاصل أفقي بين خلفيات الأزرار الثلاثة (لا يلمس التصميم).
+                      const SizedBox(width: 8),
                       Expanded(
                         child: _fbActionButton(
                           grouped: true,
@@ -722,6 +724,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                           onTap: () => _showCommentsSheet(service),
                         ),
                       ),
+                      // ★ فاصل أفقي بين خلفيات الأزرار الثلاثة (لا يلمس التصميم).
+                      const SizedBox(width: 8),
                       Expanded(
                         child: _fbActionButton(
                           grouped: true,
