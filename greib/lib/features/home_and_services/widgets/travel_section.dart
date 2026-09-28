@@ -124,12 +124,16 @@ class TravelSection extends StatelessWidget {
                           size: 14,
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          '${dest.price} درهم',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 14,
+                        Flexible(
+                          child: Text(
+                            '${dest.price} درهم',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
                       ],

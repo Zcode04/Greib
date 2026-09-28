@@ -176,12 +176,21 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    // ★ حشوة رأسية صريحة: جسم تبويب الدردشة داخل MainShellScreen يمتد
+    //   خلف الهيدر (extendBodyBehindAppBar: true) لأن SuperHeader شفاف،
+    //   فبدونها تمرّ بطاقات المحادثات تحت الهيدر وتتداخل معه.
+    //   نجمع شريط الحالة العلوي + ارتفاع الهيدر (toolbarHeight = 64).
+    final topInset = MediaQuery.paddingOf(context).top + 64;
+
     return Scaffold(
+      backgroundColor: isDark
+          ? AppColors.background
+          : AppColors.lightBackground,
       body: Column(
         children: [
           Expanded(
             child: ListView.separated(
-              padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+              padding: EdgeInsets.only(top: topInset, bottom: AppSpacing.lg),
               itemCount: _conversations.length,
               separatorBuilder: (_, _) => Divider(
                 height: 1,

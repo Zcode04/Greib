@@ -12,28 +12,19 @@ import 'header_collapse_state.dart';
 
 /// ============================================================================
 ///  SuperHeader — هيدر التطبيق الموحّد (Super-App 2026):
-///   شعار + المدينة المختارة + بحث + قائمة سريعة + ليلي + إشعارات.
-///  الاستخدام داخل الـ Shell: appBar: SuperHeader(onSearch:, onMore:)
+///   شعار + إشعارات + ليلي + قائمة نقطية (البحث انتقل إلى الشريط السفلي).
+///  الاستخدام داخل الـ Shell: appBar: SuperHeader(onMore:)
 /// ============================================================================
 class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
-  final VoidCallback? onSearch;
   final VoidCallback? onMore;
   final List<Widget>? extraActions;
   final bool showBackButton;
 
-  const SuperHeader({super.key, this.title, this.onSearch, this.onMore, this.extraActions, this.showBackButton = false});
+  const SuperHeader({super.key, this.title, this.onMore, this.extraActions, this.showBackButton = false});
 
   @override
   Size get preferredSize => const Size.fromHeight(64);
-
-  void _handleSearch(BuildContext context) {
-    if (onSearch != null) {
-      onSearch!();
-    } else {
-      context.push('/search');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,10 +97,12 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                             _HeaderIconBtn(
                               box: btnBox,
                               iconSize: iconSize,
-                              icon: LucideIcons.search,
+                              icon: LucideIcons.bell,
+                              badge: unreadNotifications > 9 ? '+9' : '$unreadNotifications',
+                              showBadge: unreadNotifications > 0,
                               color: theme.colorScheme.onSurface,
-                              onPressed: () => _handleSearch(context),
-                              tooltip: 'بحث عالمي',
+                              onPressed: () => context.push('/notifications'),
+                              tooltip: 'الإشعارات',
                             ),
                             _HeaderIconBtn(
                               box: btnBox,
@@ -122,12 +115,10 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                             _HeaderIconBtn(
                               box: btnBox,
                               iconSize: iconSize,
-                              icon: LucideIcons.bell,
-                              badge: unreadNotifications > 9 ? '+9' : '$unreadNotifications',
-                              showBadge: unreadNotifications > 0,
+                              icon: LucideIcons.ellipsisVertical,
                               color: theme.colorScheme.onSurface,
-                              onPressed: () => context.push('/notifications'),
-                              tooltip: 'الإشعارات',
+                              onPressed: () => onMore?.call(),
+                              tooltip: 'المزيد',
                             ),
                             ...?extraActions,
                           ],

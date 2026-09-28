@@ -14,9 +14,8 @@ import 'package:greib_menk/features/auth/auth_service.dart';
 
 /// ============================================================================
 ///  اختبار الهيكل الرئيسي (الشاشة التي نتنقّل منها بين الصفحات عبر الشريط
-///  السفلي): الهيدر يجب أن يحتوي زر إشعارات واحداً وزر بحث واحداً فقط،
-///  لأن `Header` يضيفهما مدمجَين — فتزويده بأزرار مشابهة في `actions`
-///  كان يُنتج أزراراً مكررة أعلى كل صفحة.
+///  السفلي): الهيدر يجب أن يحتوي زر إشعارات واحداً فقط، لأن البحث صار
+///  تبويباً في الشريط السفلي (وليس زراً في الهيدر).
 /// ============================================================================
 void main() {
   setUp(() async {
@@ -27,7 +26,7 @@ void main() {
 
   tearDown(() => AuthService.instance.logout());
 
-  testWidgets('هيدر الهيكل الرئيسي لا يكرّر زر الإشعارات وزر البحث', (
+  testWidgets('هيدر الهيكل الرئيسي لا يكرّر زر الإشعارات والبحث في الشريط السفلي', (
     tester,
   ) async {
     // runAsync: تأخير تسجيل الدخول التجريبي يحتاج زمناً حقيقياً.
@@ -59,11 +58,13 @@ void main() {
     // نتحقق أننا فعلاً داخل الهيكل الرئيسي (وليس مُعاداً لشاشة الدخول).
     expect(router.state.matchedLocation, '/home');
 
+    // الهيدر فيه زر إشعارات واحد فقط (زر البحث انتقل للشريط السفلي).
     expect(find.byTooltip('الإشعارات'), findsOneWidget);
-    expect(find.byTooltip('البحث'), findsOneWidget);
+    expect(find.byTooltip('المزيد'), findsOneWidget);
+    expect(find.byIcon(LucideIcons.ellipsisVertical), findsOneWidget);
 
-    // الضغط على أيقونة البحث ينقل إلى شاشة البحث الفعلية بدل crashing.
-    await tester.tap(find.byTooltip('البحث'));
+    // الضغط على تبويب «البحث» في الشريط السفلي ينقل إلى شاشة البحث.
+    await tester.tap(find.text('البحث').last);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
 

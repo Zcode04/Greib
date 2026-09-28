@@ -32,6 +32,18 @@ class _ShellTab {
 
 const List<_ShellTab> _tabs = [
   _ShellTab(
+    route: '/profile',
+    title: 'حسابي',
+    icon: LucideIcons.user,
+    label: 'حسابي',
+  ),
+  _ShellTab(
+    route: '/wallet',
+    title: 'المحفظة الرقمية',
+    icon: LucideIcons.wallet,
+    label: 'المحفظة',
+  ),
+  _ShellTab(
     route: '/home',
     title: 'الرئيسية',
     icon: LucideIcons.house,
@@ -44,16 +56,10 @@ const List<_ShellTab> _tabs = [
     label: 'الدردشة',
   ),
   _ShellTab(
-    route: '/wallet',
-    title: 'المحفظة الرقمية',
-    icon: LucideIcons.wallet,
-    label: 'المحفظة',
-  ),
-  _ShellTab(
-    route: '/profile',
-    title: 'حسابي',
-    icon: LucideIcons.user,
-    label: 'حسابي',
+    route: '/search',
+    title: 'البحث',
+    icon: LucideIcons.search,
+    label: 'البحث',
   ),
 ];
 
@@ -67,13 +73,29 @@ class MainShellScreen extends StatefulWidget {
 class _MainShellScreenState extends State<MainShellScreen> {
   int _currentIndex = 0;
 
+  /// ★ فهرس تبويب «الرئيسية» (يُشتق من القائمة بدل رقم ثابت).
+  static int get _homeTabIndex =>
+      _tabs.indexWhere((t) => t.route == '/home');
+
+  /// ★ عدد التبويبات التي تبني محتوى الـ Shell (بدون «البحث»).
+  ///   «البحث» يفتح صفحة مستقلة، فلا يُحفظ كمؤشر نشط.
+  int get _shellTabCount => _tabs.length - 1;
+
   @override
   void initState() {
     super.initState();
-    _currentIndex = AppPrefs.lastTabIndex.clamp(0, _tabs.length - 1);
+    _currentIndex = AppPrefs.lastTabIndex.clamp(0, _shellTabCount - 1);
   }
 
   void _onTabSelected(int index) {
+    final tab = _tabs[index];
+
+    // ★ البحث صفحة مستقلة (خارج الـ Shell): نفتحها بدل تبديل التبويب.
+    if (tab.route == '/search') {
+      context.push(tab.route);
+      return;
+    }
+
     if (index == _currentIndex) return;
     setState(() => _currentIndex = index);
     AppPrefs.setLastTabIndex(index);
@@ -82,18 +104,18 @@ class _MainShellScreenState extends State<MainShellScreen> {
   Widget _buildBody(int index) {
     switch (index) {
       case 0:
-        return const HomeScreen();
-      case 1:
-        return const ChatListScreen();
-      case 2:
-        return const WalletScreen();
-      case 3:
         final user = AuthService.instance.currentUser;
         final profile = MockData.demoProfiles.firstWhere(
           (p) => p.email == user?.email || p.phone == user?.phone,
           orElse: () => MockData.demoProfiles.first,
         );
         return ProfileWidget(profile: profile);
+      case 1:
+        return const WalletScreen();
+      case 2:
+        return const HomeScreen();
+      case 3:
+        return const ChatListScreen();
       default:
         return const HomeScreen();
     }
@@ -128,8 +150,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
     final scaffoldBg =
         isDark ? AppColors.background : AppColors.lightBackground;
 
-    // استخدم SuperHeader بدلاً من Header العادي إذا كنا في الشاشة الرئيسية (index 0)
-    // هذا سيعطي تجربة "Super App" مع زر الموقع، الإشعارات المتطورة، والبحث المدمج.
+    // ★ نُخفي العنوان في تبويب «الرئيسية» فقط (حيث يظهر شعار التطبيق بدله).
+    final isHomeTab = _currentIndex == _homeTabIndex;
     return Scaffold(
       backgroundColor: scaffoldBg,
       // ★ المحتوى يبدأ تحت الهيدر (مسافة عمودية) ولا يتداخل معه —
@@ -137,7 +159,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       extendBody: true,
       extendBodyBehindAppBar: true,
       appBar: SuperHeader(
-        title: _currentIndex == 0 ? null : activeTab.title,
+        title: isHomeTab ? null : activeTab.title,
         extraActions: _buildHeaderActions(context).map((a) {
           return IconButton(
             icon: Badge(
