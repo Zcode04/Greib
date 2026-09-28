@@ -34,7 +34,9 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     _nameController = TextEditingController(text: widget.profile.name);
     _phoneController = TextEditingController(text: widget.profile.phone);
     _emailController = TextEditingController(text: widget.profile.email);
-    _addressController = TextEditingController(text: widget.profile.address ?? '');
+    _addressController = TextEditingController(
+      text: widget.profile.address ?? '',
+    );
   }
 
   @override
@@ -51,159 +53,215 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     final theme = Theme.of(context);
     final roleEnum = PermissionService.roleFromString(widget.profile.role);
 
-    return Card(
-      margin: const EdgeInsets.all(AppSpacing.lg),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [
-                      (roleEnum != null ? PermissionService.roleColor(roleEnum) : AppColors.primary)
-                          .withValues(alpha: 0.2),
-                      (roleEnum != null ? PermissionService.roleColor(roleEnum) : AppColors.primary)
-                          .withValues(alpha: 0.08),
-                    ],
+    // ★ نفس تعديل تبويب الدردشة: جسم التبويب داخل MainShellScreen يمتد
+    //   خلف الهيدر (extendBodyBehindAppBar: true) لأن SuperHeader شفاف،
+    //   فبدون هذه المسافة تتداخل بطاقة الملف الشخصي مع الهيدر.
+    //   نجمع شريط الحالة العلوي + ارتفاع الهيدر (toolbarHeight = 64).
+    final topInset = MediaQuery.paddingOf(context).top + 64;
+
+    return SingleChildScrollView(
+      // حشوة سفلية تمنع البطاقة من الاختفاء خلف الشريط السفلي العائم.
+      padding: EdgeInsets.only(top: topInset, bottom: 110),
+      child: Card(
+        margin: const EdgeInsets.all(AppSpacing.lg),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [
+                        (roleEnum != null
+                                ? PermissionService.roleColor(roleEnum)
+                                : AppColors.primary)
+                            .withValues(alpha: 0.2),
+                        (roleEnum != null
+                                ? PermissionService.roleColor(roleEnum)
+                                : AppColors.primary)
+                            .withValues(alpha: 0.08),
+                      ],
+                    ),
+                  ),
+                  child: Icon(
+                    roleEnum != null
+                        ? PermissionService.roleIcon(roleEnum)
+                        : LucideIcons.user,
+                    size: 48,
+                    color: roleEnum != null
+                        ? PermissionService.roleColor(roleEnum)
+                        : AppColors.primary,
                   ),
                 ),
-                child: Icon(
-                  roleEnum != null ? PermissionService.roleIcon(roleEnum) : LucideIcons.user,
-                  size: 48,
-                  color: roleEnum != null ? PermissionService.roleColor(roleEnum) : AppColors.primary,
-                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.lg),
 
-            Center(
-              child: Text(
-                widget.profile.name,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-
-            Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-                decoration: BoxDecoration(
-                  color: (roleEnum != null ? PermissionService.roleColor(roleEnum) : AppColors.primary)
-                      .withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppRadii.full),
-                ),
+              Center(
                 child: Text(
-                  roleEnum != null ? PermissionService.roleLabel(roleEnum) : 'مستخدم',
-                  style: TextStyle(
-                    color: roleEnum != null ? PermissionService.roleColor(roleEnum) : AppColors.primary,
-                    fontWeight: FontWeight.w600,
+                  widget.profile.name,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.sm),
 
-            if (_isEditing) ...[
-              TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'الاسم',
-                  prefixIcon: Icon(LucideIcons.user),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              TextField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'رقم الهاتف',
-                  prefixIcon: Icon(LucideIcons.phone),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'البريد الإلكتروني',
-                  prefixIcon: Icon(LucideIcons.mail),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              TextField(
-                controller: _addressController,
-                decoration: const InputDecoration(
-                  labelText: 'العنوان',
-                  prefixIcon: Icon(LucideIcons.mapPin),
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        (roleEnum != null
+                                ? PermissionService.roleColor(roleEnum)
+                                : AppColors.primary)
+                            .withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(AppRadii.full),
+                  ),
+                  child: Text(
+                    roleEnum != null
+                        ? PermissionService.roleLabel(roleEnum)
+                        : 'مستخدم',
+                    style: TextStyle(
+                      color: roleEnum != null
+                          ? PermissionService.roleColor(roleEnum)
+                          : AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
-              Row(
-                children: [
-                  Expanded(
-                    child: AppButton(
-                      label: 'حفظ',
-                      icon: LucideIcons.save,
-                      onPressed: () {
-                        setState(() {
-                          _isEditing = false;
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('تم حفظ التغييرات بنجاح ✅')),
-                        );
-                      },
-                    ),
+
+              if (_isEditing) ...[
+                TextField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'الاسم',
+                    prefixIcon: Icon(LucideIcons.user),
                   ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: AppButton(
-                      label: 'إلغاء',
-                      icon: LucideIcons.x,
-                      isOutlined: true,
-                      onPressed: () {
-                        setState(() {
-                          _isEditing = false;
-                          _nameController.text = widget.profile.name;
-                          _phoneController.text = widget.profile.phone;
-                          _emailController.text = widget.profile.email;
-                          _addressController.text = widget.profile.address ?? '';
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ] else ...[
-              _buildInfoRow(context, LucideIcons.user, 'الاسم', widget.profile.name),
-              _buildInfoRow(context, LucideIcons.phone, 'الهاتف', widget.profile.phone),
-              _buildInfoRow(context, LucideIcons.mail, 'البريد', widget.profile.email),
-              if (widget.profile.address != null)
-                _buildInfoRow(context, LucideIcons.mapPin, 'العنوان', widget.profile.address!),
-              const SizedBox(height: AppSpacing.xl),
-              if (widget.isEditable)
-                AppButton(
-                  label: 'تعديل البيانات',
-                  icon: LucideIcons.pencil,
-                  onPressed: () => setState(() {
-                    _isEditing = true;
-                  }),
                 ),
+                const SizedBox(height: AppSpacing.md),
+                TextField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'رقم الهاتف',
+                    prefixIcon: Icon(LucideIcons.phone),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                TextField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    labelText: 'البريد الإلكتروني',
+                    prefixIcon: Icon(LucideIcons.mail),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                TextField(
+                  controller: _addressController,
+                  decoration: const InputDecoration(
+                    labelText: 'العنوان',
+                    prefixIcon: Icon(LucideIcons.mapPin),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppButton(
+                        label: 'حفظ',
+                        icon: LucideIcons.save,
+                        onPressed: () {
+                          setState(() {
+                            _isEditing = false;
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('تم حفظ التغييرات بنجاح ✅'),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: AppButton(
+                        label: 'إلغاء',
+                        icon: LucideIcons.x,
+                        isOutlined: true,
+                        onPressed: () {
+                          setState(() {
+                            _isEditing = false;
+                            _nameController.text = widget.profile.name;
+                            _phoneController.text = widget.profile.phone;
+                            _emailController.text = widget.profile.email;
+                            _addressController.text =
+                                widget.profile.address ?? '';
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ] else ...[
+                _buildInfoRow(
+                  context,
+                  LucideIcons.user,
+                  'الاسم',
+                  widget.profile.name,
+                ),
+                _buildInfoRow(
+                  context,
+                  LucideIcons.phone,
+                  'الهاتف',
+                  widget.profile.phone,
+                ),
+                _buildInfoRow(
+                  context,
+                  LucideIcons.mail,
+                  'البريد',
+                  widget.profile.email,
+                ),
+                if (widget.profile.address != null)
+                  _buildInfoRow(
+                    context,
+                    LucideIcons.mapPin,
+                    'العنوان',
+                    widget.profile.address!,
+                  ),
+                const SizedBox(height: AppSpacing.xl),
+                if (widget.isEditable)
+                  AppButton(
+                    label: 'تعديل البيانات',
+                    icon: LucideIcons.pencil,
+                    onPressed: () => setState(() {
+                      _isEditing = true;
+                    }),
+                  ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(BuildContext context, IconData icon, String label, String value) {
+  Widget _buildInfoRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+  ) {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
