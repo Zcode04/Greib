@@ -565,22 +565,19 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                   onTap: () => _openServiceChat(service),
                 ),
               ),
-              // مسافة فاصلة قبل مجموعة الأيقونات.
-              const SizedBox(width: 8),
+              // ★ مسافة فاصلة واسعة قبل مجموعة الأيقونات.
+              const SizedBox(width: 16),
               Expanded(
                 flex: 2,
                 child: Padding(
                   // ★ مسافة صغيرة من زاوية النهاية حتى لا تلتصق المجموعة بالحافة.
                   padding: const EdgeInsetsDirectional.only(end: 12),
-                  child: FittedBox(
-                    // ★ تصغير المجموعة كلها بدل فيضها على الشاشات الضيقة.
-                    fit: BoxFit.scaleDown,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // ★ تفاعل المنشور بجانب بقية الأيقونات: إعجاب ← ضغط ← عدم
-                        // إعجاب ← ضغط ← بلا.
-                        _fbActionButton(
+                  child: Row(
+                    children: [
+                      // ★ تفاعل المنشور: إعجاب ← ضغط ← عدم إعجاب ← ضغط ← بلا.
+                      // كل خلية Expanded ⇒ توزيع متساوٍ وخلفيات متماثلة.
+                      Expanded(
+                        child: _fbActionButton(
                           grouped: true,
                           icon: reaction >= 0
                               ? LucideIcons.thumbsUp
@@ -711,8 +708,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                             ],
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        _fbActionButton(
+                      ),
+                      Expanded(
+                        child: _fbActionButton(
                           grouped: true,
                           // ★ أيقونة فقط (بلا كلمة): المحادثة مفهومة من الرمز.
                           icon: LucideIcons.messageCircle,
@@ -723,8 +721,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                           count: _countFor(service.id, 40, 2),
                           onTap: () => _showCommentsSheet(service),
                         ),
-                        const SizedBox(width: 8),
-                        _fbActionButton(
+                      ),
+                      Expanded(
+                        child: _fbActionButton(
                           grouped: true,
                           // ★ أيقونة فقط (بلا كلمة): المشاركة مفهومة من الرمز.
                           icon: LucideIcons.repeat2,
@@ -739,8 +738,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                             hint: 'نشر رابط «${service.title}» على صفحتك.',
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -1109,7 +1108,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     // ★ المجموعة الثلاث أكبر قليلاً ⇒ منطقة لمس مريحة (≈52px ارتفاع).
     final iconSize = grouped ? 20.0 : 18.0;
     // ★ توسيع أفقي للخلفية فقط (الأيقونة/الرقم بلا تغيير) ⇒ مظهر أنيق ومتوازن.
-    final pillHPad = grouped ? 22.0 : 12.0;
+    final pillHPad = grouped ? 22.0 : 18.0;
     final pillVPad = grouped ? 8.0 : 7.0;
     final countSize = grouped ? 12.5 : 12.0;
 
@@ -1117,27 +1116,29 @@ class _SpotlightSectionState extends State<SpotlightSection> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(24),
       child: Padding(
-        // مسافة 12 فقط للزر المنفرد ⇒ يقترب من الزاوية دون ملامستها.
-        padding: EdgeInsets.symmetric(
-          vertical: grouped ? 9 : 8,
-          horizontal: grouped ? 0 : 12,
-        ),
+        // ★ كل زر يملأ الخلية بالتساوي (توسيع أفقي للخلفية فقط) ⇒ خلفيات
+        // متماثلة الأبعاد، والمسافات بينها متساوية بلا فواصل يدوية.
+        padding: EdgeInsets.symmetric(vertical: grouped ? 9 : 8),
         child: Align(
           alignment: grouped
               ? Alignment.center
               : AlignmentDirectional.centerStart,
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Container(
-              // خلفية موحّدة تغطي الأيقونة والرقم/الكلمة ⇒ rounded-full.
-              padding: EdgeInsets.symmetric(
-                horizontal: pillHPad,
-                vertical: pillVPad,
-              ),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(_kPillRadius),
-              ),
+          // ★ الخلفية تملأ الخلية بالتساوي في المجموعة ⇒ أزرار متساوية الأبعاد
+          // ومتناظرة، بينما يبقى زر «طلب الآن» ملتصقاً بعرض محتواه.
+          child: Container(
+            width: grouped ? double.infinity : null,
+            // خلفية موحّدة تغطي الأيقونة والرقم/الكلمة ⇒ rounded-full.
+            padding: EdgeInsets.symmetric(
+              horizontal: pillHPad,
+              vertical: pillVPad,
+            ),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(_kPillRadius),
+            ),
+            child: FittedBox(
+              // ★ تصغير المحتوى عند ضيق الشاشة بدل فيض الخلفية.
+              fit: BoxFit.scaleDown,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
