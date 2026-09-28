@@ -556,6 +556,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           // تأخذ الباقي (⅔) ⇒ أيقونات أكبر ومنطقة لمس مريحة بلا تصغير.
           Row(
             children: [
+              // ★ مسافة عن حافة البداية حتى لا يلتصق زر «طلب الآن» بالزاوية.
+              const SizedBox(width: 12),
               Expanded(
                 flex: 1,
                 child: _fbActionButton(
@@ -565,8 +567,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                   onTap: () => _openServiceChat(service),
                 ),
               ),
-              // ★ مسافة فاصلة واسعة قبل مجموعة الأيقونات.
-              const SizedBox(width: 16),
+              // ★ فاصل صغير قبل مجموعة الأيقونات (زر «طلب الآن» قريب منها).
+              const SizedBox(width: 6),
               Expanded(
                 flex: 2,
                 child: Padding(
