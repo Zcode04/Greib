@@ -23,7 +23,6 @@ import 'widgets/services_grid.dart';
 import 'widgets/hotels_section.dart';
 import 'widgets/travel_section.dart';
 import 'widgets/doctors_row.dart';
-import 'widgets/orders_list.dart';
 import 'widgets/quick_actions.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -275,18 +274,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: FeaturedProductsSection(),
                 ),
                 const SizedBox(height: 28),
-
-                AnimatedListItem(
-                  index: 7,
-                  child: SectionHeader(
-                    title: 'طلباتك الحالية',
-                    icon: LucideIcons.package,
-                    iconColor: AppColors.warning,
-                    actionTitle: 'كل الطلبات',
-                    onActionTap: () => context.push('/orders'),
-                  ),
-                ),
-                AnimatedListItem(index: 7, child: OrdersList(isDark: isDark)),
 
                 if (role == UserRole.admin || role == UserRole.agent) ...[
                   const SizedBox(height: 28),
