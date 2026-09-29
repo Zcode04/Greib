@@ -6,6 +6,7 @@ import '../../../core/mock_data/mock_data.dart';
 import '../../../core/models/service_model.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../shared_widgets/smart_image.dart';
+import '../../../shared_widgets/service_post_card.dart';
 import '../data/services_repository.dart';
 
 /// ============================================================================
@@ -112,8 +113,9 @@ class _ProfileHeader extends StatelessWidget {
               start: AppSpacing.md,
               child: Container(
                 decoration: BoxDecoration(
-                  color: (isDark ? AppColors.surfaceCard : AppColors.lightSurface)
-                      .withValues(alpha: 0.9),
+                  color:
+                      (isDark ? AppColors.surfaceCard : AppColors.lightSurface)
+                          .withValues(alpha: 0.9),
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
@@ -133,8 +135,9 @@ class _ProfileHeader extends StatelessWidget {
                 width: _avatarSize,
                 height: _avatarSize,
                 decoration: BoxDecoration(
-                  color:
-                      isDark ? AppColors.surfaceCard : AppColors.lightSurface,
+                  color: isDark
+                      ? AppColors.surfaceCard
+                      : AppColors.lightSurface,
                   shape: BoxShape.circle,
                   // حلقة بلون الخلفية لتبدو "مقتطعة" من الغلاف
                   border: Border.all(color: bg, width: 4),
@@ -195,12 +198,13 @@ class _CoverFallback extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [color.withValues(alpha: 0.35), color.withValues(alpha: 0.08)],
+          colors: [
+            color.withValues(alpha: 0.35),
+            color.withValues(alpha: 0.08),
+          ],
         ),
       ),
-      child: Center(
-        child: Icon(LucideIcons.image, color: color, size: 32),
-      ),
+      child: Center(child: Icon(LucideIcons.image, color: color, size: 32)),
     );
   }
 }
@@ -254,8 +258,9 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
 // ============================ محتوى التبويبات ============================
 enum _FeedMode { latest, all, topEngaged }
 
-/// مؤقتاً: نعرض صور الخدمة في شبكة، وكل تبويب يرتّبها بشكل مختلف.
-/// لاحقاً نستبدلها بمنشورات حقيقية من الباك إند (تاريخ / تفاعل).
+/// كل تبويب يجلب منشورات الخدمة من المصدر الواحد (services.json ⟵ posts)
+/// ويعرضها **بنفس تصميم المنشورات** المستخدم في الـ Spotlight Carousel،
+/// مع اختلاف الترتيب فقط بين التبويبات.
 class _PostsTab extends StatelessWidget {
   final ServiceCategory service;
   final _FeedMode mode;
@@ -265,20 +270,24 @@ class _PostsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    var items = List<String>.from(service.imageUrls);
+    final isDark = theme.brightness == Brightness.dark;
+    final bg = isDark ? AppColors.backgroundPrimary : AppColors.lightBackground;
+    final source = ServicesRepository.instance.postsFor(service.id);
 
+    // ترتيب مختلف لكل تبويب (Sorting) — البيانات نفسها، العرض يختلف.
+    final List<ServicePost> posts;
     switch (mode) {
       case _FeedMode.latest:
-        items = items.reversed.toList(); // placeholder: الأحدث أولاً
-        break;
-      case _FeedMode.topEngaged:
-        // TODO: ترتيب حسب التفاعل عند توفر البيانات.
-        break;
+        posts = source.reversed.toList();
       case _FeedMode.all:
-        break;
+        posts = List<ServicePost>.of(source);
+      case _FeedMode.topEngaged:
+        // تفاعل ثابت مشتق من نص المنشور (mock) ⇒ لا عشوائية تتغيّر كل إطار.
+        posts = List<ServicePost>.of(source)
+          ..sort((a, b) => b.text.hashCode.compareTo(a.text.hashCode));
     }
 
-    if (items.isEmpty) {
+    if (posts.isEmpty) {
       return Center(
         child: Text(
           'لا يوجد محتوى بعد',
@@ -289,24 +298,23 @@ class _PostsTab extends StatelessWidget {
       );
     }
 
-    return GridView.builder(
+    final line = isDark ? AppColors.outline : AppColors.lightOutline;
+
+    return ListView.separated(
       key: PageStorageKey('feed_${mode.name}'),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: AppSpacing.sm,
-        crossAxisSpacing: AppSpacing.sm,
-      ),
-      itemCount: items.length,
-      itemBuilder: (context, i) => ClipRRect(
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        child: SmartImage(
-          src: items[i],
-          placeholder: Container(
-            color: service.color.withValues(alpha: 0.1),
-            child: Icon(LucideIcons.image, color: service.color, size: 24),
-          ),
-        ),
+      padding: EdgeInsets.zero,
+      itemCount: posts.length,
+      // ★ فاصل رفيع (لا فجوة) ⇒ نفسه تصميم المنشورات.
+      separatorBuilder: (_, _) => Divider(height: 1, thickness: 1, color: line),
+      itemBuilder: (context, i) => ServicePostCard(
+        // ★ نفس بطاقة المنشورات في الصفحة الرئيسية (ServicePostCard).
+        service: service,
+        text: posts[i].text,
+        timeAgo: posts[i].timeAgo,
+        imageUrls: posts[i].imageUrls,
+        isDark: isDark,
+        backgroundColor: bg,
+        countSeed: posts[i].text,
       ),
     );
   }
@@ -323,8 +331,9 @@ class _ServiceNotFound extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor:
-            isDark ? AppColors.backgroundPrimary : AppColors.lightBackground,
+        backgroundColor: isDark
+            ? AppColors.backgroundPrimary
+            : AppColors.lightBackground,
       ),
       body: Center(
         child: Padding(
