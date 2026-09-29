@@ -23,3 +23,16 @@ class ServiceCategory {
     this.imageUrls = const [],
   });
 }
+
+/// منشور إضافي لنفس الخدمة (ورقة «عرض المزيد»): نص + صور + زمن النشر.
+class ServicePost {
+  final String text;
+  final List<String> imageUrls;
+  final String timeAgo;
+
+  const ServicePost({
+    required this.text,
+    required this.imageUrls,
+    required this.timeAgo,
+  });
+}

@@ -565,6 +565,90 @@ class MockData {
     ),
   ];
 
+  // ===== منشورات إضافية لكل خدمة (ورقة «عرض المزيد» من صور المنشور) =====
+  // كل مُدخل ثانٍ/ثالث لنفس معرّف الخدمة = منشور إضافي لنفس الكتالوج
+  // (نفس الحساب/الأيقونة/اللون، ونصوص وصور من نفس المجال).
+  static const Map<String, List<ServicePost>> servicePosts = {
+    'food': [
+      ServicePost(
+        text: 'عرض خاص اليوم: خصم 30% على جميع الوجبات الدافئة حتى الساعة 10 مساءً.',
+        imageUrls: [
+          'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&q=80',
+          'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&q=80',
+        ],
+        timeAgo: 'منذ 5 ساعات',
+      ),
+      ServicePost(
+        text: 'التوصيل مجاني للطلبات فوق 50 درهماً داخل المدينة، خلال 30 دقيقة.',
+        imageUrls: [
+          'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=1200&q=80',
+          'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&q=80',
+        ],
+        timeAgo: 'أمس',
+      ),
+    ],
+    'pharmacy': [
+      ServicePost(
+        text: 'اطلب وصفتك الرقمية من الصيدلية، والتوصيل خلال ساعة فقط.',
+        imageUrls: [
+          'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=1200&q=80',
+        ],
+        timeAgo: 'منذ 3 ساعات',
+      ),
+    ],
+    'cinema': [
+      ServicePost(
+        text: 'عروض هذا الأسبوع: تذكرة عائلية بخصم 40% على كل الأفلام.',
+        imageUrls: [
+          'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1200&q=80',
+          'https://images.unsplash.com/photo-1595769824553-1b6d2e3b1f2c?w=1200&q=80',
+        ],
+        timeAgo: 'منذ ساعتين',
+      ),
+    ],
+    'banking': [
+      ServicePost(
+        text: 'حوّل أموالك بين الحسابات مجاناً، وتابع مصروفاتك لحظة بلحظة من التطبيق.',
+        imageUrls: [
+          'https://images.unsplash.com/photo-1601597111158-2fceff292cdc?w=1200&q=80',
+        ],
+        timeAgo: 'منذ يومين',
+      ),
+    ],
+    'tourism': [
+      ServicePost(
+        text: 'جولات سياحية جديدة هذا الشهر بأفضل الأسعار، تشغيل يومي طوال العام.',
+        imageUrls: [
+          'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=1200&q=80',
+          'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=1200&q=80',
+        ],
+        timeAgo: 'منذ 4 ساعات',
+      ),
+    ],
+    'delivery': [
+      ServicePost(
+        text: 'شحن سريع لكل المدن: طردك يصل خلال 24 ساعة مع إمكانية التتبع.',
+        imageUrls: [
+          'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=1200&q=80',
+        ],
+        timeAgo: 'منذ 6 ساعات',
+      ),
+    ],
+    'moving': [
+      ServicePost(
+        text: 'فرق نقل عفش مجهزة لتغليف الأثاث ونقله بأمان داخل المدينة.',
+        imageUrls: [
+          'https://images.unsplash.com/photo-1600518464441-9154a4dea21b?w=1200&q=80',
+        ],
+        timeAgo: 'منذ أسبوع',
+      ),
+    ],
+  };
+
+  /// منشورات الخدمة الإضافية (ورقة «عرض المزيد») — قائمة فارغة إن لم يوجد شيء.
+  static List<ServicePost> postsFor(String serviceId) =>
+      servicePosts[serviceId] ?? const [];
+
   // تبويبات المتجر (الأول "الكل" مفعّل افتراضياً — البقية تُطوَّر لاحقاً)
   static const List<Map<String, String>> productCategories = [
     {'id': 'all', 'label': 'الكل'},
