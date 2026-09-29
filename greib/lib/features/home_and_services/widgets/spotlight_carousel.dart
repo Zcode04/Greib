@@ -431,79 +431,6 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     return [service.coverImage ?? fallback, ...extra];
   }
 
-  /// صورة واحدة (شبكة أو أصل) مع بديل أيقونة عند فشل التحميل.
-  Widget _postImageTile(
-    String url,
-    Color serviceColor,
-    ServiceCategory service, {
-    BoxFit fit = BoxFit.cover,
-  }) {
-    return SmartImage(
-      src: url,
-      fit: fit,
-      placeholder: _buildIconHero(serviceColor, service),
-    );
-  }
-
-  /// ★ شبكة الصور المشتركة (منشور الصفحة + منشورات ورقة «عرض المزيد»):
-  /// صورة واحدة بنسبة ثابتة أو صورتان جنباً إلى جنب (فيس بوك)، وكلها
-  /// تستجيب للضغط بـ `onTap` (ورقة خيارات في المنشور، معاينة في الورقة).
-  Widget _buildImageGrid(
-    List<String> images,
-    Color serviceColor,
-    ServiceCategory service, {
-    required VoidCallback onTap,
-  }) {
-    if (images.isEmpty) return const SizedBox.shrink();
-
-    if (images.length == 1) {
-      return InkWell(
-        onTap: onTap,
-        child: AspectRatio(
-          aspectRatio: 1.5,
-          child: _postImageTile(images.first, serviceColor, service),
-        ),
-      );
-    }
-
-    // صورتان+: شبكة بصفّين ⇒ مساحة كبيرة لكل صورة.
-    return InkWell(
-      onTap: onTap,
-      child: AspectRatio(
-        aspectRatio: 1.5,
-        child: Row(
-          children: [
-            Expanded(
-              flex: 3,
-              child: _postImageTile(images[0], serviceColor, service),
-            ),
-            const SizedBox(width: 2),
-            Expanded(
-              flex: 2,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: _postImageTile(
-                      images.length > 1 ? images[1] : images.first,
-                      serviceColor,
-                      service,
-                    ),
-                  ),
-                  if (images.length > 2) ...[
-                    const SizedBox(height: 2),
-                    Expanded(
-                      child: _postImageTile(images[2], serviceColor, service),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   /// ★ ورقة خيارات صور المنشور: عند الضغط على أي صورة لا نفتح المعاينة
   /// مباشرة، بل نعرض ثلاث خيارات: «مشاهدة صور» (المعاينة الكاملة)،
   /// «طلب الآن» (محادثة مقدّم الخدمة)، و«عرض المزيد» (منشورات أخرى لنفس
@@ -513,7 +440,6 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     final images = imageUrl == null
         ? const <String>[]
         : _postImages(service, imageUrl);
-    final hasMore = ServicesRepository.instance.postsFor(service.id).isNotEmpty;
     final secondary = widget.isDark
         ? AppColors.textSecondary
         : AppColors.lightTextSecondary;
@@ -625,13 +551,15 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                         () => _core.openServiceChat(context, service: service),
                       ),
                     ),
-                    // 3) المزيد ⇒ منشورات أخرى لنفس الخدمة (نفس الكتالوج).
-                    if (hasMore)
-                      row(
-                        LucideIcons.newspaper,
-                        'عرض المزيد',
-                        () => pick(() => _showMorePostsSheet(service)),
+                    // 3) المزيد ⇒ الانتقال لصفحة تفاصيل الخدمة.
+                    row(
+                      LucideIcons.newspaper,
+                      'عرض المزيد',
+                      () => pick(
+                        // ★ نستخدم سياق الـState لا سياق الورقة (أُغلقت).
+                        () => this.context.push('/service/${service.id}'),
                       ),
+                    ),
                   ],
                 ),
               ),
@@ -639,189 +567,6 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           ),
         );
       },
-    );
-  }
-
-  /// ★ ورقة «عرض المزيد»: منشورات إضافية تخص نفس الخدمة الحالية فقط
-  /// (نفس الحساب/الأيقونة/اللون)، وكل صورة فيها تفتح المعاينة الكاملة
-  /// مباشرة (لا ورقة خيارات متداخلة).
-  void _showMorePostsSheet(ServiceCategory service) {
-    final posts = ServicesRepository.instance.postsFor(service.id);
-    if (posts.isEmpty) return;
-
-    showAppSheet<void>(
-      context,
-      builder: (sheetContext) {
-        final secondary = widget.isDark
-            ? AppColors.textSecondary
-            : AppColors.lightTextSecondary;
-        final primary = widget.isDark
-            ? AppColors.textPrimary
-            : AppColors.lightText;
-        final line = widget.isDark ? AppColors.outline : AppColors.lightOutline;
-
-        return DraggableSheetBody(
-          initialExtent: 0.6,
-          snapSizes: const [0.4, 0.5, 0.6, 0.7, 0.8, 0.92],
-          builder: (context, scrollController) {
-            return ListView.separated(
-              controller: scrollController,
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-              itemCount: posts.length + 1,
-              separatorBuilder: (_, _) => Divider(height: 24, color: line),
-              itemBuilder: (context, i) {
-                // ★ العنوان في العنصر الأول، ثم المنشورات.
-                if (i == 0) {
-                  return Row(
-                    children: [
-                      Icon(LucideIcons.newspaper, size: 18, color: secondary),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'منشورات أخرى عن «${service.title}»',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: primary,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                }
-
-                final post = posts[i - 1];
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // رأس المنشور: نفس حساب الخدمة + الزمن.
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: service.color.withValues(alpha: 0.15),
-                            border: Border.all(
-                              color: service.color.withValues(alpha: 0.3),
-                            ),
-                          ),
-                          child: Icon(
-                            MockData.getIconByName(service.iconName),
-                            color: service.color,
-                            size: 18,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                service.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: primary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Greib · ${post.timeAgo}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: secondary,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      post.text,
-                      style: TextStyle(
-                        color: primary,
-                        fontSize: 14,
-                        height: 1.5,
-                      ),
-                    ),
-                    if (post.imageUrls.isNotEmpty) ...[
-                      const SizedBox(height: 10),
-                      // ★ نفس شبكة صور المنشور، والضغط يفتح المعاينة مباشرة.
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: _buildImageGrid(
-                          post.imageUrls,
-                          service.color,
-                          service,
-                          onTap: () => _core.openImagePreview(
-                            context,
-                            images: post.imageUrls,
-                            service: service,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                );
-              },
-            );
-          },
-        );
-      },
-    );
-  }
-
-  /// Hero Image: fallback لو فشل تحميل الصورة
-  Widget _buildIconHero(Color serviceColor, ServiceCategory service) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            serviceColor.withValues(alpha: 0.22),
-            serviceColor.withValues(alpha: 0.07),
-          ],
-        ),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // حجم الأيقونة نسبةً لعرض البطاقة ⇒ لا يفيض على الشاشات الضيقة.
-          final badge = (constraints.maxWidth * 0.3).clamp(64.0, 120.0);
-          return Center(
-            child: Container(
-              width: badge,
-              height: badge,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: serviceColor.withValues(alpha: 0.18),
-                border: Border.all(
-                  color: serviceColor.withValues(alpha: 0.38),
-                  width: 2,
-                ),
-              ),
-              child: Icon(
-                MockData.getIconByName(service.iconName),
-                color: serviceColor,
-                size: badge * 0.48,
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 
