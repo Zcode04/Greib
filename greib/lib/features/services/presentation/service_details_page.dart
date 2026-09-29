@@ -5,6 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/mock_data/mock_data.dart';
 import '../../../core/models/service_model.dart';
 import '../../../core/theme/design_tokens.dart';
+import '../../../core/widgets/app_sheet.dart';
 import '../../../shared_widgets/smart_image.dart';
 import '../../../shared_widgets/post_sheets.dart';
 import '../../../shared_widgets/service_post_card.dart';
@@ -227,7 +228,187 @@ class _ProfileHeader extends StatelessWidget {
           ),
         ],
         const SizedBox(height: AppSpacing.lg),
+
+        // ---------- مقدمو الخدمة (تجاهل أفقي + علامة صح) ----------
+        _ProvidersSection(service: service),
       ],
+    );
+  }
+}
+
+// ============================ مقدمو الخدمة ============================
+/// ★ قسم «مقدمي الخدمة» فوق التبويبات: عنوان + سطر إرشادي، وتحته شريط
+/// أفقي من خمسة بروفايلات وهمية (متاجر) لكل واحد علامة صح.
+class _ProvidersSection extends StatelessWidget {
+  final ServiceCategory service;
+
+  const _ProvidersSection({required this.service});
+
+  static const double _avatarSize = 52;
+
+  /// ارتفاع الصف = البروفايل + فاصل + سطر الاسم (لا فيضان).
+  static const double _rowHeight = _avatarSize + AppSpacing.md + 18;
+
+  /// أسماء أشخاص وهمية ثابتة (mock) — لا تتغيّر بين البناءات.
+  static const List<String> _fakeProviders = [
+    'أحمد محمد',
+    'سارة علي',
+    'محمود حسن',
+    'ليلى يوسف',
+    'خالد عمر',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          child: Text(
+            'مقدمي الخدمة',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        const SizedBox(height: 2),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          child: Text(
+            'اضغط لتعرف على مقدمي الخدمة',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        SizedBox(
+          height: _rowHeight,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            itemCount: _fakeProviders.length,
+            separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
+            itemBuilder: (context, i) {
+              final name = _fakeProviders[i];
+              return InkWell(
+                borderRadius: BorderRadius.circular(_avatarSize),
+                onTap: () => _showProviderIntro(context, name),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Container(
+                          width: _avatarSize,
+                          height: _avatarSize,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: service.color.withValues(alpha: 0.15),
+                            border: Border.all(
+                              color: service.color.withValues(alpha: 0.35),
+                            ),
+                          ),
+                          child: Icon(
+                            LucideIcons.userRound,
+                            size: 22,
+                            color: service.color,
+                          ),
+                        ),
+                        // ★ علامة الصح أسفل يسار البروفايل.
+                        PositionedDirectional(
+                          bottom: -2,
+                          start: -2,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: theme.colorScheme.surface,
+                            ),
+                            child: const Icon(
+                              LucideIcons.checkCircle,
+                              size: 16,
+                              color: AppColors.success,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    // ★ عرض محدد ⇒ الاسم يُقصّ بثلاث نقاط بدل الفيضان.
+                    SizedBox(
+                      width: _avatarSize + 12,
+                      child: Text(
+                        name,
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showProviderIntro(BuildContext context, String name) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    showAppSheet<void>(
+      context,
+      builder: (sheetContext) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  MockData.getIconByName(service.iconName),
+                  color: service.color,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    name,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                const Icon(
+                  LucideIcons.checkCircle,
+                  size: 18,
+                  color: AppColors.success,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'مقدّم خدمة «${service.title}» موثّق في Greib، تخدم عملاء المنصة يومياً '
+              'وتقييمه 4.9 من 5 بناءً على آراء المشترين.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                height: 1.6,
+                color: isDark
+                    ? AppColors.textSecondary
+                    : AppColors.lightTextSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
