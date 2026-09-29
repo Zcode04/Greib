@@ -6,6 +6,7 @@ import '../../../core/mock_data/mock_data.dart';
 import '../../../core/models/service_model.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../shared_widgets/smart_image.dart';
+import '../../../shared_widgets/post_sheets.dart';
 import '../../../shared_widgets/service_post_card.dart';
 import '../data/services_repository.dart';
 
@@ -21,19 +22,51 @@ import '../data/services_repository.dart';
 ///   4) الوصف
 ///   5) تبويبات: الأحدث | الكل | الأكثر تفاعلاً
 /// ============================================================================
-class ServiceDetailsPage extends StatelessWidget {
+class ServiceDetailsPage extends StatefulWidget {
   final String serviceId;
 
   const ServiceDetailsPage({super.key, required this.serviceId});
 
   @override
+  State<ServiceDetailsPage> createState() => _ServiceDetailsPageState();
+}
+
+class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
+  /// ★ نواة الأوراق المشتركة: تفاعل/مفضلة/تعليقات وأوراق المنشورات كلها
+  /// في مكان واحد — نفس المنطق المستخدم في الصفحة الرئيسية تماماً.
+  ///
+  /// تُنشأ مرة واحدة لكل فتح للصفحة وتُعاد بناؤها عند تغيّر السمة (فاتح/داكن)
+  /// حتى تعكس الأورقِ ألوان الوضع الحالي.
+  PostSheetsController? _sheets;
+
+  String get _serviceId => widget.serviceId;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // نُعيد البناء فقط عند تغيّر الوضع (لا في كل استدعاء).
+    if (_sheets == null || _sheets!.isDark != isDark) {
+      _sheets?.dispose();
+      _sheets = PostSheetsController(isDark: isDark);
+    }
+  }
+
+  @override
+  void dispose() {
+    _sheets?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final service = ServicesRepository.instance.byId(serviceId);
+    final service = ServicesRepository.instance.byId(_serviceId);
     if (service == null) return const _ServiceNotFound();
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final bg = isDark ? AppColors.backgroundPrimary : AppColors.lightBackground;
+    final sheets = _sheets!;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -59,9 +92,21 @@ class ServiceDetailsPage extends StatelessWidget {
             ],
             body: TabBarView(
               children: [
-                _PostsTab(service: service, mode: _FeedMode.latest),
-                _PostsTab(service: service, mode: _FeedMode.all),
-                _PostsTab(service: service, mode: _FeedMode.topEngaged),
+                _PostsTab(
+                  service: service,
+                  mode: _FeedMode.latest,
+                  sheets: sheets,
+                ),
+                _PostsTab(
+                  service: service,
+                  mode: _FeedMode.all,
+                  sheets: sheets,
+                ),
+                _PostsTab(
+                  service: service,
+                  mode: _FeedMode.topEngaged,
+                  sheets: sheets,
+                ),
               ],
             ),
           ),
@@ -259,13 +304,20 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
 enum _FeedMode { latest, all, topEngaged }
 
 /// كل تبويب يجلب منشورات الخدمة من المصدر الواحد (services.json ⟵ posts)
-/// ويعرضها **بنفس تصميم المنشورات** المستخدم في الـ Spotlight Carousel،
-/// مع اختلاف الترتيب فقط بين التبويبات.
+/// ويعرضها **بنفس تصميم المنشورات** وب**نفس أوراق تفاعلها** المستخدمة في
+/// الصفحة الرئيسية، مع اختلاف الترتيب فقط بين التبويبات.
 class _PostsTab extends StatelessWidget {
   final ServiceCategory service;
   final _FeedMode mode;
 
-  const _PostsTab({required this.service, required this.mode});
+  /// ★ النواة المشتركة للأوراق — مصدر واحد لمنطق التفاعل في التطبيق.
+  final PostSheetsController sheets;
+
+  const _PostsTab({
+    required this.service,
+    required this.mode,
+    required this.sheets,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -306,16 +358,51 @@ class _PostsTab extends StatelessWidget {
       itemCount: posts.length,
       // ★ فاصل رفيع (لا فجوة) ⇒ نفسه تصميم المنشورات.
       separatorBuilder: (_, _) => Divider(height: 1, thickness: 1, color: line),
-      itemBuilder: (context, i) => ServicePostCard(
-        // ★ نفس بطاقة المنشورات في الصفحة الرئيسية (ServicePostCard).
-        service: service,
-        text: posts[i].text,
-        timeAgo: posts[i].timeAgo,
-        imageUrls: posts[i].imageUrls,
-        isDark: isDark,
-        backgroundColor: bg,
-        countSeed: posts[i].text,
-      ),
+      itemBuilder: (context, i) {
+        final post = posts[i];
+        // ★ معرّف المنشور: يجعل التفاعل/المفضلة/التعليقات خاصة بكل منشور.
+        final postId = '${service.id}_$i';
+
+        // ★ ListenableBuilder ⇒ أي تغيير في التفاعل/المفضلة عبر النواة
+        //   المشتركة يعيد بناء البطاقات تلقائياً (بلا setState يدوي).
+        return ListenableBuilder(
+          listenable: sheets,
+          builder: (context, _) => ServicePostCard(
+            // ★ نفس بطاقة المنشورات في الصفحة الرئيسية (ServicePostCard).
+            service: service,
+            text: post.text,
+            timeAgo: post.timeAgo,
+            imageUrls: post.imageUrls,
+            isDark: isDark,
+            backgroundColor: bg,
+            countSeed: post.text,
+            // الحالة من النواة المشتركة (لا محلية) ⇒ متسقة بين الشاشتين.
+            reaction: sheets.reactionOf(postId),
+            isSaved: sheets.isFavorite(postId),
+            onSaveChanged: (value) => sheets.setFavorite(postId, value),
+            onReaction: () =>
+                sheets.showReaction(context, postId: postId, service: service),
+            onComment: () =>
+                sheets.showComments(context, postId: postId, service: service),
+            onRequest: () => sheets.openServiceChat(context, service: service),
+            onShare: () => sheets.showAction(
+              context,
+              icon: LucideIcons.repeat2,
+              title: 'إعادة النشر',
+              hint: 'نشر رابط «${service.title}» على صفحتك.',
+            ),
+            onImageTap: () => sheets.openImagePreview(
+              context,
+              images: post.imageUrls.isNotEmpty
+                  ? post.imageUrls
+                  : (service.coverImage != null
+                        ? [service.coverImage!]
+                        : const <String>[]),
+              service: service,
+            ),
+          ),
+        );
+      },
     );
   }
 }
