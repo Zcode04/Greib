@@ -1,11 +1,18 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:greib_menk/core/permissions/permissions.dart';
+import 'package:greib_menk/features/services/data/services_repository.dart';
 
 /// ============================================================================
 ///  اختبارات حماية الصلاحيات — المنطق الذي كان مكتوباً وغير مُستدعى إطلاقاً.
 ///  الآن يمرّ عليه كل تنقّل في AppRouter عبر `_guard`.
 /// ============================================================================
 void main() {
+  // المسارات صارت تُشتق من المصدر الواحد (services.json) ⇒ نحمّله أولاً.
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await ServicesRepository.instance.load();
+  });
+
   group('PermissionService.canAccess', () {
     test('زائر غير مسجّل لا يملك صلاحية أي مسار', () {
       expect(PermissionService.canAccess(null, '/home'), isFalse);
@@ -31,7 +38,13 @@ void main() {
     });
 
     test('المستخدم العادي يصل للخدمات والشاشات المشتركة', () {
-      for (final route in ['/home', '/food', '/orders', '/search', '/wallet']) {
+      for (final route in [
+        '/home',
+        '/service/food',
+        '/orders',
+        '/search',
+        '/wallet',
+      ]) {
         expect(
           PermissionService.canAccess(UserRole.user, route),
           isTrue,

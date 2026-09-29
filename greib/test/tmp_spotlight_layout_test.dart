@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:greib_menk/features/home_and_services/widgets/spotlight_carousel.dart';
 import 'package:greib_menk/shared_widgets/glass_container.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:greib_menk/core/mock_data/mock_data.dart';
+import 'package:greib_menk/features/services/data/services_repository.dart';
 
 Widget host() {
   return MaterialApp(
@@ -27,6 +27,13 @@ Future<void> showPosts(WidgetTester tester) async {
 }
 
 void main() {
+  // البيانات صارت تُقرأ من assets/data/services.json (SSOT)، لذا تُحمَّل
+  // عبر المستودع (Repository) قبل تشغيل أي اختبار (setUpAll).
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await ServicesRepository.instance.load();
+  });
+
   testWidgets('phone narrow: card fills the full width', (tester) async {
     tester.view.physicalSize = const Size(320, 900);
     tester.view.devicePixelRatio = 1.0;
@@ -364,8 +371,10 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
-    // منشور مرفق به أكثر من صورة (بيانات وهمية MockData).
-    final multi = MockData.services.firstWhere((s) => s.imageUrls.length > 1);
+    // منشور مرفق به أكثر من صورة (المصدر الواحد services.json).
+    final multi = ServicesRepository.instance.all.firstWhere(
+      (s) => s.imageUrls.length > 1,
+    );
     expect(multi.imageUrls.length, greaterThan(1));
 
     await tester.pumpWidget(

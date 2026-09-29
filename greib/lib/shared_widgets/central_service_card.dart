@@ -3,16 +3,13 @@ import '../core/models/service_model.dart';
 import 'package:go_router/go_router.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/mock_data/mock_data.dart';
+import 'smart_image.dart';
 
 class CentralServiceCard extends StatefulWidget {
   final ServiceCategory service;
   final VoidCallback? onTap;
 
-  const CentralServiceCard({
-    super.key,
-    required this.service,
-    this.onTap,
-  });
+  const CentralServiceCard({super.key, required this.service, this.onTap});
 
   @override
   State<CentralServiceCard> createState() => _CentralServiceCardState();
@@ -79,11 +76,10 @@ class _CentralServiceCardState extends State<CentralServiceCard>
                     ),
                   ),
                   child: ClipOval(
-                    child: service.imageUrl != null
-                        ? Image.asset(
-                            service.imageUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => Icon(
+                    child: service.imageUrls.isNotEmpty
+                        ? SmartImage(
+                            src: service.imageUrls.first,
+                            placeholder: Icon(
                               MockData.getIconByName(service.iconName),
                               color: service.color,
                               size: 28,
@@ -133,11 +129,7 @@ class ServicesGrid extends StatelessWidget {
   final List<ServiceCategory> services;
   final Function(ServiceCategory)? onServiceTap;
 
-  const ServicesGrid({
-    super.key,
-    required this.services,
-    this.onServiceTap,
-  });
+  const ServicesGrid({super.key, required this.services, this.onServiceTap});
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +149,7 @@ class ServicesGrid extends StatelessWidget {
           service: service,
           onTap: onServiceTap != null
               ? () => onServiceTap!(service)
-              : () => context.push(service.route),
+              : () => context.push('/service/${service.id}'),
         );
       },
     );

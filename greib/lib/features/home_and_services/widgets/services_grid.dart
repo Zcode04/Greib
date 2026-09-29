@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared_widgets/glass_container.dart';
+import '../../../../shared_widgets/smart_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/mock_data/mock_data.dart';
 import '../../../../core/models/service_model.dart';
+import '../../services/data/services_repository.dart';
 
 class ServicesGridSection extends StatelessWidget {
   final bool isDark;
@@ -17,7 +19,7 @@ class ServicesGridSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final services = MockData.services;
+    final services = ServicesRepository.instance.all;
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 250),
@@ -27,7 +29,10 @@ class ServicesGridSection extends StatelessWidget {
     );
   }
 
-  Widget _buildServicesHorizontalList(BuildContext context, List<ServiceCategory> services) {
+  Widget _buildServicesHorizontalList(
+    BuildContext context,
+    List<ServiceCategory> services,
+  ) {
     return SizedBox(
       key: const ValueKey('services_row'),
       height: 150,
@@ -35,15 +40,16 @@ class ServicesGridSection extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         itemCount: services.length,
         separatorBuilder: (_, _) => const SizedBox(width: 14),
-        itemBuilder: (context, i) => SizedBox(
-          width: 158,
-          child: _serviceBigCard(context, services[i]),
-        ),
+        itemBuilder: (context, i) =>
+            SizedBox(width: 158, child: _serviceBigCard(context, services[i])),
       ),
     );
   }
 
-  Widget _buildServicesGrid(BuildContext context, List<ServiceCategory> services) {
+  Widget _buildServicesGrid(
+    BuildContext context,
+    List<ServiceCategory> services,
+  ) {
     return GridView.builder(
       key: const ValueKey('services_grid'),
       shrinkWrap: true,
@@ -60,14 +66,16 @@ class ServicesGridSection extends StatelessWidget {
   }
 
   Widget _serviceBigCard(BuildContext context, ServiceCategory s) {
-    final accentColor = isDark ? AppColors.accentPrimary : AppColors.accentPrimaryDark;
+    // لون الخدمة يأتي من ملف البيانات المصدر، فيظهر لون كل خدمة كما هو.
+    final accentColor = s.color;
+    final cover = s.imageUrls.isNotEmpty ? s.imageUrls.first : null;
 
     return GlassContainer(
       padding: const EdgeInsets.all(16),
       borderRadius: BorderRadius.circular(22),
       opacity: isDark ? 0.05 : 0.08,
       child: InkWell(
-        onTap: () => context.push(s.route),
+        onTap: () => context.push('/service/${s.id}'),
         borderRadius: BorderRadius.circular(22),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -79,20 +87,22 @@ class ServicesGridSection extends StatelessWidget {
                 color: accentColor.withValues(alpha: isDark ? 0.14 : 0.12),
                 shape: BoxShape.circle,
               ),
-              child: s.imageUrl != null
+              child: cover != null
                   ? ClipOval(
-                      child: Image.network(
-                        s.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => Icon(
+                      child: SmartImage(
+                        src: cover,
+                        placeholder: Icon(
                           MockData.getIconByName(s.iconName),
                           color: accentColor,
                           size: 24,
                         ),
                       ),
                     )
-                  : Icon(MockData.getIconByName(s.iconName),
-                      color: accentColor, size: 24),
+                  : Icon(
+                      MockData.getIconByName(s.iconName),
+                      color: accentColor,
+                      size: 24,
+                    ),
             ),
             const SizedBox(height: 12),
             Text(

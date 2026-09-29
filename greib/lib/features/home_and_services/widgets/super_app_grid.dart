@@ -26,24 +26,26 @@ class _QuickTile {
 class SuperAppGrid extends StatelessWidget {
   const SuperAppGrid({super.key});
 
+  // ملاحظة: خدمات التطبيق تمر عبر المسار الواحد /service/:id
+  // (Parameterized Route)، أما /wallet و /shopping فهي شاشات ثابتة.
   static const List<_QuickTile> _tiles = [
     _QuickTile(
       label: 'طعام',
       icon: LucideIcons.utensils,
       color: AppColors.serviceFood,
-      route: '/food',
+      route: '/service/food',
     ),
     _QuickTile(
       label: 'الصيدلية',
       icon: LucideIcons.pill,
       color: AppColors.servicePharmacy,
-      route: '/pharmacy',
+      route: '/service/pharmacy',
     ),
     _QuickTile(
       label: 'المواصلات',
       icon: LucideIcons.car,
       color: AppColors.serviceRide,
-      route: '/ride',
+      route: '/service/ride',
     ),
     _QuickTile(
       label: 'التسوق',
@@ -55,13 +57,13 @@ class SuperAppGrid extends StatelessWidget {
       label: 'السياحة',
       icon: LucideIcons.palmtree,
       color: AppColors.serviceTourism,
-      route: '/tourism',
+      route: '/service/tourism',
     ),
     _QuickTile(
       label: 'السفر',
       icon: LucideIcons.plane,
       color: AppColors.serviceTravel,
-      route: '/travel',
+      route: '/service/travel',
     ),
     _QuickTile(
       label: 'المحفظة',
@@ -73,7 +75,7 @@ class SuperAppGrid extends StatelessWidget {
       label: 'كل الخدمات',
       icon: LucideIcons.layoutGrid,
       color: AppColors.accentPrimaryDark,
-      route: '/services',
+      route: '/service/food',
     ),
   ];
 
@@ -130,7 +132,9 @@ class _QuickTileView extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
             style: theme.textTheme.labelMedium?.copyWith(
-              color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
+              color: isDark
+                  ? AppColors.textSecondary
+                  : AppColors.lightTextSecondary,
               fontWeight: FontWeight.w600,
               fontSize: 11,
             ),

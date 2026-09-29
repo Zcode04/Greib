@@ -1,26 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../features/services/data/services_repository.dart';
+
 // أدوار المستخدمين
 enum UserRole { admin, agent, user }
 
 class PermissionService {
-  /// مسارات الخدمات (27) — متاحة للجميع.
-  static const Set<String> serviceRoutes = {
-    '/food', '/pharmacy', '/courier', '/ride', '/shopping', '/tourism',
-    '/cinema', '/banking', '/maps',
-    // الخدمات الإضافية (18)
-    '/moving', '/taxi', '/electricity', '/water', '/laundry', '/clothes',
-    '/phones', '/devices', '/appliances', '/office', '/delivery', '/estore',
-    '/travel', '/tourism_extra', '/medicine', '/pharmacy_extra', '/consult',
-    '/freight',
+  /// بادئة صفحة الخدمة الواحدة — كل الخدمات تمر من هنا.
+  static const String _servicePrefix = '/service/';
+
+  /// مسارات الخدمات — تُولَّد من المصدر الوحيد للحقيقة (services.json)
+  /// بدل كتابتها يدوياً، فإضافة خدمة جديدة لا تحتاج تعديل هذا الملف.
+  static Set<String> get serviceRoutes => {
+    ...ServicesRepository.instance.all.map(
+      (service) => '$_servicePrefix${service.id}',
+    ),
   };
 
-  /// مسارات عامة متاحة لأي مستخدم مسجّل.
+  /// المسارات العامة المتاحة لأي مستخدم مسجّل.
   static const Set<String> commonRoutes = {
-    '/home', '/chat', '/notifications', '/tracking', '/orders', '/search',
-    '/wallet', '/favorites', '/profile', '/promo', '/reviews', '/membership',
-    '/support', '/doctors', '/doctor_profile',
+    '/home',
+    '/chat',
+    '/notifications',
+    '/tracking',
+    '/orders',
+    '/search',
+    '/wallet',
+    '/favorites',
+    '/profile',
+    '/promo',
+    '/reviews',
+    '/membership',
+    '/support',
+    '/doctors',
+    '/doctor_profile',
   };
 
   // التحقق من أن المستخدم يملك صلاحية الوصول لشاشة معينة

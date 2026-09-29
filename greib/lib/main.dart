@@ -8,12 +8,17 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
 import 'core/router/app_router.dart';
 import 'features/auth/auth_service.dart';
+import 'features/services/data/services_repository.dart';
 
 Future<void> main() async {
   // نُهيّئ القنوات الأصلية + التخزين المحلي قبل بناء الواجهة،
   // حتى يبدأ التطبيق بالوضع الليلي/التبويب اللذين اختارهما المستخدم سابقاً.
   WidgetsFlutterBinding.ensureInitialized();
   await AppPrefs.init();
+
+  // نحمّل ملف الخدمات (المصدر الوحيد للحقيقة) قبل بناء الواجهة،
+  // فتكون كل الصفحات جاهزة فوراً بلا شاشة تحميل وبلا وميض.
+  await ServicesRepository.instance.load();
 
   runApp(buildGreibMenkApp());
 }
@@ -50,9 +55,7 @@ class GreibMenkApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: themeController.themeMode,
       locale: const Locale('ar', 'AE'),
-      supportedLocales: const [
-        Locale('ar', 'AE'),
-      ],
+      supportedLocales: const [Locale('ar', 'AE')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

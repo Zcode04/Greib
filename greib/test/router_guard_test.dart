@@ -2,12 +2,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:greib_menk/core/permissions/permissions.dart';
 import 'package:greib_menk/core/router/app_router.dart';
 import 'package:greib_menk/features/auth/mock_auth.dart';
+import 'package:greib_menk/features/services/data/services_repository.dart';
 
 /// ============================================================================
 ///  اختبارات حماية التنقّل (Route Guard) — منطق `AppRouter.resolveRedirect`.
 ///  هذا هو نفس المنطق الذي يمنع فتح لوحة المشرفين بصلاحيات غير كافية.
 /// ============================================================================
 void main() {
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await ServicesRepository.instance.load();
+  });
+
   tearDown(() => AuthService.instance.logout());
 
   test('الزائر غير المسجّل يُعاد إلى شاشة الدخول', () {
@@ -16,7 +22,7 @@ void main() {
     expect(AppRouter.resolveRedirect('/home'), '/login');
     expect(AppRouter.resolveRedirect('/wallet'), '/login');
     expect(AppRouter.resolveRedirect('/admin_dashboard'), '/login');
-    expect(AppRouter.resolveRedirect('/food'), '/login');
+    expect(AppRouter.resolveRedirect('/service/food'), '/login');
   });
 
   test('المسارات العامة متاحة قبل تسجيل الدخول', () {
@@ -30,7 +36,7 @@ void main() {
   test('المستخدم العادي: الخدمات مسموحة ولوحة المشرفين ممنوعة', () async {
     await AuthService.instance.quickLogin(UserRole.user);
 
-    expect(AppRouter.resolveRedirect('/food'), isNull);
+    expect(AppRouter.resolveRedirect('/service/food'), isNull);
     expect(AppRouter.resolveRedirect('/orders'), isNull);
     expect(AppRouter.resolveRedirect('/search'), isNull);
     expect(AppRouter.resolveRedirect('/wallet'), isNull);

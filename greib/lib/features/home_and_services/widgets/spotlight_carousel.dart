@@ -6,6 +6,8 @@ import '../../../../shared_widgets/glass_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/mock_data/mock_data.dart';
 import '../../../../core/models/service_model.dart';
+import '../../services/data/services_repository.dart';
+import '../../../../shared_widgets/smart_image.dart';
 import '../../../../core/widgets/app_sheet.dart';
 import '../../communication_and_support/chat_screen.dart';
 import 'package:flutter/gestures.dart' show Drag;
@@ -57,6 +59,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
 
   /// تعليقات كل منشور (بيانات وهمية + ما يكتبه المستخدم داخل الورقة).
   final Map<String, List<_PostComment>> _comments = {};
+
   /// ★ نبدأ بوضع المنشورات، وب بوست واحد فقط؛ «عرض المزيد» يزيد واحداً كل ضغطة.
   bool _isGridView = true;
   int _visiblePostsCount = 1;
@@ -69,7 +72,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
 
   @override
   Widget build(BuildContext context) {
-    final services = MockData.services;
+    final services = ServicesRepository.instance.all;
     if (services.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -142,7 +145,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                 width: fullWidth,
                 child: Row(
                   children: [
-                    if (_isGridView && _visiblePostsCount < services.length) ...[
+                    if (_isGridView &&
+                        _visiblePostsCount < services.length) ...[
                       Expanded(
                         child: Padding(
                           // ★ الزر ينحصر داخل نصفه (بلا ملامسة حواف البطاقة)
@@ -233,7 +237,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           postPreview: ChatPostPreview(
             title: service.title,
             subtitle: service.subtitle,
-            imageUrl: service.imageUrl,
+            imageUrl: service.coverImage,
             color: service.color,
           ),
         ),
@@ -402,7 +406,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
 
     // صورة افتراضية للخدمات التي ليس لها صورة
     final String imageUrl =
-        service.imageUrl ??
+        service.coverImage ??
         'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80';
 
     return Container(
@@ -941,13 +945,13 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     );
   }
 
-  /// ★ صور البطاقة: كل ما هو مرفق بها (`imageUrls`) أو الصورة الأساسية.
+  /// ★ صور البطاقة: الصورة الأساسية + ما هو مرفق بها (`imageUrls`).
   List<String> _postImages(ServiceCategory service, String fallback) {
     final extra = service.imageUrls
         .where((e) => e.trim().isNotEmpty)
         .toList(growable: false);
     if (extra.isEmpty) return [fallback];
-    return [service.imageUrl ?? fallback, ...extra];
+    return [service.coverImage ?? fallback, ...extra];
   }
 
   /// صورة واحدة (شبكة أو أصل) مع بديل أيقونة عند فشل التحميل.
@@ -957,17 +961,11 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     ServiceCategory service, {
     BoxFit fit = BoxFit.cover,
   }) {
-    return url.startsWith('assets/')
-        ? Image.asset(
-            url,
-            fit: fit,
-            errorBuilder: (_, _, _) => _buildIconHero(serviceColor, service),
-          )
-        : Image.network(
-            url,
-            fit: fit,
-            errorBuilder: (_, _, _) => _buildIconHero(serviceColor, service),
-          );
+    return SmartImage(
+      src: url,
+      fit: fit,
+      placeholder: _buildIconHero(serviceColor, service),
+    );
   }
 
   /// معرض صور المنشور: صورة واحدة بنسبة ثابتة، أو صورتان جنباً إلى جنب
@@ -1072,13 +1070,11 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     final images = imageUrl == null
         ? const <String>[]
         : _postImages(service, imageUrl);
-    final hasMore = MockData.postsFor(service.id).isNotEmpty;
+    final hasMore = ServicesRepository.instance.postsFor(service.id).isNotEmpty;
     final secondary = widget.isDark
         ? AppColors.textSecondary
         : AppColors.lightTextSecondary;
-    final primary = widget.isDark
-        ? AppColors.textPrimary
-        : AppColors.lightText;
+    final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
 
     // ★ كل خيار ينتظر إغلاق الورقة فعلياً ثم ينفَّذ ⇒ الإجراء يعمل على
     // الشاشة (لا داخل ورقة تُغلق) وبلا تكديس ورقة فوق ورقة.
@@ -1201,7 +1197,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   /// (نفس الحساب/الأيقونة/اللون)، وكل صورة فيها تفتح المعاينة الكاملة
   /// مباشرة (لا ورقة خيارات متداخلة).
   void _showMorePostsSheet(ServiceCategory service) {
-    final posts = MockData.postsFor(service.id);
+    final posts = ServicesRepository.instance.postsFor(service.id);
     if (posts.isEmpty) return;
 
     showAppSheet<void>(
@@ -1210,7 +1206,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         final secondary = widget.isDark
             ? AppColors.textSecondary
             : AppColors.lightTextSecondary;
-        final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
+        final primary = widget.isDark
+            ? AppColors.textPrimary
+            : AppColors.lightText;
         final line = widget.isDark ? AppColors.outline : AppColors.lightOutline;
 
         return _DraggableSheetBody(
@@ -1302,7 +1300,11 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                     const SizedBox(height: 8),
                     Text(
                       post.text,
-                      style: TextStyle(color: primary, fontSize: 14, height: 1.5),
+                      style: TextStyle(
+                        color: primary,
+                        fontSize: 14,
+                        height: 1.5,
+                      ),
                     ),
                     if (post.imageUrls.isNotEmpty) ...[
                       const SizedBox(height: 10),
@@ -1503,7 +1505,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
             ],
       child: InkWell(
         borderRadius: BorderRadius.circular(28),
-        onTap: () => context.push(service.route),
+        onTap: () => context.push('/service/${service.id}'),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1514,7 +1516,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                 child: GestureDetector(
                   onTap: () => _showPostImagesSheet(
                     service,
-                    imageUrl: service.imageUrl,
+                    imageUrl: service.coverImage,
                   ),
                   child: Hero(
                     tag: 'service_${service.id}',
@@ -1529,12 +1531,11 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                         ),
                         child: Transform.rotate(
                           angle: 0.1,
-                          child: (service.imageUrl != null)
+                          child: (service.coverImage != null)
                               ? ClipOval(
-                                  child: Image.network(
-                                    service.imageUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, _, _) => Icon(
+                                  child: SmartImage(
+                                    src: service.coverImage,
+                                    placeholder: Icon(
                                       MockData.getIconByName(service.iconName),
                                       color: neonColor,
                                       size: 40,
@@ -1606,7 +1607,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                   icon: LucideIcons.arrowLeft,
                   iconColor: widget.isDark ? Colors.black : Colors.white,
                   filledBackground: neonColor,
-                  onTap: () => context.push(service.route),
+                  onTap: () => context.push('/service/${service.id}'),
                 ),
               ],
             ),

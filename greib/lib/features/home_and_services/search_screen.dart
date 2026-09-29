@@ -5,6 +5,7 @@ import '../../core/mock_data/mock_data.dart';
 import '../../core/models/service_model.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/super_header.dart';
+import '../services/data/services_repository.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -84,11 +85,12 @@ class _SearchScreenState extends State<SearchScreen> {
     final query = _searchController.text.trim().toLowerCase();
     if (query.isEmpty) return const [];
 
-    return MockData.services
+    return ServicesRepository.instance.all
         .where(
-          (service) => '${service.title} ${service.subtitle}'
-              .toLowerCase()
-              .contains(query),
+          (service) =>
+              '${service.title} ${service.subtitle} ${service.description}'
+                  .toLowerCase()
+                  .contains(query),
         )
         .take(8)
         .toList();
@@ -106,10 +108,7 @@ class _SearchScreenState extends State<SearchScreen> {
         backgroundColor: isDark
             ? AppColors.background
             : AppColors.lightBackground,
-        appBar: const SuperHeader(
-          title: 'البحث',
-          showBackButton: true,
-        ),
+        appBar: const SuperHeader(title: 'البحث', showBackButton: true),
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(
@@ -538,7 +537,10 @@ class _ServiceResultTile extends StatelessWidget {
               color: service.color.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(AppRadii.md),
             ),
-            child: Icon(_iconForService(service), color: service.color),
+            child: Icon(
+              MockData.getIconByName(service.iconName),
+              color: service.color,
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -569,32 +571,6 @@ class _ServiceResultTile extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  IconData _iconForService(ServiceCategory service) {
-    switch (service.id) {
-      case 'food':
-        return LucideIcons.utensils;
-      case 'pharmacy':
-        return LucideIcons.stethoscope;
-      case 'courier':
-      case 'delivery':
-        return LucideIcons.package;
-      case 'ride':
-        return LucideIcons.car;
-      case 'shopping':
-        return LucideIcons.shoppingBag;
-      case 'tourism':
-        return LucideIcons.palmtree;
-      case 'cinema':
-        return LucideIcons.film;
-      case 'banking':
-        return LucideIcons.wallet;
-      case 'maps':
-        return LucideIcons.map;
-      default:
-        return LucideIcons.layoutGrid;
-    }
   }
 }
 

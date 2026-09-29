@@ -1,10 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import '../mock_data/mock_data.dart';
 import '../permissions/permissions.dart';
-import '../theme/design_tokens.dart';
 import '../../features/auth/auth_service.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/dashboards/admin_dashboard_screen.dart';
@@ -14,8 +10,8 @@ import '../../features/communication_and_support/support_tickets_screen.dart';
 import '../../features/location_and_tracking/tracking_screen.dart';
 import '../../features/location_and_tracking/maps_screen.dart';
 import '../../features/home_and_services/search_screen.dart';
+import '../../features/services/presentation/service_details_page.dart';
 import '../../shared_widgets/coming_soon_screen.dart';
-import '../../shared_widgets/detail_page_template.dart';
 import '../../shared_widgets/main_shell_screen.dart';
 
 /// ============================================================================
@@ -24,6 +20,9 @@ import '../../shared_widgets/main_shell_screen.dart';
 class AppRouter {
   /// مسارات متاحة قبل تسجيل الدخول.
   static const _publicRoutes = {'/login'};
+
+  /// بادئة مسار صفحة الخدمة الواحد (Path Parameter).
+  static const String _serviceRoutePrefix = '/service/';
 
   /// مسارات داخلية رئيسية معروفة.
   static final Set<String> _knownRoutes = {
@@ -41,7 +40,6 @@ class AppRouter {
     '/profile',
     '/chat',
     '/shopping',
-    ...MockData.services.map((service) => service.route),
   };
 
   static String? resolveRedirect(String location) {
@@ -49,6 +47,10 @@ class AppRouter {
 
     final auth = AuthService.instance;
     if (!auth.isLoggedIn) return '/login';
+
+    // صفحة الخدمة الواحدة: أي مسار يبدأ بـ /service/ يُعتبر معروفاً
+    // لأن موضع الـ :id يتغيّر حسب الخدمة المختارة.
+    if (location.startsWith(_serviceRoutePrefix)) return null;
 
     if (_knownRoutes.contains(location)) return null;
     if (PermissionService.canAccess(auth.currentRole, location)) return null;
@@ -129,59 +131,15 @@ class AppRouter {
           route: '/settings',
         ),
       ),
-      // جميع مسارات الخدمات الأخرى تفتح صفحة تفصيلية عامة مبنية من MockData.
-      ...MockData.services
-          .where(
-            (s) =>
-                s.route != '/maps' &&
-                s.route != '/shopping' &&
-                s.route != '/notifications' &&
-                s.route != '/tracking' &&
-                s.route != '/support' &&
-                s.route != '/search' &&
-                s.route != '/home',
-          )
-          .map(
-            (s) => GoRoute(
-              path: s.route,
-              builder: (context, state) {
-                final isDark = Theme.of(context).brightness == Brightness.dark;
-                return DetailPageTemplate(
-                  title: s.title,
-                  subtitle: s.subtitle,
-                  icon: MockData.getIconByName(s.iconName),
-                  accentColor: s.color,
-                  description:
-                      'خدمة ${s.title} (${s.subtitle}) متاحة الآن كصفحة تجريبية ضمن النسخة الحالية. سيتم ربط الحجز والدفع هنا لاحقاً.',
-                  primaryActionLabel: 'اطلب الآن',
-                  secondaryActionLabel: 'أضف للمفضلة',
-                  onPrimaryAction: () => context.push('/tracking'),
-                  onSecondaryAction: () => context.push('/search'),
-                  extraContent: Container(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    decoration: BoxDecoration(
-                      color: s.color.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(AppRadii.lg),
-                      border: Border.all(color: s.color.withValues(alpha: 0.2)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(LucideIcons.badgeCheck, size: 18, color: s.color),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: Text(
-                            isDark
-                                ? 'صفحة الخدمة تعمل بدون كراش في الوضع الليلي والنهاري.'
-                                : 'صفحة الخدمة تعمل بدون كراش في الوضع النهاري والليلي.',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
+      // ===== مسار واحد لكل الخدمات: /service/:id =====
+      // إضافة خدمة جديدة = إضافة عنصر في assets/data/services.json فقط،
+      // بدون أي تعديل في هذا الملف (Single Route / Parameterized Route).
+      GoRoute(
+        path: '/service/:id',
+        name: 'serviceDetails',
+        builder: (context, state) =>
+            ServiceDetailsPage(serviceId: state.pathParameters['id'] ?? ''),
+      ),
     ],
   );
 }
