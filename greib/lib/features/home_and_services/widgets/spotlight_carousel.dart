@@ -1092,15 +1092,11 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           action();
         }
 
-        Widget row(
-          IconData icon,
-          String label,
-          VoidCallback onTap,
-        ) {
+        Widget row(IconData icon, String label, VoidCallback onTap) {
           return InkWell(
             onTap: onTap,
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: 14),
               child: Row(
                 children: [
                   Icon(icon, size: 22, color: service.color),
@@ -1119,62 +1115,81 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           );
         }
 
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+        // ★ نفس سلوك ورقة التعليقات: ورقة كبيرة ديناميكية، السحب للأعلى
+        // يوسّعها حتى 92% من الشاشة، وللأسفل يصغّرها/يغلقها، مع Snap.
+        return _DraggableSheetBody(
+          initialExtent: 0.6,
+          snapSizes: const [0.35, 0.45, 0.55, 0.6, 0.7, 0.8, 0.92],
+          builder: (context, scrollController) => Column(
+            mainAxisSize: MainAxisSize.max,
+            // ★ stretch ⇒ الرأس والخيارات تأخذ عرض الورقة كله (منطقة سحب كاملة).
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // عنوان يوضّح صاحب المنشور + عدد صوره إن وُجدت.
-              Row(
-                children: [
-                  Icon(LucideIcons.images, size: 18, color: secondary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      images.isEmpty
-                          ? service.title
-                          : 'صور «${service.title}» (${images.length})',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: primary,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
+              // ★ الرأس منطقة سحب أيضاً: للأعلى توسّع الورقة، ولأسفل تصغيرها.
+              _SheetDragArea(
+                controller: scrollController,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                  child: Row(
+                    children: [
+                      Icon(LucideIcons.images, size: 18, color: secondary),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          images.isEmpty
+                              ? service.title
+                              : 'صور «${service.title}» (${images.length})',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: primary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
-              const SizedBox(height: 8),
               Divider(
                 height: 1,
                 color: widget.isDark
                     ? AppColors.outline
                     : AppColors.lightOutline,
               ),
-              // 1) معاينة كاملة (كما كان سلوك الضغط على الصورة).
-              if (images.isNotEmpty)
-                row(
-                  LucideIcons.maximize2,
-                  'مشاهدة صور',
-                  () => pick(
-                    () => _openImagePreview(images, service: service),
-                  ),
+              // ★ الخيارات مرتبطة بـ ScrollController الخاص بالورقة ⇒ السحب
+              // داخلها يوسّع الورقة (لا تمرير، لقلة الخيارات).
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                  children: [
+                    // 1) معاينة كاملة (كما كان سلوك الضغط على الصورة).
+                    if (images.isNotEmpty)
+                      row(
+                        LucideIcons.maximize2,
+                        'مشاهدة صور',
+                        () => pick(
+                          () => _openImagePreview(images, service: service),
+                        ),
+                      ),
+                    // 2) طلب الآن ⇒ محادثة مباشرة مع مقدّم الخدمة.
+                    row(
+                      LucideIcons.shoppingBag,
+                      'طلب الآن',
+                      () => pick(() => _openServiceChat(service)),
+                    ),
+                    // 3) المزيد ⇒ منشورات أخرى لنفس الخدمة (نفس الكتالوج).
+                    if (hasMore)
+                      row(
+                        LucideIcons.newspaper,
+                        'عرض المزيد',
+                        () => pick(() => _showMorePostsSheet(service)),
+                      ),
+                  ],
                 ),
-              // 2) طلب الآن ⇒ محادثة مباشرة مع مقدّم الخدمة.
-              row(
-                LucideIcons.shoppingBag,
-                'طلب الآن',
-                () => pick(() => _openServiceChat(service)),
               ),
-              // 3) المزيد ⇒ منشورات أخرى لنفس الخدمة (نفس الكتالوج).
-              if (hasMore)
-                row(
-                  LucideIcons.newspaper,
-                  'عرض المزيد',
-                  () => pick(() => _showMorePostsSheet(service)),
-                ),
             ],
           ),
         );
