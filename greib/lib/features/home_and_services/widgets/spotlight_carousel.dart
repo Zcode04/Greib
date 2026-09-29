@@ -8,6 +8,7 @@ import '../../../../core/mock_data/mock_data.dart';
 import '../../../../core/models/service_model.dart';
 import '../../services/data/services_repository.dart';
 import '../../../../shared_widgets/smart_image.dart';
+import '../../../../shared_widgets/service_post_card.dart';
 import '../../../../core/widgets/app_sheet.dart';
 import '../../communication_and_support/chat_screen.dart';
 import 'package:flutter/gestures.dart' show Drag;
@@ -252,9 +253,6 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   /// أقصى جزء من البطاقة يظهر من الشريحة التالية (فيس بوك: لمحة عن الجار).
   static const double _kMaxPeek = 48;
 
-  /// نصف قطر «كامل» (rounded-full) لخلفيات الأزرار الكبسولية.
-  static const double _kPillRadius = 999;
-
   /// النسبة بين ارتفاع شريحة العرض وارتفاعها (الهاتف) + سقف للعرض.
   static const double _kCardHeightRatio = 0.86;
   static const double _kMinCardHeight = 200;
@@ -400,7 +398,6 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   }
 
   Widget _spotlightPostItem(ServiceCategory service) {
-    final serviceColor = service.color;
     final isFav = _favoriteServiceIds.contains(service.id);
     final reaction = _reactions[service.id] ?? 0;
 
@@ -409,365 +406,45 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         service.coverImage ??
         'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80';
 
-    return Container(
-      // ★ خلفية المنشور = خلفية التطبيق نفسها (لا surfaceCard/أبيض) ⇒ تندمج
-      // البطاقة مع الصفحة من طرف لطرف كما في فيسبوك، والضوء البصري يأتي من
-      // الصورة والفواصل فقط.
-      color: widget.isDark ? AppColors.background : AppColors.lightBackground,
-      padding: const EdgeInsets.only(top: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // ─── 1. رأس المنشور (Profile) ───
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // صورة الحساب (أيقونة الخدمة)
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: serviceColor.withValues(alpha: 0.15),
-                    border: Border.all(
-                      color: serviceColor.withValues(alpha: 0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Icon(
-                    MockData.getIconByName(service.iconName),
-                    color: serviceColor,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                // اسم الحساب والوقت
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        service.title, // مثل: Brandon (توصيل طعام)
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: widget.isDark
-                              ? AppColors.textPrimary
-                              : AppColors.lightText,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              'Greib · منذ ساعتين · ',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: widget.isDark
-                                    ? AppColors.textSecondary
-                                    : AppColors.lightTextSecondary,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                          Icon(
-                            LucideIcons.globe,
-                            size: 12,
-                            color: widget.isDark
-                                ? AppColors.textSecondary
-                                : AppColors.lightTextSecondary,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                // ★ الإضافة للقائمة: الزر الوحيد في طرف الهيدر (مكان ⋯ سابقاً).
-                InkWell(
-                  onTap: () => setState(() {
-                    if (isFav) {
-                      _favoriteServiceIds.remove(service.id);
-                    } else {
-                      _favoriteServiceIds.add(service.id);
-                    }
-                  }),
-                  borderRadius: BorderRadius.circular(6),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 2,
-                    ),
-                    child: Icon(
-                      isFav
-                          ? LucideIcons.bookmarkCheck
-                          : LucideIcons.bookmarkPlus,
-                      color: isFav
-                          ? serviceColor
-                          : (widget.isDark
-                                ? AppColors.textSecondary
-                                : AppColors.lightTextSecondary),
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // ─── 2. نص المنشور (Post Text) ───
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              service.subtitle, // مثل: My view (من مطعمك المفضل)
-              style: TextStyle(
-                color: widget.isDark
-                    ? AppColors.textPrimary
-                    : AppColors.lightText,
-                fontSize: 15,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // ─── 3. صورة المنشور (Edge-to-Edge) ───
-          // نسبة عرض/ارتفاع ثابتة بدل ارتفاع ثابت ⇒ يتكيّف مع أي شاشة.
-          // ★ الضغط على الصور لا يفتح المعاينة مباشرة، بل ورقة خيارات
-          // (مشاهدة صور / طلب الآن / عرض المزيد).
-          _buildPostImagesGallery(
-            imageUrl,
-            serviceColor,
-            service,
-            onTap: () => _showPostImagesSheet(service, imageUrl: imageUrl),
-          ),
-
-          // ─── 4. أيقونات التفاعل (بلا أعداد) ───
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-            child: Row(
-              children: [
-                _reactionChip(LucideIcons.thumbsUp, AppColors.info),
-                const SizedBox(width: 2),
-                _reactionChip(LucideIcons.thumbsDown, AppColors.error),
-              ],
-            ),
-          ),
-
-          // فاصل علوي للأزرار (بعرض البطاقة كاملاً مثل فيسبوك)
-          Divider(
-            height: 1,
-            color: widget.isDark ? AppColors.outline : AppColors.lightOutline,
-          ),
-
-          // ─── 5. أزرار الإجراءات (تفاعلات) ───
-          // «طلب الآن» يأخذ ثلث عرض البطاقة (ملتصق بالزاوية)، والمجموعة الثلاث
-          // تأخذ الباقي (⅔) ⇒ أيقونات أكبر ومنطقة لمس مريحة بلا تصغير.
-          Row(
-            children: [
-              // ★ مسافة عن حافة البداية حتى لا يلتصق زر «طلب الآن» بالزاوية.
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 1,
-                child: _fbActionButton(
-                  icon: LucideIcons.shoppingBag,
-                  label: 'طلب الآن',
-                  color: serviceColor,
-                  onTap: () => _openServiceChat(service),
-                ),
-              ),
-              // ★ فاصل صغير قبل مجموعة الأيقونات (زر «طلب الآن» قريب منها).
-              const SizedBox(width: 6),
-              Expanded(
-                flex: 2,
-                child: Padding(
-                  // ★ مسافة صغيرة من زاوية النهاية حتى لا تلتصق المجموعة بالحافة.
-                  padding: const EdgeInsetsDirectional.only(end: 12),
-                  child: Row(
-                    children: [
-                      // ★ تفاعل المنشور: إعجاب ← ضغط ← عدم إعجاب ← ضغط ← بلا.
-                      // كل خلية Expanded ⇒ توزيع متساوٍ وخلفيات متماثلة.
-                      Expanded(
-                        child: _fbActionButton(
-                          grouped: true,
-                          icon: reaction >= 0
-                              ? LucideIcons.thumbsUp
-                              : LucideIcons.thumbsDown,
-                          label: null,
-                          color: reaction == 0
-                              ? (widget.isDark
-                                    ? AppColors.textSecondary
-                                    : AppColors.lightTextSecondary)
-                              : (reaction > 0
-                                    ? AppColors.info
-                                    : AppColors.error),
-                          count: _countFor(service.id, 80, 10),
-                          onTap: () => _showPostActionSheet(
-                            // ★ بلا أيقونة: الجملة وحدها في رأس الورقة.
-                            title: 'تفاعل المنشور',
-                            draggable: true,
-                            options: (sheetContext) => [
-                              // StatefulBuilder ⇒ الزرّان والأعداد تتحدّث فوراً
-                              // داخل الورقة عند تغيير تفاعل المستخدم.
-                              StatefulBuilder(
-                                builder: (context, setSheetState) {
-                                  final current = _reactions[service.id] ?? 0;
-                                  final idle = widget.isDark
-                                      ? AppColors.textSecondary
-                                      : AppColors.lightTextSecondary;
-                                  final likeCount =
-                                      _kMockLikedUsers.length +
-                                      (current == 1 ? 1 : 0);
-                                  final dislikeCount =
-                                      _kMockDislikedUsers.length +
-                                      (current == -1 ? 1 : 0);
-
-                                  return Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      // زرّان: إعجاب / عدم إعجاب.
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: _fbActionButton(
-                                              grouped: true,
-                                              icon: LucideIcons.thumbsUp,
-                                              label: 'إعجاب',
-                                              color: current == 1
-                                                  ? AppColors.info
-                                                  : idle,
-                                              onTap: () => setSheetState(() {
-                                                _reactions[service.id] = 1;
-                                                setState(() {});
-                                              }),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Expanded(
-                                            child: _fbActionButton(
-                                              grouped: true,
-                                              icon: LucideIcons.thumbsDown,
-                                              label: 'عدم إعجاب',
-                                              color: current == -1
-                                                  ? AppColors.error
-                                                  : idle,
-                                              onTap: () => setSheetState(() {
-                                                _reactions[service.id] = -1;
-                                                setState(() {});
-                                              }),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 14),
-                                      // ★ تبويب يحمل الأعداد: كم إعجاب وكم
-                                      // عدم إعجاب (يتبع تفاعل المستخدم).
-                                      SizedBox(
-                                        height: 240,
-                                        child: DefaultTabController(
-                                          length: 2,
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              TabBar(
-                                                labelColor: AppColors.info,
-                                                unselectedLabelColor: idle,
-                                                indicatorColor: AppColors.info,
-                                                indicatorSize:
-                                                    TabBarIndicatorSize.tab,
-                                                dividerColor: widget.isDark
-                                                    ? AppColors.outline
-                                                    : AppColors.lightOutline,
-                                                labelStyle: const TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                                tabs: [
-                                                  Tab(
-                                                    text: 'إعجاب ($likeCount)',
-                                                  ),
-                                                  Tab(
-                                                    text:
-                                                        'عدم إعجاب ($dislikeCount)',
-                                                  ),
-                                                ],
-                                              ),
-                                              Expanded(
-                                                child: TabBarView(
-                                                  children: [
-                                                    _reactionUsersList(
-                                                      _kMockLikedUsers,
-                                                      LucideIcons.thumbsUp,
-                                                      AppColors.info,
-                                                    ),
-                                                    _reactionUsersList(
-                                                      _kMockDislikedUsers,
-                                                      LucideIcons.thumbsDown,
-                                                      AppColors.error,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // ★ فاصل أفقي بين خلفيات الأزرار الثلاثة (لا يلمس التصميم).
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _fbActionButton(
-                          grouped: true,
-                          // ★ أيقونة فقط (بلا كلمة): المحادثة مفهومة من الرمز.
-                          icon: LucideIcons.messageCircle,
-                          label: null,
-                          color: widget.isDark
-                              ? AppColors.textSecondary
-                              : AppColors.lightTextSecondary,
-                          count: _countFor(service.id, 40, 2),
-                          onTap: () => _showCommentsSheet(service),
-                        ),
-                      ),
-                      // ★ فاصل أفقي بين خلفيات الأزرار الثلاثة (لا يلمس التصميم).
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _fbActionButton(
-                          grouped: true,
-                          // ★ أيقونة فقط (بلا كلمة): المشاركة مفهومة من الرمز.
-                          icon: LucideIcons.repeat2,
-                          label: null,
-                          color: widget.isDark
-                              ? AppColors.textSecondary
-                              : AppColors.lightTextSecondary,
-                          count: _countFor(service.id, 20, 1),
-                          onTap: () => _showPostActionSheet(
-                            icon: LucideIcons.repeat2,
-                            title: 'إعادة النشر',
-                            hint: 'نشر رابط «${service.title}» على صفحتك.',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+    // ★ المنشور هنا = نفس بطاقة ServicePostCard المستخدمة في تبويبات صفحة
+    // تفاصيل الخدمة ⇒ تصميم واحد في التطبيق كله (بلا نسختين متشابهتين).
+    //
+    // الوضع "متحكَّم به": التفاعل والمفضلة يبقيا في هذا الـ State لأن ورقة
+    // التعليقات وقائمة المتفاعلين تقرآنهما، ونحدّثهما عبر callbacks.
+    return ServicePostCard(
+      service: service,
+      isDark: widget.isDark,
+      imageUrls: _postImages(service, imageUrl),
+      backgroundColor: widget.isDark
+          ? AppColors.background
+          : AppColors.lightBackground,
+      // ★ الأعداد كما كانت: ثابتة ومشتقّة من معرّف الخدمة.
+      countSeed: service.id,
+      likeCount: _countFor(service.id, 80, 10),
+      commentCount: _countFor(service.id, 40, 2),
+      shareCount: _countFor(service.id, 20, 1),
+      // ---------- الحالة المُدارة من الخارج ----------
+      reaction: reaction,
+      isSaved: isFav,
+      // ★ الاختيار يتم داخل الورقة (كما كان سلوكياً)، فالنقر يفتحها فقط
+      //   والبطاقة لا تبدّل التفاعل بنفسها.
+      delegateReactionToCallback: true,
+      onReaction: () => _showReactionSheet(service),
+      onSaveChanged: (value) => setState(() {
+        if (value) {
+          _favoriteServiceIds.add(service.id);
+        } else {
+          _favoriteServiceIds.remove(service.id);
+        }
+      }),
+      // ★ السلوك: كل نقرة تفتح الورقة المناسبة (محادثة/صور/تعليقات/إعادة نشر).
+      onRequest: () => _openServiceChat(service),
+      onImageTap: () => _showPostImagesSheet(service, imageUrl: imageUrl),
+      onComment: () => _showCommentsSheet(service),
+      onShare: () => _showPostActionSheet(
+        icon: LucideIcons.repeat2,
+        title: 'إعادة النشر',
+        hint: 'نشر رابط «${service.title}» على صفحتك.',
       ),
     );
   }
@@ -891,57 +568,19 @@ class _SpotlightSectionState extends State<SpotlightSection> {
 
   static const List<String> _kMockDislikedUsers = ['ليان', 'عمر', 'هدى', 'فهد'];
 
-  /// قائمة مستخدمين داخل التبويب: صورة رمزية (أول حرف) + الاسم + أيقونة
-  /// التفاعل بجانبه (إعجاب أو عدم إعجاب) بنفس لون التبويب.
-  Widget _reactionUsersList(
-    List<String> names,
-    IconData reactionIcon,
-    Color reactionColor,
-  ) {
-    final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
-
-    return ListView.separated(
-      padding: const EdgeInsets.only(top: 8),
-      itemCount: names.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 6),
-      itemBuilder: (context, i) {
-        final name = names[i];
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: reactionColor.withValues(alpha: 0.15),
-                ),
-                child: Text(
-                  name.characters.first,
-                  style: TextStyle(
-                    color: reactionColor,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: primary, fontSize: 14),
-                ),
-              ),
-              // أيقونة التفاعل بجانب الاسم.
-              Icon(reactionIcon, size: 16, color: reactionColor),
-            ],
-          ),
-        );
-      },
+  /// ★ ورقة التفاعل (إعجاب / عدم إعجاب) مع قائمة المتفاعلين.
+  /// تُفتح عند الضغط على زر التفاعل في المنشور (السلوك السابق محفوظ).
+  void _showReactionSheet(ServiceCategory service) {
+    showAppSheet<void>(
+      context,
+      builder: (sheetContext) => _ReactionSheet(
+        service: service,
+        isDark: widget.isDark,
+        likedUsers: _kMockLikedUsers,
+        dislikedUsers: _kMockDislikedUsers,
+        current: _reactions[service.id] ?? 0,
+        onReact: (value) => setState(() => _reactions[service.id] = value),
+      ),
     );
   }
 
@@ -965,22 +604,6 @@ class _SpotlightSectionState extends State<SpotlightSection> {
       src: url,
       fit: fit,
       placeholder: _buildIconHero(serviceColor, service),
-    );
-  }
-
-  /// معرض صور المنشور: صورة واحدة بنسبة ثابتة، أو صورتان جنباً إلى جنب
-  /// (فيس بوك)، وكلها تفتح معاينة كاملة عند الضغط.
-  Widget _buildPostImagesGallery(
-    String imageUrl,
-    Color serviceColor,
-    ServiceCategory service, {
-    required VoidCallback onTap,
-  }) {
-    return _buildImageGrid(
-      _postImages(service, imageUrl),
-      serviceColor,
-      service,
-      onTap: onTap,
     );
   }
 
@@ -1373,115 +996,6 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         },
       ),
     );
-  }
-
-  Widget _reactionChip(IconData icon, Color color) {
-    return Container(
-      width: 20,
-      height: 20,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-        border: Border.all(
-          // حد بنفس لون خلفية المنشور (وإلا ظهرت حلقة فاتحة في الوضع الداكن).
-          color: widget.isDark
-              ? AppColors.background
-              : AppColors.lightBackground,
-          width: 1.5,
-        ),
-      ),
-      child: Icon(icon, size: 11, color: Colors.white),
-    );
-  }
-
-  /// زر إجراء يملأ ربع عرض البطاقة (مثل فيسبوك) مع تصغير تلقائي للمحتوى
-  /// بدل الفيض على الشاشات الضيقة. تمرير `label: null` ⇒ أيقونة فقط متمركزة،
-  /// و`count` ⇒ رقم بجانبها (أرقام لاتينية مثل 40). الخلفية «كبسولة» (pill)
-  /// تغطي الأيقونة والرقم/الكلمة معاً. `grouped: true` ⇒ مقاس أكبر (منطقة لمس
-  /// مريحة) بلا محاذاة زاوية؛ والزر المنفرد يلتصق بزاوية البطاقة (start)
-  /// بدل التوسيط.
-  Widget _fbActionButton({
-    required IconData icon,
-    required String? label,
-    required Color color,
-    required VoidCallback onTap,
-    String? count,
-    bool grouped = false,
-  }) {
-    // ★ المجموعة الثلاث أكبر قليلاً ⇒ منطقة لمس مريحة (≈52px ارتفاع).
-    final iconSize = grouped ? 20.0 : 18.0;
-    // ★ توسيع أفقي للخلفية فقط (الأيقونة/الرقم بلا تغيير) ⇒ مظهر أنيق ومتوازن.
-    final pillHPad = grouped ? 22.0 : 18.0;
-    final pillVPad = grouped ? 8.0 : 7.0;
-    final countSize = grouped ? 12.5 : 12.0;
-
-    final pill = InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
-      child: Padding(
-        // ★ كل زر يملأ الخلية بالتساوي (توسيع أفقي للخلفية فقط) ⇒ خلفيات
-        // متماثلة الأبعاد، والمسافات بينها متساوية بلا فواصل يدوية.
-        padding: EdgeInsets.symmetric(vertical: grouped ? 9 : 8),
-        child: Align(
-          alignment: grouped
-              ? Alignment.center
-              : AlignmentDirectional.centerStart,
-          // ★ الخلفية تملأ الخلية بالتساوي في المجموعة ⇒ أزرار متساوية الأبعاد
-          // ومتناظرة، بينما يبقى زر «طلب الآن» ملتصقاً بعرض محتواه.
-          child: Container(
-            width: grouped ? double.infinity : null,
-            // خلفية موحّدة تغطي الأيقونة والرقم/الكلمة ⇒ rounded-full.
-            padding: EdgeInsets.symmetric(
-              horizontal: pillHPad,
-              vertical: pillVPad,
-            ),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(_kPillRadius),
-            ),
-            child: FittedBox(
-              // ★ تصغير المحتوى عند ضيق الشاشة بدل فيض الخلفية.
-              fit: BoxFit.scaleDown,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, size: iconSize, color: color),
-                  // لا مسافة/نص عند تجاوزها بأيقونة فقط.
-                  if (label != null) ...[
-                    const SizedBox(width: 6),
-                    Text(
-                      label,
-                      maxLines: 1,
-                      style: TextStyle(
-                        color: color,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                  if (count != null) ...[
-                    const SizedBox(width: 5),
-                    Text(
-                      count,
-                      maxLines: 1,
-                      style: TextStyle(
-                        // الرقم أخف من الكلمة ⇒ لا يزاحم الأيقونة.
-                        color: color.withValues(alpha: 0.75),
-                        fontSize: countSize,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    return pill;
   }
 
   Widget _spotlightItem(ServiceCategory service) {
@@ -2175,6 +1689,238 @@ class _ImagePreviewDialogState extends State<_ImagePreviewDialog>
             ),
           ),
       ],
+    );
+  }
+}
+
+/// ============================================================================
+///  _ReactionSheet — ورقة تفاعل المنشور (إعجاب / عدم إعجاب) + قائمة المتفاعلين.
+///
+///  ★ سلوك محفوظ بعد توحيد البطاقة: الضغط على زر التفاعل يفتح هذه الورقة،
+///    ومن داخلها يختار المستخدم الإعجاب أو عدم الإعجاب، مع معاينة قائمة من
+///    تفاعلوا (كما يعرض فيسبوك).
+/// ============================================================================
+class _ReactionSheet extends StatefulWidget {
+  const _ReactionSheet({
+    required this.service,
+    required this.isDark,
+    required this.likedUsers,
+    required this.dislikedUsers,
+    required this.current,
+    required this.onReact,
+  });
+
+  final ServiceCategory service;
+  final bool isDark;
+  final List<String> likedUsers;
+  final List<String> dislikedUsers;
+  final int current;
+  final ValueChanged<int> onReact;
+
+  @override
+  State<_ReactionSheet> createState() => _ReactionSheetState();
+}
+
+class _ReactionSheetState extends State<_ReactionSheet> {
+  /// تفاعل محلي ⇒ الأرقام والزرّان يتحدّثان فوراً داخل الورقة.
+  late int _current = widget.current;
+
+  Color get _idle =>
+      widget.isDark ? AppColors.textSecondary : AppColors.lightTextSecondary;
+
+  /// قائمة المستخدمين: صورة رمزية (أول حرف) + الاسم + أيقونة التفاعل.
+  Widget _usersList(List<String> names, IconData icon, Color color) {
+    final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
+    return ListView.separated(
+      padding: const EdgeInsets.only(top: 8),
+      itemCount: names.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 6),
+      itemBuilder: (context, i) {
+        final name = names[i];
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color.withValues(alpha: 0.15),
+                ),
+                child: Text(
+                  name.characters.first,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: primary, fontSize: 14),
+                ),
+              ),
+              Icon(icon, size: 16, color: color),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// زر التفاعل داخل الورقة (نفس شكل أزرار المنشور).
+  Widget _reactButton({
+    required IconData icon,
+    required String label,
+    required int value,
+    required Color activeColor,
+  }) {
+    final color = _current == value ? activeColor : _idle;
+    return Expanded(
+      child: InkWell(
+        onTap: () {
+          // الضغط على المختار يلغيه (نفس فكرة الدورة في البطاقة).
+          setState(() => _current = _current == value ? 0 : value);
+          widget.onReact(_current);
+        },
+        borderRadius: BorderRadius.circular(999),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 9),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 20, color: color),
+                  const SizedBox(width: 6),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
+    final line = widget.isDark ? AppColors.outline : AppColors.lightOutline;
+
+    // أرقام المتفاعلين تتبع تفاعل المستخدم (كما في السلوك السابق).
+    final likeCount = widget.likedUsers.length + (_current == 1 ? 1 : 0);
+    final dislikeCount = widget.dislikedUsers.length + (_current == -1 ? 1 : 0);
+
+    return _DraggableSheetBody(
+      initialExtent: 0.6,
+      snapSizes: const [0.35, 0.45, 0.55, 0.6, 0.7, 0.8, 0.92],
+      builder: (context, scrollController) => Column(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _SheetDragArea(
+            controller: scrollController,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+              child: Row(
+                children: [
+                  Icon(LucideIcons.thumbsUp, size: 18, color: _idle),
+                  const SizedBox(width: 8),
+                  Text(
+                    'تفاعل المنشور',
+                    style: TextStyle(
+                      color: primary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Divider(height: 1, color: line),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+            child: Row(
+              children: [
+                _reactButton(
+                  icon: LucideIcons.thumbsUp,
+                  label: 'إعجاب',
+                  value: 1,
+                  activeColor: AppColors.info,
+                ),
+                const SizedBox(width: 10),
+                _reactButton(
+                  icon: LucideIcons.thumbsDown,
+                  label: 'عدم إعجاب',
+                  value: -1,
+                  activeColor: AppColors.error,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          // ★ تبويب يحمل الأعداد + قائمة المتفاعلين.
+          Expanded(
+            child: DefaultTabController(
+              length: 2,
+              child: Column(
+                children: [
+                  TabBar(
+                    labelColor: primary,
+                    unselectedLabelColor: _idle,
+                    indicatorColor: widget.service.color,
+                    dividerColor: Colors.transparent,
+                    tabs: [
+                      Tab(text: 'إعجاب ($likeCount)'),
+                      Tab(text: 'عدم إعجاب ($dislikeCount)'),
+                    ],
+                  ),
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        _usersList(
+                          widget.likedUsers,
+                          LucideIcons.thumbsUp,
+                          AppColors.info,
+                        ),
+                        _usersList(
+                          widget.dislikedUsers,
+                          LucideIcons.thumbsDown,
+                          AppColors.error,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

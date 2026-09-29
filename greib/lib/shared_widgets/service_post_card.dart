@@ -38,6 +38,27 @@ class ServicePostCard extends StatefulWidget {
   /// بذرة الأرقام الثابتة (مثلاً `post.text` أو `service.id`).
   final String countSeed;
 
+  /// أعداد الأزرار — إن كانت null تُحسب من `countSeed`.
+  final String? likeCount;
+  final String? commentCount;
+  final String? shareCount;
+
+  // ---------- حالة مُدارة من الخارج (اختياري) ----------
+  // عند تمريرها تتحول البطاقة إلى "متحكَّم بها" (Controlled): تعرض القيمة
+  // القادمة وتبلّغ عن التغيير بدل الاحتفاظ بحالة داخلية.
+  // هذا يتيح للصفحة الرئيسية (Spotlight) أن يبقي التفاعل/المفضلة في
+  // الـ State الخاص بها (ورقتي التعليقات وقائمة المتفاعلين) بينما تستخدم
+  // نفس البطاقة.
+  final int? reaction;
+  final bool? isSaved;
+  final ValueChanged<int>? onReactionChanged;
+  final ValueChanged<bool>? onSaveChanged;
+
+  /// ★ إذا كان true: النقر على زر التفاعل لا يبدّل الحالة المحلية، بل يستدعي
+  /// `onReaction` فقط (ليفتح ورقة الاختيار). هذا وضع الصفحة الرئيسية حيث
+  /// الاختيار يتم داخل الورقة، بينما عرض الأيقونة يعتمد على `reaction` الخارجي.
+  final bool delegateReactionToCallback;
+
   final VoidCallback? onSave;
   final VoidCallback? onRequest;
   final VoidCallback? onReaction;
@@ -54,6 +75,14 @@ class ServicePostCard extends StatefulWidget {
     this.imageUrls = const [],
     this.backgroundColor,
     this.countSeed = '',
+    this.likeCount,
+    this.commentCount,
+    this.shareCount,
+    this.reaction,
+    this.isSaved,
+    this.onReactionChanged,
+    this.onSaveChanged,
+    this.delegateReactionToCallback = false,
     this.onSave,
     this.onRequest,
     this.onReaction,
@@ -67,9 +96,15 @@ class ServicePostCard extends StatefulWidget {
 }
 
 class _ServicePostCardState extends State<ServicePostCard> {
-  /// 0 = بلا تفاعل، 1 = إعجاب، -1 = عدم إعجاب.
+  /// 0 = بلا تفاعل، 1 = إعجاب، -1 = عدم إعجاب (يُستخدم فقط في الوضع الذاتي).
   int _reaction = 0;
   bool _isSaved = false;
+
+  /// التفاعل المعروض: الخارجي إن وُجد، وإلا الداخلي.
+  int get _effectiveReaction => widget.reaction ?? _reaction;
+
+  /// حالة الحفظ المعروضة: الخارجية إن وُجدت، وإلا الداخلية.
+  bool get _effectiveSaved => widget.isSaved ?? _isSaved;
 
   ServiceCategory get _service => widget.service;
 
@@ -92,8 +127,33 @@ class _ServicePostCardState extends State<ServicePostCard> {
 
   /// دورة الضغط: بلا <- إعجاب <- عدم إعجاب <- بلا.
   void _cycleReaction() {
-    setState(() => _reaction = _reaction >= 1 ? -1 : (_reaction == 0 ? 1 : 0));
+    // ★ وضع "الورقة": النقر يستدعي callback فقط (يفتح ورقة الاختيار) ولا
+    // يغيّر الحالة هنا، لأن الاختيار الفعلي يتم داخل الورقة.
+    if (widget.delegateReactionToCallback) {
+      (widget.onReaction ?? _showLater)();
+      return;
+    }
+
+    final next = _effectiveReaction >= 1
+        ? -1
+        : (_effectiveReaction == 0 ? 1 : 0);
+    // وضع مُتحكَّم به ⇒ نُبلغ الأب ولا نلمس الحالة الداخلية.
+    if (widget.onReactionChanged != null) {
+      widget.onReactionChanged!(next);
+    } else {
+      setState(() => _reaction = next);
+    }
     (widget.onReaction ?? _showLater)();
+  }
+
+  void _toggleSaved() {
+    final next = !_effectiveSaved;
+    if (widget.onSaveChanged != null) {
+      widget.onSaveChanged!(next);
+    } else {
+      setState(() => _isSaved = next);
+    }
+    (widget.onSave ?? _showLater)();
   }
 
   void _showLater() {
@@ -194,16 +254,15 @@ class _ServicePostCardState extends State<ServicePostCard> {
           ),
           // زر الحفظ (Add to list) في طرف الهيدر.
           InkWell(
-            onTap: () {
-              setState(() => _isSaved = !_isSaved);
-              (widget.onSave ?? _showLater)();
-            },
+            onTap: _toggleSaved,
             borderRadius: BorderRadius.circular(6),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               child: Icon(
-                _isSaved ? LucideIcons.bookmarkCheck : LucideIcons.bookmarkPlus,
-                color: _isSaved ? _accent : _secondary,
+                _effectiveSaved
+                    ? LucideIcons.bookmarkCheck
+                    : LucideIcons.bookmarkPlus,
+                color: _effectiveSaved ? _accent : _secondary,
                 size: 20,
               ),
             ),
@@ -363,13 +422,15 @@ class _ServicePostCardState extends State<ServicePostCard> {
                 Expanded(
                   child: _pillButton(
                     grouped: true,
-                    icon: _reaction >= 0
+                    icon: _effectiveReaction >= 0
                         ? LucideIcons.thumbsUp
                         : LucideIcons.thumbsDown,
-                    color: _reaction == 0
+                    color: _effectiveReaction == 0
                         ? _secondary
-                        : (_reaction > 0 ? AppColors.info : AppColors.error),
-                    count: _countFor(80, 10),
+                        : (_effectiveReaction > 0
+                              ? AppColors.info
+                              : AppColors.error),
+                    count: widget.likeCount ?? _countFor(80, 10),
                     onTap: _cycleReaction,
                   ),
                 ),
@@ -379,7 +440,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
                     grouped: true,
                     icon: LucideIcons.messageCircle,
                     color: _secondary,
-                    count: _countFor(40, 2),
+                    count: widget.commentCount ?? _countFor(40, 2),
                     onTap: () => (widget.onComment ?? _showLater)(),
                   ),
                 ),
@@ -389,7 +450,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
                     grouped: true,
                     icon: LucideIcons.repeat2,
                     color: _secondary,
-                    count: _countFor(20, 1),
+                    count: widget.shareCount ?? _countFor(20, 1),
                     onTap: () => (widget.onShare ?? _showLater)(),
                   ),
                 ),
