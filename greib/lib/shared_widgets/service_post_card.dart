@@ -315,6 +315,63 @@ class _ServicePostCardState extends State<ServicePostCard> {
     );
   }
 
+  /// ★ ورقة الضغط على زر الإغلاق (✕): إخفاء المنشور، إخفاء كل منشورات
+  /// نشاط هذا التاجر، الإبلاغ عن المنشور (رسالة "قريباً" مؤقتة).
+  Future<void> _showCloseOptions() async {
+    await showAppSheet(
+      context,
+      builder: (sheetContext) {
+        final sheetText = Theme.of(sheetContext).colorScheme.onSurface;
+        return SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                child: Row(
+                  children: [
+                    Text(
+                      'خيارات المنشور',
+                      style: TextStyle(
+                        color: sheetText,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _sheetTile(
+                sheetContext,
+                icon: LucideIcons.eyeOff,
+                label: 'إخفاء المنشور',
+                iconColor: sheetText,
+                onTap: () => _runFromSheet(_showLater),
+              ),
+              _sheetTile(
+                sheetContext,
+                icon: LucideIcons.eyeOff,
+                label: 'إخفاء جميع منشورات نشاط هذا التاجر',
+                iconColor: sheetText,
+                onTap: () => _runFromSheet(_showLater),
+              ),
+              _sheetTile(
+                sheetContext,
+                icon: LucideIcons.flag,
+                label: 'الإبلاغ عن المنشور',
+                iconColor: AppColors.error,
+                onTap: () => _runFromSheet(_showLater),
+                showDivider: false,
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   /// عنصر قائمة داخل الورقة: أيقونة + نص، مع فاصل رفيع تحته.
   Widget _sheetTile(
     BuildContext sheetContext, {
@@ -513,7 +570,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
                 ),
               ),
               InkWell(
-                onTap: () => (widget.onShare ?? _showLater)(),
+                onTap: _showCloseOptions,
                 borderRadius: BorderRadius.circular(6),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
