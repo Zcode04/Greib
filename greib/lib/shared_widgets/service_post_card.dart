@@ -474,6 +474,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
           ],
           const SizedBox(height: 12),
           _reactionChips(),
+          _presenceLine(),
           _actions(),
         ],
       ),
@@ -483,16 +484,12 @@ class _ServicePostCardState extends State<ServicePostCard> {
   // ---------- 1. رأس المنشور (Profile) ----------
   // ★ نفس التصميم في الحالتين: منشور خدمة (أيقونة) أو منشور حساب (صورة).
   //
-  // ★ العنوان = اسم صاحب المنشور (التاجر) مع أيقونة توثيق بجواره،
-  //   وتحته سطر الفئة + وقت النشر، ثم أيقونة globe التي تعرض حالة الاتصال
-  //   («متصل الآن» أو «آخر ظهور منذ …»).
+  // ★ العنوان = اسم صاحب المنشور مع أيقونة توثيق بجواره، وتحته سطر
+  //   المتابعة + الفئة + وقت النشر. حالة الاتصال ( globe ) سطر مستقل
+  //   أسفل أيقونات التفاعل.
   Widget _header() {
     final authorAvatar = widget.authorAvatarUrl;
     final category = widget.authorSubtitle ?? _service.title;
-    final online = widget.authorIsOnline ?? _derivedIsOnline;
-    final presence = online
-        ? 'متصل الآن'
-        : (widget.authorPresence ?? _derivedPresence);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -554,8 +551,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
                   ],
                 ),
                 const SizedBox(height: 2),
-                // ★ الفئة + وقت النشر، ثم أيقونة globe مع حالة الاتصال.
-                //   الترتيب (RTL): «تتابعه/يتابعه» ثم الفئة ثم حالة الاتصال.
+                // ★ الفئة + وقت النشر (حالة الاتصال نُقلت لأسفل التفاعلات).
                 Row(
                   children: [
                     _followLabel(),
@@ -566,22 +562,6 @@ class _ServicePostCardState extends State<ServicePostCard> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: _secondary, fontSize: 12),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Icon(LucideIcons.globe, size: 12, color: _secondary),
-                    const SizedBox(width: 3),
-                    Flexible(
-                      child: Text(
-                        presence,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: online ? _accent : _secondary,
-                          fontSize: 12,
-                          fontWeight:
-                              online ? FontWeight.w600 : FontWeight.normal,
-                        ),
                       ),
                     ),
                   ],
@@ -726,6 +706,35 @@ class _ServicePostCardState extends State<ServicePostCard> {
           _reactionChip(LucideIcons.thumbsUp, AppColors.info),
           const SizedBox(width: 2),
           _reactionChip(LucideIcons.thumbsDown, AppColors.error),
+        ],
+      ),
+    );
+  }
+
+  /// ★ سطر حالة الاتصال (أيقونة العالم + النص) — يظهر أسفل أيقونات التفاعل.
+  Widget _presenceLine() {
+    final online = widget.authorIsOnline ?? _derivedIsOnline;
+    final presence = online
+        ? 'متصل الآن'
+        : (widget.authorPresence ?? _derivedPresence);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: Row(
+        children: [
+          Icon(LucideIcons.globe, size: 12, color: _secondary),
+          const SizedBox(width: 3),
+          Flexible(
+            child: Text(
+              presence,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: online ? _accent : _secondary,
+                fontSize: 12,
+                fontWeight: online ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ),
         ],
       ),
     );
