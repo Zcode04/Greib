@@ -422,7 +422,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
           widget.backgroundColor ??
           (widget.isDark ? AppColors.background : AppColors.lightBackground),
       // ★ مسافة عمودية مريحة بين المنشورات المتتابعة (فقط، بلا تغيير في الهيكل).
-      padding: const EdgeInsets.only(top: 12, bottom: 12),
+      padding: const EdgeInsets.only(top: 12, bottom: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
