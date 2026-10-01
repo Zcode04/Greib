@@ -92,7 +92,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         ),
         // ★ في وضع المنشورات نقترب من أزرار التفاعل أسفل آخر منشور.
         SizedBox(height: _isGridView ? 0 : 10),
-        if (!_isGridView)
+        // ★ ما بعد النقاط يخصّ وضع الشرائح فقط: في وضع المنشورات كل منشور
+        // يحمل أزراره («عرض المزيد» + «عرض الشرائح») أسفله مباشرة، فلا تكرار.
+        if (!_isGridView) ...[
           // ★ FittedBox ⇒ تتقلّص النقاط تلقائياً بدل فيض الصف على الشاشات
           // الضيقة (27 شريحة × 12px تتجاوز عرض الهاتف).
           FittedBox(
@@ -122,73 +124,47 @@ class _SpotlightSectionState extends State<SpotlightSection> {
               }),
             ),
           ),
-        const SizedBox(height: 8),
-        // ★ زرّان يملآن العرض أفقياً (Expanded لكل منهما ⇒ نصف العرض لكل زر)
-        // على طرفي السطر: «عرض المزيد» في زاوية اليمين (بداية السطر في الاتجاه
-        // من اليمين) وبزر التبديل في الزاوية الأخرى، و«عرض المزيد» يظهر فقط في
-        // وضع المنشورات (يفتح صفحة تفاصيل أول خدمة ⇒ كل منشوراتها). الصف يتمدّد
-        // لحواف الشاشة (مثل البطاقة تماماً) ليبقى بنفس عرض المنشور.
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final available = constraints.maxWidth.isFinite
-                ? constraints.maxWidth
-                : MediaQuery.sizeOf(context).width - widget.horizontalBleed * 2;
-            final bleed = widget.horizontalBleed.clamp(0.0, available / 2);
-            final fullWidth = available + bleed * 2;
-            return OverflowBox(
-              alignment: Alignment.center,
-              fit: OverflowBoxFit.deferToChild,
-              minWidth: fullWidth,
-              maxWidth: fullWidth,
-              child: SizedBox(
-                width: fullWidth,
-                child: Row(
-                  children: [
-                    if (_isGridView && services.length > 1) ...[
+          const SizedBox(height: 8),
+          // ★ في وضع الشرائح: زر «عرض كمنشورات» (يعيد كل التغذية الموحّدة).
+          // الصف يتمدّد لحواف الشاشة (مثل البطاقة تماماً) ليبقى بنفس عرضها.
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final available = constraints.maxWidth.isFinite
+                  ? constraints.maxWidth
+                  : MediaQuery.sizeOf(context).width -
+                        widget.horizontalBleed * 2;
+              final bleed = widget.horizontalBleed.clamp(0.0, available / 2);
+              final fullWidth = available + bleed * 2;
+              return OverflowBox(
+                alignment: Alignment.center,
+                fit: OverflowBoxFit.deferToChild,
+                minWidth: fullWidth,
+                maxWidth: fullWidth,
+                child: SizedBox(
+                  width: fullWidth,
+                  child: Row(
+                    children: [
                       Expanded(
                         child: Padding(
-                          // ★ الزر ينحصر داخل نصفه (بلا ملامسة حواف البطاقة)
-                          // حتى لا تتداخل زواياه المدوّرة مع عناصر الجوار.
-                          // ★ مسافة عن حافة البداية (يمين) + فاصل مع الزر المجاور.
+                          // ★ فاصل مع حافة البداية (يمين) في الشريط.
                           padding: const EdgeInsetsDirectional.only(
                             start: 12,
                             end: 4,
                           ),
                           child: _softActionButton(
-                            icon: LucideIcons.chevronDown,
-                            label: 'عرض المزيد',
-                            // ★ الانتقال لصفحة تفاصيل أول خدمة معروضة، وهي
-                            // الصفحة المخصّصة لعرض كل منشورات تلك الخدمة.
-                            onPressed: () =>
-                                context.push('/service/${services.first.id}'),
+                            icon: LucideIcons.layoutList,
+                            label: 'عرض كمنشورات',
+                            onPressed: () => setState(() => _isGridView = true),
                           ),
                         ),
                       ),
                     ],
-                    Expanded(
-                      child: Padding(
-                        // ★ فاصل مع الزر المجاور + مسافة عن حافة النهاية (يسار).
-                        padding: const EdgeInsetsDirectional.only(
-                          start: 4,
-                          end: 12,
-                        ),
-                        child: _softActionButton(
-                          icon: _isGridView
-                              ? LucideIcons.galleryHorizontal
-                              : LucideIcons.layoutList,
-                          // ★ تسمية مميزة لا تتكرر مع بقية أزرار الصفحة + أيقونة تشرح الناتج.
-                          label: _isGridView ? 'عرض الشرائح' : 'عرض كمنشورات',
-                          onPressed: () =>
-                              setState(() => _isGridView = !_isGridView),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            );
-          },
-        ),
+              );
+            },
+          ),
+        ],
       ],
     );
   }
@@ -395,39 +371,87 @@ class _SpotlightSectionState extends State<SpotlightSection> {
 
     return ListenableBuilder(
       listenable: core,
-      builder: (context, _) => ServicePostCard(
-        service: service,
-        isDark: widget.isDark,
-        imageUrls: images,
-        backgroundColor: widget.isDark
-            ? AppColors.background
-            : AppColors.lightBackground,
-        // ★ الأعداد كما كانت: ثابتة ومشتقّة من معرّف المنشور.
-        countSeed: postId,
-        likeCount: PostSheetsController.countFor(postId, 80, 10),
-        commentCount: PostSheetsController.countFor(postId, 40, 2),
-        shareCount: PostSheetsController.countFor(postId, 20, 1),
-        // ---------- الحالة من النواة المشتركة ----------
-        reaction: core.reactionOf(postId),
-        isSaved: core.isFavorite(postId),
-        // ★ الاختيار يتم داخل الورقة (كما كان سلوكياً)، فالنقر يفتحها فقط
-        //   والبطاقة لا تبدّل التفاعل بنفسها.
-        delegateReactionToCallback: true,
-        onReaction: () =>
-            core.showReaction(context, postId: postId, service: service),
-        onSaveChanged: (value) => core.setFavorite(postId, value),
-        // ★ نفس الاستدعاءات المستخدمة في صفحة التفاصيل (نواة واحدة).
-        onRequest: () => core.openServiceChat(context, service: service),
-        onImageTap: () => _showPostImagesSheet(service, images),
-        onComment: () =>
-            core.showComments(context, postId: postId, service: service),
-        onShare: () => core.showAction(
-          context,
-          icon: LucideIcons.repeat2,
-          title: 'إعادة النشر',
-          hint: 'نشر رابط «${service.title}» على صفحتك.',
-        ),
+      builder: (context, _) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ServicePostCard(
+            service: service,
+            isDark: widget.isDark,
+            imageUrls: images,
+            backgroundColor: widget.isDark
+                ? AppColors.background
+                : AppColors.lightBackground,
+            // ★ الأعداد كما كانت: ثابتة ومشتقّة من معرّف المنشور.
+            countSeed: postId,
+            likeCount: PostSheetsController.countFor(postId, 80, 10),
+            commentCount: PostSheetsController.countFor(postId, 40, 2),
+            shareCount: PostSheetsController.countFor(postId, 20, 1),
+            // ---------- الحالة من النواة المشتركة ----------
+            reaction: core.reactionOf(postId),
+            isSaved: core.isFavorite(postId),
+            // ★ الاختيار يتم داخل الورقة (كما كان سلوكياً)، فالنقر يفتحها فقط
+            //   والبطاقة لا تبدّل التفاعل بنفسها.
+            delegateReactionToCallback: true,
+            onReaction: () => core.showReaction(
+              context,
+              postId: postId,
+              service: service,
+            ),
+            onSaveChanged: (value) => core.setFavorite(postId, value),
+            // ★ نفس الاستدعاءات المستخدمة في صفحة التفاصيل (نواة واحدة).
+            onRequest: () => core.openServiceChat(context, service: service),
+            onImageTap: () => _showPostImagesSheet(service, images),
+            onComment: () => core.showComments(
+              context,
+              postId: postId,
+              service: service,
+            ),
+            onShare: () => core.showAction(
+              context,
+              icon: LucideIcons.repeat2,
+              title: 'إعادة النشر',
+              hint: 'نشر رابط «${service.title}» على صفحتك.',
+            ),
+          ),
+          // ★ أزرار تحت كل منشور: «عرض المزيد» (صفحة خدمة هذا المنشور)
+          //   و«عرض الشرائح» (تبديل الوضع) — لكل منشور وجهته الخاصة.
+          const SizedBox(height: 6),
+          _postActions(service.id),
+        ],
       ),
+    );
+  }
+
+  /// ★ شريط الأزرار أسفل المنشور الواحد: زرّان يملآن عرضه بالتساوي.
+  Widget _postActions(String serviceId) {
+    return Row(
+      children: [
+        Expanded(
+          child: Padding(
+            // ★ الزر ينحصر داخل نصفه (بلا ملامسة حواف البطاقة) حتى لا تتداخل
+            // زواياه المدوّرة مع الزر المجاور.
+            padding: const EdgeInsetsDirectional.only(start: 12, end: 4),
+            child: _softActionButton(
+              icon: LucideIcons.chevronDown,
+              label: 'عرض المزيد',
+              // ★ صفحة تفاصيل خدمة هذا المنشور ⇒ كل منشوراتها.
+              onPressed: () => context.push('/service/$serviceId'),
+            ),
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            // ★ فاصل مع الزر المجاور + مسافة عن حافة النهاية (يسار).
+            padding: const EdgeInsetsDirectional.only(start: 4, end: 12),
+            child: _softActionButton(
+              icon: LucideIcons.galleryHorizontal,
+              label: 'عرض الشرائح',
+              onPressed: () => setState(() => _isGridView = false),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
