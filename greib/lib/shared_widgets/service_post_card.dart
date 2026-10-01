@@ -370,7 +370,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
                   child: Icon(
                     LucideIcons.ellipsis,
                     color: _secondary,
-                    size: 20,
+                    size: 25,
                   ),
                 ),
               ),
@@ -382,7 +382,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
                     horizontal: 4,
                     vertical: 2,
                   ),
-                  child: Icon(LucideIcons.x, color: _secondary, size: 18),
+                  child: Icon(LucideIcons.x, color: _secondary, size: 25),
                 ),
               ),
             ],
