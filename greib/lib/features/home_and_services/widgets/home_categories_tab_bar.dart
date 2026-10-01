@@ -18,13 +18,16 @@ class _HomeCategoriesTabBarState extends State<HomeCategoriesTabBar>
   late final TabController _controller;
   final List<Map<String, String>> _categories = MockData.productCategories;
 
+  /// ★ الشريط مطويّ افتراضياً: يعرض القسم المختار فقط.
+  bool _expanded = false;
+
   @override
   void initState() {
     super.initState();
     _controller = TabController(
       length: _categories.length,
       vsync: this,
-    )..addListener(() => setState(() {}));
+    );
   }
 
   @override
@@ -49,43 +52,73 @@ class _HomeCategoriesTabBarState extends State<HomeCategoriesTabBar>
             AppSpacing.lg,
             AppSpacing.xs,
           ),
-          child: Row(
-            children: [
-              // ★ أيقونة بلا خلفية (نفس ستايل عناوين الرئيسية).
-              Icon(LucideIcons.layoutGrid, size: 18, color: accent),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                'الأقسام',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
+          child: InkWell(
+            onTap: () => setState(() => _expanded = !_expanded),
+            borderRadius: BorderRadius.circular(AppRadii.full),
+            child: Row(
+              children: [
+                // ★ أيقونة بلا خلفية (نفس ستايل عناوين الرئيسية).
+                Icon(LucideIcons.layoutGrid, size: 18, color: accent),
+                const SizedBox(width: AppSpacing.sm),
+                // ★ يعرض القسم المختار فقط ويتحدث فور اختيار تبويب.
+                AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, _) => Text(
+                    _categories[_controller.index]['label']!,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(width: AppSpacing.xs),
+                // ★ سهم يوضّح الحالة: مطوي ⇩ / مفتوح ⇧.
+                AnimatedRotation(
+                  turns: _expanded ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeInOut,
+                  child: Icon(
+                    LucideIcons.chevronDown,
+                    size: 18,
+                    color: accent,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        Container(
-          height: 46,
-          color: isDark
-              ? AppColors.backgroundPrimary
-              : AppColors.lightBackground,
-          child: TabBar(
-            controller: _controller,
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
-            indicatorColor: accent,
-            labelColor: accent,
-            unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
-            indicatorSize: TabBarIndicatorSize.tab,
-            indicatorWeight: 3,
-            dividerColor: Colors.transparent,
-            labelStyle: const TextStyle(fontWeight: FontWeight.w700),
-            unselectedLabelStyle:
-                const TextStyle(fontWeight: FontWeight.w700),
-            labelPadding: const EdgeInsets.symmetric(horizontal: 16),
-            tabs: [
-              for (final cat in _categories) Tab(text: cat['label']),
-            ],
-          ),
+        // ★ التبويبات تظهر وتختفي بارتفاع متحرك.
+        AnimatedSize(
+          duration: const Duration(milliseconds: 240),
+          curve: Curves.easeInOut,
+          alignment: Alignment.topCenter,
+          child: _expanded
+              ? Container(
+                  height: 46,
+                  color: isDark
+                      ? AppColors.backgroundPrimary
+                      : AppColors.lightBackground,
+                  child: TabBar(
+                    controller: _controller,
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.start,
+                    indicatorColor: accent,
+                    labelColor: accent,
+                    unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicatorWeight: 3,
+                    dividerColor: Colors.transparent,
+                    labelStyle: const TextStyle(fontWeight: FontWeight.w700),
+                    unselectedLabelStyle:
+                        const TextStyle(fontWeight: FontWeight.w700),
+                    labelPadding:
+                        const EdgeInsets.symmetric(horizontal: 16),
+                    tabs: [
+                      for (final cat in _categories)
+                        Tab(text: cat['label']),
+                    ],
+                  ),
+                )
+              : const SizedBox(width: double.infinity, height: 0),
         ),
       ],
     );
