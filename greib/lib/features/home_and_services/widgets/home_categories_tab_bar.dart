@@ -68,7 +68,7 @@ class _HomeCategoriesTabBarState extends State<HomeCategoriesTabBar>
                   child: Container(
 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(999),
                     color: accent.withValues(alpha: 0.12),
                   ),
                   child: Icon(
