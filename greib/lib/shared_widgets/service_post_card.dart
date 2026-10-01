@@ -170,9 +170,8 @@ class _ServicePostCardState extends State<ServicePostCard> {
     return 'آخر ظهور منذ $hours ${hours == 1 ? 'ساعة' : 'ساعات'}';
   }
 
-  /// ★ متابعة صاحب المنشور (تتابعه / لا يتابعه) — تظهر قبل الفئة في
-  /// السطر الثاني، والنقر عليها يتبدّل بين الحالتين (حالة محلية وهمية حالياً).
-  /// عليها يتبدّل بين «تتابعه» و«لا تتابعه» (حالة محلية، والمتابعة وهمية حالياً).
+  /// ★ متابعة صاحب المنشور — «متابع» مع أيقونة علامة صح، والنقر يتبدّل
+  /// بين المتابعة وعدم المتابعة (حالة محلية وهمية حالياً).
   Widget _followLabel() {
     final following = _isFollowing;
     return InkWell(
@@ -180,15 +179,28 @@ class _ServicePostCardState extends State<ServicePostCard> {
       borderRadius: BorderRadius.circular(6),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 1),
-        child: Text(
-          following ? 'تتابعه' : 'لا تتابعه',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: following ? _accent : _secondary,
-            fontSize: 12,
-            fontWeight: following ? FontWeight.w600 : FontWeight.w400,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              following ? 'متابع' : 'غير متابع',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: following ? _accent : _secondary,
+                fontSize: 12,
+                fontWeight: following ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+            if (following) ...[
+              const SizedBox(width: 3),
+              Icon(
+                LucideIcons.badgeCheck,
+                size: 12,
+                color: _accent,
+              ),
+            ],
+          ],
         ),
       ),
     );
