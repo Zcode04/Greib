@@ -129,7 +129,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   index: 1,
                   child: SectionHeader(
                     title: 'الأحدث',
-                    icon: LucideIcons.badgePlus,
                     iconColor: AppColors.accentFor(isDark),
                     showAction: false,
                   ),
