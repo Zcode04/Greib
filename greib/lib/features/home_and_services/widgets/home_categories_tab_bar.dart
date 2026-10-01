@@ -66,14 +66,14 @@ class _HomeCategoriesTabBarState extends State<HomeCategoriesTabBar>
                   duration: const Duration(milliseconds: 220),
                   curve: Curves.easeInOut,
                   child: Container(
-padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(999),
                     color: accent.withValues(alpha: 0.04),
                   ),
                   child: Icon(
                     LucideIcons.chevronDown,
-                    size: 17,
+                    size: 21,
                     color: accent,
                   ),
                   ),
