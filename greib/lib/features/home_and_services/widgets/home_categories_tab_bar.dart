@@ -65,10 +65,17 @@ class _HomeCategoriesTabBarState extends State<HomeCategoriesTabBar>
                   turns: _expanded ? 0.5 : 0,
                   duration: const Duration(milliseconds: 220),
                   curve: Curves.easeInOut,
+                  child: Container(
+padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: accent.withValues(alpha: 0.12),
+                  ),
                   child: Icon(
                     LucideIcons.chevronDown,
-                    size: 22,
+                    size: 17,
                     color: accent,
+                  ),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.xs),
