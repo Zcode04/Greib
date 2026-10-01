@@ -776,7 +776,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
             onTap: () => (widget.onRequest ?? _showLater)(),
           ),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 8),
         Expanded(
           flex: 2,
           child: Padding(
