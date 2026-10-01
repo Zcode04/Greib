@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'account_connections_page.dart';
 import '../../../core/models/account_model.dart';
 import '../../../core/models/service_model.dart';
 import '../../../core/theme/design_tokens.dart';
@@ -292,11 +293,13 @@ class _AccountHeader extends StatelessWidget {
               // ---------- إحصائيات المتابعين (اضغط ⇒ صفحة العلاقات) ----------
               Row(
                 children: [
-                  // ★ المتابعون ⇒ تبويب 0.
+                  // ★ المتابعون ⇒ تبويب 0 داخل Bottom Sheet (لا صفحة).
                   _StatLink(
                     label: '${_format(account.followers)} متابع',
-                    onTap: () => context.push(
-                      '/account/${account.id}/connections?tab=0',
+                    onTap: () => showAccountConnectionsSheet(
+                      context,
+                      accountId: account.id,
+                      initialTab: 0,
                     ),
                   ),
                   Text(
@@ -305,11 +308,13 @@ class _AccountHeader extends StatelessWidget {
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  // ★ يتابع ⇒ تبويب 1.
+                  // ★ يتابع ⇒ تبويب 1 داخل Bottom Sheet.
                   _StatLink(
                     label: '${_format(account.following)} يتابع',
-                    onTap: () => context.push(
-                      '/account/${account.id}/connections?tab=1',
+                    onTap: () => showAccountConnectionsSheet(
+                      context,
+                      accountId: account.id,
+                      initialTab: 1,
                     ),
                   ),
                   Text(

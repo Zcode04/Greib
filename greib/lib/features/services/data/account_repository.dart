@@ -118,8 +118,9 @@ class AccountRepository {
   // ★ الصفحة تعرض أرقاماً حقيقية (مت thousands) فنعرض منها شريحة صغيرة
   //   (حتى [_relationLimit]) من الحسابات الحقيقية، واحدة لكل صف.
 
-  /// أقصى عدد حسابات يُعرض في كل تبويب (الرقم المعروض أكبر من ذلك).
-  static const int relationLimit = 10;
+  /// ★ أقصى عدد حسابات متاح في كل تبويب (يُعرض منه تدريجياً صفحةً صفحة).
+  ///   العدد المعروض في صفحة العلاقات أصغر بكثير (مثل «1.2 ألف متابع»).
+  static const int relationLimit = 60;
 
   /// المتابعون: حسابات حقيقية (من خدمات مختلفة) يتابعها هذا الحساب.
   List<AccountProfile> followersOf(String accountId) =>
@@ -145,8 +146,9 @@ class AccountRepository {
     return common;
   }
 
-  /// ★ يبني قائمة علاقات ثابتة لهذا الحساب: نبدأ من كل الحسابات، ندور عليها
-  ///   بإزاحة مشتقّة من المعرّف ⇒ قائمة مختلفة لكل حساب لكنها ثابتة له.
+  /// ★ يبني قائمة علاقات ثابتة لهذا الحساب: ندور على [pool] بإزاحة وقفزة
+  ///   مشتقّتين من المعرّف ⇒ قائمة مختلفة لكل حساب لكنها **ثابتة له**، بلا
+  ///   تكرار (نضمن أن القفزة متبادلة مع طول القائمة: gcd = 1).
   List<AccountProfile> _related(String accountId, {required bool exclude}) {
     final parts = accountId.split('::');
     if (parts.length != 2) return const [];
@@ -154,16 +156,33 @@ class AccountRepository {
     final pool = all.where((a) => a.id != accountId).toList();
     if (pool.isEmpty) return const [];
 
-    // ★ إزاحة ثابتة لكل حساب + اتجاه (§الreciprocal؟) ⇒ قائمتان مختلفتان
-    //   للمتابعين وللمتابعين، وكلتاهما ثابتة لنفس الحساب.
-    final hash = accountId.hashCode;
-    final offset = hash.abs() % pool.length;
-    final start = exclude ? offset : (pool.length - 1 - offset);
+    final n = pool.length;
+    // ★ قفزة فردية تُقبل فقط إن كانت متبادلةточно مع n (gcd=1) ⇒ بلا تكرار.
+    int stride = 1 + (accountId.hashCode.abs() % (n == 1 ? 1 : n - 1));
+    if (_gcd(stride, n) != 1) stride = 1;
+    if (!exclude && stride == 1) stride = 2 < n ? 2 : 1;
 
-    return List.generate(relationLimit, (i) {
-      final idx = (start + i * 3) % pool.length;
-      return pool[idx];
-    });
+    // ★ اتجاهان مختلفان ⇒ المتابعون ≠ المتابَعون لنفس الحساب.
+    final start = exclude
+        ? (accountId.hashCode.abs() % n)
+        : (n - 1 - (accountId.hashCode.abs() % n));
+    final step = exclude ? stride : (n - stride);
+
+    final count = relationLimit < n ? relationLimit : n;
+    return List.generate(
+      count,
+      (i) => pool[(start + i * step) % n],
+    );
+  }
+
+  /// القاسم المشترك الأكبر (خوارزمية Euclidean).
+  static int _gcd(int a, int b) {
+    while (b != 0) {
+      final t = a % b;
+      a = b;
+      b = t;
+    }
+    return a;
   }
 
   // ================= التوليد =================
