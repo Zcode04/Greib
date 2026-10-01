@@ -48,11 +48,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   PostSheetsController? _sheets;
   PostSheetsController get _core => _sheets!;
 
-  /// ★ نبدأ بوضع المنشورات، وب بوست واحد فقط.
+  /// ★ نبدأ بوضع المنشورات: كل منشورات كل الخدمات دفعة واحدة.
   bool _isGridView = true;
-
-  /// ★ عدد المنشورات الظاهرة في وضع المنشورات (= منشور واحد).
-  final int _visiblePostsCount = 1;
 
   @override
   void didChangeDependencies() {
@@ -316,9 +313,20 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   }
 
   Widget _buildSpotlightPosts(List<ServiceCategory> services) {
-    final visibleCount = _visiblePostsCount > services.length
-        ? services.length
-        : _visiblePostsCount;
+    // ★ كل منشورات كل الخدمات في استدعاء واحد (لا نعدّ على الخدمات).
+    final entries = ServicesRepository.instance.allPosts;
+    final posts = entries.isNotEmpty
+        ? entries
+        : [
+            // شبكة أمان: لا يوجد أي منشور ⇒ نعرض الخدمات نفسها كبطاقات.
+            for (final service in services)
+              ServicePostEntry(
+                postId: service.id,
+                index: 0,
+                service: service,
+                post: const ServicePost(text: '', imageUrls: [], timeAgo: ''),
+              ),
+          ];
 
     return LayoutBuilder(
       // ★ التجاوب: العرض المتاح فعلياً من الـ LayoutBuilder (لا MediaQuery)
@@ -353,11 +361,10 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                     shrinkWrap: true,
                     padding: EdgeInsets.zero,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: visibleCount,
+                    itemCount: posts.length,
                     // ★ بلا فاصل بين المنشورات — المسافة العمودية من البطاقة نفسها.
                     separatorBuilder: (_, _) => const SizedBox.shrink(),
-                    itemBuilder: (context, i) =>
-                        _spotlightPostItem(services[i]),
+                    itemBuilder: (context, i) => _spotlightPostItem(posts[i]),
                   ),
                 ),
               ],
@@ -374,11 +381,16 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   ///
   /// `ListenableBuilder` ⇒ أي تغيير (تفاعل/مفضلة) من داخل أي ورقة يعيد
   /// بناء البطاقة تلقائياً عبر `notifyListeners`.
-  Widget _spotlightPostItem(ServiceCategory service) {
+  Widget _spotlightPostItem(ServicePostEntry entry) {
+    final service = entry.service;
     // صورة افتراضية للخدمات التي ليس لها صورة
     final String imageUrl =
         service.coverImage ??
         'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80';
+    // ★ مفتاح التفاعل = معرّف المنشور (لا الخدمة) ⇒ منشورات نفس الخدمة
+    //   لا تتشارك الإعجاب/المفضلة/التعليقات.
+    final postId = entry.postId;
+    final images = _entryImages(entry, imageUrl);
     final core = _core;
 
     return ListenableBuilder(
@@ -386,29 +398,29 @@ class _SpotlightSectionState extends State<SpotlightSection> {
       builder: (context, _) => ServicePostCard(
         service: service,
         isDark: widget.isDark,
-        imageUrls: _postImages(service, imageUrl),
+        imageUrls: images,
         backgroundColor: widget.isDark
             ? AppColors.background
             : AppColors.lightBackground,
-        // ★ الأعداد كما كانت: ثابتة ومشتقّة من معرّف الخدمة.
-        countSeed: service.id,
-        likeCount: PostSheetsController.countFor(service.id, 80, 10),
-        commentCount: PostSheetsController.countFor(service.id, 40, 2),
-        shareCount: PostSheetsController.countFor(service.id, 20, 1),
+        // ★ الأعداد كما كانت: ثابتة ومشتقّة من معرّف المنشور.
+        countSeed: postId,
+        likeCount: PostSheetsController.countFor(postId, 80, 10),
+        commentCount: PostSheetsController.countFor(postId, 40, 2),
+        shareCount: PostSheetsController.countFor(postId, 20, 1),
         // ---------- الحالة من النواة المشتركة ----------
-        reaction: core.reactionOf(service.id),
-        isSaved: core.isFavorite(service.id),
+        reaction: core.reactionOf(postId),
+        isSaved: core.isFavorite(postId),
         // ★ الاختيار يتم داخل الورقة (كما كان سلوكياً)، فالنقر يفتحها فقط
         //   والبطاقة لا تبدّل التفاعل بنفسها.
         delegateReactionToCallback: true,
         onReaction: () =>
-            core.showReaction(context, postId: service.id, service: service),
-        onSaveChanged: (value) => core.setFavorite(service.id, value),
+            core.showReaction(context, postId: postId, service: service),
+        onSaveChanged: (value) => core.setFavorite(postId, value),
         // ★ نفس الاستدعاءات المستخدمة في صفحة التفاصيل (نواة واحدة).
         onRequest: () => core.openServiceChat(context, service: service),
-        onImageTap: () => _showPostImagesSheet(service, imageUrl: imageUrl),
+        onImageTap: () => _showPostImagesSheet(service, images),
         onComment: () =>
-            core.showComments(context, postId: service.id, service: service),
+            core.showComments(context, postId: postId, service: service),
         onShare: () => core.showAction(
           context,
           icon: LucideIcons.repeat2,
@@ -419,11 +431,24 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     );
   }
 
+  /// ★ صور المنشور: صوره هي أولاً، ثم صور الخدمة كاحتياط.
+  /// (المنشور بلا صور ⇒ نرجع لصورة غلاف الخدمة أو الصورة الافتراضية).
+  List<String> _entryImages(ServicePostEntry entry, String fallback) {
+    final own = entry.imageUrls
+        .where((e) => e.trim().isNotEmpty)
+        .toList(growable: false);
+    if (own.isNotEmpty) return own;
+    return _postImages(entry.service, fallback);
+  }
+
   List<String> _postImages(ServiceCategory service, String fallback) {
     final extra = service.imageUrls
         .where((e) => e.trim().isNotEmpty)
         .toList(growable: false);
-    if (extra.isEmpty) return [fallback];
+    // ★ بديل فارغ أو فاضٍ ⇒ لا صور إطلاقاً (لا رابط فارغ في المعاينة).
+    if (extra.isEmpty) {
+      return fallback.trim().isEmpty ? const <String>[] : [fallback];
+    }
     return [service.coverImage ?? fallback, ...extra];
   }
 
@@ -431,11 +456,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   /// مباشرة، بل نعرض ثلاث خيارات: «مشاهدة صور» (المعاينة الكاملة)،
   /// «طلب الآن» (محادثة مقدّم الخدمة)، و«عرض المزيد» (منشورات أخرى لنفس
   /// الخدمة). تعمل في وضعي المنشورات والشرائح.
-  void _showPostImagesSheet(ServiceCategory service, {String? imageUrl}) {
+  void _showPostImagesSheet(ServiceCategory service, List<String> images) {
     // ★ في الشريحة قد تكون الخدمة بلا صورة ⇒ لا معاينة (بلا قائمة صور وهمية).
-    final images = imageUrl == null
-        ? const <String>[]
-        : _postImages(service, imageUrl);
     final secondary = widget.isDark
         ? AppColors.textSecondary
         : AppColors.lightTextSecondary;
@@ -598,7 +620,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                 child: GestureDetector(
                   onTap: () => _showPostImagesSheet(
                     service,
-                    imageUrl: service.coverImage,
+                    _postImages(service, service.coverImage ?? ''),
                   ),
                   child: Hero(
                     tag: 'service_${service.id}',

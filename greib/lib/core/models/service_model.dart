@@ -122,3 +122,41 @@ class ServicePost {
     'timeAgo': timeAgo,
   };
 }
+
+/// ============================================================================
+///  ServicePostEntry — منشور واحد مرتبط بالخدمة التي ينتمي إليها.
+///
+///  الغرض: جلب *كل* منشورات *كل* الخدمات دفعة واحدة (تغذية موحّدة) بدل
+///  استدعاء `postsFor(serviceId)` لكل خدمة على حدة.
+///  الـ `postId` فريد ومشتق من الخدمة ⇒ التفاعل والمفضلة والتعليقات
+///  لا تتداخل بين منشورات الخدمة نفسها.
+/// ============================================================================
+class ServicePostEntry {
+  /// معرّف فريد للمنشور = «معرّف_الخدمة#ترتيب_المنشور» (يُستخدم للتفاعل).
+  final String postId;
+
+  /// ترتيب المنشور داخل خدمته (يحفظ الترتيب الأصلي في الملف).
+  final int index;
+
+  /// الخدمة صاحبة المنشور (لازم للتنقّل والصور ولون البطاقة).
+  final ServiceCategory service;
+
+  /// بيانات المنشور نفسها.
+  final ServicePost post;
+
+  const ServicePostEntry({
+    required this.postId,
+    required this.index,
+    required this.service,
+    required this.post,
+  });
+
+  /// وقت النشر كنص جاهز للعرض («منذ 5 ساعات»).
+  String get timeAgo => post.timeAgo;
+
+  /// نص المنشور.
+  String get text => post.text;
+
+  /// صور المنشور — قد تكون فارغة (⇒ نستعمل صورة الخدمة كبديل).
+  List<String> get imageUrls => post.imageUrls;
+}
