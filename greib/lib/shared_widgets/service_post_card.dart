@@ -132,6 +132,9 @@ class _ServicePostCardState extends State<ServicePostCard> {
   int _reaction = 0;
   bool _isSaved = false;
 
+  /// ★ حالة المتابعة لصاحب المنشور (وهمية محلية حتى ربط الـ backend).
+  bool _isFollowing = true;
+
   /// التفاعل المعروض: الخارجي إن وُجد، وإلا الداخلي.
   int get _effectiveReaction => widget.reaction ?? _reaction;
 
@@ -166,6 +169,30 @@ class _ServicePostCardState extends State<ServicePostCard> {
     if (minutes < 60) return 'آخر ظهور منذ $minutes دقيقة';
     final hours = (minutes / 60).floor();
     return 'آخر ظهور منذ $hours ${hours == 1 ? 'ساعة' : 'ساعات'}';
+  }
+
+  /// ★ متابعة صاحب المنشور (تتابعه / لا يتابعه) — تظهر قبل الفئة في
+  /// السطر الثاني، والنقر عليها يتبدّل بين الحالتين (حالة محلية وهمية حالياً).
+  /// عليها يتبدّل بين «تتابعه» و«لا تتابعه» (حالة محلية، والمتابعة وهمية حالياً).
+  Widget _followLabel() {
+    final following = _isFollowing;
+    return InkWell(
+      onTap: () => setState(() => _isFollowing = !following),
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 1),
+        child: Text(
+          following ? 'تتابعه' : 'لا تتابعه',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: following ? _accent : _secondary,
+            fontSize: 12,
+            fontWeight: following ? FontWeight.w600 : FontWeight.w400,
+          ),
+        ),
+      ),
+    );
   }
 
   /// عدد ثابت مشتق من countSeed (بلا عشوائية تتغير كل إطار).
@@ -432,8 +459,11 @@ class _ServicePostCardState extends State<ServicePostCard> {
                 ),
                 const SizedBox(height: 2),
                 // ★ الفئة + وقت النشر، ثم أيقونة globe مع حالة الاتصال.
+                //   الترتيب (RTL): «تتابعه/يتابعه» ثم الفئة ثم حالة الاتصال.
                 Row(
                   children: [
+                    _followLabel(),
+                    const SizedBox(width: 6),
                     Flexible(
                       child: Text(
                         '$category · ${widget.timeAgo ?? 'الآن'}',
