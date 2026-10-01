@@ -147,7 +147,6 @@ class _ServicePostCardState extends State<ServicePostCard> {
       widget.isDark ? AppColors.textPrimary : AppColors.lightText;
   Color get _secondary =>
       widget.isDark ? AppColors.textSecondary : AppColors.lightTextSecondary;
-  Color get _line => widget.isDark ? AppColors.outline : AppColors.lightOutline;
   Color get _accent => _service.color;
 
   static const double _kPillRadius = 999;
@@ -435,7 +434,6 @@ class _ServicePostCardState extends State<ServicePostCard> {
           ],
           const SizedBox(height: 12),
           _reactionChips(),
-          Divider(height: 1, color: _line),
           _actions(),
         ],
       ),
