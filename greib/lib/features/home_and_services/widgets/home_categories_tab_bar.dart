@@ -84,7 +84,7 @@ class _HomeCategoriesTabBarState extends State<HomeCategoriesTabBar>
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 // ★ أيقونة بلا خلفية (نفس ستايل عناوين الرئيسية).
-                Icon(LucideIcons.layoutGrid, size: 18, color: accent),
+                Icon(LucideIcons.chartNoAxesGantt, size: 18, color: accent),
               ],
             ),
           ),
