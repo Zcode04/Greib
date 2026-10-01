@@ -55,22 +55,11 @@ class _HomeCategoriesTabBarState extends State<HomeCategoriesTabBar>
           child: InkWell(
             onTap: () => setState(() => _expanded = !_expanded),
             borderRadius: BorderRadius.circular(AppRadii.full),
+            // ★ الصف ينزلق إلى الزاوية المقابلة (نهاية السطر) مع عكس ترتيب
+            // عناصره ليبقى العنوان محصوراً بين الأيقونة والسهم.
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                // ★ أيقونة بلا خلفية (نفس ستايل عناوين الرئيسية).
-                Icon(LucideIcons.layoutGrid, size: 18, color: accent),
-                const SizedBox(width: AppSpacing.sm),
-                // ★ يعرض القسم المختار فقط ويتحدث فور اختيار تبويب.
-                AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, _) => Text(
-                    _categories[_controller.index]['label']!,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.xs),
                 // ★ سهم يوضّح الحالة: مطوي ⇩ / مفتوح ⇧.
                 AnimatedRotation(
                   turns: _expanded ? 0.5 : 0,
@@ -82,6 +71,20 @@ class _HomeCategoriesTabBarState extends State<HomeCategoriesTabBar>
                     color: accent,
                   ),
                 ),
+                const SizedBox(width: AppSpacing.xs),
+                // ★ يعرض القسم المختار فقط ويتحدث فور اختيار تبويب.
+                AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, _) => Text(
+                    _categories[_controller.index]['label']!,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                // ★ أيقونة بلا خلفية (نفس ستايل عناوين الرئيسية).
+                Icon(LucideIcons.layoutGrid, size: 18, color: accent),
               ],
             ),
           ),
