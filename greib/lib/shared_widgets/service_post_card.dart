@@ -38,6 +38,20 @@ class ServicePostCard extends StatefulWidget {
   /// بذرة الأرقام الثابتة (مثلاً `post.text` أو `service.id`).
   final String countSeed;
 
+  // ---------- رأس المنشور: صاحب المنشور ----------
+  // ★ عند تمريرها تتحول البطاقة إلى منشور **حساب** بدل منشور خدمة:
+  //   يعرض اسم الحساب وصورته بدل اسم الخدمة وأيقونتها، مع إبقاء نفس التصميم.
+  //   تُستخدم في صفحة الحساب فقط (AccountProfilePage).
+
+  /// اسم صاحب المنشور — الافتراضي: `service.title`.
+  final String? authorName;
+
+  /// صورة البروفايل — الافتراضي: أيقونة الخدمة.
+  final String? authorAvatarUrl;
+
+  /// سطر ثانوي تحت الاسم (مثل «مقدّم خدمة «توصيل طعام»») — اختياري.
+  final String? authorSubtitle;
+
   /// أعداد الأزرار — إن كانت null تُحسب من `countSeed`.
   final String? likeCount;
   final String? commentCount;
@@ -75,6 +89,9 @@ class ServicePostCard extends StatefulWidget {
     this.imageUrls = const [],
     this.backgroundColor,
     this.countSeed = '',
+    this.authorName,
+    this.authorAvatarUrl,
+    this.authorSubtitle,
     this.likeCount,
     this.commentCount,
     this.shareCount,
@@ -200,7 +217,13 @@ class _ServicePostCardState extends State<ServicePostCard> {
   }
 
   // ---------- 1. رأس المنشور (Profile) ----------
+  // ★ نفس التصميم في الحالتين: منشور خدمة (أيقونة) أو منشور حساب (صورة).
   Widget _header() {
+    final authorAvatar = widget.authorAvatarUrl;
+    final metaLine = widget.authorSubtitle != null
+        ? '${widget.authorSubtitle} · ${widget.timeAgo ?? 'الآن'} · '
+        : 'Greib · ${widget.timeAgo ?? 'الآن'} · ';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -213,12 +236,22 @@ class _ServicePostCardState extends State<ServicePostCard> {
               shape: BoxShape.circle,
               color: _accent.withValues(alpha: 0.15),
               border: Border.all(color: _accent.withValues(alpha: 0.3)),
+              image: authorAvatar != null
+                  ? DecorationImage(
+                      image: NetworkImage(authorAvatar),
+                      fit: BoxFit.cover,
+                      onError: (_, _) {},
+                    )
+                  : null,
             ),
-            child: Icon(
-              MockData.getIconByName(_service.iconName),
-              color: _accent,
-              size: 20,
-            ),
+            // ★ صورة البروفايل تحل محل الأيقونة فقط عند وجودها.
+            child: authorAvatar == null
+                ? Icon(
+                    MockData.getIconByName(_service.iconName),
+                    color: _accent,
+                    size: 20,
+                  )
+                : null,
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -226,7 +259,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _service.title,
+                  widget.authorName ?? _service.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -240,7 +273,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
                   children: [
                     Flexible(
                       child: Text(
-                        'Greib · ${widget.timeAgo ?? 'الآن'} · ',
+                        metaLine,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: _secondary, fontSize: 12),

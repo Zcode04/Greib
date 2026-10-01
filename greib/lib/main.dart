@@ -8,6 +8,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
 import 'core/router/app_router.dart';
 import 'features/auth/auth_service.dart';
+import 'features/services/data/account_repository.dart';
 import 'features/services/data/services_repository.dart';
 
 Future<void> main() async {
@@ -16,9 +17,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppPrefs.init();
 
-  // نحمّل ملف الخدمات (المصدر الوحيد للحقيقة) قبل بناء الواجهة،
+  // نحمّل ملفات البيانات (المصدر الوحيد للحقيقة) قبل بناء الواجهة،
   // فتكون كل الصفحات جاهزة فوراً بلا شاشة تحميل وبلا وميض.
   await ServicesRepository.instance.load();
+  await AccountRepository.instance.load();
 
   runApp(buildGreibMenkApp());
 }

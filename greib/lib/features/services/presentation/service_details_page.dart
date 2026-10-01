@@ -8,7 +8,7 @@ import '../../../core/theme/design_tokens.dart';
 import '../../../shared_widgets/smart_image.dart';
 import '../../../shared_widgets/post_sheets.dart';
 import '../../../shared_widgets/service_post_card.dart';
-import '../data/provider_repository.dart';
+import '../data/account_repository.dart';
 import '../data/services_repository.dart';
 
 /// ============================================================================
@@ -229,20 +229,25 @@ class _ProfileHeader extends StatelessWidget {
         ],
         const SizedBox(height: AppSpacing.lg),
 
-        // ---------- مقدمو الخدمة (تجاهل أفقي + علامة صح) ----------
-        _ProvidersSection(service: service),
+        // ---------- الحسابات (تجاهل أفقي + علامة صح) ----------
+        _AccountsSection(service: service),
       ],
     );
   }
 }
 
-// ============================ مقدمو الخدمة ============================
-/// ★ قسم «مقدمي الخدمة» فوق التبويبات: عنوان + سطر إرشادي، وتحته شريط
-/// أفقي من خمسة بروفايلات وهمية (متاجر) لكل واحد علامة صح.
-class _ProvidersSection extends StatelessWidget {
+// ============================ الحسابات ============================
+/// ★ قسم «الحسابات» فوق التبويبات: عنوان + سطر إرشادي، وتحته شريط أفقي من
+/// خمسة حسابات (بيانات وهمية من accounts.json) لكل واحد صورة بروفايل حقيقية
+/// وعلامة صح عند التوثيق.
+///
+/// الضغط على أي بروفايل ينقل إلى **صفحة الحساب** (/account/:id) التي تعرض:
+/// الغلاف + صورة البروفايل + الاسم + الوصف + زرَي (مراسلة / متابعة)، وتحتها
+/// تبويبات (الأحدث | الكل | الأكثر تفاعلاً) تعرض منشورات هذا الحساب وحده.
+class _AccountsSection extends StatelessWidget {
   final ServiceCategory service;
 
-  const _ProvidersSection({required this.service});
+  const _AccountsSection({required this.service});
 
   static const double _avatarSize = 52;
 
@@ -252,8 +257,8 @@ class _ProvidersSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // ★ المصدر الوحيد لمقدمي الخدمة = ProviderRepository (نفس معمارية الخدمات).
-    final providers = ProviderRepository.instance.forService(service.id);
+    // ★ المصدر الوحيد للحسابات = AccountRepository (نفس معمارية الخدمات).
+    final accounts = AccountRepository.instance.forService(service.id);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -261,7 +266,7 @@ class _ProvidersSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           child: Text(
-            'مقدمي الخدمة',
+            'الحسابات',
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w800,
             ),
@@ -271,7 +276,7 @@ class _ProvidersSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           child: Text(
-            'اضغط لتعرف على مقدمي الخدمة',
+            'اضغط على أي بروفايل لعرض صفحة الحساب ومنشوراته',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -283,14 +288,14 @@ class _ProvidersSection extends StatelessWidget {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-            itemCount: providers.length,
+            itemCount: accounts.length,
             separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
             itemBuilder: (context, i) {
-              final provider = providers[i];
+              final account = accounts[i];
               return InkWell(
                 borderRadius: BorderRadius.circular(_avatarSize),
-                // ★ الضغط ينقل لصفحة مقدم الخدمة (/provider/:id).
-                onTap: () => context.push('/provider/${provider.id}'),
+                // ★ الضغط ينقل لصفحة الحساب (/account/:id).
+                onTap: () => context.push('/account/${account.id}'),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -306,30 +311,41 @@ class _ProvidersSection extends StatelessWidget {
                             border: Border.all(
                               color: service.color.withValues(alpha: 0.35),
                             ),
+                            // ★ صورة البروفايل الحقيقية داخل الدائرة.
+                            image: account.avatarUrl != null
+                                ? DecorationImage(
+                                    image: NetworkImage(account.avatarUrl!),
+                                    fit: BoxFit.cover,
+                                    onError: (_, _) {},
+                                  )
+                                : null,
                           ),
-                          child: Icon(
-                            LucideIcons.userRound,
-                            size: 22,
-                            color: service.color,
-                          ),
+                          child: account.avatarUrl == null
+                              ? Icon(
+                                  LucideIcons.userRound,
+                                  size: 22,
+                                  color: service.color,
+                                )
+                              : null,
                         ),
-                        // ★ علامة الصح أسفل يسار البروفايل.
-                        PositionedDirectional(
-                          bottom: -2,
-                          start: -2,
-                          child: Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: theme.colorScheme.surface,
-                            ),
-                            child: const Icon(
-                              LucideIcons.checkCircle,
-                              size: 16,
-                              color: AppColors.success,
+                        // ★ علامة التوثيق أسفل يسار البروفايل.
+                        if (account.isVerified)
+                          PositionedDirectional(
+                            bottom: -2,
+                            start: -2,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: theme.colorScheme.surface,
+                              ),
+                              child: const Icon(
+                                LucideIcons.checkCircle,
+                                size: 16,
+                                color: AppColors.success,
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                     const SizedBox(height: AppSpacing.xs),
@@ -337,7 +353,7 @@ class _ProvidersSection extends StatelessWidget {
                     SizedBox(
                       width: _avatarSize + 12,
                       child: Text(
-                        provider.name,
+                        account.name,
                         maxLines: 1,
                         textAlign: TextAlign.center,
                         overflow: TextOverflow.ellipsis,
@@ -353,7 +369,6 @@ class _ProvidersSection extends StatelessWidget {
       ],
     );
   }
-
 }
 
 class _CoverFallback extends StatelessWidget {

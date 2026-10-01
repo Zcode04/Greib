@@ -1,0 +1,301 @@
+{
+  "version": 1,
+  "note": "مصدر الحقيقة الوحيد لحسابات المستخدمين (بيانات وهمية الآن). البنية جاهزة لاستبدالها بطبقة API لاحقاً بلا تغيير في الواجهة. الكلمة {service} تُستبدل تلقائياً باسم الخدمة.",
+  "accountSeeds": [
+    {
+      "key": "express",
+      "nameTemplate": "{service} إكسبريس",
+      "bioTemplate": "نوصل طلبك على مدار الساعة مع تتبّع لحظي لكل شحنة حتى تصل باب بيتك.",
+      "location": "دبي، الإمارات",
+      "verified": true,
+      "avatars": [
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80",
+        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&q=80"
+      ],
+      "covers": [
+        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&q=80",
+        "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&q=80"
+      ],
+      "posts": [
+        {
+          "text": "افتتاحنا الجديد في {service} يبدأ اليوم — خصم 30% على أول طلب داخل دبي.",
+          "images": [
+            "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&q=80",
+            "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=1200&q=80"
+          ],
+          "timeAgo": "منذ 6 أيام",
+          "likes": 128,
+          "comments": 14,
+          "shares": 6
+        },
+        {
+          "text": "فريق {service} جاهز لاستقبال طلباتكم، ونرد خلال 3 دقائق فقط.",
+          "images": [],
+          "timeAgo": "منذ 3 أيام",
+          "likes": 96,
+          "comments": 21,
+          "shares": 3
+        },
+        {
+          "text": "تغطية جديدة: نضيف لها مناطق السكن والرحاب مع بقاء نفس الأسعار.",
+          "images": [
+            "https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?w=1200&q=80"
+          ],
+          "timeAgo": "منذ يومين",
+          "likes": 214,
+          "comments": 32,
+          "shares": 18
+        },
+        {
+          "text": "تقييم 4.9 من أكثر من 2000 عميل في {service} — شكراً لثقتكم.",
+          "images": [
+            "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80"
+          ],
+          "timeAgo": "منذ 12 ساعة",
+          "likes": 486,
+          "comments": 57,
+          "shares": 41
+        },
+        {
+          "text": "عروض نهاية الأسبوع في {service}: أسعار مخفّضة لمدة 48 ساعة فقط.",
+          "images": [
+            "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=1200&q=80"
+          ],
+          "timeAgo": "منذ ساعتين",
+          "likes": 372,
+          "comments": 44,
+          "shares": 29
+        }
+      ]
+    },
+    {
+      "key": "house",
+      "nameTemplate": "{service} هاوس",
+      "bioTemplate": "خبرة تتجاوز 8 سنوات في {service}، ونعمل على مدار الساعة مع متابعة مباشرة لكل عميل.",
+      "location": "أبوظبي، الإمارات",
+      "verified": false,
+      "avatars": [
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80",
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80"
+      ],
+      "covers": [
+        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80",
+        "https://images.unsplash.com/photo-1556742044-3c52d6e88c62?w=1200&q=80"
+      ],
+      "posts": [
+        {
+          "text": "نصيحة اليوم في {service}: قارن الأسعار قبل الحجز لتوفير حتى 25% من فاتورتك.",
+          "images": [
+            "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&q=80"
+          ],
+          "timeAgo": "منذ 5 أيام",
+          "likes": 74,
+          "comments": 9,
+          "shares": 4
+        },
+        {
+          "text": "فريقنا في {service} توسّع هذا الأسبوع — وأصبح الرد أقل من دقيقتين.",
+          "images": [],
+          "timeAgo": "منذ 3 أيام",
+          "likes": 88,
+          "comments": 12,
+          "shares": 2
+        },
+        {
+          "text": "أكثر الخدمات طلباً في {service} هذا الشهر: الطلبات المسائية من 8 إلى 11.",
+          "images": [
+            "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=1200&q=80"
+          ],
+          "timeAgo": "منذ يومين",
+          "likes": 152,
+          "comments": 27,
+          "shares": 11
+        },
+        {
+          "text": "التزامنا في {service}: التسليم في الموعد أو نعيد المبلغ كاملاً.",
+          "images": [
+            "https://images.unsplash.com/photo-1607082349566-187342175e2f?w=1200&q=80"
+          ],
+          "timeAgo": "منذ 9 ساعات",
+          "likes": 331,
+          "comments": 38,
+          "shares": 26
+        }
+      ]
+    },
+    {
+      "key": "premium",
+      "nameTemplate": "{service} بريميوم",
+      "bioTemplate": "خدمة {service} بمعايير متميّزة: جودة مضمونة، وضمان استرجاع خلال 24 ساعة، ودعم بالعربية والإنجليزية.",
+      "location": "الشارقة، الإمارات",
+      "verified": true,
+      "avatars": [
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80",
+        "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&q=80"
+      ],
+      "covers": [
+        "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=1200&q=80",
+        "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=1200&q=80"
+      ],
+      "posts": [
+        {
+          "text": "باقة {service} العائلية الليلة: تجربة مشتركة + توصيل مجاني لكل بيت في دبي.",
+          "images": [
+            "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&q=80",
+            "https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1200&q=80"
+          ],
+          "timeAgo": "منذ 7 أيام",
+          "likes": 188,
+          "comments": 19,
+          "shares": 8
+        },
+        {
+          "text": "قائمة أسعار {service} الجديدة نافذة من اليوم — التزموا بالأسعار المعلنة.",
+          "images": [],
+          "timeAgo": "منذ 4 أيام",
+          "likes": 143,
+          "comments": 16,
+          "shares": 5
+        },
+        {
+          "text": "شهادة الجودة: نجحنا في تدقيق جودة {service} — أول جهة معتمدة في المنطقة.",
+          "images": [
+            "https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?w=1200&q=80"
+          ],
+          "timeAgo": "منذ يومين",
+          "likes": 402,
+          "comments": 51,
+          "shares": 33
+        },
+        {
+          "text": "تم فتح الفرع الثالث لنا في {service} — ننصح بحجز الموعد مسبقاً.",
+          "images": [
+            "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&q=80"
+          ],
+          "timeAgo": "منذ 5 ساعات",
+          "likes": 259,
+          "comments": 29,
+          "shares": 14
+        },
+        {
+          "text": "استشارة مجانية 10 دقائق في {service} — احجز مكالمتك الآن عبر المحادثة.",
+          "images": [],
+          "timeAgo": "منذ 40 دقيقة",
+          "likes": 178,
+          "comments": 22,
+          "shares": 9
+        }
+      ]
+    },
+    {
+      "key": "boutique",
+      "nameTemplate": "بوتيك {service}",
+      "bioTemplate": "تفاصيل صغيرة تصنع الفرق في {service}. نختار كل خدمة بعناية ونغلّفها كهدية جاهزة.",
+      "location": "دبي، الإمارات",
+      "verified": false,
+      "avatars": [
+        "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80",
+        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80"
+      ],
+      "covers": [
+        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&q=80",
+        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80"
+      ],
+      "posts": [
+        {
+          "text": "وصلتنا دفعة جديدة في {service} — الكميات محدودة هذا الأسبوع.",
+          "images": [
+            "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&q=80"
+          ],
+          "timeAgo": "منذ 8 أيام",
+          "likes": 63,
+          "comments": 8,
+          "shares": 3
+        },
+        {
+          "text": "تغليف هدايا {service} مجاني للطلبات فوق 100 درهم — اطلبه عند التأكيد.",
+          "images": [
+            "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=1200&q=80"
+          ],
+          "timeAgo": "منذ 4 أيام",
+          "likes": 121,
+          "comments": 18,
+          "shares": 7
+        },
+        {
+          "text": "زوّارنا اليوم في {service} — شكراً لكل من مرّ ووقف عندنا.",
+          "images": [
+            "https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1200&q=80"
+          ],
+          "timeAgo": "منذ يومين",
+          "likes": 196,
+          "comments": 24,
+          "shares": 10
+        },
+        {
+          "text": "سؤال شائع: هل {service} يدعم الدفع عند الاستلام؟ نعم بكل تأكيد.",
+          "images": [],
+          "timeAgo": "منذ 6 ساعات",
+          "likes": 88,
+          "comments": 13,
+          "shares": 4
+        }
+      ]
+    },
+    {
+      "key": "center",
+      "nameTemplate": "مركز {service}",
+      "bioTemplate": "مركز متخصص في {service} يخدم أكثر من 12 ألف عميل سنوياً، ومواعيد متاحة يومياً.",
+      "location": "عجمان، الإمارات",
+      "verified": false,
+      "avatars": [
+        "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=400&q=80",
+        "https://images.unsplash.com/photo-1552058544-f2b08422138a?w=400&q=80"
+      ],
+      "covers": [
+        "https://images.unsplash.com/photo-1556742044-3c52d6e88c62?w=1200&q=80",
+        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&q=80"
+      ],
+      "posts": [
+        {
+          "text": "جدول المواعيد في {service} للأسبوع القادم مفتوح — احجز مكانك مبكراً.",
+          "images": [
+            "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=1200&q=80"
+          ],
+          "timeAgo": "منذ 9 أيام",
+          "likes": 57,
+          "comments": 6,
+          "shares": 2
+        },
+        {
+          "text": "تقرير الشهر: نسبة الرضا في {service} وصلت 97% — رقم قياسي لنا.",
+          "images": [
+            "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&q=80"
+          ],
+          "timeAgo": "منذ 5 أيام",
+          "likes": 167,
+          "comments": 25,
+          "shares": 13
+        },
+        {
+          "text": "خصم 15% لأعضاء {service} خلال شهر رمضان — استخدم الكود RAMADAN15.",
+          "images": [
+            "https://images.unsplash.com/photo-1607082349566-187342175e2f?w=1200&q=80"
+          ],
+          "timeAgo": "منذ يومين",
+          "likes": 288,
+          "comments": 41,
+          "shares": 22
+        },
+        {
+          "text": "نصيحة الأمان في {service}: تحقّق دائماً من هوية مندوب التوصيل قبل الاستلام.",
+          "images": [],
+          "timeAgo": "منذ ساعتين",
+          "likes": 142,
+          "comments": 17,
+          "shares": 6
+        }
+      ]
+    }
+  ]
+}
