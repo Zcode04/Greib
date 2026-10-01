@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../core/location/location_controller.dart';
-import '../../../core/mock_data/mock_data.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/widgets/location_picker.dart';
 import '../../../core/widgets/header_collapse_state.dart';
-import '../../../shared_widgets/store_category_tabs.dart';
 
-/// كبسولة لاصقة واحدة تجمع زر الموقع + الـ 14 تبويب بنفس الحجم.
+/// كبسولة لاصقة تجمع زر الموقع (وتضمّ الـ 14 تبويب سابقاً — مخفية حالياً).
 /// تظهر عند التمرير حتى موضع التبويبات مع أنيميشن دمج احترافي.
 /// تختفي عند الصعود ويعود زر الموقع المنفرد.
 class StickyTabsBar extends StatefulWidget {
@@ -150,11 +148,7 @@ class _MergedRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     const double itemH = 34.0;
-    // ★ عرض التبويبات متجاوب: يأخذ المتبقي من عرض الشاشة بعد زر الموقع.
-    final screenW = MediaQuery.of(context).size.width;
-    final tabsW = (screenW - 40 - 130).clamp(120.0, 420.0);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -211,97 +205,10 @@ class _MergedRow extends StatelessWidget {
             ),
           ),
         ),
-        SizeTransition(
-          sizeFactor: grow,
-          axis: Axis.horizontal,
-          axisAlignment: -1.0,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 1,
-                height: 20,
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 6),
-                color: theme.dividerColor
-                    .withValues(alpha: 0.5 * merge.value),
-              ),
-              SizedBox(
-                width: tabsW,
-                child: ValueListenableBuilder<String>(
-                  valueListenable:
-                      StoreSelectedCategory.notifier,
-                  builder: (context, selected, _) {
-                    final accent = isDark
-                        ? AppColors.accentPrimary
-                        : AppColors.accentPrimaryDark;
-                    return Directionality(
-                      textDirection: TextDirection.rtl,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            for (int i = 0;
-                                i <
-                                    MockData
-                                        .productCategories.length;
-                                i++)
-                              GestureDetector(
-                                onTap: () =>
-                                    StoreSelectedCategory
-                                            .notifier.value =
-                                        MockData
-                                                .productCategories[
-                                            i]['id']!,
-                                child: Container(
-                                  height: itemH,
-                                  padding:
-                                      const EdgeInsets.symmetric(
-                                          horizontal: 12),
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: MockData
-                                                .productCategories[
-                                            i]['id'] ==
-                                            selected
-                                        ? accent
-                                        : Colors.transparent,
-                                    borderRadius:
-                                        BorderRadius.circular(
-                                            AppRadii.full),
-                                  ),
-                                  child: Text(
-                                    MockData.productCategories[i]
-                                        ['label']!,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      color: MockData
-                                                  .productCategories[
-                                              i]['id'] ==
-                                              selected
-                                          ? (isDark
-                                              ? Colors.black
-                                              : Colors.white)
-                                          : (isDark
-                                              ? AppColors
-                                                  .textSecondary
-                                              : AppColors
-                                                  .lightTextSecondary),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
+        // ★ شريط الـ 14 تبويب مخفي مؤقتاً (حسب الطلب). البيانات محفوظة كاملة
+        //   في `MockData.productCategories` + `StoreSelectedCategory.notifier`
+        //   و`store_category_tabs.dart` ⇒ إعادة العرض لاحقاً تكفي بإعادة
+        //   الكود المحذوف من هذا الملف فقط.
       ],
     );
   }

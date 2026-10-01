@@ -14,7 +14,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 // Widgets
 import 'widgets/home_scroll_strip.dart';
 import 'widgets/sticky_location_button.dart';
-import 'widgets/sticky_tabs_bar.dart';
+// ملاحظة: `widgets/sticky_tabs_bar.dart` غير مستخدم مؤقتاً (التبويبات مخفية) —
+// الملف محفوظ مع بياناته (MockData.productCategories) للاستخدام لاحقاً.
 import 'widgets/trending_stories.dart';
 import 'widgets/spotlight_carousel.dart';
 import 'widgets/doctors_row.dart';
@@ -209,10 +210,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          // زر الموقع المنفرد — يختفي أثناء ظهور الكبسولة المدمجة
-          // (الكبسولة تحتوي نسختها الخاصة من زر الموقع بنفس الحجم).
-          if (!_showStickyTabs) const StickyLocationButton(),
-          StickyTabsBar(visible: _showStickyTabs),
+          // ★ زر الموقع: يظهر في مكانه الثابت دائماً (بدون نسخة ثانية
+          //   داخل شريط لاصق). فتح ورقة تغيير الموقع تتم منه.
+          //   ملاحظة: `StickyTabsBar` (شريط الـ 14 تبويب) لم يُعرض مؤقتاً،
+          //   وملفه وبياناته محفوظة للاستخدام لاحقاً.
+          const StickyLocationButton(),
         ],
       ),
     );
