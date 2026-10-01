@@ -110,6 +110,62 @@ class AccountRepository {
     return [for (final service in services) ...forService(service.id)];
   }
 
+  // ================= شبكة العلاقات =================
+  //
+  // ★ كل شيء هنا **مشتقّ من المعرّف** (hash) لا عشوائي ⇒ نفس القائمة في كل مرة
+  //   يفتح فيها المستخدم الصفحة (بلا اهتزاز بين الفتحات).
+  //
+  // ★ الصفحة تعرض أرقاماً حقيقية (مت thousands) فنعرض منها شريحة صغيرة
+  //   (حتى [_relationLimit]) من الحسابات الحقيقية، واحدة لكل صف.
+
+  /// أقصى عدد حسابات يُعرض في كل تبويب (الرقم المعروض أكبر من ذلك).
+  static const int relationLimit = 10;
+
+  /// المتابعون: حسابات حقيقية (من خدمات مختلفة) يتابعها هذا الحساب.
+  List<AccountProfile> followersOf(String accountId) =>
+      _related(accountId, exclude: true);
+
+  /// الحسابات التي يتابعها هذا الحساب.
+  List<AccountProfile> followingOf(String accountId) =>
+      _related(accountId, exclude: false);
+
+  /// ★ المتابعون المشتركون = تقاطع (المتابعون) و(يتابع) ⇒ يبنيه مباشرة من
+  ///   القائمتين فوق ⇒ يبقى متّسقاً تلقائياً بلا تخزين ثالث.
+  List<AccountProfile> mutualOf(String accountId) {
+    final followers = followersOf(accountId);
+    final followingIds = followingOf(accountId).map((a) => a.id).toSet();
+    final common = followers
+        .where((a) => followingIds.contains(a.id))
+        .toList();
+    // ★ الاحتياط: عند لا-تقاطع نعرض أول ثلاثة من المتابعين ⇒ التبويب
+    //   الثالث لا يبقى فارغاً أبداً في البيانات الوهمية.
+    if (common.isEmpty) {
+      return followers.take(3).toList();
+    }
+    return common;
+  }
+
+  /// ★ يبني قائمة علاقات ثابتة لهذا الحساب: نبدأ من كل الحسابات، ندور عليها
+  ///   بإزاحة مشتقّة من المعرّف ⇒ قائمة مختلفة لكل حساب لكنها ثابتة له.
+  List<AccountProfile> _related(String accountId, {required bool exclude}) {
+    final parts = accountId.split('::');
+    if (parts.length != 2) return const [];
+
+    final pool = all.where((a) => a.id != accountId).toList();
+    if (pool.isEmpty) return const [];
+
+    // ★ إزاحة ثابتة لكل حساب + اتجاه (§الreciprocal؟) ⇒ قائمتان مختلفتان
+    //   للمتابعين وللمتابعين، وكلتاهما ثابتة لنفس الحساب.
+    final hash = accountId.hashCode;
+    final offset = hash.abs() % pool.length;
+    final start = exclude ? offset : (pool.length - 1 - offset);
+
+    return List.generate(relationLimit, (i) {
+      final idx = (start + i * 3) % pool.length;
+      return pool[idx];
+    });
+  }
+
   // ================= التوليد =================
 
   /// البذرة بالمفتاح، مع رجوع للأولى عند عدم وجوده (تفادي الأخطاء).

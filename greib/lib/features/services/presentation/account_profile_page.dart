@@ -289,14 +289,42 @@ class _AccountHeader extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.xs),
 
-              // ---------- إحصائيات المتابعين ----------
-              Text(
-                '${_format(account.followers)} متابع · '
-                '${_format(account.following)} يتابع · '
-                '${account.postsCount} منشور',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+              // ---------- إحصائيات المتابعين (اضغط ⇒ صفحة العلاقات) ----------
+              Row(
+                children: [
+                  // ★ المتابعون ⇒ تبويب 0.
+                  _StatLink(
+                    label: '${_format(account.followers)} متابع',
+                    onTap: () => context.push(
+                      '/account/${account.id}/connections?tab=0',
+                    ),
+                  ),
+                  Text(
+                    ' · ',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  // ★ يتابع ⇒ تبويب 1.
+                  _StatLink(
+                    label: '${_format(account.following)} يتابع',
+                    onTap: () => context.push(
+                      '/account/${account.id}/connections?tab=1',
+                    ),
+                  ),
+                  Text(
+                    ' · ',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  Text(
+                    '${account.postsCount} منشور',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: AppSpacing.sm),
 
@@ -351,6 +379,37 @@ class _AccountHeader extends StatelessWidget {
   }
 }
 
+/// ★ عنصر إحصائي قابل للضغط (متابع / يتابع) ⇒ يفتح صفحة العلاقات على التبويب
+///   المقابل. نميّزه بلون العلامة ليعرف المستخدم أنه رابط.
+class _StatLink extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _StatLink({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+        child: Text(
+          label,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            decoration: TextDecoration.underline,
+            decorationColor: theme.colorScheme.onSurfaceVariant
+                .withValues(alpha: 0.5),
+            decorationThickness: 1,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ============================ زر إجراء ============================
 // زر «مراسلة» / «متابعة» — حدود موحّدة في الوضعين.
 class _ActionButton extends StatelessWidget {
@@ -368,13 +427,16 @@ class _ActionButton extends StatelessWidget {
     required this.onTap,
   });
 
+  /// ★ حواف دائرية بالكامل (rounded-full) = نصف الارتفاع ⇒ كبطاقة «عرض المزيد».
+  static BorderRadius get _radius => BorderRadius.circular(999);
+
   @override
   Widget build(BuildContext context) {
     return Material(
       color: filled ? color : color.withValues(alpha: 0.12),
-      borderRadius: BorderRadius.circular(AppSpacing.md),
+      borderRadius: _radius,
       child: InkWell(
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: _radius,
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),

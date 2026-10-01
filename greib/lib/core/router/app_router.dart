@@ -10,6 +10,7 @@ import '../../features/communication_and_support/support_tickets_screen.dart';
 import '../../features/location_and_tracking/tracking_screen.dart';
 import '../../features/location_and_tracking/maps_screen.dart';
 import '../../features/home_and_services/search_screen.dart';
+import '../../features/services/presentation/account_connections_page.dart';
 import '../../features/services/presentation/account_profile_page.dart';
 import '../../features/services/presentation/provider_profile_page.dart';
 import '../../features/services/presentation/service_details_page.dart';
@@ -168,6 +169,19 @@ class AppRouter {
         name: 'accountProfile',
         builder: (context, state) =>
             AccountProfilePage(accountId: state.pathParameters['id'] ?? ''),
+      ),
+      // ===== شبكة علاقات الحساب: /account/:id/connections =====
+      // ?tab=0 (المتابِعون) | 1 (يتابع) | 2 (متابِعون مشتركون).
+      GoRoute(
+        path: '/account/:id/connections',
+        name: 'accountConnections',
+        builder: (context, state) {
+          final tab = int.tryParse(state.uri.queryParameters['tab'] ?? '') ?? 0;
+          return AccountConnectionsPage(
+            accountId: state.pathParameters['id'] ?? '',
+            initialTab: tab,
+          );
+        },
       ),
     ],
   );
