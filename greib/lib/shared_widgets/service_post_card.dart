@@ -355,20 +355,37 @@ class _ServicePostCardState extends State<ServicePostCard> {
               ],
             ),
           ),
-          // زر الحفظ (Add to list) في طرف الهيدر.
-          InkWell(
-            onTap: _toggleSaved,
-            borderRadius: BorderRadius.circular(6),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              child: Icon(
-                _effectiveSaved
-                    ? LucideIcons.bookmarkCheck
-                    : LucideIcons.bookmarkPlus,
-                color: _effectiveSaved ? _accent : _secondary,
-                size: 20,
+          // إجراءات المنشور في طرف الهيدر: خيارات (⋯) ثم إغلاق (✕).
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              InkWell(
+                onTap: () => (widget.onShare ?? _showLater)(),
+                borderRadius: BorderRadius.circular(6),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
+                  child: Icon(
+                    LucideIcons.ellipsis,
+                    color: _secondary,
+                    size: 20,
+                  ),
+                ),
               ),
-            ),
+              InkWell(
+                onTap: () => (widget.onShare ?? _showLater)(),
+                borderRadius: BorderRadius.circular(6),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
+                  child: Icon(LucideIcons.x, color: _secondary, size: 18),
+                ),
+              ),
+            ],
           ),
         ],
       ),
