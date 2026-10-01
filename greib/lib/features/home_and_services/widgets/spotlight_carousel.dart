@@ -48,9 +48,11 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   PostSheetsController? _sheets;
   PostSheetsController get _core => _sheets!;
 
-  /// ★ نبدأ بوضع المنشورات، وب بوست واحد فقط؛ «عرض المزيد» يزيد واحداً كل ضغطة.
+  /// ★ نبدأ بوضع المنشورات، وب بوست واحد فقط.
   bool _isGridView = true;
-  int _visiblePostsCount = 1;
+
+  /// ★ عدد المنشورات الظاهرة في وضع المنشورات (= منشور واحد).
+  final int _visiblePostsCount = 1;
 
   @override
   void didChangeDependencies() {
@@ -126,9 +128,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         const SizedBox(height: 8),
         // ★ زرّان يملآن العرض أفقياً (Expanded لكل منهما ⇒ نصف العرض لكل زر)
         // على طرفي السطر: «عرض المزيد» في زاوية اليمين (بداية السطر في الاتجاه
-        // من اليمين) وبزر التبديل في الزاوية الأخرى، والثاني يظهر فقط في وضع
-        // المنشورات عند وجود منشورات مخفية. الصف يتمدّد لحواف الشاشة (مثل
-        // البطاقة تماماً) ليبقى بنفس عرض المنشور ويزداد العرض الأفقي.
+        // من اليمين) وبزر التبديل في الزاوية الأخرى، و«عرض المزيد» يظهر فقط في
+        // وضع المنشورات (يفتح صفحة تفاصيل أول خدمة ⇒ كل منشوراتها). الصف يتمدّد
+        // لحواف الشاشة (مثل البطاقة تماماً) ليبقى بنفس عرض المنشور.
         LayoutBuilder(
           builder: (context, constraints) {
             final available = constraints.maxWidth.isFinite
@@ -145,8 +147,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                 width: fullWidth,
                 child: Row(
                   children: [
-                    if (_isGridView &&
-                        _visiblePostsCount < services.length) ...[
+                    if (_isGridView && services.length > 1) ...[
                       Expanded(
                         child: Padding(
                           // ★ الزر ينحصر داخل نصفه (بلا ملامسة حواف البطاقة)
@@ -159,8 +160,10 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                           child: _softActionButton(
                             icon: LucideIcons.chevronDown,
                             label: 'عرض المزيد',
+                            // ★ الانتقال لصفحة تفاصيل أول خدمة معروضة، وهي
+                            // الصفحة المخصّصة لعرض كل منشورات تلك الخدمة.
                             onPressed: () =>
-                                setState(() => _visiblePostsCount++),
+                                context.push('/service/${services.first.id}'),
                           ),
                         ),
                       ),
