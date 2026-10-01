@@ -712,7 +712,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
     );
   }
 
-  /// ★ حالة الاتصال (أيقونة العالم + النص) — في الزاوية المقابلة لأيقونات التفاعل.
+  /// ★ حالة الاتصال (أيقونة العالم + النص) — بجوار أيقونات التفاعل في زاويتها.
   Widget _presence() {
     final online = widget.authorIsOnline ?? _derivedIsOnline;
     final presence = online
