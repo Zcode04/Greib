@@ -351,15 +351,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                     padding: EdgeInsets.zero,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: visibleCount,
-                    separatorBuilder: (_, _) => Divider(
-                      // ★ خلفية المنشور = خلفية التطبيق ⇒ الفاصل رفيع (وليس
-                      // فجوة بلون مطابق) هو ما يفصل المنشورات كما في فيسبوك.
-                      height: 1,
-                      thickness: 1,
-                      color: widget.isDark
-                          ? AppColors.outline
-                          : AppColors.lightOutline,
-                    ),
+                    // ★ بلا فاصل بين المنشورات — المسافة العمودية من البطاقة نفسها.
+                    separatorBuilder: (_, _) => const SizedBox.shrink(),
                     itemBuilder: (context, i) =>
                         _spotlightPostItem(services[i]),
                   ),

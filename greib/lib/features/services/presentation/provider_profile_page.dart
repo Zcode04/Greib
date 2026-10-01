@@ -486,13 +486,12 @@ class _ProviderPostsTab extends StatelessWidget {
       );
     }
 
-    final line = isDark ? AppColors.outline : AppColors.lightOutline;
-
     return ListView.separated(
       key: PageStorageKey('provider_feed_${mode.name}'),
       padding: EdgeInsets.zero,
       itemCount: posts.length,
-      separatorBuilder: (_, _) => Divider(height: 1, thickness: 1, color: line),
+      // ★ بلا فاصل بين المنشورات — المسافة العمودية من البطاقة نفسها.
+      separatorBuilder: (_, _) => const SizedBox.shrink(),
       itemBuilder: (context, i) {
         final post = posts[i];
         // ★ معرّف المنشور خاص بالمقدم ⇒ تفاعله مستقل عن صفحة الخدمة.

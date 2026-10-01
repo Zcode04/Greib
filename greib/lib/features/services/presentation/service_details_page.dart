@@ -489,14 +489,13 @@ class _PostsTab extends StatelessWidget {
       );
     }
 
-    final line = isDark ? AppColors.outline : AppColors.lightOutline;
-
     return ListView.separated(
       key: PageStorageKey('feed_${mode.name}'),
       padding: EdgeInsets.zero,
       itemCount: posts.length,
       // ★ فاصل رفيع (لا فجوة) ⇒ نفسه تصميم المنشورات.
-      separatorBuilder: (_, _) => Divider(height: 1, thickness: 1, color: line),
+      // ★ بلا فاصل بين المنشورات — المسافة العمودية من البطاقة نفسها.
+      separatorBuilder: (_, _) => const SizedBox.shrink(),
       itemBuilder: (context, i) {
         final post = posts[i];
         // ★ معرّف المنشور: يجعل التفاعل/المفضلة/التعليقات خاصة بكل منشور.
