@@ -67,7 +67,7 @@ class _HomeCategoriesTabBarState extends State<HomeCategoriesTabBar>
                   curve: Curves.easeInOut,
                   child: Icon(
                     LucideIcons.chevronDown,
-                    size: 18,
+                    size: 22,
                     color: accent,
                   ),
                 ),
