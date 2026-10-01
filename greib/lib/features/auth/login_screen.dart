@@ -36,30 +36,31 @@ class AppPalette {
     textPrimary: Color(0xFF0F172A), // slate-900
   );
 
+  // ★ كل الخيارات تستخدم نفس الهوية: خلفية Slate 900 + لون واحد Sapphire
   static const careemEmerald = AppPalette(
-    primary: Color(0xFF00B553), // لون كريم الشهير
-    backgroundLight: Color(0xFFF8F9FA),
-    backgroundDark: Color(0xFF0D1410),
+    primary: Color(0xFF3B82F6),
+    backgroundLight: Color(0xFFF1F5F9),
+    backgroundDark: Color(0xFF0F172A),
     cardLight: Colors.white,
-    cardDark: Color(0xFF18221C),
-    textPrimary: Color(0xFF1A1D1E),
+    cardDark: Color(0xFF1B2537),
+    textPrimary: Color(0xFF0F172A),
   );
 
   static const midnightObsidian = AppPalette(
-    primary: Color(0xFF2F80ED),
-    backgroundLight: Color(0xFFF4F6F9),
-    backgroundDark: Color(0xFF101216),
+    primary: Color(0xFF3B82F6),
+    backgroundLight: Color(0xFFF1F5F9),
+    backgroundDark: Color(0xFF0F172A),
     cardLight: Colors.white,
-    cardDark: Color(0xFF1B1E26),
-    textPrimary: Color(0xFF0D121D),
+    cardDark: Color(0xFF1B2537),
+    textPrimary: Color(0xFF0F172A),
   );
 
   static const royalIndigo = AppPalette(
-    primary: Color(0xFF6366F1),
-    backgroundLight: Color(0xFFF8FAFC),
+    primary: Color(0xFF3B82F6),
+    backgroundLight: Color(0xFFF1F5F9),
     backgroundDark: Color(0xFF0F172A),
     cardLight: Colors.white,
-    cardDark: Color(0xFF1E293B),
+    cardDark: Color(0xFF1B2537),
     textPrimary: Color(0xFF0F172A),
   );
 

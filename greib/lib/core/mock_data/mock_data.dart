@@ -269,28 +269,8 @@ class MockData {
     ),
   ];
 
-  static Color getSpecialtyColor(String specialty) {
-    switch (specialty) {
-      case 'باطنة':
-        return const Color(0xFF0F5132); // أخضر غامق
-      case 'أطفال':
-        return AppColors.info; // أزرق
-      case 'أسنان':
-        return const Color(0xFFD4A853); // ذهبي
-      case 'جلدية':
-        return AppColors.serviceShopping; // وردي
-      case 'نساء وولادة':
-        return AppColors.accentPrimary; // بنفسجي
-      case 'عظام':
-        return AppColors.warning; // برتقالي
-      case 'قلب':
-        return AppColors.error; // أحمر
-      case 'طب الأسرة':
-        return AppColors.serviceTourism; // تركواز
-      default:
-        return AppColors.accentPrimary;
-    }
-  }
+  /// لون موحّد لكل التخصصات — لا ألوان إضافية.
+  static Color getSpecialtyColor(String specialty) => AppColors.accentPrimary;
 
   // تبويبات المتجر (الأول "الكل" مفعّل افتراضياً — البقية تُطوَّر لاحقاً)
   static const List<Map<String, String>> productCategories = [

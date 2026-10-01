@@ -67,33 +67,34 @@ class AppColors {
   static const Color _error   = Color(0xFFEF4444); // أحمر
   static const Color _info    = Color(0xFF38BDF8); // سماوي
 
-  // ---------- 🛍 ألوان الخدمات الست ----------
-  static const Color _svcFood      = Color(0xFFF97316); // برتقالي دافئ — طعام
-  static const Color _svcPharmacy  = Color(0xFF3B82F6); // أزرق — صيدلية
-  static const Color _svcCourier   = Color(0xFFA78BFA); // بنفسجي فاتح — توصيل
-  static const Color _svcRide      = Color(0xFFF59E0B); // ذهبي — مشاوير
-  static const Color _svcShopping  = Color(0xFFEC4899); // وردي — تسوق
-  static const Color _svcTourism   = Color(0xFF14B8A6); // تيل — سياحة
+  // ---------- 🛍 ألوان الخدمات — لون واحد موحّد للجميع ----------
+  // ★ كل الخدمات تستخدم اللون الرسمي نفسه — لا ألوان إضافية
+  static const Color _svcFood      = _brand;
+  static const Color _svcPharmacy  = _brand;
+  static const Color _svcCourier   = _brand;
+  static const Color _svcRide      = _brand;
+  static const Color _svcShopping  = _brand;
+  static const Color _svcTourism   = _brand;
 
-  // ---------- 🧩 ألوان الخدمات الإضافية (١٨ خدمة) ----------
-  static const Color _svcMoving     = Color(0xFF0EA5E9); // سماوي — نقل
-  static const Color _svcTaxi       = Color(0xFFFACC15); // أصفر — تكاسي
-  static const Color _svcElectricity= Color(0xFFFDE047); // أصفر فاتح — كهرباء
-  static const Color _svcWater      = Color(0xFF38BDF8); // أزرق سماوي — ماء
-  static const Color _svcLaundry    = Color(0xFF22D3EE); // سماوي فاتح — غسيل
-  static const Color _svcClothes    = Color(0xFFFB7185); // وردي فاتح — ملابس
-  static const Color _svcPhones     = Color(0xFF6366F1); // بنفسجي أزرق — هواتف
-  static const Color _svcDevices    = Color(0xFF8B5CF6); // بنفسجي — أجهزة
-  static const Color _svcAppliances = Color(0xFF10B981); // أخضر — أجهزة منزلية
-  static const Color _svcOffice     = Color(0xFF64748B); // رمادي أزرق — معدات مكتبية
-  static const Color _svcDelivery   = Color(0xFFF472B6); // وردي — توصيل
-  static const Color _svcEstore     = Color(0xFFA855F7); // بنفسجي — متاجر إلكترونية
-  static const Color _svcTravel     = Color(0xFF06B6D4); // سماوي — سفر
-  static const Color _svcTourismX   = Color(0xFF14B8A6); // تيل — سياحة (احتياطي)
-  static const Color _svcMedicine   = Color(0xFFEF4444); // أحمر — أدوية
-  static const Color _svcPharmacyX  = Color(0xFF3B82F6); // أزرق — صيدلة (احتياطي)
-  static const Color _svcConsult    = Color(0xFF84CC16); // أخضر ليموني — استشارات طبية
-  static const Color _svcFreight    = Color(0xFFF97316); // برتقالي — نقل بضائع
+  // ---------- 🧩 ألوان الخدمات الإضافية (١٨ خدمة) — نفس اللون الموحّد ----------
+  static const Color _svcMoving     = _brand;
+  static const Color _svcTaxi       = _brand;
+  static const Color _svcElectricity= _brand;
+  static const Color _svcWater      = _brand;
+  static const Color _svcLaundry    = _brand;
+  static const Color _svcClothes    = _brand;
+  static const Color _svcPhones     = _brand;
+  static const Color _svcDevices    = _brand;
+  static const Color _svcAppliances = _brand;
+  static const Color _svcOffice     = _brand;
+  static const Color _svcDelivery   = _brand;
+  static const Color _svcEstore     = _brand;
+  static const Color _svcTravel     = _brand;
+  static const Color _svcTourismX   = _brand;
+  static const Color _svcMedicine   = _brand;
+  static const Color _svcPharmacyX  = _brand;
+  static const Color _svcConsult    = _brand;
+  static const Color _svcFreight    = _brand;
 
   // ==========================================================================
   //  2) الطبقة الدلالية (Semantic Layer) — لا تعدّل هنا مباشرة
