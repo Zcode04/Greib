@@ -194,6 +194,34 @@ class _ServicePostCardState extends State<ServicePostCard> {
     );
   }
 
+  /// أسماء مستخدمين وهميين — مشتقّة ثابتة من البذرة (بلا عشوائية كل إطار).
+  static const List<String> _peopleFirst = [
+    'محمد',
+    'سيدي',
+    'عالي',
+    'أحمد',
+    'يوسف',
+    'عبدالله',
+    'خالد',
+    'إبراهيم',
+  ];
+
+  static const List<String> _peopleLast = [
+    'ولد لامين',
+    'ال比上年',
+    'المعز',
+    'بن عمر',
+    'عبد القادر',
+    'المهدي',
+  ];
+
+  /// الاسم الوهمي الثابت للمنشور (عند عدم تمرير `authorName`).
+  String get _derivedAuthorName {
+    final seed = _presenceSeed;
+    return '${_peopleFirst[seed % _peopleFirst.length]} '
+        '${_peopleLast[(seed ~/ 7) % _peopleLast.length]}';
+  }
+
   /// عدد ثابت مشتق من countSeed (بلا عشوائية تتغير كل إطار).
   String _countFor(int span, int min) {
     final seed = widget.countSeed.isEmpty
@@ -493,7 +521,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
                   children: [
                     Flexible(
                       child: Text(
-                        widget.authorName ?? _service.title,
+                        widget.authorName ?? _derivedAuthorName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
