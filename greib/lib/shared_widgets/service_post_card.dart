@@ -784,6 +784,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
             child: Row(
               children: [
                 Expanded(
+                  flex: 2,
                   child: _pillButton(
                     grouped: true,
                     icon: _effectiveReaction >= 0
@@ -796,16 +797,27 @@ class _ServicePostCardState extends State<ServicePostCard> {
                               : AppColors.error),
                     count: widget.likeCount ?? _countFor(80, 10),
                     onTap: _cycleReaction,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _pillButton(
-                    grouped: true,
-                    icon: LucideIcons.messageCircle,
-                    color: _secondary,
-                    count: widget.commentCount ?? _countFor(40, 2),
-                    onTap: () => (widget.onComment ?? _showLater)(),
+                    trailingGap: 16,
+                    trailing: InkWell(
+                      onTap: () => (widget.onComment ?? _showLater)(),
+                      borderRadius: BorderRadius.circular(_kPillRadius),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(LucideIcons.messageCircle, size: 20, color: _secondary),
+                          const SizedBox(width: 5),
+                          Text(
+                            widget.commentCount ?? _countFor(40, 2),
+                            maxLines: 1,
+                            style: TextStyle(
+                              color: _secondary.withValues(alpha: 0.75),
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -834,6 +846,8 @@ class _ServicePostCardState extends State<ServicePostCard> {
     String? label,
     String? count,
     bool grouped = false,
+    Widget? trailing,
+    double trailingGap = 0,
   }) {
     // المجموعة ثلاث أكبر قليلاً => منطقة لمس مريحة.
     final iconSize = grouped ? 20.0 : 18.0;
@@ -893,6 +907,10 @@ class _ServicePostCardState extends State<ServicePostCard> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
+                  ],
+                  if (trailing != null) ...[
+                    SizedBox(width: trailingGap),
+                    trailing,
                   ],
                 ],
               ),
