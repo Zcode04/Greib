@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../core/mock_data/mock_data.dart';
 import '../core/models/service_model.dart';
 import '../core/theme/app_colors.dart';
+import '../core/widgets/app_sheet.dart';
 import 'smart_image.dart';
 
 /// ============================================================================
@@ -217,6 +218,113 @@ class _ServicePostCardState extends State<ServicePostCard> {
     );
   }
 
+  // ---------- ورقة خيارات المنشور (⋯) ----------
+  /// تُغلق الورقة ثم ينفّذ الإجراء (رسالة "قريباً" مؤقتة للباقي).
+  void _runFromSheet(VoidCallback action) {
+    Navigator.of(context, rootNavigator: true).pop();
+    action();
+  }
+
+  Future<void> _showPostOptions() async {
+    final saved = _effectiveSaved;
+    await showAppSheet(
+      context,
+      builder: (sheetContext) {
+        final sheetText = Theme.of(sheetContext).colorScheme.onSurface;
+        return SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                child: Row(
+                  children: [
+                    Text(
+                      'خيارات المنشور',
+                      style: TextStyle(
+                        color: sheetText,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _sheetTile(
+                sheetContext,
+                icon: saved ? LucideIcons.bookmarkCheck : LucideIcons.bookmark,
+                label: saved ? 'إلغاء حفظ المنشور' : 'حفظ المنشور',
+                iconColor: sheetText,
+                onTap: () => _runFromSheet(_toggleSaved),
+              ),
+              _sheetTile(
+                sheetContext,
+                icon: LucideIcons.thumbsUp,
+                label: 'مهتم',
+                iconColor: AppColors.info,
+                onTap: () => _runFromSheet(_showLater),
+              ),
+              _sheetTile(
+                sheetContext,
+                icon: LucideIcons.thumbsDown,
+                label: 'غير مهتم',
+                iconColor: AppColors.error,
+                onTap: () => _runFromSheet(_showLater),
+              ),
+              _sheetTile(
+                sheetContext,
+                icon: LucideIcons.flag,
+                label: 'الإبلاغ عن المنشور',
+                iconColor: AppColors.error,
+                onTap: () => _runFromSheet(_showLater),
+                showDivider: false,
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// عنصر قائمة داخل الورقة: أيقونة + نص، مع فاصل رفيع تحته.
+  Widget _sheetTile(
+    BuildContext sheetContext, {
+    required IconData icon,
+    required String label,
+    required Color iconColor,
+    required VoidCallback onTap,
+    bool showDivider = true,
+  }) {
+    final sheetText = Theme.of(sheetContext).colorScheme.onSurface;
+    final sheetLine = Theme.of(sheetContext).colorScheme.outlineVariant;
+    return Column(
+      children: [
+        InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            child: Row(
+              children: [
+                Icon(icon, size: 22, color: iconColor),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(color: sheetText, fontSize: 15),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (showDivider)
+          Divider(height: 1, thickness: 1, color: sheetLine),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final images = widget.imageUrls.isNotEmpty
@@ -360,7 +468,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
             mainAxisSize: MainAxisSize.min,
             children: [
               InkWell(
-                onTap: () => (widget.onShare ?? _showLater)(),
+                onTap: _showPostOptions,
                 borderRadius: BorderRadius.circular(6),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
