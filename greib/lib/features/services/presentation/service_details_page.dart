@@ -5,10 +5,10 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/mock_data/mock_data.dart';
 import '../../../core/models/service_model.dart';
 import '../../../core/theme/design_tokens.dart';
-import '../../../core/widgets/app_sheet.dart';
 import '../../../shared_widgets/smart_image.dart';
 import '../../../shared_widgets/post_sheets.dart';
 import '../../../shared_widgets/service_post_card.dart';
+import '../data/provider_repository.dart';
 import '../data/services_repository.dart';
 
 /// ============================================================================
@@ -249,18 +249,11 @@ class _ProvidersSection extends StatelessWidget {
   /// ارتفاع الصف = البروفايل + فاصل + سطر الاسم (لا فيضان).
   static const double _rowHeight = _avatarSize + AppSpacing.md + 18;
 
-  /// أسماء أشخاص وهمية ثابتة (mock) — لا تتغيّر بين البناءات.
-  static const List<String> _fakeProviders = [
-    'أحمد محمد',
-    'سارة علي',
-    'محمود حسن',
-    'ليلى يوسف',
-    'خالد عمر',
-  ];
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // ★ المصدر الوحيد لمقدمي الخدمة = ProviderRepository (نفس معمارية الخدمات).
+    final providers = ProviderRepository.instance.forService(service.id);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,13 +283,14 @@ class _ProvidersSection extends StatelessWidget {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-            itemCount: _fakeProviders.length,
+            itemCount: providers.length,
             separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
             itemBuilder: (context, i) {
-              final name = _fakeProviders[i];
+              final provider = providers[i];
               return InkWell(
                 borderRadius: BorderRadius.circular(_avatarSize),
-                onTap: () => _showProviderIntro(context, name),
+                // ★ الضغط ينقل لصفحة مقدم الخدمة (/provider/:id).
+                onTap: () => context.push('/provider/${provider.id}'),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -343,7 +337,7 @@ class _ProvidersSection extends StatelessWidget {
                     SizedBox(
                       width: _avatarSize + 12,
                       child: Text(
-                        name,
+                        provider.name,
                         maxLines: 1,
                         textAlign: TextAlign.center,
                         overflow: TextOverflow.ellipsis,
@@ -360,57 +354,6 @@ class _ProvidersSection extends StatelessWidget {
     );
   }
 
-  void _showProviderIntro(BuildContext context, String name) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    showAppSheet<void>(
-      context,
-      builder: (sheetContext) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  MockData.getIconByName(service.iconName),
-                  color: service.color,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    name,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                const Icon(
-                  LucideIcons.checkCircle,
-                  size: 18,
-                  color: AppColors.success,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'مقدّم خدمة «${service.title}» موثّق في Greib، تخدم عملاء المنصة يومياً '
-              'وتقييمه 4.9 من 5 بناءً على آراء المشترين.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                height: 1.6,
-                color: isDark
-                    ? AppColors.textSecondary
-                    : AppColors.lightTextSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _CoverFallback extends StatelessWidget {

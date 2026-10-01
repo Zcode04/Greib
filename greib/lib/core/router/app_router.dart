@@ -10,6 +10,7 @@ import '../../features/communication_and_support/support_tickets_screen.dart';
 import '../../features/location_and_tracking/tracking_screen.dart';
 import '../../features/location_and_tracking/maps_screen.dart';
 import '../../features/home_and_services/search_screen.dart';
+import '../../features/services/presentation/provider_profile_page.dart';
 import '../../features/services/presentation/service_details_page.dart';
 import '../../shared_widgets/coming_soon_screen.dart';
 import '../../shared_widgets/main_shell_screen.dart';
@@ -139,6 +140,13 @@ class AppRouter {
         name: 'serviceDetails',
         builder: (context, state) =>
             ServiceDetailsPage(serviceId: state.pathParameters['id'] ?? ''),
+      ),
+      // ===== صفحة مقدم الخدمة: /provider/:id (معرّف = serviceId + _p + فهرس) =====
+      GoRoute(
+        path: '/provider/:id',
+        name: 'providerProfile',
+        builder: (context, state) =>
+            ProviderProfilePage(providerId: state.pathParameters['id'] ?? ''),
       ),
     ],
   );
