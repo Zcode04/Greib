@@ -772,7 +772,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
           child: _pillButton(
             icon: LucideIcons.shoppingBag,
             label: 'طلب الآن',
-            color: _accent,
+            color: _secondary,
             onTap: () => (widget.onRequest ?? _showLater)(),
           ),
         ),
