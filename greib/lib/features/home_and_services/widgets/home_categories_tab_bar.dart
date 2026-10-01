@@ -65,17 +65,9 @@ class _HomeCategoriesTabBarState extends State<HomeCategoriesTabBar>
         ),
         Container(
           height: 46,
-          decoration: BoxDecoration(
-            color: isDark
-                ? AppColors.backgroundPrimary
-                : AppColors.lightBackground,
-            border: Border(
-              bottom: BorderSide(
-                color: isDark ? AppColors.outline : AppColors.lightOutline,
-                width: 1,
-              ),
-            ),
-          ),
+          color: isDark
+              ? AppColors.backgroundPrimary
+              : AppColors.lightBackground,
           child: TabBar(
             controller: _controller,
             isScrollable: true,
