@@ -31,6 +31,21 @@ class AccountProfile {
   /// صورة الغلاف أعلى الصفحة.
   final String? coverUrl;
 
+  /// ★ حالة الاتصال (Mock مشتق من المعرّف ⇒ ثابت لنفس الحساب في كل مرة).
+  ///   يُستبدل لاحقاً بحقل `isOnline` قادم من الـ API.
+  bool get isOnline => _presenceSeed % 3 != 0;
+
+  /// ★ نص آخر ظهور: «متصل الآن» أو «آخر ظهور منذ …» (نفس مشتقّة المعرّف).
+  String get presenceLabel {
+    if (isOnline) return 'متصل الآن';
+    final minutes = _presenceSeed % 180 + 5;
+    if (minutes < 60) return 'آخر ظهور منذ $minutes دقيقة';
+    final hours = (minutes / 60).floor();
+    return 'آخر ظهور منذ $hours ${hours == 1 ? 'ساعة' : 'ساعات'}';
+  }
+
+  int get _presenceSeed => id.hashCode.abs();
+
   /// أرقام ثابتة مشتقّة من المعرّف ⇒ نفس العرض في كل مرة (بلا عشوائية).
   final int followers;
   final int following;

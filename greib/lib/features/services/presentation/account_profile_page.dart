@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'account_connections_page.dart';
+import '../../../core/mock_data/mock_data.dart';
 import '../../../core/models/account_model.dart';
 import '../../../core/models/service_model.dart';
 import '../../../core/theme/design_tokens.dart';
@@ -278,15 +279,30 @@ class _AccountHeader extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 2),
-              Text(
-                'حساب في «${service.title}» · ${account.location}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: service.color,
-                  fontWeight: FontWeight.w600,
-                ),
+              const SizedBox(height: AppSpacing.xs),
+
+              // ---------- آخر ظهور / حالة الاتصال (تحت الاسم مباشرة) ----------
+              Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: account.isOnline
+                          ? AppColors.success
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    account.presenceLabel,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: AppSpacing.xs),
 
@@ -328,6 +344,25 @@ class _AccountHeader extends StatelessWidget {
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+
+              // ---------- الفئة (أيقونة) + الموقع (أيقونة) ----------
+              Wrap(
+                spacing: AppSpacing.md,
+                runSpacing: AppSpacing.xs,
+                children: [
+                  _MetaChip(
+                    icon: MockData.getIconByName(service.iconName),
+                    label: service.title,
+                    color: service.color,
+                  ),
+                  _MetaChip(
+                    icon: LucideIcons.mapPin,
+                    label: account.location,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ],
               ),
@@ -381,6 +416,39 @@ class _AccountHeader extends StatelessWidget {
   static String _format(int value) {
     if (value < 1000) return '$value';
     return '${(value / 1000).toStringAsFixed(1)} ألف';
+  }
+}
+
+/// ★ عنصر إحصائي قابل للضغط (متابع / يتابع) ⇒ يفتح صفحة العلاقات على التبويب
+///   المقابل. نميّزه بلون العلامة ليعرف المستخدم أنه رابط.
+class _MetaChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const _MetaChip({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
   }
 }
 
