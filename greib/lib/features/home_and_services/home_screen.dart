@@ -123,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   index: 1,
                   child: HomeCategoriesTabBar(),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 28),
 
                 AnimatedListItem(
                   index: 1,
