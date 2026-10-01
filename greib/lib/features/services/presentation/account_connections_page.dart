@@ -5,6 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/models/account_model.dart';
 import '../../../core/models/service_model.dart';
 import '../../../core/theme/design_tokens.dart';
+import '../../../shared_widgets/post_sheets.dart';
 import '../data/account_repository.dart';
 import '../data/services_repository.dart';
 
@@ -65,18 +66,20 @@ class _AccountConnectionsPageState extends State<AccountConnectionsPage> {
   }
 }
 
-/// يفتح شبكة علاقات الحساب في **Bottom Sheet** (لا صفحة كاملة ⇒ لا انتقال
-/// مزعج ولا ترويسة مكرّرة). تُستدعى من سطر «متابع / يتابع» في صفحة الحساب.
+/// ★ يفتح شبكة علاقات الحساب في **Bottom Sheet بأسلوب ورقة التعليقات**:
+///   لا تملأ الشاشة عند الفتح (٤٥٪ فقط)، وتتكامل ديناميكياً: السحب للأعلى
+///   يكبّرها حتى ٩٢٪، والسحب لأسفل يصغّرها ثم يغلقها، مع Snap عند مواضع
+///   محدّدة (نفس تجربة `DraggableSheetBody` في ورقة التعليقات).
 Future<void> showAccountConnectionsSheet(
   BuildContext context, {
   required String accountId,
   int initialTab = 0,
 }) {
-  final sheetCtl = DraggableScrollableController();
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
+    barrierColor: Colors.black.withValues(alpha: 0.4),
     builder: (sheetContext) {
       final isDark =
           Theme.of(sheetContext).brightness == Brightness.dark;
@@ -85,13 +88,9 @@ Future<void> showAccountConnectionsSheet(
           : AppColors.lightBackground;
       return Directionality(
         textDirection: TextDirection.rtl,
-        child: DraggableScrollableSheet(
-          controller: sheetCtl,
-          // ★ ارتفاع يقارب ٩٠٪ ⇒ يبقى شيء من الصفحة ظاهراً خلفها.
-          initialChildSize: 0.9,
-          minChildSize: 0.5,
-          maxChildSize: 0.95,
-          expand: false,
+        // ★ نفس ورقة التعليقات: تبدأ صغيرة، تتوسّع بالسحب، وتُغلق بالسحب لأسفل.
+        child: DraggableSheetBody(
+          initialExtent: _sheetInitialExtent,
           builder: (context, scrollController) => Container(
             decoration: BoxDecoration(
               color: bg,
@@ -105,14 +104,16 @@ Future<void> showAccountConnectionsSheet(
               initialTab: initialTab,
               scrollController: scrollController,
               inSheet: true,
-              sheetController: sheetCtl,
             ),
           ),
         ),
       );
     },
-  ).whenComplete(sheetCtl.dispose);
+  );
 }
+
+/// ★ الارتفاع الافتتاحي: نصف الشاشة تقريباً (ورقة تعليقات، لا صفحة كاملة).
+const double _sheetInitialExtent = 0.45;
 
 /// ★ نواة العرض المشتركة بين الصفحة والـ Bottom Sheet: ترويسة مصغّرة (غلاف +
 /// بروفايل متداخل + زر إغلاق) ثم شريط التبويبات (نفس تصميم صفحة الخدمة)
@@ -128,15 +129,12 @@ class AccountConnectionsView extends StatefulWidget {
   final bool inSheet;
 
   /// ★ متحكّم الورقة (DraggableScrollableController) لتمرير السحب لأسفل.
-  final DraggableScrollableController? sheetController;
-
   const AccountConnectionsView({
     super.key,
     required this.accountId,
     this.initialTab = 0,
     this.scrollController,
     this.inSheet = false,
-    this.sheetController,
   });
 
   @override
@@ -186,7 +184,7 @@ class _AccountConnectionsViewState extends State<AccountConnectionsView>
             service: service,
             isDark: isDark,
             inSheet: widget.inSheet,
-            sheetController: widget.sheetController,
+            dragController: widget.scrollController,
             tabIndex: _tabs.index,
             counts: [
               account.followers,
@@ -254,10 +252,11 @@ class _MiniHeader extends StatelessWidget {
   final ServiceCategory service;
   final bool isDark;
 
-  /// ★ في الـ Sheet: زر إغلاق (×) بدل زر الرجوع، والمحتوى يبدأ من ترويسة
-  ///   مُزاحة قليلاً لإظهار المقبض (المؤشّر الأفقي).
+  /// ★ في الـ Sheet: زر إغلاق (×) بدل زر الرجوع + منطقة سحب الورقة.
   final bool inSheet;
-  final DraggableScrollableController? sheetController;
+
+  /// ★ متحكّم تمرير الورقة ⇒ منطقة السحب في الرأس تُكبّر/تصغّر الورقة.
+  final ScrollController? dragController;
 
   /// ★ فهرس التبويب الحالي ⇒ يتبدّل العنوان المختصر مع تبديل التبويب.
   final int tabIndex;
@@ -270,7 +269,7 @@ class _MiniHeader extends StatelessWidget {
     required this.service,
     required this.isDark,
     this.inSheet = false,
-    this.sheetController,
+    this.dragController,
     this.tabIndex = 0,
     this.counts = const [],
   });
@@ -291,12 +290,16 @@ class _MiniHeader extends StatelessWidget {
       final activeCount = counts.isEmpty
           ? account.followers
           : counts[tabIndex.clamp(0, 2)];
-      return _SheetTitleBar(
+      final titleBar = _SheetTitleBar(
         title: tabLabels[tabIndex.clamp(0, 2)],
         count: activeCount,
         accent: service.color,
         onClose: () => Navigator.of(context).maybePop(),
       );
+      // ★ منطقة السحب على الرأس = تكبير/تصغير/إغلاق الورقة ديناميكياً.
+      return dragController == null
+          ? titleBar
+          : SheetDragArea(controller: dragController!, child: titleBar);
     }
 
     final header = Column(
