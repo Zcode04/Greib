@@ -474,7 +474,6 @@ class _ServicePostCardState extends State<ServicePostCard> {
           ],
           const SizedBox(height: 12),
           _reactionChips(),
-          _presenceLine(),
           _actions(),
         ],
       ),
@@ -697,7 +696,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
     );
   }
 
-  // ---------- 4. أيقونات التفاعل ----------
+  // ---------- 4. أيقونات التفاعل + حالة الاتصال في الزاوية المقابلة ----------
   Widget _reactionChips() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -706,23 +705,23 @@ class _ServicePostCardState extends State<ServicePostCard> {
           _reactionChip(LucideIcons.thumbsUp, AppColors.info),
           const SizedBox(width: 2),
           _reactionChip(LucideIcons.thumbsDown, AppColors.error),
+          const Spacer(),
+          _presence(),
         ],
       ),
     );
   }
 
-  /// ★ سطر حالة الاتصال (أيقونة العالم + النص) — يظهر أسفل أيقونات التفاعل.
-  Widget _presenceLine() {
+  /// ★ حالة الاتصال (أيقونة العالم + النص) — في الزاوية المقابلة لأيقونات التفاعل.
+  Widget _presence() {
     final online = widget.authorIsOnline ?? _derivedIsOnline;
     final presence = online
         ? 'متصل الآن'
         : (widget.authorPresence ?? _derivedPresence);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+    return Flexible(
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(LucideIcons.globe, size: 12, color: _secondary),
-          const SizedBox(width: 3),
           Flexible(
             child: Text(
               presence,
@@ -735,6 +734,8 @@ class _ServicePostCardState extends State<ServicePostCard> {
               ),
             ),
           ),
+          const SizedBox(width: 3),
+          Icon(LucideIcons.globe, size: 12, color: _secondary),
         ],
       ),
     );
