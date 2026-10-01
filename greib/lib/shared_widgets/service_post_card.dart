@@ -770,6 +770,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
         Expanded(
           flex: 1,
           child: _pillButton(
+            grouped: true,
             icon: LucideIcons.shoppingBag,
             label: 'طلب الآن',
             color: _secondary,
