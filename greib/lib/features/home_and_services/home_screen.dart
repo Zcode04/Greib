@@ -221,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
           //   داخل شريط لاصق). فتح ورقة تغيير الموقع تتم منه.
           //   ملاحظة: `StickyTabsBar` (شريط الـ 14 تبويب) لم يُعرض مؤقتاً،
           //   وملفه وبياناته محفوظة للاستخدام لاحقاً.
-          const StickyLocationButton(),
+          StickyLocationButton(scrollController: _scrollController),
         ],
       ),
     );
