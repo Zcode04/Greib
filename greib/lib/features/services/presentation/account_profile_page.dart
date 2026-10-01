@@ -678,7 +678,10 @@ class _AccountPostsTab extends StatelessWidget {
             // ★ رأس المنشور يعرض الحساب (اسمه + صورته) بدل الخدمة.
             authorName: account.name,
             authorAvatarUrl: account.avatarUrl,
+            // ★ تحت الاسم: الفئة + حالة الاتصال (بدل توقيت النشر).
             authorSubtitle: service.title,
+            authorIsOnline: account.isOnline,
+            authorPresence: account.presenceLabel,
             text: post.text,
             timeAgo: post.timeAgo,
             imageUrls: post.imageUrls,

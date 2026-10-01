@@ -49,8 +49,19 @@ class ServicePostCard extends StatefulWidget {
   /// صورة البروفايل — الافتراضي: أيقونة الخدمة.
   final String? authorAvatarUrl;
 
-  /// سطر ثانوي تحت الاسم (مثل «مقدّم خدمة «توصيل طعام»») — اختياري.
+  /// الفئة/التصنيف تحت الاسم (مثل «توصيل طعام») — الافتراضي: `service.title`.
   final String? authorSubtitle;
+
+  /// حالة الاتصال لصاحب المنشور — الافتراضي: مشتقّة ثابتة من `countSeed`.
+  /// true = متصل الآن، false = آخر ظهور.
+  final bool? authorIsOnline;
+
+  /// نص آخر ظهور (مثل «آخر ظهور منذ 12 دقيقة») — يُعرض عند عدم الاتصال.
+  /// الافتراضي: مشتقّ ثابت من `countSeed`.
+  final String? authorPresence;
+
+  /// علامة التوثيق بجوار اسم صاحب المنشور — الافتراضي: true.
+  final bool authorVerified;
 
   /// أعداد الأزرار — إن كانت null تُحسب من `countSeed`.
   final String? likeCount;
@@ -92,6 +103,9 @@ class ServicePostCard extends StatefulWidget {
     this.authorName,
     this.authorAvatarUrl,
     this.authorSubtitle,
+    this.authorIsOnline,
+    this.authorPresence,
+    this.authorVerified = true,
     this.likeCount,
     this.commentCount,
     this.shareCount,
@@ -133,6 +147,25 @@ class _ServicePostCardState extends State<ServicePostCard> {
   Color get _accent => _service.color;
 
   static const double _kPillRadius = 999;
+
+  // ---------- حالة الاتصال (Mock مشتقّة من البذرة ⇒ ثابتة لكل منشور) ----------
+  int get _presenceSeed {
+    final seed = (widget.countSeed.isEmpty
+            ? widget.service.id
+            : widget.countSeed)
+        .hashCode
+        .abs();
+    return seed == 0 ? 1 : seed;
+  }
+
+  bool get _derivedIsOnline => _presenceSeed % 3 != 0;
+
+  String get _derivedPresence {
+    final minutes = _presenceSeed % 180 + 5;
+    if (minutes < 60) return 'آخر ظهور منذ $minutes دقيقة';
+    final hours = (minutes / 60).floor();
+    return 'آخر ظهور منذ $hours ${hours == 1 ? 'ساعة' : 'ساعات'}';
+  }
 
   /// عدد ثابت مشتق من countSeed (بلا عشوائية تتغير كل إطار).
   String _countFor(int span, int min) {
@@ -218,11 +251,17 @@ class _ServicePostCardState extends State<ServicePostCard> {
 
   // ---------- 1. رأس المنشور (Profile) ----------
   // ★ نفس التصميم في الحالتين: منشور خدمة (أيقونة) أو منشور حساب (صورة).
+  //
+  // ★ العنوان = اسم صاحب المنشور (التاجر) مع أيقونة توثيق بجواره،
+  //   وتحته سطر الفئة + وقت النشر، ثم أيقونة globe التي تعرض حالة الاتصال
+  //   («متصل الآن» أو «آخر ظهور منذ …»).
   Widget _header() {
     final authorAvatar = widget.authorAvatarUrl;
-    final metaLine = widget.authorSubtitle != null
-        ? '${widget.authorSubtitle} · ${widget.timeAgo ?? 'الآن'} · '
-        : 'Greib · ${widget.timeAgo ?? 'الآن'} · ';
+    final category = widget.authorSubtitle ?? _service.title;
+    final online = widget.authorIsOnline ?? _derivedIsOnline;
+    final presence = online
+        ? 'متصل الآن'
+        : (widget.authorPresence ?? _derivedPresence);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -258,28 +297,59 @@ class _ServicePostCardState extends State<ServicePostCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  widget.authorName ?? _service.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: _primary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ),
-                const SizedBox(height: 2),
+                // ★ العنوان: اسم صاحب المنشور + أيقونة التوثيق بجواره.
                 Row(
                   children: [
                     Flexible(
                       child: Text(
-                        metaLine,
+                        widget.authorName ?? _service.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: _primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                    if (widget.authorVerified) ...[
+                      const SizedBox(width: 3),
+                      Icon(
+                        LucideIcons.badgeCheck,
+                        size: 15,
+                        color: _accent,
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 2),
+                // ★ الفئة + وقت النشر، ثم أيقونة globe مع حالة الاتصال.
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        '$category · ${widget.timeAgo ?? 'الآن'}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: _secondary, fontSize: 12),
                       ),
                     ),
+                    const SizedBox(width: 6),
                     Icon(LucideIcons.globe, size: 12, color: _secondary),
+                    const SizedBox(width: 3),
+                    Flexible(
+                      child: Text(
+                        presence,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: online ? _accent : _secondary,
+                          fontSize: 12,
+                          fontWeight:
+                              online ? FontWeight.w600 : FontWeight.normal,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ],
