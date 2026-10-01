@@ -17,6 +17,7 @@ import 'widgets/sticky_location_button.dart';
 // ملاحظة: `widgets/sticky_tabs_bar.dart` غير مستخدم مؤقتاً (التبويبات مخفية) —
 // الملف محفوظ مع بياناته (MockData.productCategories) للاستخدام لاحقاً.
 import 'widgets/trending_stories.dart';
+import 'widgets/home_categories_tab_bar.dart';
 import 'widgets/spotlight_carousel.dart';
 import 'widgets/doctors_row.dart';
 import 'widgets/quick_actions.dart';
@@ -116,6 +117,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: TrendingStoriesSection(isDark: isDark),
                 ),
                 const SizedBox(height: 28),
+
+                // ★ تبويبات الـ 14 قسم بين "رائج" و"الأحدث".
+                const AnimatedListItem(
+                  index: 1,
+                  child: HomeCategoriesTabBar(),
+                ),
+                const SizedBox(height: 14),
 
                 AnimatedListItem(
                   index: 1,
