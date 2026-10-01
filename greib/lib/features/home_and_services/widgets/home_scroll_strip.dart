@@ -11,7 +11,7 @@ class HomeScrollStrip extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     return Row(mainAxisSize: MainAxisSize.min, children: [
-      Container(width: 34, height: 34, decoration: BoxDecoration(color: const Color(0xFFFF6B35).withValues(alpha: 0.15), shape: BoxShape.circle), child: const Icon(LucideIcons.flame, color: Color(0xFFFF6B35), size: 18)),
+      const Icon(LucideIcons.flame, color: Color(0xFFFF6B35), size: 20),
       const SizedBox(width: AppSpacing.sm),
       Text('رائج الآن', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800, color: isDark ? AppColors.textPrimary : AppColors.lightText)),
     ]);

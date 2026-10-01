@@ -7,7 +7,7 @@ class SectionHeader extends StatelessWidget {
   final VoidCallback? onActionTap;
   final bool showAction;
 
-  /// أيقونة اختيارية في حاوية ملوّنة (بدل الإيموجي داخل النص).
+  /// أيقونة اختيارية بجانب العنوان (بدون خلفية).
   final IconData? icon;
   final Color? iconColor;
 
@@ -59,15 +59,7 @@ class SectionHeader extends StatelessWidget {
             )
           else ...[
             if (icon != null) ...[
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.14),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, size: 16, color: color),
-              ),
+              Icon(icon, size: 18, color: color),
               const SizedBox(width: AppSpacing.sm),
             ],
             Flexible(
