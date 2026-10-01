@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/mock_data/mock_data.dart';
+import 'sticky_location_button.dart';
 
 /// شريط تبويبات الـ 14 قسم، يظهر في الرئيسية بين "رائج" و"الأحدث".
 /// التصميم مطابق لتبويبات صفحة تفاصيل الخدمة (`service_details_page.dart`):
@@ -24,10 +25,7 @@ class _HomeCategoriesTabBarState extends State<HomeCategoriesTabBar>
   @override
   void initState() {
     super.initState();
-    _controller = TabController(
-      length: _categories.length,
-      vsync: this,
-    );
+    _controller = TabController(length: _categories.length, vsync: this);
   }
 
   @override
@@ -52,48 +50,65 @@ class _HomeCategoriesTabBarState extends State<HomeCategoriesTabBar>
             AppSpacing.lg,
             AppSpacing.xs,
           ),
-          child: InkWell(
-            onTap: () => setState(() => _expanded = !_expanded),
-            borderRadius: BorderRadius.circular(AppRadii.full),
-            // ★ الصف ينزلق إلى الزاوية المقابلة (نهاية السطر) مع عكس ترتيب
-            // عناصره ليبقى العنوان محصوراً بين الأيقونة والسهم.
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                // ★ سهم يوضّح الحالة: مطوي ⇩ / مفتوح ⇧.
-                AnimatedRotation(
-                  turns: _expanded ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeInOut,
-                  child: Container(
-padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
-                    color: accent.withValues(alpha: 0.04),
-                  ),
-                  child: Icon(
-                    LucideIcons.chevronDown,
-                    size: 21,
-                    color: accent,
-                  ),
+          child: Row(
+            children: [
+              // ★ نسخة من زر الموقع في الزاوية المقابلة (بداية السطر).
+              const LocationPill(compact: true),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: InkWell(
+                  onTap: () => setState(() => _expanded = !_expanded),
+                  borderRadius: BorderRadius.circular(AppRadii.full),
+                  // ★ الصف ينزلق إلى الزاوية المقابلة (نهاية السطر) مع عكس ترتيب
+                  // عناصره ليبقى العنوان محصوراً بين الأيقونة والسهم.
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      // ★ سهم يوضّح الحالة: مطوي ⇩ / مفتوح ⇧.
+                      AnimatedRotation(
+                        turns: _expanded ? 0.5 : 0,
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeInOut,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 3,
+                            vertical: 1,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(999),
+                            color: accent.withValues(alpha: 0.04),
+                          ),
+                          child: Icon(
+                            LucideIcons.chevronDown,
+                            size: 21,
+                            color: accent,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      // ★ يعرض القسم المختار فقط ويتحدث فور اختيار تبويب.
+                      AnimatedBuilder(
+                        animation: _controller,
+                        builder: (context, _) => Text(
+                          _categories[_controller.index]['label']!,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      // ★ أيقونة بلا خلفية (نفس ستايل عناوين الرئيسية).
+                      Icon(
+                        LucideIcons.chartNoAxesGantt,
+                        size: 18,
+                        color: accent,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: AppSpacing.xs),
-                // ★ يعرض القسم المختار فقط ويتحدث فور اختيار تبويب.
-                AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, _) => Text(
-                    _categories[_controller.index]['label']!,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                // ★ أيقونة بلا خلفية (نفس ستايل عناوين الرئيسية).
-                Icon(LucideIcons.chartNoAxesGantt, size: 18, color: accent),
-              ],
-            ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+            ],
           ),
         ),
         // ★ التبويبات تظهر وتختفي بارتفاع متحرك.
@@ -118,13 +133,12 @@ padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
                     indicatorWeight: 3,
                     dividerColor: Colors.transparent,
                     labelStyle: const TextStyle(fontWeight: FontWeight.w700),
-                    unselectedLabelStyle:
-                        const TextStyle(fontWeight: FontWeight.w700),
-                    labelPadding:
-                        const EdgeInsets.symmetric(horizontal: 16),
+                    unselectedLabelStyle: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                    ),
+                    labelPadding: const EdgeInsets.symmetric(horizontal: 16),
                     tabs: [
-                      for (final cat in _categories)
-                        Tab(text: cat['label']),
+                      for (final cat in _categories) Tab(text: cat['label']),
                     ],
                   ),
                 )

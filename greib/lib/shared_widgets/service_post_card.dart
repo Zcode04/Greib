@@ -699,7 +699,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
   // ---------- 4. أيقونات التفاعل + حالة الاتصال في الزاوية المقابلة ----------
   Widget _reactionChips() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.fromLTRB(20, 0, 16, 0),
       child: Row(
         children: [
           _reactionChip(LucideIcons.thumbsUp, AppColors.info),
@@ -712,7 +712,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
     );
   }
 
-  /// ★ حالة الاتصال (أيقونة العالم + النص) — بجوار أيقونات التفاعل في زاويتها.
+  /// ★ حالة الاتصال (أيقونة العالم + النص) — في الزاوية المقابلة تماماً.
   Widget _presence() {
     final online = widget.authorIsOnline ?? _derivedIsOnline;
     final presence = online
