@@ -910,6 +910,12 @@ class _ServicePostCardState extends State<ServicePostCard> {
                   ],
                   if (trailing != null) ...[
                     SizedBox(width: trailingGap),
+                    Container(
+                      width: 1,
+                      height: countSize + 2,
+                      color: color.withValues(alpha: 0.25),
+                    ),
+                    SizedBox(width: trailingGap),
                     trailing,
                   ],
                 ],
