@@ -217,62 +217,6 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     );
   }
 
-  /// ★ كبسولة واحدة تضم عدة إجراءات، يفصل بينها خط رفيع (كل نصف قابل للضغط
-  ///   ومستقل) — نفس فكرة زر الإعجاب + التعليق في بطاقة المنشور.
-  Widget _softActionGroup(List<_SoftAction> actions) {
-    final tint = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: tint.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          for (var i = 0; i < actions.length; i++) ...[
-            if (i > 0)
-              Container(
-                width: 1,
-                height: 18,
-                color: tint.withValues(alpha: 0.25),
-              ),
-            Expanded(child: _groupedActionCell(actions[i], tint)),
-          ],
-        ],
-      ),
-    );
-  }
-
-  /// نصف الكبسولة: أيقونة + نص، يتقلّص تلقائياً عند ضيق الشاشة.
-  Widget _groupedActionCell(_SoftAction action, Color tint) {
-    return InkWell(
-      onTap: action.onPressed,
-      borderRadius: BorderRadius.circular(20),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(action.icon, size: 16, color: tint),
-              if (action.label != null) ...[
-                const SizedBox(width: 5),
-                Text(
-                  action.label!,
-                  maxLines: 1,
-                  style: TextStyle(
-                    color: tint,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   /// أقصى عرض لبطاقة المنشور/الشريحة: على الهاتف تملأ الشاشة من طرف لطرف
   /// (فيس بوك)، وعلى التابلت/الشاشات العريضة يبقى العمود بعرض مقروء ومتمركز.
@@ -601,38 +545,10 @@ class _SpotlightSectionState extends State<SpotlightSection> {
               _carouselServiceIds.add(service.id);
             }),
           ),
-          // ★ أزرار تحت كل منشور: «عرض المزيد» (صفحة خدمة هذا المنشور)
-          //   و«عرض الشرائح» (تبديل الوضع) — لكل منشور وجهته الخاصة.
-          const SizedBox(height: 6),
-          _postActions(service.id),
         ],
       ),
     );
   }
-
-  /// ★ شريط واحد أسفل المنشور: «عرض المزيد» + «عرض الشرائح» في كبسولة واحدة
-  ///   يفصل بينهما خط رفيع (نفس فكرة زر الإعجاب + التعليق في بطاقة المنشور).
-  Widget _postActions(String serviceId) {
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(start: 12, end: 12),
-      child: _softActionGroup(
-        [
-          _SoftAction(
-            icon: LucideIcons.chevronDown,
-            // ★ صفحة تفاصيل خدمة هذا المنشور ⇒ كل منشوراتها.
-            onPressed: () => context.push('/service/$serviceId'),
-          ),
-          _SoftAction(
-            icon: LucideIcons.galleryHorizontal,
-            onPressed: () => setState(() {
-              _carouselServiceIds.add(serviceId);
-            }),
-          ),
-        ],
-      ),
-    );
-  }
-
   /// ★ صور المنشور: صوره هي أولاً، ثم صور الخدمة كاحتياط.
   /// (المنشور بلا صور ⇒ نرجع لصورة غلاف الخدمة أو الصورة الافتراضية).
   List<String> _entryImages(ServicePostEntry entry, String fallback) {
@@ -1082,17 +998,4 @@ class _SpotlightSectionState extends State<SpotlightSection> {
       ),
     );
   }
-}
-
-/// وصف إجراء واحد داخل كبسولة الأزرار المدمجة (`_softActionGroup`).
-class _SoftAction {
-  final IconData icon;
-  final String? label;
-  final VoidCallback onPressed;
-
-  const _SoftAction({
-    required this.icon,
-    required this.onPressed,
-    this.label,
-  });
 }
