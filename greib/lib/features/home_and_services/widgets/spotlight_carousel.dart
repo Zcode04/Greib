@@ -48,8 +48,10 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   PostSheetsController? _sheets;
   PostSheetsController get _core => _sheets!;
 
-  /// ★ نبدأ بوضع المنشورات: كل منشورات كل الخدمات دفعة واحدة.
-  bool _isGridView = true;
+  /// ★ حالة العرض الشرائحي الشاملة
+  bool _isGlobalCarousel = false;
+  /// ★ الخدمات التي تم تحويلها للعرض الشرائحي
+  final Set<String> _carouselServiceIds = {};
 
   @override
   void didChangeDependencies() {
@@ -74,35 +76,45 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     final services = ServicesRepository.instance.all;
     if (services.isEmpty) return const SizedBox.shrink();
 
+    final fallbackPosts = [
+      for (final service in services)
+        ServicePostEntry(
+          postId: service.id,
+          index: 0,
+          service: service,
+          post: const ServicePost(text: '', imageUrls: [], timeAgo: ''),
+        ),
+    ];
+
+    final allEntries = ServicesRepository.instance.allPosts;
+    final baseEntries = allEntries.isNotEmpty ? allEntries : fallbackPosts;
+
+    final carouselServices = _isGlobalCarousel
+        ? services
+        : services.where((s) => _carouselServiceIds.contains(s.id)).toList();
+
+    final gridEntries = _isGlobalCarousel
+        ? <ServicePostEntry>[]
+        : baseEntries
+            .where((p) => !_carouselServiceIds.contains(p.service.id))
+            .toList();
+
+    if (_spotlightIndex >= carouselServices.length) {
+      _spotlightIndex = carouselServices.isEmpty ? 0 : carouselServices.length - 1;
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 250),
-          // ★ المنشورات تتمدد خارج حشو الصفحة (من طرف لطرف)، والـ Stack
-          // الافتراضي يقصّ أطرافها أثناء التبديل ⇒ نلغي القصّ ونحاذي للأعلى.
-          layoutBuilder: (currentChild, previousChildren) => Stack(
-            alignment: Alignment.topCenter,
-            clipBehavior: Clip.none,
-            children: <Widget>[...previousChildren, ?currentChild],
-          ),
-          child: _isGridView
-              ? _buildSpotlightPosts(services)
-              : _buildSpotlightCarousel(services),
-        ),
-        // ★ في وضع المنشورات نقترب من أزرار التفاعل أسفل آخر منشور.
-        SizedBox(height: _isGridView ? 0 : 10),
-        // ★ ما بعد النقاط يخصّ وضع الشرائح فقط: في وضع المنشورات كل منشور
-        // يحمل أزراره («عرض المزيد» + «عرض الشرائح») أسفله مباشرة، فلا تكرار.
-        if (!_isGridView) ...[
-          // ★ FittedBox ⇒ تتقلّص النقاط تلقائياً بدل فيض الصف على الشاشات
-          // الضيقة (27 شريحة × 12px تتجاوز عرض الهاتف).
+        if (carouselServices.isNotEmpty) ...[
+          _buildSpotlightCarousel(carouselServices),
+          const SizedBox(height: 10),
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
-              children: List.generate(services.length, (i) {
+              children: List.generate(carouselServices.length, (i) {
                 final active = i == _spotlightIndex;
                 final neonColor = widget.isDark
                     ? AppColors.neon
@@ -125,8 +137,6 @@ class _SpotlightSectionState extends State<SpotlightSection> {
             ),
           ),
           const SizedBox(height: 8),
-          // ★ في وضع الشرائح: زر «عرض كمنشورات» (يعيد كل التغذية الموحّدة).
-          // الصف يتمدّد لحواف الشاشة (مثل البطاقة تماماً) ليبقى بنفس عرضها.
           LayoutBuilder(
             builder: (context, constraints) {
               final available = constraints.maxWidth.isFinite
@@ -146,7 +156,6 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                     children: [
                       Expanded(
                         child: Padding(
-                          // ★ فاصل مع حافة البداية (يمين) في الشريط.
                           padding: const EdgeInsetsDirectional.only(
                             start: 12,
                             end: 4,
@@ -154,17 +163,38 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                           child: _softActionButton(
                             icon: LucideIcons.layoutList,
                             label: 'عرض كمنشورات',
-                            onPressed: () => setState(() => _isGridView = true),
+                            onPressed: () => setState(() {
+                              _isGlobalCarousel = false;
+                              _carouselServiceIds.clear();
+                            }),
                           ),
                         ),
                       ),
+                      if (carouselServices.length < services.length)
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsetsDirectional.only(
+                              start: 4,
+                              end: 12,
+                            ),
+                            child: _softActionButton(
+                              icon: LucideIcons.galleryHorizontal,
+                              label: 'عرض الكل شرائحي',
+                              onPressed: () => setState(() {
+                                _isGlobalCarousel = true;
+                              }),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
               );
             },
           ),
+          if (gridEntries.isNotEmpty) const SizedBox(height: 20),
         ],
+        if (gridEntries.isNotEmpty) _buildSpotlightPosts(gridEntries),
       ],
     );
   }
@@ -288,22 +318,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     );
   }
 
-  Widget _buildSpotlightPosts(List<ServiceCategory> services) {
-    // ★ كل منشورات كل الخدمات في استدعاء واحد (لا نعدّ على الخدمات).
-    final entries = ServicesRepository.instance.allPosts;
-    final posts = entries.isNotEmpty
-        ? entries
-        : [
-            // شبكة أمان: لا يوجد أي منشور ⇒ نعرض الخدمات نفسها كبطاقات.
-            for (final service in services)
-              ServicePostEntry(
-                postId: service.id,
-                index: 0,
-                service: service,
-                post: const ServicePost(text: '', imageUrls: [], timeAgo: ''),
-              ),
-          ];
-
+  Widget _buildSpotlightPosts(List<ServicePostEntry> posts) {
     return LayoutBuilder(
       // ★ التجاوب: العرض المتاح فعلياً من الـ LayoutBuilder (لا MediaQuery)
       // + تمديد البطاقة لحواف الشاشة + حد أقصى على الشاشات العريضة.
@@ -441,7 +456,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
             child: _softActionButton(
               icon: LucideIcons.galleryHorizontal,
               label: 'عرض الشرائح',
-              onPressed: () => setState(() => _isGridView = false),
+              onPressed: () => setState(() {
+                _carouselServiceIds.add(serviceId);
+              }),
             ),
           ),
         ),
