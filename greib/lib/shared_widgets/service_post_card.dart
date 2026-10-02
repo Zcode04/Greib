@@ -304,13 +304,13 @@ class _ServicePostCardState extends State<ServicePostCard> {
               tile(
                 icon: LucideIcons.textQuote,
                 label: 'تلخيص',
-                iconColor: _accent,
+                iconColor: sheetText,
                 onTap: () => _runFromSheet(_showLater),
               ),
               tile(
                 icon: LucideIcons.lightbulb,
                 label: 'توضيح',
-                iconColor: AppColors.info,
+                iconColor: sheetText,
                 onTap: () => _runFromSheet(_showLater),
               ),
               const SizedBox(height: 8),
@@ -370,7 +370,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
               tile(
                 icon: LucideIcons.arrowUpDown,
                 label: 'عرض المزيد',
-                iconColor: _accent,
+                iconColor: sheetText,
                 trailingChevron: true,
                 onTap: () {
                   Navigator.of(context, rootNavigator: true).pop();
@@ -382,7 +382,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
               tile(
                 icon: LucideIcons.galleryHorizontal,
                 label: 'عرض الشرائح',
-                iconColor: _accent,
+                iconColor: sheetText,
                 trailingChevron: true,
                 onTap: () =>
                     _runFromSheet(() => (widget.onShowSlides ?? _showLater)()),
@@ -396,13 +396,13 @@ class _ServicePostCardState extends State<ServicePostCard> {
               tile(
                 icon: LucideIcons.thumbsUp,
                 label: 'مهتم',
-                iconColor: AppColors.info,
+                iconColor: sheetText,
                 onTap: () => _runFromSheet(_showLater),
               ),
               tile(
                 icon: LucideIcons.thumbsDown,
                 label: 'غير مهتم',
-                iconColor: AppColors.error,
+                iconColor: sheetText,
                 onTap: () => _runFromSheet(_showLater),
               ),
               tile(
@@ -420,7 +420,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
               tile(
                 icon: LucideIcons.flag,
                 label: 'الإبلاغ عن المنشور',
-                iconColor: AppColors.error,
+                iconColor: sheetText,
                 onTap: () => _runFromSheet(_showLater),
               ),
               const SizedBox(height: 8),
