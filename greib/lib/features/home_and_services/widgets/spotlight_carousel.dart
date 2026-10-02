@@ -149,9 +149,34 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           }
         } else {
           feedWidgets.add(
-            Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: _spotlightPostItem(entry),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final available = constraints.maxWidth.isFinite
+                    ? constraints.maxWidth
+                    : MediaQuery.sizeOf(context).width - widget.horizontalBleed * 2;
+                final bleed = widget.horizontalBleed.clamp(0.0, available / 2);
+                final screenWidth = available + bleed * 2;
+                final postWidth = screenWidth > _kMaxPostWidth ? _kMaxPostWidth : screenWidth;
+
+                return OverflowBox(
+                  alignment: Alignment.center,
+                  fit: OverflowBoxFit.deferToChild,
+                  minWidth: screenWidth,
+                  maxWidth: screenWidth,
+                  child: SizedBox(
+                    width: screenWidth,
+                    child: Center(
+                      child: SizedBox(
+                        width: postWidth,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 20),
+                          child: _spotlightPostItem(entry),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           );
         }
