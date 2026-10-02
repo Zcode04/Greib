@@ -606,6 +606,122 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     );
   }
 
+  void _showSpotlightMoreSheet(ServiceCategory service) {
+    final secondary = widget.isDark
+        ? AppColors.textSecondary
+        : AppColors.lightTextSecondary;
+    final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
+
+    late final Future<void> sheet;
+    sheet = showAppSheet<void>(
+      context,
+      builder: (sheetContext) {
+        void pick(VoidCallback action) async {
+          Navigator.of(sheetContext).pop();
+          await sheet;
+          action();
+        }
+
+        Widget row(IconData icon, String label, VoidCallback onTap, {Color? color}) {
+          return InkWell(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              child: Row(
+                children: [
+                  Icon(icon, size: 22, color: color ?? service.color),
+                  const SizedBox(width: 14),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: color ?? primary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return DraggableSheetBody(
+          initialExtent: 0.45,
+          snapSizes: const [0.35, 0.45, 0.6, 0.92],
+          builder: (context, scrollController) => Column(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SheetDragArea(
+                controller: scrollController,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                  child: Row(
+                    children: [
+                      Icon(LucideIcons.ellipsis, size: 18, color: secondary),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'خيارات «${service.title}»',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: primary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Divider(
+                height: 1,
+                color: widget.isDark ? AppColors.outline : AppColors.lightOutline,
+              ),
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                  children: [
+                    row(
+                      LucideIcons.shoppingBag,
+                      'طلب الآن',
+                      () => pick(
+                        () => _core.openServiceChat(context, service: service),
+                      ),
+                    ),
+                    row(
+                      LucideIcons.newspaper,
+                      'عرض المزيد',
+                      () => pick(
+                        () => this.context.push('/service/${service.id}'),
+                      ),
+                    ),
+                    row(
+                      LucideIcons.flag,
+                      'الإبلاغ',
+                      () => pick(
+                        () => _core.showAction(
+                          context,
+                          icon: LucideIcons.flag,
+                          title: 'الإبلاغ',
+                          hint: 'تم استلام بلاغك عن «${service.title}». سنقوم بمراجعته قريباً.',
+                        ),
+                      ),
+                      color: AppColors.error,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _spotlightItem(ServiceCategory service) {
     final neonColor = widget.isDark
         ? AppColors.neon
@@ -703,7 +819,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                           _spotlightIconButton(
                             icon: LucideIcons.ellipsis,
                             iconColor: Colors.white70,
-                            onTap: () {},
+                            onTap: () => _showSpotlightMoreSheet(service),
                           ),
                           const SizedBox(width: 6),
                           InkWell(
