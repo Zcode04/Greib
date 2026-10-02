@@ -53,6 +53,10 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   /// ★ الخدمات التي تم تحويلها للعرض الشرائحي
   final Set<String> _carouselServiceIds = {};
 
+  final Map<String, PageController> _inlineControllers = {};
+  final Map<String, int> _inlineIndexes = {};
+  final Map<String, double?> _inlineFractions = {};
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -67,6 +71,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   @override
   void dispose() {
     _spotlightController.dispose();
+    for (final c in _inlineControllers.values) {
+      c.dispose();
+    }
     _sheets?.dispose();
     super.dispose();
   }
@@ -97,7 +104,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           : services.where((s) => _carouselServiceIds.contains(s.id)).toList();
           
       for (final targetService in selectedServices) {
-        enhancedEntries.insert(0, ServicePostEntry(
+        enhancedEntries.add(ServicePostEntry(
           postId: '${targetService.id}_dummy1',
           index: 100,
           service: targetService,
@@ -107,7 +114,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
             timeAgo: 'قبل ساعتين',
           ),
         ));
-        enhancedEntries.insert(0, ServicePostEntry(
+        enhancedEntries.add(ServicePostEntry(
           postId: '${targetService.id}_dummy2',
           index: 101,
           service: targetService,
@@ -120,101 +127,40 @@ class _SpotlightSectionState extends State<SpotlightSection> {
       }
     }
 
-    final carouselPosts = _isGlobalCarousel
-        ? enhancedEntries
-        : enhancedEntries.where((p) => _carouselServiceIds.contains(p.service.id)).toList();
+    final List<Widget> feedWidgets = [];
+    final Set<String> processedInline = {};
 
-    final gridEntries = _isGlobalCarousel
-        ? <ServicePostEntry>[]
-        : enhancedEntries
-            .where((p) => !_carouselServiceIds.contains(p.service.id))
-            .toList();
-
-    if (_spotlightIndex >= carouselPosts.length) {
-      _spotlightIndex = carouselPosts.isEmpty ? 0 : carouselPosts.length - 1;
-      // إجبار الكنترولر على إعادة البناء لتجنب خطأ خروج الـ index عن الحدود
-      _spotlightViewportFraction = null; 
+    if (_isGlobalCarousel) {
+      feedWidgets.add(_buildCarouselSection(enhancedEntries, inlineServiceId: null));
+    } else {
+      for (final entry in enhancedEntries) {
+        if (_carouselServiceIds.contains(entry.service.id)) {
+          if (!processedInline.contains(entry.service.id)) {
+            processedInline.add(entry.service.id);
+            final servicePosts = enhancedEntries
+                .where((p) => p.service.id == entry.service.id)
+                .toList();
+            feedWidgets.add(
+              _buildCarouselSection(
+                servicePosts,
+                inlineServiceId: entry.service.id,
+              ),
+            );
+          }
+        } else {
+          feedWidgets.add(
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: _spotlightPostItem(entry),
+            ),
+          );
+        }
+      }
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (carouselPosts.isNotEmpty) ...[
-          _buildSpotlightCarousel(carouselPosts),
-          const SizedBox(height: 10),
-          if (carouselPosts.length > 1) ...[
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: List.generate(carouselPosts.length, (i) {
-                  final active = i == _spotlightIndex;
-                  final neonColor = widget.isDark
-                      ? AppColors.neon
-                      : AppColors.accentPrimaryDark;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 220),
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    width: active ? 18 : 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: active
-                          ? neonColor
-                          : (widget.isDark
-                                ? Colors.white24
-                                : AppColors.lightOutline),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  );
-                }),
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final available = constraints.maxWidth.isFinite
-                  ? constraints.maxWidth
-                  : MediaQuery.sizeOf(context).width -
-                        widget.horizontalBleed * 2;
-              final bleed = widget.horizontalBleed.clamp(0.0, available / 2);
-              final fullWidth = available + bleed * 2;
-              return OverflowBox(
-                alignment: Alignment.center,
-                fit: OverflowBoxFit.deferToChild,
-                minWidth: fullWidth,
-                maxWidth: fullWidth,
-                child: SizedBox(
-                  width: fullWidth,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsetsDirectional.only(
-                            start: 12,
-                            end: 12, // تم إرجاعها لتأخذ المساحة كاملة
-                          ),
-                          child: _softActionButton(
-                            icon: LucideIcons.layoutList,
-                            label: 'عرض كمنشورات',
-                            onPressed: () => setState(() {
-                              _isGlobalCarousel = false;
-                              _carouselServiceIds.clear();
-                            }),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-          if (gridEntries.isNotEmpty) const SizedBox(height: 20),
-        ],
-        if (gridEntries.isNotEmpty) _buildSpotlightPosts(gridEntries),
-      ],
+      children: feedWidgets,
     );
   }
 
@@ -258,9 +204,103 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   static const double _kMinCardHeight = 200;
   static const double _kMaxCardHeight = 280;
 
+  Widget _buildCarouselSection(
+    List<ServicePostEntry> posts, {
+    String? inlineServiceId,
+  }) {
+    if (posts.isEmpty) return const SizedBox.shrink();
+    final activeIndex = inlineServiceId != null
+        ? (_inlineIndexes[inlineServiceId] ?? 0)
+        : _spotlightIndex;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSpotlightCarousel(posts, inlineServiceId: inlineServiceId),
+          const SizedBox(height: 10),
+          if (posts.length > 1) ...[
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(posts.length, (i) {
+                  final active = i == activeIndex;
+                  final neonColor = widget.isDark
+                      ? AppColors.neon
+                      : AppColors.accentPrimaryDark;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 220),
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: active ? 18 : 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: active
+                          ? neonColor
+                          : (widget.isDark
+                                ? Colors.white24
+                                : AppColors.lightOutline),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  );
+                }),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final available = constraints.maxWidth.isFinite
+                  ? constraints.maxWidth
+                  : MediaQuery.sizeOf(context).width - widget.horizontalBleed * 2;
+              final bleed = widget.horizontalBleed.clamp(0.0, available / 2);
+              final fullWidth = available + bleed * 2;
+              return OverflowBox(
+                alignment: Alignment.center,
+                fit: OverflowBoxFit.deferToChild,
+                minWidth: fullWidth,
+                maxWidth: fullWidth,
+                child: SizedBox(
+                  width: fullWidth,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsetsDirectional.only(
+                            start: 12,
+                            end: 12,
+                          ),
+                          child: _softActionButton(
+                            icon: LucideIcons.layoutList,
+                            label: 'عرض كمنشورات',
+                            onPressed: () => setState(() {
+                              if (inlineServiceId != null) {
+                                _carouselServiceIds.remove(inlineServiceId);
+                              } else {
+                                _isGlobalCarousel = false;
+                                _carouselServiceIds.clear();
+                              }
+                            }),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   /// ★ العرض الأفقي للشريحة: يتمدد من طرف الشاشة لطرف (فيس بوك) ويشتق حجم
   /// البطاقة وارتفاعها من العرض الفعلي ⇒ نفس النتيجة على أي شاشة (تابلت/جوال).
-  Widget _buildSpotlightCarousel(List<ServicePostEntry> posts) {
+  Widget _buildSpotlightCarousel(List<ServicePostEntry> posts, {String? inlineServiceId}) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final available = constraints.maxWidth.isFinite
@@ -281,7 +321,34 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         // النسبة نسبةً لعرض الـ PageView نفسه (cardWidth + peek) لا لعرض الشاشة.
         final fraction = cardWidth / (cardWidth + peek);
 
-        _updatePageController(fraction);
+        PageController controller;
+        int activeIndex;
+        if (inlineServiceId != null) {
+          activeIndex = _inlineIndexes[inlineServiceId] ?? 0;
+          if (activeIndex >= posts.length) {
+            activeIndex = posts.isEmpty ? 0 : posts.length - 1;
+            _inlineIndexes[inlineServiceId] = activeIndex;
+            _inlineFractions[inlineServiceId] = null;
+          }
+          final currentFraction = _inlineFractions[inlineServiceId];
+          if (currentFraction != fraction) {
+            _inlineFractions[inlineServiceId] = fraction;
+            _inlineControllers[inlineServiceId]?.dispose();
+            _inlineControllers[inlineServiceId] = PageController(
+              viewportFraction: fraction,
+              initialPage: activeIndex,
+            );
+          }
+          controller = _inlineControllers[inlineServiceId]!;
+        } else {
+          if (_spotlightIndex >= posts.length) {
+            _spotlightIndex = posts.isEmpty ? 0 : posts.length - 1;
+            _spotlightViewportFraction = null;
+          }
+          _updatePageController(fraction);
+          controller = _spotlightController;
+          activeIndex = _spotlightIndex;
+        }
 
         return OverflowBox(
           // ★ تمديد حقيقي لحواف الشاشة: يزيح الابن بصرياً فقط (بلا تغيير في
@@ -292,7 +359,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           minWidth: viewportWidth,
           maxWidth: viewportWidth,
           child: SizedBox(
-            key: const ValueKey('carousel'),
+            key: ValueKey('carousel_${inlineServiceId ?? "global"}'),
             width: viewportWidth,
             height: height,
             // Center ⇒ توسيط البطاقة على الشاشات العريضة (بلا أثر على الهاتف).
@@ -300,17 +367,23 @@ class _SpotlightSectionState extends State<SpotlightSection> {
               child: SizedBox(
                 width: cardWidth + peek,
                 child: PageView.builder(
-                  controller: _spotlightController,
+                  controller: controller,
                   itemCount: posts.length,
-                  onPageChanged: (i) => setState(() => _spotlightIndex = i),
+                  onPageChanged: (i) {
+                    if (inlineServiceId != null) {
+                      setState(() => _inlineIndexes[inlineServiceId] = i);
+                    } else {
+                      setState(() => _spotlightIndex = i);
+                    }
+                  },
                   itemBuilder: (context, i) {
                     final postEntry = posts[i];
                     return AnimatedScale(
-                      scale: i == _spotlightIndex ? 1.0 : 0.93,
+                      scale: i == activeIndex ? 1.0 : 0.93,
                       duration: const Duration(milliseconds: 220),
                       curve: Curves.easeOut,
                       child: AnimatedOpacity(
-                        opacity: i == _spotlightIndex ? 1.0 : 0.6,
+                        opacity: i == activeIndex ? 1.0 : 0.6,
                         duration: const Duration(milliseconds: 220),
                         child: _spotlightItem(postEntry),
                       ),
