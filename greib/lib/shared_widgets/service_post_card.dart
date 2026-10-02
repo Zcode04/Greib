@@ -132,8 +132,6 @@ class _ServicePostCardState extends State<ServicePostCard> {
   int _reaction = 0;
   bool _isSaved = false;
 
-  
-
   /// التفاعل المعروض: الخارجي إن وُجد، وإلا الداخلي.
   int get _effectiveReaction => widget.reaction ?? _reaction;
 
@@ -167,8 +165,6 @@ class _ServicePostCardState extends State<ServicePostCard> {
     final hours = (minutes / 60).floor();
     return 'آخر ظهور منذ $hours ${hours == 1 ? 'ساعة' : 'ساعات'}';
   }
-
-  
 
   /// أسماء مستخدمين وهميين — مشتقّة ثابتة من البذرة (بلا عشوائية كل إطار).
   static const List<String> _peopleFirst = [
@@ -509,9 +505,9 @@ class _ServicePostCardState extends State<ServicePostCard> {
                   ],
                 ),
                 const SizedBox(height: 2),
-                // ★ الفئة + وقت النشر (حالة الاتصال نُقلت لأسفل التفاعلات).
+                // ★ الفئة (وقت النشر لم يعد معروضاً في الهيدر).
                 Text(
-                  '$category · ${widget.timeAgo ?? 'الآن'}',
+                  category,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: _secondary, fontSize: 12),
@@ -660,8 +656,6 @@ class _ServicePostCardState extends State<ServicePostCard> {
       ),
     );
   }
-
-
 
   Widget _reactionChip(IconData icon, Color color) {
     return Container(
