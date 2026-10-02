@@ -701,13 +701,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                             ),
                           ),
                           _spotlightIconButton(
-                            // الحالة (مفضّل/غير مفضّل) تُعبّر عنها الألوان والخلفية.
-                            icon: LucideIcons.heart,
-                            iconColor: isFav ? AppColors.error : Colors.white70,
-                            filledBackground: isFav
-                                ? AppColors.error.withValues(alpha: 0.15)
-                                : null,
-                            onTap: () => _core.setFavorite(service.id, !isFav),
+                            icon: LucideIcons.ellipsis,
+                            iconColor: Colors.white70,
+                            onTap: () {},
                           ),
                           const SizedBox(width: 6),
                           InkWell(
