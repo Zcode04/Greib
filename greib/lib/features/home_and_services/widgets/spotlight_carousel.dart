@@ -217,6 +217,61 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     );
   }
 
+  /// ★ كبسولة واحدة تضم عدة إجراءات، يفصل بينها خط رفيع (كل نصف قابل للضغط
+  ///   ومستقل) — نفس فكرة زر الإعجاب + التعليق في بطاقة المنشور.
+  Widget _softActionGroup(List<_SoftAction> actions) {
+    final tint = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: tint.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          for (var i = 0; i < actions.length; i++) ...[
+            if (i > 0)
+              Container(
+                width: 1,
+                height: 18,
+                color: tint.withValues(alpha: 0.25),
+              ),
+            Expanded(child: _groupedActionCell(actions[i], tint)),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// نصف الكبسولة: أيقونة + نص، يتقلّص تلقائياً عند ضيق الشاشة.
+  Widget _groupedActionCell(_SoftAction action, Color tint) {
+    return InkWell(
+      onTap: action.onPressed,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(action.icon, size: 16, color: tint),
+              const SizedBox(width: 5),
+              Text(
+                action.label,
+                maxLines: 1,
+                style: TextStyle(
+                  color: tint,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   /// أقصى عرض لبطاقة المنشور/الشريحة: على الهاتف تملأ الشاشة من طرف لطرف
   /// (فيس بوك)، وعلى التابلت/الشاشات العريضة يبقى العمود بعرض مقروء ومتمركز.
   static const double _kMaxPostWidth = 620;
@@ -549,37 +604,28 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     );
   }
 
-  /// ★ شريط الأزرار أسفل المنشور الواحد: زرّان يملآن عرضه بالتساوي.
+  /// ★ شريط واحد أسفل المنشور: «عرض المزيد» + «عرض الشرائح» في كبسولة واحدة
+  ///   يفصل بينهما خط رفيع (نفس فكرة زر الإعجاب + التعليق في بطاقة المنشور).
   Widget _postActions(String serviceId) {
-    return Row(
-      children: [
-        Expanded(
-          child: Padding(
-            // ★ الزر ينحصر داخل نصفه (بلا ملامسة حواف البطاقة) حتى لا تتداخل
-            // زواياه المدوّرة مع الزر المجاور.
-            padding: const EdgeInsetsDirectional.only(start: 12, end: 4),
-            child: _softActionButton(
-              icon: LucideIcons.chevronDown,
-              label: 'عرض المزيد',
-              // ★ صفحة تفاصيل خدمة هذا المنشور ⇒ كل منشوراتها.
-              onPressed: () => context.push('/service/$serviceId'),
-            ),
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(start: 12, end: 12),
+      child: _softActionGroup(
+        [
+          _SoftAction(
+            icon: LucideIcons.chevronDown,
+            label: 'عرض المزيد',
+            // ★ صفحة تفاصيل خدمة هذا المنشور ⇒ كل منشوراتها.
+            onPressed: () => context.push('/service/$serviceId'),
           ),
-        ),
-        Expanded(
-          child: Padding(
-            // ★ فاصل مع الزر المجاور + مسافة عن حافة النهاية (يسار).
-            padding: const EdgeInsetsDirectional.only(start: 4, end: 12),
-            child: _softActionButton(
-              icon: LucideIcons.galleryHorizontal,
-              label: 'عرض الشرائح',
-              onPressed: () => setState(() {
-                _carouselServiceIds.add(serviceId);
-              }),
-            ),
+          _SoftAction(
+            icon: LucideIcons.galleryHorizontal,
+            label: 'عرض الشرائح',
+            onPressed: () => setState(() {
+              _carouselServiceIds.add(serviceId);
+            }),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -1032,4 +1078,17 @@ class _SpotlightSectionState extends State<SpotlightSection> {
       ),
     );
   }
+}
+
+/// وصف إجراء واحد داخل كبسولة الأزرار المدمجة (`_softActionGroup`).
+class _SoftAction {
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  const _SoftAction({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
 }
