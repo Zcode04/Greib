@@ -251,6 +251,64 @@ class _ServicePostCardState extends State<ServicePostCard> {
     action();
   }
 
+  /// ★ ورقةReading (volume-2): قراءة المنشور، تلخيص، توضيح.
+  Future<void> _showReadOptions() async {
+    await showAppSheet(
+      context,
+      builder: (sheetContext) {
+        final sheetText = Theme.of(sheetContext).colorScheme.onSurface;
+        return SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                child: Row(
+                  children: [
+                    Icon(LucideIcons.volume2, size: 18, color: _secondary),
+                    const SizedBox(width: 8),
+                    Text(
+                      'قراءة المنشور',
+                      style: TextStyle(
+                        color: sheetText,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _sheetTile(
+                sheetContext,
+                icon: LucideIcons.bookOpen,
+                label: 'قراءة المنشور',
+                iconColor: sheetText,
+                onTap: () => _runFromSheet(_showLater),
+              ),
+              _sheetTile(
+                sheetContext,
+                icon: LucideIcons.textQuote,
+                label: 'تلخيص',
+                iconColor: _accent,
+                onTap: () => _runFromSheet(_showLater),
+              ),
+              _sheetTile(
+                sheetContext,
+                icon: LucideIcons.lightbulb,
+                label: 'توضيح',
+                iconColor: AppColors.info,
+                onTap: () => _runFromSheet(_showLater),
+                showDivider: false,
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   /// ★ ورقة واحدة موحّدة لكلا الأيقونتين (⋯ خيارات و ✕ إغلاق): نفس البيانات
   ///   بالتفصيل معاً — حفظ، اهتمام، إخفاء المنشور، إخفاء كل منشورات النشاط،
   ///   والإبلاغ.
@@ -495,7 +553,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
                 ),
               ),
               InkWell(
-                onTap: _showPostOptions,
+                onTap: _showReadOptions,
                 borderRadius: BorderRadius.circular(6),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
