@@ -89,18 +89,44 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     final allEntries = ServicesRepository.instance.allPosts;
     final baseEntries = allEntries.isNotEmpty ? allEntries : fallbackPosts;
 
-    final carouselServices = _isGlobalCarousel
-        ? services
-        : services.where((s) => _carouselServiceIds.contains(s.id)).toList();
+    // إضافة بوستات وهمية لخدمة مختارة لتجربة العرض الشرائحي
+    final List<ServicePostEntry> enhancedEntries = List.from(baseEntries);
+    if (enhancedEntries.isNotEmpty && _carouselServiceIds.isNotEmpty) {
+      final targetService = services.firstWhere((s) => _carouselServiceIds.contains(s.id), orElse: () => services.first);
+      enhancedEntries.insert(0, ServicePostEntry(
+        postId: '${targetService.id}_dummy1',
+        index: 100,
+        service: targetService,
+        post: const ServicePost(
+          text: 'عرض خاص على الأدوية والمستلزمات الطبية هذا الأسبوع!',
+          imageUrls: ['https://images.unsplash.com/photo-1585435557343-3b092031a831?w=800&q=80'],
+          timeAgo: 'قبل ساعتين',
+        ),
+      ));
+      enhancedEntries.insert(0, ServicePostEntry(
+        postId: '${targetService.id}_dummy2',
+        index: 101,
+        service: targetService,
+        post: const ServicePost(
+          text: 'نصائح هامة للحفاظ على صحتك في فصل الشتاء من صيدليتنا.',
+          imageUrls: ['https://images.unsplash.com/photo-1576602976047-174e57a47881?w=800&q=80'],
+          timeAgo: 'قبل ٥ ساعات',
+        ),
+      ));
+    }
+
+    final carouselPosts = _isGlobalCarousel
+        ? enhancedEntries
+        : enhancedEntries.where((p) => _carouselServiceIds.contains(p.service.id)).toList();
 
     final gridEntries = _isGlobalCarousel
         ? <ServicePostEntry>[]
-        : baseEntries
+        : enhancedEntries
             .where((p) => !_carouselServiceIds.contains(p.service.id))
             .toList();
 
-    if (_spotlightIndex >= carouselServices.length) {
-      _spotlightIndex = carouselServices.isEmpty ? 0 : carouselServices.length - 1;
+    if (_spotlightIndex >= carouselPosts.length) {
+      _spotlightIndex = carouselPosts.isEmpty ? 0 : carouselPosts.length - 1;
       // إجبار الكنترولر على إعادة البناء لتجنب خطأ خروج الـ index عن الحدود
       _spotlightViewportFraction = null; 
     }
@@ -108,16 +134,16 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (carouselServices.isNotEmpty) ...[
-          _buildSpotlightCarousel(carouselServices),
+        if (carouselPosts.isNotEmpty) ...[
+          _buildSpotlightCarousel(carouselPosts),
           const SizedBox(height: 10),
-          if (carouselServices.length > 1) ...[
+          if (carouselPosts.length > 1) ...[
             FittedBox(
               fit: BoxFit.scaleDown,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
-                children: List.generate(carouselServices.length, (i) {
+                children: List.generate(carouselPosts.length, (i) {
                   final active = i == _spotlightIndex;
                   final neonColor = widget.isDark
                       ? AppColors.neon
@@ -229,7 +255,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
 
   /// ★ العرض الأفقي للشريحة: يتمدد من طرف الشاشة لطرف (فيس بوك) ويشتق حجم
   /// البطاقة وارتفاعها من العرض الفعلي ⇒ نفس النتيجة على أي شاشة (تابلت/جوال).
-  Widget _buildSpotlightCarousel(List<ServiceCategory> services) {
+  Widget _buildSpotlightCarousel(List<ServicePostEntry> posts) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final available = constraints.maxWidth.isFinite
@@ -270,10 +296,10 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                 width: cardWidth + peek,
                 child: PageView.builder(
                   controller: _spotlightController,
-                  itemCount: services.length,
+                  itemCount: posts.length,
                   onPageChanged: (i) => setState(() => _spotlightIndex = i),
                   itemBuilder: (context, i) {
-                    final s = services[i];
+                    final postEntry = posts[i];
                     return AnimatedScale(
                       scale: i == _spotlightIndex ? 1.0 : 0.93,
                       duration: const Duration(milliseconds: 220),
@@ -281,7 +307,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                       child: AnimatedOpacity(
                         opacity: i == _spotlightIndex ? 1.0 : 0.6,
                         duration: const Duration(milliseconds: 220),
-                        child: _spotlightItem(s),
+                        child: _spotlightItem(postEntry),
                       ),
                     );
                   },
@@ -727,11 +753,17 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     );
   }
 
-  Widget _spotlightItem(ServiceCategory service) {
+  Widget _spotlightItem(ServicePostEntry entry) {
+    final service = entry.service;
+    final post = entry.post;
     final neonColor = widget.isDark
         ? AppColors.neon
         : AppColors.accentPrimaryDark;
-    final isFav = _core.isFavorite(service.id);
+    final isFav = _core.isFavorite(entry.postId);
+    
+    final imageUrl = post.imageUrls.isNotEmpty 
+        ? post.imageUrls.first 
+        : (service.coverImage ?? 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80');
 
     return Container(
       decoration: BoxDecoration(
@@ -752,10 +784,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           fit: StackFit.expand,
           children: [
             Hero(
-              tag: 'service_${service.id}',
+              tag: 'post_carousel_${entry.postId}',
               child: SmartImage(
-                src: service.coverImage ??
-                    'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80',
+                src: imageUrl,
                 fit: BoxFit.cover,
               ),
             ),
@@ -789,14 +820,14 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                           behavior: HitTestBehavior.opaque,
                           onTap: () => _showPostImagesSheet(
                             service,
-                            _postImages(service, service.coverImage ?? ''),
+                            _entryImages(entry, imageUrl),
                           ),
                           child: Container(),
                         ),
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        service.title,
+                        post.text.trim().isNotEmpty ? post.text : service.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -811,7 +842,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                         children: [
                           Expanded(
                             child: Text(
-                              service.subtitle,
+                              post.timeAgo.isNotEmpty ? post.timeAgo : service.subtitle,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
