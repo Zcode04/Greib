@@ -89,30 +89,35 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     final allEntries = ServicesRepository.instance.allPosts;
     final baseEntries = allEntries.isNotEmpty ? allEntries : fallbackPosts;
 
-    // إضافة بوستات وهمية لخدمة مختارة لتجربة العرض الشرائحي
+    // إضافة بوستات وهمية ديناميكية لتجربة العرض الشرائحي لأي خدمة تم اختيارها
     final List<ServicePostEntry> enhancedEntries = List.from(baseEntries);
-    if (enhancedEntries.isNotEmpty && _carouselServiceIds.isNotEmpty) {
-      final targetService = services.firstWhere((s) => _carouselServiceIds.contains(s.id), orElse: () => services.first);
-      enhancedEntries.insert(0, ServicePostEntry(
-        postId: '${targetService.id}_dummy1',
-        index: 100,
-        service: targetService,
-        post: const ServicePost(
-          text: 'عرض خاص على الأدوية والمستلزمات الطبية هذا الأسبوع!',
-          imageUrls: ['https://images.unsplash.com/photo-1585435557343-3b092031a831?w=800&q=80'],
-          timeAgo: 'قبل ساعتين',
-        ),
-      ));
-      enhancedEntries.insert(0, ServicePostEntry(
-        postId: '${targetService.id}_dummy2',
-        index: 101,
-        service: targetService,
-        post: const ServicePost(
-          text: 'نصائح هامة للحفاظ على صحتك في فصل الشتاء من صيدليتنا.',
-          imageUrls: ['https://images.unsplash.com/photo-1576602976047-174e57a47881?w=800&q=80'],
-          timeAgo: 'قبل ٥ ساعات',
-        ),
-      ));
+    if (enhancedEntries.isNotEmpty) {
+      final selectedServices = _isGlobalCarousel
+          ? services
+          : services.where((s) => _carouselServiceIds.contains(s.id)).toList();
+          
+      for (final targetService in selectedServices) {
+        enhancedEntries.insert(0, ServicePostEntry(
+          postId: '${targetService.id}_dummy1',
+          index: 100,
+          service: targetService,
+          post: ServicePost(
+            text: 'عرض خاص ومميز من (${targetService.title}) هذا الأسبوع!',
+            imageUrls: const ['https://images.unsplash.com/photo-1555685812-4b943f1cb0eb?w=800&q=80'],
+            timeAgo: 'قبل ساعتين',
+          ),
+        ));
+        enhancedEntries.insert(0, ServicePostEntry(
+          postId: '${targetService.id}_dummy2',
+          index: 101,
+          service: targetService,
+          post: ServicePost(
+            text: 'تعرف على أحدث الإضافات لدينا في قسم ${targetService.title}.',
+            imageUrls: const ['https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80'],
+            timeAgo: 'قبل ٥ ساعات',
+          ),
+        ));
+      }
     }
 
     final carouselPosts = _isGlobalCarousel
