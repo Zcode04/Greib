@@ -710,11 +710,40 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                             onTap: () => _core.setFavorite(service.id, !isFav),
                           ),
                           const SizedBox(width: 6),
-                          _spotlightIconButton(
-                            icon: LucideIcons.arrowLeft,
-                            iconColor: widget.isDark ? Colors.black : Colors.white,
-                            filledBackground: neonColor,
-                            onTap: () => context.push('/service/${service.id}'),
+                          InkWell(
+                            onTap: () => _core.openServiceChat(context, service: service),
+                            borderRadius: BorderRadius.circular(18),
+                            child: Container(
+                              height: 34,
+                              padding: const EdgeInsets.symmetric(horizontal: 14),
+                              decoration: BoxDecoration(
+                                color: neonColor,
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    LucideIcons.shoppingBag,
+                                    size: 16,
+                                    color: widget.isDark
+                                        ? Colors.black
+                                        : Colors.white,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'طلب الآن',
+                                    style: TextStyle(
+                                      color: widget.isDark
+                                          ? Colors.black
+                                          : Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
