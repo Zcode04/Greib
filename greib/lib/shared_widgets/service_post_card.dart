@@ -251,6 +251,9 @@ class _ServicePostCardState extends State<ServicePostCard> {
     action();
   }
 
+  /// ★ ورقة واحدة موحّدة لكلا الأيقونتين (⋯ خيارات و ✕ إغلاق): نفس البيانات
+  ///   بالتفصيل معاً — حفظ، اهتمام، إخفاء المنشور، إخفاء كل منشورات النشاط،
+  ///   والإبلاغ.
   Future<void> _showPostOptions() async {
     final saved = _effectiveSaved;
     await showAppSheet(
@@ -297,49 +300,6 @@ class _ServicePostCardState extends State<ServicePostCard> {
                 label: 'غير مهتم',
                 iconColor: AppColors.error,
                 onTap: () => _runFromSheet(_showLater),
-              ),
-              _sheetTile(
-                sheetContext,
-                icon: LucideIcons.flag,
-                label: 'الإبلاغ عن المنشور',
-                iconColor: AppColors.error,
-                onTap: () => _runFromSheet(_showLater),
-                showDivider: false,
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  /// ★ ورقة الضغط على زر الإغلاق (✕): إخفاء المنشور، إخفاء كل منشورات
-  /// نشاط هذا التاجر، الإبلاغ عن المنشور (رسالة "قريباً" مؤقتة).
-  Future<void> _showCloseOptions() async {
-    await showAppSheet(
-      context,
-      builder: (sheetContext) {
-        final sheetText = Theme.of(sheetContext).colorScheme.onSurface;
-        return SafeArea(
-          top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-                child: Row(
-                  children: [
-                    Text(
-                      'خيارات المنشور',
-                      style: TextStyle(
-                        color: sheetText,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
               ),
               _sheetTile(
                 sheetContext,
@@ -505,9 +465,9 @@ class _ServicePostCardState extends State<ServicePostCard> {
                   ],
                 ),
                 const SizedBox(height: 2),
-                // ★ الفئة (وقت النشر لم يعد معروضاً في الهيدر).
+                // ★ الفئة + وقت النشر (حالة الاتصال نُقلت لأسفل التفاعلات).
                 Text(
-                  category,
+                  '$category · ${widget.timeAgo ?? 'الآن'}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: _secondary, fontSize: 12),
@@ -535,7 +495,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
                 ),
               ),
               InkWell(
-                onTap: _showCloseOptions,
+                onTap: _showPostOptions,
                 borderRadius: BorderRadius.circular(6),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
