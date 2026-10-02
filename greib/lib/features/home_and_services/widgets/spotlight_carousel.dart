@@ -101,6 +101,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
 
     if (_spotlightIndex >= carouselServices.length) {
       _spotlightIndex = carouselServices.isEmpty ? 0 : carouselServices.length - 1;
+      // إجبار الكنترولر على إعادة البناء لتجنب خطأ خروج الـ index عن الحدود
+      _spotlightViewportFraction = null; 
     }
 
     return Column(
@@ -109,34 +111,36 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         if (carouselServices.isNotEmpty) ...[
           _buildSpotlightCarousel(carouselServices),
           const SizedBox(height: 10),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: List.generate(carouselServices.length, (i) {
-                final active = i == _spotlightIndex;
-                final neonColor = widget.isDark
-                    ? AppColors.neon
-                    : AppColors.accentPrimaryDark;
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 220),
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  width: active ? 18 : 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: active
-                        ? neonColor
-                        : (widget.isDark
-                              ? Colors.white24
-                              : AppColors.lightOutline),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                );
-              }),
+          if (carouselServices.length > 1) ...[
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(carouselServices.length, (i) {
+                  final active = i == _spotlightIndex;
+                  final neonColor = widget.isDark
+                      ? AppColors.neon
+                      : AppColors.accentPrimaryDark;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 220),
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: active ? 18 : 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: active
+                          ? neonColor
+                          : (widget.isDark
+                                ? Colors.white24
+                                : AppColors.lightOutline),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  );
+                }),
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
+            const SizedBox(height: 8),
+          ],
           LayoutBuilder(
             builder: (context, constraints) {
               final available = constraints.maxWidth.isFinite
@@ -158,7 +162,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                         child: Padding(
                           padding: const EdgeInsetsDirectional.only(
                             start: 12,
-                            end: 4,
+                            end: 12, // تم إرجاعها لتأخذ المساحة كاملة
                           ),
                           child: _softActionButton(
                             icon: LucideIcons.layoutList,
@@ -170,22 +174,6 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                           ),
                         ),
                       ),
-                      if (carouselServices.length < services.length)
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsetsDirectional.only(
-                              start: 4,
-                              end: 12,
-                            ),
-                            child: _softActionButton(
-                              icon: LucideIcons.galleryHorizontal,
-                              label: 'عرض الكل شرائحي',
-                              onPressed: () => setState(() {
-                                _isGlobalCarousel = true;
-                              }),
-                            ),
-                          ),
-                        ),
                     ],
                   ),
                 ),
