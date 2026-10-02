@@ -132,8 +132,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
   int _reaction = 0;
   bool _isSaved = false;
 
-  /// ★ حالة المتابعة لصاحب المنشور (وهمية محلية حتى ربط الـ backend).
-  bool _isFollowing = true;
+  
 
   /// التفاعل المعروض: الخارجي إن وُجد، وإلا الداخلي.
   int get _effectiveReaction => widget.reaction ?? _reaction;
@@ -169,37 +168,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
     return 'آخر ظهور منذ $hours ${hours == 1 ? 'ساعة' : 'ساعات'}';
   }
 
-  /// ★ متابعة صاحب المنشور — «متابع» مع أيقونة علامة صح، والنقر يتبدّل
-  /// بين المتابعة وعدم المتابعة (حالة محلية وهمية حالياً).
-  Widget _followLabel() {
-    final following = _isFollowing;
-    return InkWell(
-      onTap: () => setState(() => _isFollowing = !following),
-      borderRadius: BorderRadius.circular(6),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 1),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              following ? 'متابع' : 'غير متابع',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: following ? _accent : _secondary,
-                fontSize: 12,
-                fontWeight: following ? FontWeight.w600 : FontWeight.w400,
-              ),
-            ),
-            if (following) ...[
-              const SizedBox(width: 3),
-              Icon(LucideIcons.badgeCheck, size: 12, color: _accent),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
+  
 
   /// أسماء مستخدمين وهميين — مشتقّة ثابتة من البذرة (بلا عشوائية كل إطار).
   static const List<String> _peopleFirst = [
@@ -541,19 +510,11 @@ class _ServicePostCardState extends State<ServicePostCard> {
                 ),
                 const SizedBox(height: 2),
                 // ★ الفئة + وقت النشر (حالة الاتصال نُقلت لأسفل التفاعلات).
-                Row(
-                  children: [
-                    _followLabel(),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        '$category · ${widget.timeAgo ?? 'الآن'}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: _secondary, fontSize: 12),
-                      ),
-                    ),
-                  ],
+                Text(
+                  '$category · ${widget.timeAgo ?? 'الآن'}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: _secondary, fontSize: 12),
                 ),
               ],
             ),
