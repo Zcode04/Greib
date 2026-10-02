@@ -153,11 +153,10 @@ class _ServicePostCardState extends State<ServicePostCard> {
 
   // ---------- حالة الاتصال (Mock مشتقّة من البذرة ⇒ ثابتة لكل منشور) ----------
   int get _presenceSeed {
-    final seed = (widget.countSeed.isEmpty
-            ? widget.service.id
-            : widget.countSeed)
-        .hashCode
-        .abs();
+    final seed =
+        (widget.countSeed.isEmpty ? widget.service.id : widget.countSeed)
+            .hashCode
+            .abs();
     return seed == 0 ? 1 : seed;
   }
 
@@ -194,11 +193,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
             ),
             if (following) ...[
               const SizedBox(width: 3),
-              Icon(
-                LucideIcons.badgeCheck,
-                size: 12,
-                color: _accent,
-              ),
+              Icon(LucideIcons.badgeCheck, size: 12, color: _accent),
             ],
           ],
         ),
@@ -442,8 +437,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
             ),
           ),
         ),
-        if (showDivider)
-          Divider(height: 1, thickness: 1, color: sheetLine),
+        if (showDivider) Divider(height: 1, thickness: 1, color: sheetLine),
       ],
     );
   }
@@ -541,11 +535,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
                     ),
                     if (widget.authorVerified) ...[
                       const SizedBox(width: 3),
-                      Icon(
-                        LucideIcons.badgeCheck,
-                        size: 15,
-                        color: _accent,
-                      ),
+                      Icon(LucideIcons.badgeCheck, size: 15, color: _accent),
                     ],
                   ],
                 ),
@@ -705,41 +695,12 @@ class _ServicePostCardState extends State<ServicePostCard> {
           _reactionChip(LucideIcons.thumbsUp, AppColors.info),
           const SizedBox(width: 2),
           _reactionChip(LucideIcons.thumbsDown, AppColors.error),
-          const Spacer(),
-          _presence(),
         ],
       ),
     );
   }
 
-  /// ★ حالة الاتصال (أيقونة العالم + النص) — في الزاوية المقابلة تماماً.
-  Widget _presence() {
-    final online = widget.authorIsOnline ?? _derivedIsOnline;
-    final presence = online
-        ? 'متصل الآن'
-        : (widget.authorPresence ?? _derivedPresence);
-    return Flexible(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(
-            child: Text(
-              presence,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: online ? _accent : _secondary,
-                fontSize: 12,
-                fontWeight: online ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
-          ),
-          const SizedBox(width: 3),
-          Icon(LucideIcons.globe, size: 12, color: _secondary),
-        ],
-      ),
-    );
-  }
+
 
   Widget _reactionChip(IconData icon, Color color) {
     return Container(
@@ -805,7 +766,11 @@ class _ServicePostCardState extends State<ServicePostCard> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(LucideIcons.messageCircle, size: 20, color: _secondary),
+                          Icon(
+                            LucideIcons.messageCircle,
+                            size: 20,
+                            color: _secondary,
+                          ),
                           const SizedBox(width: 5),
                           Text(
                             widget.commentCount ?? _countFor(40, 2),
