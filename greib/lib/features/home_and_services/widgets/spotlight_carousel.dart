@@ -393,20 +393,14 @@ class _SpotlightSectionState extends State<SpotlightSection> {
             // ★ الاختيار يتم داخل الورقة (كما كان سلوكياً)، فالنقر يفتحها فقط
             //   والبطاقة لا تبدّل التفاعل بنفسها.
             delegateReactionToCallback: true,
-            onReaction: () => core.showReaction(
-              context,
-              postId: postId,
-              service: service,
-            ),
+            onReaction: () =>
+                core.showReaction(context, postId: postId, service: service),
             onSaveChanged: (value) => core.setFavorite(postId, value),
             // ★ نفس الاستدعاءات المستخدمة في صفحة التفاصيل (نواة واحدة).
             onRequest: () => core.openServiceChat(context, service: service),
             onImageTap: () => _showPostImagesSheet(service, images),
-            onComment: () => core.showComments(
-              context,
-              postId: postId,
-              service: service,
-            ),
+            onComment: () =>
+                core.showComments(context, postId: postId, service: service),
             onShare: () => core.showAction(
               context,
               icon: LucideIcons.repeat2,
@@ -659,22 +653,12 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                         ),
                         child: Transform.rotate(
                           angle: 0.1,
-                          child: (service.coverImage != null)
-                              ? ClipOval(
-                                  child: SmartImage(
-                                    src: service.coverImage,
-                                    placeholder: Icon(
-                                      MockData.getIconByName(service.iconName),
-                                      color: neonColor,
-                                      size: 40,
-                                    ),
-                                  ),
-                                )
-                              : Icon(
-                                  MockData.getIconByName(service.iconName),
-                                  color: neonColor,
-                                  size: 40,
-                                ),
+                          child: ClipOval(
+                            child: SmartImage(
+                              src: service.coverImage ??
+                                  'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80',
+                            ),
+                          ),
                         ),
                       ),
                     ),
