@@ -301,7 +301,6 @@ class _ServicePostCardState extends State<ServicePostCard> {
                 label: 'توضيح',
                 iconColor: AppColors.info,
                 onTap: () => _runFromSheet(_showLater),
-                showDivider: false,
               ),
               const SizedBox(height: 8),
             ],
@@ -320,6 +319,22 @@ class _ServicePostCardState extends State<ServicePostCard> {
       context,
       builder: (sheetContext) {
         final sheetText = Theme.of(sheetContext).colorScheme.onSurface;
+        // ★ بلا خطوط فاصلة: الأيقونات وحدها تكفي للتمييز.
+        Widget tile({
+          required IconData icon,
+          required String label,
+          required Color iconColor,
+          required VoidCallback onTap,
+          bool trailingChevron = false,
+        }) => _sheetTile(
+          sheetContext,
+          icon: icon,
+          label: label,
+          iconColor: iconColor,
+          onTap: onTap,
+          trailingChevron: trailingChevron,
+          showDivider: false,
+        );
         return SafeArea(
           top: false,
           child: Column(
@@ -341,8 +356,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
                 ),
               ),
               // ★ فتح صفحة الخدمة (/service/<id>) من داخل الورقة.
-              _sheetTile(
-                sheetContext,
+              tile(
                 icon: LucideIcons.arrowUpDown,
                 label: 'عرض المزيد',
                 iconColor: _accent,
@@ -354,58 +368,49 @@ class _ServicePostCardState extends State<ServicePostCard> {
               ),
               // ★ عرض الشرائح: نفس الميزة المستخدمة في شريط أسفل المنشور
               //   (أيقونة gallery-horizontal) ⇒ ينقل الوضع لشرائح أفقية.
-              _sheetTile(
-                sheetContext,
+              tile(
                 icon: LucideIcons.galleryHorizontal,
                 label: 'عرض الشرائح',
                 iconColor: _accent,
                 trailingChevron: true,
-                onTap: () => _runFromSheet(
-                  () => (widget.onShowSlides ?? _showLater)(),
-                ),
+                onTap: () =>
+                    _runFromSheet(() => (widget.onShowSlides ?? _showLater)()),
               ),
-              _sheetTile(
-                sheetContext,
+              tile(
                 icon: saved ? LucideIcons.bookmarkCheck : LucideIcons.bookmark,
                 label: saved ? 'إلغاء حفظ المنشور' : 'حفظ المنشور',
                 iconColor: sheetText,
                 onTap: () => _runFromSheet(_toggleSaved),
               ),
-              _sheetTile(
-                sheetContext,
+              tile(
                 icon: LucideIcons.thumbsUp,
                 label: 'مهتم',
                 iconColor: AppColors.info,
                 onTap: () => _runFromSheet(_showLater),
               ),
-              _sheetTile(
-                sheetContext,
+              tile(
                 icon: LucideIcons.thumbsDown,
                 label: 'غير مهتم',
                 iconColor: AppColors.error,
                 onTap: () => _runFromSheet(_showLater),
               ),
-              _sheetTile(
-                sheetContext,
+              tile(
                 icon: LucideIcons.eyeOff,
                 label: 'إخفاء المنشور',
                 iconColor: sheetText,
                 onTap: () => _runFromSheet(_showLater),
               ),
-              _sheetTile(
-                sheetContext,
+              tile(
                 icon: LucideIcons.eyeOff,
                 label: 'إخفاء جميع منشورات نشاط هذا التاجر',
                 iconColor: sheetText,
                 onTap: () => _runFromSheet(_showLater),
               ),
-              _sheetTile(
-                sheetContext,
+              tile(
                 icon: LucideIcons.flag,
                 label: 'الإبلاغ عن المنشور',
                 iconColor: AppColors.error,
                 onTap: () => _runFromSheet(_showLater),
-                showDivider: false,
               ),
               const SizedBox(height: 8),
             ],
@@ -440,7 +445,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
                 Expanded(
                   child: Text(
                     label,
-style: TextStyle(color: sheetText, fontSize: 15),
+                    style: TextStyle(color: sheetText, fontSize: 15),
                   ),
                 ),
                 if (trailingChevron)
@@ -593,11 +598,7 @@ style: TextStyle(color: sheetText, fontSize: 15),
                     horizontal: 4,
                     vertical: 2,
                   ),
-                  child: Icon(
-                    LucideIcons.volume2,
-                    color: _secondary,
-                    size: 25,
-                  ),
+                  child: Icon(LucideIcons.volume2, color: _secondary, size: 25),
                 ),
               ),
             ],
