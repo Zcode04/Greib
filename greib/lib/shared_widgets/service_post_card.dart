@@ -253,12 +253,26 @@ class _ServicePostCardState extends State<ServicePostCard> {
     action();
   }
 
-  /// ★ ورقةReading (volume-2): قراءة المنشور، تلخيص، توضيح.
+  /// ★ ورقة القراءة (volume-2): قراءة المنشور، تلخيص، توضيح.
   Future<void> _showReadOptions() async {
     await showAppSheet(
       context,
       builder: (sheetContext) {
         final sheetText = Theme.of(sheetContext).colorScheme.onSurface;
+        // ★ بلا خطوط فاصلة: الأيقونات وحدها تكفي للتمييز.
+        Widget tile({
+          required IconData icon,
+          required String label,
+          required Color iconColor,
+          required VoidCallback onTap,
+        }) => _sheetTile(
+          sheetContext,
+          icon: icon,
+          label: label,
+          iconColor: iconColor,
+          onTap: onTap,
+          showDivider: false,
+        );
         return SafeArea(
           top: false,
           child: Column(
@@ -281,22 +295,19 @@ class _ServicePostCardState extends State<ServicePostCard> {
                   ],
                 ),
               ),
-              _sheetTile(
-                sheetContext,
+              tile(
                 icon: LucideIcons.bookOpen,
                 label: 'قراءة المنشور',
                 iconColor: sheetText,
                 onTap: () => _runFromSheet(_showLater),
               ),
-              _sheetTile(
-                sheetContext,
+              tile(
                 icon: LucideIcons.textQuote,
                 label: 'تلخيص',
                 iconColor: _accent,
                 onTap: () => _runFromSheet(_showLater),
               ),
-              _sheetTile(
-                sheetContext,
+              tile(
                 icon: LucideIcons.lightbulb,
                 label: 'توضيح',
                 iconColor: AppColors.info,
