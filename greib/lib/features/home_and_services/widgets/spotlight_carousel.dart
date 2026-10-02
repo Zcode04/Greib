@@ -612,110 +612,116 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         : AppColors.accentPrimaryDark;
     final isFav = _core.isFavorite(service.id);
 
-    return GlassContainer(
-      padding: const EdgeInsets.all(18),
-      borderRadius: BorderRadius.circular(28),
-      opacity: widget.isDark ? 0.05 : 0.1,
-      boxShadow: widget.isDark
-          ? AppColors.neonGlow(blur: 20, alpha: 0.1)
-          : [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-      child: InkWell(
+    return Container(
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        onTap: () => context.push('/service/${service.id}'),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Center(
-                // ★ الضغط على الصورة ⇒ نفس ورقة الخيارات (مشاهدة صور /
-                // طلب الآن / عرض المزيد)، بدل فتح صفحة الخدمة مباشرة.
-                child: GestureDetector(
-                  onTap: () => _showPostImagesSheet(
-                    service,
-                    _postImages(service, service.coverImage ?? ''),
-                  ),
-                  child: Hero(
-                    tag: 'service_${service.id}',
-                    child: Transform.rotate(
-                      angle: -0.1,
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: neonColor.withValues(alpha: 0.15),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Transform.rotate(
-                          angle: 0.1,
-                          child: ClipOval(
-                            child: SmartImage(
-                              src: service.coverImage ??
-                                  'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80',
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              service.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: widget.isDark
-                    ? AppColors.textPrimary
-                    : AppColors.lightText,
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    service.subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: neonColor,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-                _spotlightIconButton(
-                  // الحالة (مفضّل/غير مفضّل) تُعبّر عنها الألوان والخلفية.
-                  icon: LucideIcons.heart,
-                  iconColor: isFav
-                      ? AppColors.error
-                      : (widget.isDark
-                            ? Colors.white70
-                            : AppColors.lightTextSecondary),
-                  filledBackground: isFav
-                      ? AppColors.error.withValues(alpha: 0.15)
-                      : null,
-                  onTap: () => _core.setFavorite(service.id, !isFav),
-                ),
-                const SizedBox(width: 6),
-                _spotlightIconButton(
-                  icon: LucideIcons.arrowLeft,
-                  iconColor: widget.isDark ? Colors.black : Colors.white,
-                  filledBackground: neonColor,
-                  onTap: () => context.push('/service/${service.id}'),
+        boxShadow: widget.isDark
+            ? AppColors.neonGlow(blur: 20, alpha: 0.1)
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Hero(
+              tag: 'service_${service.id}',
+              child: SmartImage(
+                src: service.coverImage ??
+                    'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80',
+                fit: BoxFit.cover,
+              ),
+            ),
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.8),
+                    ],
+                    stops: const [0.4, 1.0],
+                  ),
+                ),
+              ),
+            ),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(28),
+                onTap: () => context.push('/service/${service.id}'),
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => _showPostImagesSheet(
+                            service,
+                            _postImages(service, service.coverImage ?? ''),
+                          ),
+                          child: Container(),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        service.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              service.subtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: neonColor,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          _spotlightIconButton(
+                            // الحالة (مفضّل/غير مفضّل) تُعبّر عنها الألوان والخلفية.
+                            icon: LucideIcons.heart,
+                            iconColor: isFav ? AppColors.error : Colors.white70,
+                            filledBackground: isFav
+                                ? AppColors.error.withValues(alpha: 0.15)
+                                : null,
+                            onTap: () => _core.setFavorite(service.id, !isFav),
+                          ),
+                          const SizedBox(width: 6),
+                          _spotlightIconButton(
+                            icon: LucideIcons.arrowLeft,
+                            iconColor: widget.isDark ? Colors.black : Colors.white,
+                            filledBackground: neonColor,
+                            onTap: () => context.push('/service/${service.id}'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),
