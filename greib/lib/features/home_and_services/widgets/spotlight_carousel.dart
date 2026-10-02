@@ -255,16 +255,18 @@ class _SpotlightSectionState extends State<SpotlightSection> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(action.icon, size: 16, color: tint),
-              const SizedBox(width: 5),
-              Text(
-                action.label,
-                maxLines: 1,
-                style: TextStyle(
-                  color: tint,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
+              if (action.label != null) ...[
+                const SizedBox(width: 5),
+                Text(
+                  action.label!,
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: tint,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
@@ -613,13 +615,11 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         [
           _SoftAction(
             icon: LucideIcons.chevronDown,
-            label: 'عرض المزيد',
             // ★ صفحة تفاصيل خدمة هذا المنشور ⇒ كل منشوراتها.
             onPressed: () => context.push('/service/$serviceId'),
           ),
           _SoftAction(
             icon: LucideIcons.galleryHorizontal,
-            label: 'عرض الشرائح',
             onPressed: () => setState(() {
               _carouselServiceIds.add(serviceId);
             }),
@@ -1083,12 +1083,12 @@ class _SpotlightSectionState extends State<SpotlightSection> {
 /// وصف إجراء واحد داخل كبسولة الأزرار المدمجة (`_softActionGroup`).
 class _SoftAction {
   final IconData icon;
-  final String label;
+  final String? label;
   final VoidCallback onPressed;
 
   const _SoftAction({
     required this.icon,
-    required this.label,
     required this.onPressed,
+    this.label,
   });
 }
