@@ -502,7 +502,11 @@ class _ServicePostCardState extends State<ServicePostCard> {
                     horizontal: 4,
                     vertical: 2,
                   ),
-                  child: Icon(LucideIcons.x, color: _secondary, size: 25),
+                  child: Icon(
+                    LucideIcons.volume2,
+                    color: _secondary,
+                    size: 25,
+                  ),
                 ),
               ),
             ],
