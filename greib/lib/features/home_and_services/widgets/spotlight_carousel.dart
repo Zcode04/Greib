@@ -596,6 +596,10 @@ class _SpotlightSectionState extends State<SpotlightSection> {
               title: 'إعادة النشر',
               hint: 'نشر رابط «${service.title}» على صفحتك.',
             ),
+            // ★ نفس وضع الشرائح المستعمل في الشريط أسفل المنشور.
+            onShowSlides: () => setState(() {
+              _carouselServiceIds.add(service.id);
+            }),
           ),
           // ★ أزرار تحت كل منشور: «عرض المزيد» (صفحة خدمة هذا المنشور)
           //   و«عرض الشرائح» (تبديل الوضع) — لكل منشور وجهته الخاصة.

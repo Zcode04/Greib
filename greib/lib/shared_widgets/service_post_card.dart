@@ -90,6 +90,10 @@ class ServicePostCard extends StatefulWidget {
   final VoidCallback? onShare;
   final VoidCallback? onImageTap;
 
+  /// ★ تبديل المنشور إلى وضع الشرائح (من ورقة خيارات المنشور).
+  /// الصفحة الرئيسية تمرّره ليشغّل نفس وضع «عرض الشرائح» في الشريط أسفل المنشور.
+  final VoidCallback? onShowSlides;
+
   const ServicePostCard({
     super.key,
     required this.service,
@@ -118,6 +122,7 @@ class ServicePostCard extends StatefulWidget {
     this.onComment,
     this.onShare,
     this.onImageTap,
+    this.onShowSlides,
   });
 
   @override
@@ -346,6 +351,18 @@ class _ServicePostCardState extends State<ServicePostCard> {
                   Navigator.of(context, rootNavigator: true).pop();
                   context.push('/service/${_service.id}');
                 },
+              ),
+              // ★ عرض الشرائح: نفس الميزة المستخدمة في شريط أسفل المنشور
+              //   (أيقونة gallery-horizontal) ⇒ ينقل الوضع لشرائح أفقية.
+              _sheetTile(
+                sheetContext,
+                icon: LucideIcons.galleryHorizontal,
+                label: 'عرض الشرائح',
+                iconColor: _accent,
+                trailingChevron: true,
+                onTap: () => _runFromSheet(
+                  () => (widget.onShowSlides ?? _showLater)(),
+                ),
               ),
               _sheetTile(
                 sheetContext,
