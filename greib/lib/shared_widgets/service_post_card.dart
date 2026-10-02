@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/mock_data/mock_data.dart';
@@ -334,6 +335,18 @@ class _ServicePostCardState extends State<ServicePostCard> {
                   ],
                 ),
               ),
+              // ★ فتح صفحة الخدمة (/service/<id>) من داخل الورقة.
+              _sheetTile(
+                sheetContext,
+                icon: LucideIcons.arrowUpDown,
+                label: 'عرض المزيد',
+                iconColor: _accent,
+                trailingChevron: true,
+                onTap: () {
+                  Navigator.of(context, rootNavigator: true).pop();
+                  context.push('/service/${_service.id}');
+                },
+              ),
               _sheetTile(
                 sheetContext,
                 icon: saved ? LucideIcons.bookmarkCheck : LucideIcons.bookmark,
@@ -393,6 +406,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
     required Color iconColor,
     required VoidCallback onTap,
     bool showDivider = true,
+    bool trailingChevron = false,
   }) {
     final sheetText = Theme.of(sheetContext).colorScheme.onSurface;
     final sheetLine = Theme.of(sheetContext).colorScheme.outlineVariant;
@@ -409,9 +423,15 @@ class _ServicePostCardState extends State<ServicePostCard> {
                 Expanded(
                   child: Text(
                     label,
-                    style: TextStyle(color: sheetText, fontSize: 15),
+style: TextStyle(color: sheetText, fontSize: 15),
                   ),
                 ),
+                if (trailingChevron)
+                  Icon(
+                    LucideIcons.chevronDown,
+                    size: 20,
+                    color: sheetText.withValues(alpha: 0.6),
+                  ),
               ],
             ),
           ),
