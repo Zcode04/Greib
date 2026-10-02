@@ -509,7 +509,6 @@ class _PostsTab extends StatelessWidget {
             // ★ نفس بطاقة المنشورات في الصفحة الرئيسية (ServicePostCard).
             service: service,
             text: post.text,
-            timeAgo: post.timeAgo,
             imageUrls: post.imageUrls,
             isDark: isDark,
             backgroundColor: bg,

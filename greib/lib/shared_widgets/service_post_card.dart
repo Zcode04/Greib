@@ -25,9 +25,6 @@ class ServicePostCard extends StatefulWidget {
   /// نص المنشور — إن كان null يُستخدم `service.subtitle`.
   final String? text;
 
-  /// وقت النشر («منذ ساعتين») — الافتراضي «الآن».
-  final String? timeAgo;
-
   /// صور المنشور — الافتراضي صورة الغلاف بنسبة ثابتة.
   final List<String> imageUrls;
 
@@ -97,7 +94,6 @@ class ServicePostCard extends StatefulWidget {
     required this.service,
     required this.isDark,
     this.text,
-    this.timeAgo,
     this.imageUrls = const [],
     this.backgroundColor,
     this.countSeed = '',
@@ -523,9 +519,9 @@ class _ServicePostCardState extends State<ServicePostCard> {
                   ],
                 ),
                 const SizedBox(height: 2),
-                // ★ الفئة + وقت النشر (حالة الاتصال نُقلت لأسفل التفاعلات).
+                // ★ الفئة (حالة الاتصال نُقلت لأسفل التفاعلات).
                 Text(
-                  '$category · ${widget.timeAgo ?? 'الآن'}',
+                  category,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: _secondary, fontSize: 12),

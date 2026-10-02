@@ -682,7 +682,6 @@ class _AccountPostsTab extends StatelessWidget {
             authorIsOnline: account.isOnline,
             authorPresence: account.presenceLabel,
             text: post.text,
-            timeAgo: post.timeAgo,
             imageUrls: post.imageUrls,
             isDark: isDark,
             backgroundColor: bg,

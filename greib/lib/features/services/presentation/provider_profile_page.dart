@@ -502,7 +502,6 @@ class _ProviderPostsTab extends StatelessWidget {
           builder: (context, _) => ServicePostCard(
             service: service,
             text: post.text,
-            timeAgo: post.timeAgo,
             imageUrls: post.imageUrls,
             isDark: isDark,
             backgroundColor: bg,
