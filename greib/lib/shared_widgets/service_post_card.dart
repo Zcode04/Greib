@@ -728,18 +728,27 @@ class _ServicePostCardState extends State<ServicePostCard> {
   // ---------- 4. أيقونات التفاعل + حالة الاتصال في الزاوية المقابلة ----------
   /// ★ إيموجي تفاعل مجمّعة بجوار المنشور (مثل فيسبوك): بلا دوائر ولا خلفيات
   ///   ولا ظلال ولا عدّاد — الإيموجي وحده.
+  ///
+  /// ★ الضغط على الإيموجي يفتح نفس ورقة التفاعل السفلية (سلوك زر التفاعل).
   Widget _reactionChips() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 16, 0),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final reaction in PostReaction.all.take(3))
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: 2),
-              child: ReactionEmoji(reaction.value, size: 20),
-            ),
-        ],
+      child: InkWell(
+        onTap: _cycleReaction,
+        borderRadius: BorderRadius.circular(_kPillRadius),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final reaction in PostReaction.all.take(3))
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(end: 2),
+                  child: ReactionEmoji(reaction.value, size: 20),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
