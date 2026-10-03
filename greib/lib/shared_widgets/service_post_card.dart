@@ -149,16 +149,35 @@ class _ServicePostCardState extends State<ServicePostCard> {
     final r = _effectiveReaction;
     if (r == 0) {
       // بلا تفاعل ⇒ thumbsUp فارغة (لون ثانوي).
-      return Icon(LucideIcons.thumbsUp, size: size, color: _effectiveReactionColor);
+      return Icon(
+        LucideIcons.thumbsUp,
+        size: size,
+        color: _effectiveReactionColor,
+      );
     }
     final reaction = PostReaction.byValue(r);
     if (reaction?.iconData != null) {
       // تفاعل يحمل أيقونة Lucide (مثل عدم الإعجاب) ⇒ نعرضها مباشرةً.
-      return Icon(reaction!.iconData, size: size, color: _effectiveReactionColor);
+      return Icon(
+        reaction!.iconData,
+        size: size,
+        color: _effectiveReactionColor,
+      );
     }
-    // تفاعلات الإيموجي (إعجاب 👍، حب، دهشة، حزن).
+    // تفاعلات الإيموجي (إعجاب 👍، عدم إعجاب 👎، حب، دهشة، حزن).
     if (r == 1) {
-      return Icon(LucideIcons.thumbsUp, size: size, color: _effectiveReactionColor);
+      return Icon(
+        LucideIcons.thumbsUp,
+        size: size,
+        color: _effectiveReactionColor,
+      );
+    }
+    if (r == 6) {
+      return Icon(
+        LucideIcons.thumbsDown,
+        size: size,
+        color: _effectiveReactionColor,
+      );
     }
     return Text(
       ReactionEmoji.emojiOf(r),
@@ -763,10 +782,10 @@ class _ServicePostCardState extends State<ServicePostCard> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              for (final reaction in PostReaction.all.take(3))
+              for (final value in const [1, 2, 4, 5, 6])
                 Padding(
                   padding: const EdgeInsetsDirectional.only(end: 2),
-                  child: ReactionEmoji(reaction.value, size: 20),
+                  child: ReactionEmoji(value, size: 20),
                 ),
             ],
           ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/theme/app_colors.dart';
 
@@ -58,10 +57,9 @@ class PostReaction {
     PostReaction(value: 5, emoji: '😔', label: 'حزن', color: Color(0xFF3B82F6)),
     PostReaction(
       value: 6,
-      emoji: '',
+      emoji: '👎',
       label: 'عدم إعجاب',
       color: Color(0xFF9CA3AF),
-      iconData: LucideIcons.thumbsDown,
     ),
   ];
 
