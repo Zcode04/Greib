@@ -727,7 +727,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
 
   // ---------- 4. أيقونات التفاعل + حالة الاتصال في الزاوية المقابلة ----------
   /// ★ إيموجي تفاعل مجمّعة بجوار المنشور (مثل فيسبوك): بلا دوائر ولا خلفيات
-  ///   ولا ظلال — الإيموجي وحده، متجاورة مع عدّاد التفاعل بعدها.
+  ///   ولا ظلال ولا عدّاد — الإيموجي وحده.
   Widget _reactionChips() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 16, 0),
@@ -739,19 +739,6 @@ class _ServicePostCardState extends State<ServicePostCard> {
               padding: const EdgeInsetsDirectional.only(end: 2),
               child: ReactionEmoji(reaction.value, size: 15),
             ),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              widget.likeCount ?? _countFor(80, 10),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: _secondary,
-                fontSize: 12.5,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
         ],
       ),
     );
