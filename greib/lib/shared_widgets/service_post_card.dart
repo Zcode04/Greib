@@ -737,7 +737,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
           for (final reaction in PostReaction.all.take(3))
             Padding(
               padding: const EdgeInsetsDirectional.only(end: 2),
-              child: ReactionEmoji(reaction.value, size: 15),
+              child: ReactionEmoji(reaction.value, size: 20),
             ),
         ],
       ),
