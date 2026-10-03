@@ -25,27 +25,17 @@ class QuickSettingsSheet extends StatelessWidget {
 
   const QuickSettingsSheet({super.key, this.items = const []});
 
-  /// البنود الافتراضية — [`context`] هو سياق الشاشة الأصلية (خارج الورقة)
-  /// حتى نستطيع فتح حوار تغيير الخلفية بعد إغلاق الورقة.
-  static List<QuickSettingsItem> defaultItemsFor(BuildContext context) => [
-        const QuickSettingsItem(
-          label: 'تغيير لون الخلفية',
-          icon: LucideIcons.palette,
-        ),
-        const QuickSettingsItem(
-          label: 'تغيير لون الخطوط',
-          icon: LucideIcons.type,
-        ),
-        const QuickSettingsItem(label: 'الأقسام', icon: LucideIcons.layoutGrid),
+  /// البنود الافتراضية — أيقونة ونص فقط (الحقول تُطوَّر لاحقاً).
+  static List<QuickSettingsItem> get defaultItems => const [
+        QuickSettingsItem(label: 'الأقسام', icon: LucideIcons.layoutGrid),
       ];
 
   static Future<void> show(
     BuildContext context, {
     List<QuickSettingsItem>? items,
   }) {
-    final resolved = (items == null || items.isEmpty)
-        ? defaultItemsFor(context)
-        : items;
+    final resolved =
+        (items == null || items.isEmpty) ? defaultItems : items;
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -61,7 +51,7 @@ class QuickSettingsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final resolved = items.isEmpty ? defaultItemsFor(context) : items;
+    final resolved = items.isEmpty ? defaultItems : items;
 
     return ConstrainedBox(
       constraints: BoxConstraints(
