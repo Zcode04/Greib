@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../core/theme/design_tokens.dart';
+import 'background_color_dialog.dart';
 
 class QuickSettingsItem {
   final String label;
@@ -25,16 +26,31 @@ class QuickSettingsSheet extends StatelessWidget {
 
   const QuickSettingsSheet({super.key, this.items = const []});
 
-  static List<QuickSettingsItem> get defaultItems => const [
-        QuickSettingsItem(label: 'تغيير لون الخلفية', icon: LucideIcons.palette),
-        QuickSettingsItem(label: 'تغيير لون الخطوط', icon: LucideIcons.type),
-        QuickSettingsItem(label: 'الأقسام', icon: LucideIcons.layoutGrid),
+  /// البنود الافتراضية — [`context`] هو سياق الشاشة الأصلية (خارج الورقة)
+  /// حتى نستطيع فتح حوار تغيير الخلفية بعد إغلاق الورقة.
+  static List<QuickSettingsItem> defaultItemsFor(BuildContext context) => [
+        QuickSettingsItem(
+          label: 'تغيير لون الخلفية',
+          icon: LucideIcons.palette,
+          onTap: () {
+            Navigator.of(context).pop();
+            BackgroundColorDialog.show(context);
+          },
+        ),
+        const QuickSettingsItem(
+          label: 'تغيير لون الخطوط',
+          icon: LucideIcons.type,
+        ),
+        const QuickSettingsItem(label: 'الأقسام', icon: LucideIcons.layoutGrid),
       ];
 
   static Future<void> show(
     BuildContext context, {
     List<QuickSettingsItem>? items,
   }) {
+    final resolved = (items == null || items.isEmpty)
+        ? defaultItemsFor(context)
+        : items;
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -43,14 +59,14 @@ class QuickSettingsSheet extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.xxl)),
       ),
-      builder: (_) => QuickSettingsSheet(items: items ?? const []),
+      builder: (_) => QuickSettingsSheet(items: resolved),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final resolved = items.isEmpty ? defaultItems : items;
+    final resolved = items.isEmpty ? defaultItemsFor(context) : items;
 
     return ConstrainedBox(
       constraints: BoxConstraints(

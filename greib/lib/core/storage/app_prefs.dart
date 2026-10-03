@@ -53,4 +53,13 @@ class AppPrefs {
   static Future<void> setLastTabIndex(int value) async {
     await _prefs?.setInt(AppConstants.keyLastTab, value);
   }
+
+  // ------------------- خلفية الصفحة الرئيسية (اختيار المستخدم) -------------------
+  /// فهرس الخلفية المختارة (0..9)، أو -1 عند عدم وجود اختيار.
+  static int get homeBackgroundIndex =>
+      _prefs?.getInt(AppConstants.keyHomeBackground) ?? -1;
+
+  static Future<void> setHomeBackgroundIndex(int value) async {
+    await _prefs?.setInt(AppConstants.keyHomeBackground, value);
+  }
 }

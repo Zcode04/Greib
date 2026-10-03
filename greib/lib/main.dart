@@ -6,6 +6,7 @@ import 'core/notifications/notification_manager.dart';
 import 'core/storage/app_prefs.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
+import 'core/theme/home_background_controller.dart';
 import 'core/router/app_router.dart';
 import 'features/auth/auth_service.dart';
 import 'features/services/data/account_repository.dart';
@@ -31,6 +32,10 @@ Widget buildGreibMenkApp() {
   return MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => ThemeController()),
+      // خلفية الصفحة الرئيسية (اختيار المستخدم) — لا تمسّ بقية الصفحات.
+      ChangeNotifierProvider(
+        create: (_) => HomeBackgroundController()..loadFromPrefs(),
+      ),
       ChangeNotifierProvider<AuthService>.value(value: AuthService.instance),
       ChangeNotifierProvider<NotificationManager>.value(
         value: NotificationManager.instance,
