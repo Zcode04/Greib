@@ -8,6 +8,7 @@ import '../notifications/notification_manager.dart';
 import '../theme/app_colors.dart';
 import '../theme/design_tokens.dart';
 import '../theme/theme_controller.dart';
+import '../../shared_widgets/quick_settings_sheet.dart';
 import 'header_collapse_state.dart';
 
 /// ============================================================================
@@ -21,7 +22,10 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget>? extraActions;
   final bool showBackButton;
 
-  const SuperHeader({super.key, this.title, this.onMore, this.extraActions, this.showBackButton = false});
+  /// الأدوات المعروضة داخل الورقة (فارغة = الافتراضي).
+  final List<QuickSettingsItem> settingsItems;
+
+  const SuperHeader({super.key, this.title, this.onMore, this.extraActions, this.showBackButton = false, this.settingsItems = const []});
 
   @override
   Size get preferredSize => const Size.fromHeight(64);
@@ -126,7 +130,7 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                                 iconSize: iconSize,
                                 icon: LucideIcons.ellipsisVertical,
                                 color: theme.colorScheme.onSurface,
-                                onPressed: () => onMore?.call(),
+                                onPressed: onMore ?? () => QuickSettingsSheet.show(context, items: settingsItems),
                                 tooltip: 'المزيد',
                               ),
                             ),

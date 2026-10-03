@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/theme/theme_controller.dart';
+import 'quick_settings_sheet.dart';
 
 import '../core/permissions/permissions.dart';
 import '../core/notifications/notification_manager.dart';
@@ -18,12 +19,16 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
 
   /// زر فتح القائمة الجانبية (Drawer) — يُستخدم في الهيكل الرئيسي فقط.
   final bool showMenuButton;
+
+  /// زر فتح ورقة الإعدادات السريعة (⋮).
+  final bool showQuickSettings;
   final List<Widget>? actions;
 
   bool get hasActions =>
       showSearchButton ||
       showDarkModeToggle ||
       showNotifications ||
+      showQuickSettings ||
       (actions?.isNotEmpty ?? false);
 
   const Header({
@@ -34,6 +39,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
     this.showDarkModeToggle = true,
     this.showSearchButton = true,
     this.showMenuButton = false,
+    this.showQuickSettings = false,
     this.actions,
   });
 
@@ -180,6 +186,12 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                         ),
                         onPressed: () => context.push('/notifications'),
                         tooltip: 'الإشعارات',
+                      ),
+                    if (showQuickSettings)
+                      IconButton(
+                        icon: Icon(LucideIcons.ellipsisVertical, size: iconSize),
+                        onPressed: () => QuickSettingsSheet.show(context),
+                        tooltip: 'المزيد',
                       ),
                     ...?actions,
                   ],
