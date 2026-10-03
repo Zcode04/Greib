@@ -140,11 +140,27 @@ class _ServicePostCardState extends State<ServicePostCard> {
   int get _effectiveReaction =>
       PostReaction.normalize(widget.reaction ?? _reaction);
 
-  /// ★ إيموجي التفاعل المعروض داخل زر التفاعل (بلا تفاعل ⇒ أيقونة الإبهام).
-  String get _effectiveEmoji =>
-      ReactionEmoji.emojiOf(_effectiveReaction).isEmpty
-      ? ReactionEmoji.emojiOf(1)
-      : ReactionEmoji.emojiOf(_effectiveReaction);
+  /// ★ widget التفاعل داخل زر التفاعل:
+  ///   • reaction 0 (بلا تفاعل) ⇒ LucideIcons.thumbsUp بلون ثانوي (مفرغ).
+  ///   • reaction 1 (إعجاب)      ⇒ LucideIcons.thumbsUp بلون الإعجاب (ملوّن).
+  ///   • reaction 2..5           ⇒ إيموجي النظام (❤️ 🥺 😮 😔).
+  Widget _reactionIconWidget(double size) {
+    final r = _effectiveReaction;
+    if (r <= 1) {
+      // 0 = لا تفاعل ⇒ أيقونة فارغة، 1 = إعجاب ⇒ أيقونة ملوّنة.
+      return Icon(
+        LucideIcons.thumbsUp,
+        size: size,
+        color: _effectiveReactionColor,
+      );
+    }
+    // تفاعلات أخرى: إيموجي يبقى كما هو.
+    return Text(
+      ReactionEmoji.emojiOf(r),
+      textScaler: TextScaler.noScaling,
+      style: TextStyle(fontSize: size, height: 1.1),
+    );
+  }
 
   /// لون الإيموجي المختار في الزر (بلا تفاعل ⇒ لون ثانوي).
   Color get _effectiveReactionColor {
@@ -782,7 +798,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
                   flex: 2,
                   child: _pillButton(
                     grouped: true,
-                    emoji: _effectiveEmoji,
+                    iconWidget: _reactionIconWidget(20),
                     color: _effectiveReactionColor,
                     count: widget.likeCount ?? _countFor(80, 10),
                     onTap: _cycleReaction,
