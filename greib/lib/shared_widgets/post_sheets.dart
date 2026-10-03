@@ -876,6 +876,39 @@ class PostReactionSheetState extends State<PostReactionSheet> {
     final active = _current == reaction.value;
     final hovered = _hovered == reaction.value;
 
+    // ★ المحتوى: أيقونة Lucide إذا وُجدت iconData، وإلا إيموجي نظام.
+    Widget iconChild;
+    if (reaction.iconData != null) {
+      iconChild = Icon(
+        reaction.iconData,
+        size: 30,
+        color: active || hovered ? reaction.color : reaction.color.withValues(alpha: 0.5),
+        shadows: [
+          if (active || hovered)
+            Shadow(
+              color: reaction.color.withValues(alpha: 0.55),
+              blurRadius: 12,
+            ),
+        ],
+      );
+    } else {
+      iconChild = Text(
+        reaction.emoji,
+        textScaler: TextScaler.noScaling,
+        style: TextStyle(
+          fontSize: 30,
+          height: 1.1,
+          shadows: [
+            if (active || hovered)
+              Shadow(
+                color: reaction.color.withValues(alpha: 0.55),
+                blurRadius: 12,
+              ),
+          ],
+        ),
+      );
+    }
+
     return Expanded(
       child: InkWell(
         borderRadius: BorderRadius.circular(999),
@@ -894,21 +927,7 @@ class PostReactionSheetState extends State<PostReactionSheet> {
                 scale: active ? 1.35 : (hovered ? 1.25 : 1),
                 duration: const Duration(milliseconds: 160),
                 curve: Curves.easeOutBack,
-                child: Text(
-                  reaction.emoji,
-                  textScaler: TextScaler.noScaling,
-                  style: TextStyle(
-                    fontSize: 30,
-                    height: 1.1,
-                    shadows: [
-                      if (active || hovered)
-                        Shadow(
-                          color: reaction.color.withValues(alpha: 0.55),
-                          blurRadius: 12,
-                        ),
-                    ],
-                  ),
-                ),
+                child: iconChild,
               ),
               const SizedBox(height: 4),
               AnimatedOpacity(
@@ -988,7 +1007,11 @@ class PostReactionSheetState extends State<PostReactionSheet> {
                   ),
                 ),
               ),
-              ReactionEmoji(value, size: 18),
+              // ★ أيقونة Lucide لتفاعلات iconData، وإيموجي للباقي.
+              if (reaction.iconData != null)
+                Icon(reaction.iconData, size: 18, color: reaction.color)
+              else
+                ReactionEmoji(value, size: 18),
             ],
           ),
         );

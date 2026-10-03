@@ -143,18 +143,23 @@ class _ServicePostCardState extends State<ServicePostCard> {
   /// ★ widget التفاعل داخل زر التفاعل:
   ///   • reaction 0 (بلا تفاعل) ⇒ LucideIcons.thumbsUp بلون ثانوي (مفرغ).
   ///   • reaction 1 (إعجاب)      ⇒ LucideIcons.thumbsUp بلون الإعجاب (ملوّن).
+  ///   • reaction 6 (عدم إعجاب) ⇒ LucideIcons.thumbsDown بلون رمادي.
   ///   • reaction 2..5           ⇒ إيموجي النظام (❤️ 🥺 😮 😔).
   Widget _reactionIconWidget(double size) {
     final r = _effectiveReaction;
-    if (r <= 1) {
-      // 0 = لا تفاعل ⇒ أيقونة فارغة، 1 = إعجاب ⇒ أيقونة ملوّنة.
-      return Icon(
-        LucideIcons.thumbsUp,
-        size: size,
-        color: _effectiveReactionColor,
-      );
+    if (r == 0) {
+      // بلا تفاعل ⇒ thumbsUp فارغة (لون ثانوي).
+      return Icon(LucideIcons.thumbsUp, size: size, color: _effectiveReactionColor);
     }
-    // تفاعلات أخرى: إيموجي يبقى كما هو.
+    final reaction = PostReaction.byValue(r);
+    if (reaction?.iconData != null) {
+      // تفاعل يحمل أيقونة Lucide (مثل عدم الإعجاب) ⇒ نعرضها مباشرةً.
+      return Icon(reaction!.iconData, size: size, color: _effectiveReactionColor);
+    }
+    // تفاعلات الإيموجي (إعجاب 👍، حب، دهشة، حزن).
+    if (r == 1) {
+      return Icon(LucideIcons.thumbsUp, size: size, color: _effectiveReactionColor);
+    }
     return Text(
       ReactionEmoji.emojiOf(r),
       textScaler: TextScaler.noScaling,

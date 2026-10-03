@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/theme/app_colors.dart';
 
@@ -18,6 +19,7 @@ class PostReaction {
     required this.emoji,
     required this.label,
     required this.color,
+    this.iconData,
   });
 
   /// مفتاح التفاعل (يُحفظ في حالة المنشور).
@@ -31,6 +33,10 @@ class PostReaction {
 
   /// اللون (لون الأيقونة في الزر + لون الإطار المميّز).
   final Color color;
+
+  /// ★ أيقونة Lucide بدل الإيموجي — يُستخدم في الزر والشيت معاً.
+  ///   عند تمريره يتجاهل الشيت emoji ويعرض الأيقونة بدلاً منها.
+  final IconData? iconData;
 
   /// ★ كل التفاعلات المعروضة (مثل فيسبوك): إعجاب، حب، اهتمام، دهشة، حزن.
   ///   (تم حذف «ضحك» و«غضب» من المجموعة.)
@@ -50,6 +56,13 @@ class PostReaction {
       color: Color(0xFF8B5CF6),
     ),
     PostReaction(value: 5, emoji: '😔', label: 'حزن', color: Color(0xFF3B82F6)),
+    PostReaction(
+      value: 6,
+      emoji: '',
+      label: 'عدم إعجاب',
+      color: Color(0xFF9CA3AF),
+      iconData: LucideIcons.thumbsDown,
+    ),
   ];
 
   /// تفاعل غير معروف ⇒ null (لا نخترع إيموجي).
@@ -64,7 +77,7 @@ class PostReaction {
   ///   1 ⇒ إعجاب، -1 ⇒ حزن، 6/7 (المحذوفات) ⇒ بلا تفاعل، وما عداه ⇒ بلا.
   static int normalize(int value) {
     if (value == -1) return 5;
-    return (value >= 1 && value <= 5) ? value : 0;
+    return (value >= 1 && value <= 6) ? value : 0;
   }
 
   /// الإيموجي المقابل للقيمة (سريع للعرض داخل البطاقة).
