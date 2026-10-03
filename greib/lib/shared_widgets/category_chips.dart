@@ -47,7 +47,9 @@ class CategoryChips extends StatelessWidget {
               side: isSelected
                   ? BorderSide.none
                   : BorderSide(
-                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.outline.withValues(alpha: 0.2),
                     ),
             ),
           );

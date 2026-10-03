@@ -26,10 +26,7 @@ class RatingStars extends StatelessWidget {
       children: [
         Text(
           rating.toStringAsFixed(1),
-          style: TextStyle(
-            fontSize: size * 0.9,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: size * 0.9, fontWeight: FontWeight.bold),
         ),
         const SizedBox(width: AppSpacing.xs),
         ...List.generate(count, (index) {

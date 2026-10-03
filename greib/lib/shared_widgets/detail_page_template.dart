@@ -85,12 +85,16 @@ class DetailPageTemplate extends StatelessWidget {
                           : AppColors.lightSurface.withValues(alpha: 0.9),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isDark ? AppColors.outline : AppColors.lightOutline,
+                        color: isDark
+                            ? AppColors.outline
+                            : AppColors.lightOutline,
                       ),
                     ),
                     child: IconButton(
                       icon: const Icon(LucideIcons.arrowLeft, size: 18),
-                      onPressed: () { if (context.canPop()) context.pop(); },
+                      onPressed: () {
+                        if (context.canPop()) context.pop();
+                      },
                     ),
                   ),
                   flexibleSpace: FlexibleSpaceBar(
@@ -123,11 +127,7 @@ class DetailPageTemplate extends StatelessWidget {
                             ),
                             boxShadow: AppShadows.glowGreen,
                           ),
-                          child: Icon(
-                            icon,
-                            size: 56,
-                            color: accentColor,
-                          ),
+                          child: Icon(icon, size: 56, color: accentColor),
                         ),
                       ),
                     ),
@@ -160,7 +160,9 @@ class DetailPageTemplate extends StatelessWidget {
                         const SizedBox(height: AppSpacing.lg),
 
                         // صف التفاصيل (سعر/وقت/تقييم)
-                        if (price != null || deliveryTime != null || rating != null)
+                        if (price != null ||
+                            deliveryTime != null ||
+                            rating != null)
                           Row(
                             children: [
                               if (price != null)
@@ -251,14 +253,14 @@ class _DetailChip extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadii.full),
-        border: Border.all(
-          color: color.withValues(alpha: 0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

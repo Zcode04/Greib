@@ -25,30 +25,33 @@ class PriceTag extends StatelessWidget {
       children: [
         Text(
           price.toStringAsFixed(0),
-          style: style ??
+          style:
+              style ??
               Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
         ),
         const SizedBox(width: AppSpacing.xs),
         Text(
           currency,
-          style: style?.copyWith(fontSize: (style?.fontSize ?? 16) * 0.7) ??
+          style:
+              style?.copyWith(fontSize: (style?.fontSize ?? 16) * 0.7) ??
               Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
         ),
         if (oldPrice != null) ...[
           const SizedBox(width: AppSpacing.sm),
           Text(
             '${oldPrice!.toStringAsFixed(0)} $currency',
-            style: oldPriceStyle ??
+            style:
+                oldPriceStyle ??
                 Theme.of(context).textTheme.bodySmall?.copyWith(
-                      decoration: TextDecoration.lineThrough,
-                      color: Colors.grey,
-                    ),
+                  decoration: TextDecoration.lineThrough,
+                  color: Colors.grey,
+                ),
           ),
         ],
       ],

@@ -32,15 +32,14 @@ class QuickSettingsSheet extends StatefulWidget {
 
   /// البنود الافتراضية — أيقونة ونص فقط.
   static List<QuickSettingsItem> get defaultItems => const [
-        QuickSettingsItem(label: 'الأقسام', icon: LucideIcons.layoutGrid),
-      ];
+    QuickSettingsItem(label: 'الأقسام', icon: LucideIcons.layoutGrid),
+  ];
 
   static Future<void> show(
     BuildContext context, {
     List<QuickSettingsItem>? items,
   }) {
-    final resolved =
-        (items == null || items.isEmpty) ? defaultItems : items;
+    final resolved = (items == null || items.isEmpty) ? defaultItems : items;
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -244,9 +243,7 @@ class _QuickSettingsSheetState extends State<QuickSettingsSheet> {
             decoration: BoxDecoration(
               color: accent.withValues(alpha: isSelected ? 0.18 : 0.10),
               borderRadius: BorderRadius.circular(AppRadii.sm),
-              border: isSelected
-                  ? Border.all(color: accent, width: 1.5)
-                  : null,
+              border: isSelected ? Border.all(color: accent, width: 1.5) : null,
             ),
             child: Icon(
               index == 0 ? LucideIcons.layoutGrid : LucideIcons.chevronLeft,

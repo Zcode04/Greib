@@ -14,7 +14,9 @@ class StoreCategoryTabsCompact extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = isDark ? AppColors.accentPrimary : AppColors.accentPrimaryDark;
+    final accent = isDark
+        ? AppColors.accentPrimary
+        : AppColors.accentPrimaryDark;
     return ValueListenableBuilder<String>(
       valueListenable: StoreSelectedCategory.notifier,
       builder: (context, selected, _) {
@@ -34,13 +36,38 @@ class StoreCategoryTabsCompact extends StatelessWidget {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 220),
                   curve: Curves.easeInOut,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? accent : (isDark ? AppColors.surfaceCard : AppColors.lightSurfaceVariant),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: isSelected ? Colors.transparent : (isDark ? AppColors.outline : AppColors.lightOutline), width: 1),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
                   ),
-                  child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: isSelected ? (isDark ? Colors.black : Colors.white) : (isDark ? AppColors.textSecondary : AppColors.lightTextSecondary))),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? accent
+                        : (isDark
+                              ? AppColors.surfaceCard
+                              : AppColors.lightSurfaceVariant),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: isSelected
+                          ? Colors.transparent
+                          : (isDark
+                                ? AppColors.outline
+                                : AppColors.lightOutline),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected
+                          ? (isDark ? Colors.black : Colors.white)
+                          : (isDark
+                                ? AppColors.textSecondary
+                                : AppColors.lightTextSecondary),
+                    ),
+                  ),
                 ),
               );
             },
@@ -56,7 +83,9 @@ class StoreCategoryTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = isDark ? AppColors.accentPrimary : AppColors.accentPrimaryDark;
+    final accent = isDark
+        ? AppColors.accentPrimary
+        : AppColors.accentPrimaryDark;
     return ValueListenableBuilder<String>(
       valueListenable: StoreSelectedCategory.notifier,
       builder: (context, selected, _) {
@@ -76,14 +105,47 @@ class StoreCategoryTabs extends StatelessWidget {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 220),
                   curve: Curves.easeInOut,
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: isSelected ? accent : (isDark ? AppColors.surfaceCard : AppColors.lightSurfaceVariant),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: isSelected ? Colors.transparent : (isDark ? AppColors.outline : AppColors.lightOutline), width: 1),
-                    boxShadow: isSelected ? [BoxShadow(color: accent.withValues(alpha: 0.35), blurRadius: 10, offset: const Offset(0, 4))] : null,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 10,
                   ),
-                  child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: isSelected ? (isDark ? Colors.black : Colors.white) : (isDark ? AppColors.textSecondary : AppColors.lightTextSecondary))),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? accent
+                        : (isDark
+                              ? AppColors.surfaceCard
+                              : AppColors.lightSurfaceVariant),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isSelected
+                          ? Colors.transparent
+                          : (isDark
+                                ? AppColors.outline
+                                : AppColors.lightOutline),
+                      width: 1,
+                    ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: accent.withValues(alpha: 0.35),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected
+                          ? (isDark ? Colors.black : Colors.white)
+                          : (isDark
+                                ? AppColors.textSecondary
+                                : AppColors.lightTextSecondary),
+                    ),
+                  ),
                 ),
               );
             },

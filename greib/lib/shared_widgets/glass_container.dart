@@ -107,13 +107,15 @@ class GlassContainer extends StatelessWidget {
     return Container(
       margin: margin,
       decoration: BoxDecoration(
-        boxShadow: hasGlow ? [
-          BoxShadow(
-            color: baseColor.withValues(alpha: 0.2),
-            blurRadius: 30,
-            spreadRadius: -5,
-          )
-        ] : boxShadow,
+        boxShadow: hasGlow
+            ? [
+                BoxShadow(
+                  color: baseColor.withValues(alpha: 0.2),
+                  blurRadius: 30,
+                  spreadRadius: -5,
+                ),
+              ]
+            : boxShadow,
         borderRadius: rad,
       ),
       child: ClipRRect(
@@ -134,10 +136,12 @@ class GlassContainer extends StatelessWidget {
                 ],
               ),
               borderRadius: rad,
-              border: border ?? Border.all(
-                color: baseColor.withValues(alpha: isDark ? 0.2 : 0.1),
-                width: 1.0,
-              ),
+              border:
+                  border ??
+                  Border.all(
+                    color: baseColor.withValues(alpha: isDark ? 0.2 : 0.1),
+                    width: 1.0,
+                  ),
             ),
             child: child,
           ),

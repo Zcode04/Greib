@@ -30,12 +30,13 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final effectiveColor = color ??
+    final effectiveColor =
+        color ??
         (type == ButtonType.danger
             ? AppColors.error
             : type == ButtonType.secondary
-                ? AppColors.secondary
-                : theme.colorScheme.primary);
+            ? AppColors.secondary
+            : theme.colorScheme.primary);
 
     final isEnabled = onPressed != null && !isLoading;
 
@@ -77,7 +78,10 @@ class AppButton extends StatelessWidget {
           onPressed: isEnabled ? onPressed : null,
           style: TextButton.styleFrom(
             foregroundColor: effectiveColor,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.md,
+            ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadii.full),
             ),
@@ -87,15 +91,23 @@ class AppButton extends StatelessWidget {
       );
     }
 
-    if (type == ButtonType.secondary || type == ButtonType.danger || isOutlined) {
+    if (type == ButtonType.secondary ||
+        type == ButtonType.danger ||
+        isOutlined) {
       return SizedBox(
         width: isFullWidth ? double.infinity : null,
         child: OutlinedButton(
           onPressed: isEnabled ? onPressed : null,
           style: OutlinedButton.styleFrom(
             foregroundColor: effectiveColor,
-            side: BorderSide(color: effectiveColor.withValues(alpha: 0.5), width: 1.5),
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
+            side: BorderSide(
+              color: effectiveColor.withValues(alpha: 0.5),
+              width: 1.5,
+            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xl,
+              vertical: AppSpacing.md,
+            ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadii.full),
             ),
@@ -112,7 +124,10 @@ class AppButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: effectiveColor,
           foregroundColor: Colors.black,
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xl,
+            vertical: AppSpacing.md,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadii.full),
           ),
@@ -157,9 +172,7 @@ class IconButtonWidget extends StatelessWidget {
       icon: Icon(icon, color: color ?? theme.colorScheme.onSurface, size: size),
       onPressed: onPressed,
       tooltip: tooltip,
-      style: IconButton.styleFrom(
-        padding: const EdgeInsets.all(AppSpacing.sm),
-      ),
+      style: IconButton.styleFrom(padding: const EdgeInsets.all(AppSpacing.sm)),
     );
   }
 }

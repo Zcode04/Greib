@@ -131,7 +131,7 @@ class ServicePostCard extends StatefulWidget {
 }
 
 class _ServicePostCardState extends State<ServicePostCard> {
-  /// 0 = بلا تفاعل، 1..5 = تفاعلات فيسبوك (إعجاب/حب/دهشة/حزن/غضب).
+  /// 0 = بلا تفاعل، 1..5 = تفاعلات فيسبوك (إعجاب/حب/اهتمام/دهشة/حزن).
   int _reaction = 0;
   bool _isSaved = false;
 

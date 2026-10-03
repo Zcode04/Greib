@@ -50,9 +50,9 @@ class FloatingBottomNav extends StatelessWidget {
     required this.currentIndex,
     required this.onTap,
   }) : assert(
-          items.length >= 2 && items.length <= 5,
-          'استخدم بين 2 و5 عناصر ليبقى الشكل متوازناً',
-        );
+         items.length >= 2 && items.length <= 5,
+         'استخدم بين 2 و5 عناصر ليبقى الشكل متوازناً',
+       );
 
   @override
   Widget build(BuildContext context) {
@@ -129,8 +129,12 @@ class _NavTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = isDark ? AppColors.accentPrimary : AppColors.accentPrimaryDark;
-    final inactiveColor = isDark ? AppColors.textTertiary : AppColors.lightTextSecondary;
+    final activeColor = isDark
+        ? AppColors.accentPrimary
+        : AppColors.accentPrimaryDark;
+    final inactiveColor = isDark
+        ? AppColors.textTertiary
+        : AppColors.lightTextSecondary;
     final iconColor = selected ? activeColor : inactiveColor;
 
     return Semantics(
@@ -151,8 +155,9 @@ class _NavTile extends StatelessWidget {
               height: selected ? 32 : 28,
               decoration: BoxDecoration(
                 color: selected
-                    ? AppColors.accentPrimary
-                        .withValues(alpha: isDark ? 0.2 : 0.12)
+                    ? AppColors.accentPrimary.withValues(
+                        alpha: isDark ? 0.2 : 0.12,
+                      )
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),

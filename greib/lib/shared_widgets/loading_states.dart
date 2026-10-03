@@ -32,9 +32,10 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
       vsync: this,
     )..repeat(reverse: true);
 
-    _animation = Tween<double>(begin: 0.3, end: 0.7).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: 0.3,
+      end: 0.7,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -47,7 +48,9 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final baseColor = isDark ? AppColors.surfaceOverlay : AppColors.neutral200;
-    final highlightColor = isDark ? AppColors.outlineLight : AppColors.neutral100;
+    final highlightColor = isDark
+        ? AppColors.outlineLight
+        : AppColors.neutral100;
 
     return AnimatedBuilder(
       animation: _animation,
@@ -56,8 +59,8 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
           width: widget.width,
           height: widget.height,
           decoration: BoxDecoration(
-            borderRadius: widget.borderRadius ??
-                BorderRadius.circular(AppRadii.sm),
+            borderRadius:
+                widget.borderRadius ?? BorderRadius.circular(AppRadii.sm),
             gradient: LinearGradient(
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
@@ -78,10 +81,7 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
 class SkeletonCard extends StatelessWidget {
   final double height;
 
-  const SkeletonCard({
-    super.key,
-    this.height = 120,
-  });
+  const SkeletonCard({super.key, this.height = 120});
 
   @override
   Widget build(BuildContext context) {

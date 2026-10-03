@@ -32,19 +32,24 @@ class PostReaction {
   /// اللون (لون الأيقونة في الزر + لون الإطار المميّز).
   final Color color;
 
-  /// ★ كل التفاعلات المعروضة (مثل فيسبوك): إعجاب، حب، دهشة، حزن، غضب.
-  ///   (تم حذف «اهتمام» و«ضحك» من المجموعة.)
+  /// ★ كل التفاعلات المعروضة (مثل فيسبوك): إعجاب، حب، اهتمام، دهشة، حزن.
+  ///   (تم حذف «ضحك» و«غضب» من المجموعة.)
   static const List<PostReaction> all = [
     PostReaction(value: 1, emoji: '👍', label: 'إعجاب', color: AppColors.info),
     PostReaction(value: 2, emoji: '❤️', label: 'حب', color: Color(0xFFE5484D)),
     PostReaction(
       value: 3,
+      emoji: '🥺',
+      label: 'اهتمام',
+      color: Color(0xFFF2A33C),
+    ),
+    PostReaction(
+      value: 4,
       emoji: '😮',
       label: 'دهشة',
       color: Color(0xFF8B5CF6),
     ),
-    PostReaction(value: 4, emoji: '😔', label: 'حزن', color: Color(0xFF3B82F6)),
-    PostReaction(value: 5, emoji: '😡', label: 'غضب', color: AppColors.error),
+    PostReaction(value: 5, emoji: '😔', label: 'حزن', color: Color(0xFF3B82F6)),
   ];
 
   /// تفاعل غير معروف ⇒ null (لا نخترع إيموجي).
@@ -56,10 +61,9 @@ class PostReaction {
   }
 
   /// ★ توحيد القيم القديمة/المحذوفة على المجموعة الحالية:
-  ///   1 ⇒ إعجاب، -1 ⇒ حزن، 4/7 (ضحك/غضب القديم) ⇒ غضب، وما عداه ⇒ بلا.
+  ///   1 ⇒ إعجاب، -1 ⇒ حزن، 6/7 (المحذوفات) ⇒ بلا تفاعل، وما عداه ⇒ بلا.
   static int normalize(int value) {
-    if (value == -1) return 4;
-    if (value == 7) return 5;
+    if (value == -1) return 5;
     return (value >= 1 && value <= 5) ? value : 0;
   }
 

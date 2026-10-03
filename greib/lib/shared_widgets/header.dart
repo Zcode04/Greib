@@ -189,7 +189,10 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                       ),
                     if (showQuickSettings)
                       IconButton(
-                        icon: Icon(LucideIcons.ellipsisVertical, size: iconSize),
+                        icon: Icon(
+                          LucideIcons.ellipsisVertical,
+                          size: iconSize,
+                        ),
                         onPressed: () => QuickSettingsSheet.show(context),
                         tooltip: 'المزيد',
                       ),

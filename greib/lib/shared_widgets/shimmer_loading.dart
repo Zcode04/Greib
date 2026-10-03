@@ -51,15 +51,13 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
           height: widget.height,
           decoration: BoxDecoration(
             shape: widget.shape,
-            borderRadius: widget.shape == BoxShape.circle ? null : (widget.borderRadius ?? BorderRadius.circular(12)),
+            borderRadius: widget.shape == BoxShape.circle
+                ? null
+                : (widget.borderRadius ?? BorderRadius.circular(12)),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                baseColor,
-                highlightColor,
-                baseColor,
-              ],
+              colors: [baseColor, highlightColor, baseColor],
               stops: [
                 _controller.value - 0.3,
                 _controller.value,

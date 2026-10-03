@@ -74,8 +74,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
   int _currentIndex = 0;
 
   /// ★ فهرس تبويب «الرئيسية» (يُشتق من القائمة بدل رقم ثابت).
-  static int get _homeTabIndex =>
-      _tabs.indexWhere((t) => t.route == '/home');
+  static int get _homeTabIndex => _tabs.indexWhere((t) => t.route == '/home');
 
   /// ★ عدد التبويبات التي تبني محتوى الـ Shell (بدون «البحث»).
   ///   «البحث» يفتح صفحة مستقلة، فلا يُحفظ كمؤشر نشط.
@@ -147,8 +146,9 @@ class _MainShellScreenState extends State<MainShellScreen> {
     final activeTab = _tabs[_currentIndex];
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final scaffoldBg =
-        isDark ? AppColors.background : AppColors.lightBackground;
+    final scaffoldBg = isDark
+        ? AppColors.background
+        : AppColors.lightBackground;
 
     // ★ نُخفي العنوان في تبويب «الرئيسية» فقط (حيث يظهر شعار التطبيق بدله).
     final isHomeTab = _currentIndex == _homeTabIndex;
@@ -182,11 +182,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
             left: 0,
             right: 0,
             height: 28,
-            child: IgnorePointer(
-              child: _EdgeFadeStrip(
-                fromTop: false,
-              ),
-            ),
+            child: IgnorePointer(child: _EdgeFadeStrip(fromTop: false)),
           ),
         ],
       ),
@@ -194,12 +190,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
         currentIndex: _currentIndex,
         onTap: _onTabSelected,
         items: _tabs
-            .map(
-              (tab) => FloatingNavItem(
-                icon: tab.icon,
-                label: tab.label,
-              ),
-            )
+            .map((tab) => FloatingNavItem(icon: tab.icon, label: tab.label))
             .toList(),
       ),
     );
@@ -211,9 +202,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
 class _EdgeFadeStrip extends StatelessWidget {
   final bool fromTop;
 
-  const _EdgeFadeStrip({
-    required this.fromTop,
-  });
+  const _EdgeFadeStrip({required this.fromTop});
 
   @override
   Widget build(BuildContext context) {
