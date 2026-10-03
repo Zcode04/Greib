@@ -726,26 +726,25 @@ class _ServicePostCardState extends State<ServicePostCard> {
   }
 
   // ---------- 4. أيقونات التفاعل + حالة الاتصال في الزاوية المقابلة ----------
-  /// ★ إيموجي تفاعل مجمّعة فوق أزرار الإجراءات (مثل فيسبوك): ثلاث دوائر
-  ///   متجاورة، كل واحدة بلون تفاعلها.
+  /// ★ إيموجي تفاعل مجمّعة بجوار المنشور (مثل فيسبوك): بلا دوائر ولا خلفيات
+  ///   ولا ظلال — الإيموجي وحده، متجاورة مع عدّاد التفاعل بعدها.
   Widget _reactionChips() {
-    final chips = <Widget>[
-      for (final reaction in PostReaction.all.take(3))
-        _reactionChip(reaction.emoji, reaction.color),
-    ];
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 16, 0),
-      child: Stack(
-        clipBehavior: Clip.none,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(mainAxisSize: MainAxisSize.min, children: chips),
-          // عدّاد التفاعل على يسار الحزمة (يمين بصرياً بعد التداخل).
-          PositionedDirectional(
-            start: -34,
-            top: 3,
+          for (final reaction in PostReaction.all.take(3))
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 2),
+              child: ReactionEmoji(reaction.value, size: 15),
+            ),
+          const SizedBox(width: 6),
+          Flexible(
             child: Text(
               widget.likeCount ?? _countFor(80, 10),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: _secondary,
                 fontSize: 12.5,
@@ -754,32 +753,6 @@ class _ServicePostCardState extends State<ServicePostCard> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _reactionChip(String emoji, Color color) {
-    final ring = widget.isDark
-        ? AppColors.background
-        : AppColors.lightBackground;
-
-    return Container(
-      width: 20,
-      height: 20,
-      margin: const EdgeInsetsDirectional.only(end: 2),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color.withValues(alpha: 0.14),
-        border: Border.all(color: ring, width: 1.5),
-        boxShadow: [
-          BoxShadow(color: color.withValues(alpha: 0.25), blurRadius: 6),
-        ],
-      ),
-      child: Text(
-        emoji,
-        textScaler: TextScaler.noScaling,
-        style: const TextStyle(fontSize: 12, height: 1.1),
       ),
     );
   }
