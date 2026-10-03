@@ -140,12 +140,11 @@ class _ServicePostCardState extends State<ServicePostCard> {
   int get _effectiveReaction =>
       PostReaction.normalize(widget.reaction ?? _reaction);
 
-  /// ★ شكل التفاعل المعروض داخل زر التفاعل (بلا تفاعل ⇒ أيقونة الإبهام لأعلى).
-  Widget get _effectiveGlyph => ReactionGlyph(
-    _effectiveReaction == 0 ? 1 : _effectiveReaction,
-    size: 20,
-    color: _effectiveReactionColor,
-  );
+  /// ★ إيموجي التفاعل المعروض داخل زر التفاعل (بلا تفاعل ⇒ أيقونة الإبهام).
+  String get _effectiveEmoji =>
+      ReactionEmoji.emojiOf(_effectiveReaction).isEmpty
+      ? ReactionEmoji.emojiOf(1)
+      : ReactionEmoji.emojiOf(_effectiveReaction);
 
   /// لون الإيموجي المختار في الزر (بلا تفاعل ⇒ لون ثانوي).
   Color get _effectiveReactionColor {
@@ -746,7 +745,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
               for (final reaction in PostReaction.all.take(3))
                 Padding(
                   padding: const EdgeInsetsDirectional.only(end: 2),
-                  child: ReactionGlyph(reaction.value, size: 20),
+                  child: ReactionEmoji(reaction.value, size: 20),
                 ),
             ],
           ),
@@ -783,7 +782,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
                   flex: 2,
                   child: _pillButton(
                     grouped: true,
-                    iconWidget: _effectiveGlyph,
+                    emoji: _effectiveEmoji,
                     color: _effectiveReactionColor,
                     count: widget.likeCount ?? _countFor(80, 10),
                     onTap: _cycleReaction,
