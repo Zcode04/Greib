@@ -7,6 +7,7 @@ import '../core/models/service_model.dart';
 import '../core/theme/app_colors.dart';
 import '../../features/communication_and_support/chat_screen.dart';
 import '../core/widgets/app_sheet.dart';
+import 'post_reaction.dart';
 
 /// ============================================================================
 ///  PostSheets — أوراق (Bottom Sheets) المشتركة لكل منشور في التطبيق.
@@ -43,7 +44,16 @@ class PostSheetsController extends ChangeNotifier {
   /// تعليقات كل منشور (بيانات وهمية + ما يكتبه المستخدم داخل الورقة).
   final Map<String, List<PostComment>> _comments = {};
 
-  /// أسماء مستخدمين وهميين (كما يعرض فيسبوك من تفاعلوا مع المنشور).
+  /// أسماء مستخدمين وهميين (كما يعرض فيسبوك من تفاعلوا مع المنشور)،
+  /// موزّعين على تفاعلات مختلفة ليراها المستخدم داخل ورقة التفاعل.
+  static const Map<int, List<String>> kMockReactedUsers = {
+    1: ['سارة', 'محمد', 'ريم', 'خالد', 'نور', 'يوسف'],
+    2: ['آية', 'سليم', 'مريم'],
+    4: ['هند', 'رامي', 'باسمة'],
+    7: ['ليان', 'عمر'],
+  };
+
+  /// قائمة قديمة للإعجاب (مستخدمة في الواجهات القديمة).
   static const List<String> kMockLikedUsers = [
     'سارة',
     'محمد',
@@ -59,7 +69,9 @@ class PostSheetsController extends ChangeNotifier {
 
   bool isFavorite(String postId) => _favorites.contains(postId);
 
-  int reactionOf(String postId) => _reactions[postId] ?? 0;
+  /// تفاعل المنشور مطبّعاً على النظام الجديد (0 = بلا، 1..7 = تفاعل).
+  int reactionOf(String postId) =>
+      PostReaction.normalize(_reactions[postId] ?? 0);
 
   /// عدد ثابت مشتق من معرّف المنشور ⇒ رقم إنجليزي ثابت بين عمليات البناء.
   static String countFor(String id, int span, int min) =>
@@ -77,7 +89,7 @@ class PostSheetsController extends ChangeNotifier {
   }
 
   void setReaction(String postId, int value) {
-    _reactions[postId] = value;
+    _reactions[postId] = PostReaction.normalize(value);
     notifyListeners();
   }
 
@@ -114,13 +126,17 @@ class PostSheetsController extends ChangeNotifier {
   }) {
     showAppSheet<void>(
       context,
-      builder: (_) => PostReactionSheet(
+      builder: (sheetContext) => PostReactionSheet(
         service: service,
         isDark: isDark,
-        likedUsers: kMockLikedUsers,
-        dislikedUsers: kMockDislikedUsers,
+        reactedUsers: kMockReactedUsers,
         current: reactionOf(postId),
-        onReact: (value) => setReaction(postId, value),
+        onReact: (value) {
+          setReaction(postId, value);
+          // ★ الاختيار يُغلق الورقة مباشرة (كما في فيسبوك) ليعود المستخدم
+          //   للبطاقة ويرى الإيموجي بجوار الأيقونات.
+          Navigator.of(sheetContext).maybePop();
+        },
       ),
     );
   }
@@ -810,28 +826,34 @@ class ImagePreviewDialogState extends State<ImagePreviewDialog>
 }
 
 /// ============================================================================
-///  PostReactionSheet — ورقة تفاعل المنشور (إعجاب / عدم إعجاب) + قائمة المتفاعلين.
+///  PostReactionSheet — ورقة تفاعل المنشور: صفّ إيموجي تفاعل + قائمة المتفاعلين.
 ///
-///  ★ سلوك محفوظ بعد توحيد البطاقة: الضغط على زر التفاعل يفتح هذه الورقة،
-///    ومن داخلها يختار المستخدم الإعجاب أو عدم الإعجاب، مع معاينة قائمة من
-///    تفاعلوا (كما يعرض فيسبوك).
+///  ★ الضغط على زر التفاعل في البطاقة يفتح هذه الورقة، ومن داخلها يختار
+///    المستخدم واحداً من تفاعلات فيسبوك السبعة (إيموجي الجهاز)، فيُحفظ التفاعل
+///    ويظهر إيموجيه فوراً بجوار أيقونات البطاقة، ثم تُغلق الورقة.
+///
+///  ★ بدون أصول صور ⇒ يعتمد على إيموجي النظام فقط.
 /// ============================================================================
 class PostReactionSheet extends StatefulWidget {
   const PostReactionSheet({
     super.key,
     required this.service,
     required this.isDark,
-    required this.likedUsers,
-    required this.dislikedUsers,
+    required this.reactedUsers,
     required this.current,
     required this.onReact,
   });
 
   final ServiceCategory service;
   final bool isDark;
-  final List<String> likedUsers;
-  final List<String> dislikedUsers;
+
+  /// أسماء مستخدمين وهميين لكل تفاعل (لعرض «من تفاعل مع المنشور»).
+  final Map<int, List<String>> reactedUsers;
+
+  /// التفاعل الحالي (0 = بلا).
   final int current;
+
+  /// يُستدعى عند اختيار إيموجي (مع 0 لإلغاء التفاعل).
   final ValueChanged<int> onReact;
 
   @override
@@ -839,21 +861,95 @@ class PostReactionSheet extends StatefulWidget {
 }
 
 class PostReactionSheetState extends State<PostReactionSheet> {
-  /// تفاعل محلي ⇒ الأرقام والزرّان يتحدّثان فوراً داخل الورقة.
-  late int _current = widget.current;
+  /// تفاعل محلي ⇒ صفّ الإيموجي يتحدّث فوراً داخل الورقة.
+  late int _current = PostReaction.normalize(widget.current);
 
-  Color get _idle =>
-      widget.isDark ? AppColors.textSecondary : AppColors.lightTextSecondary;
+  /// الإيموجي الذي يمرّ عليه الإصبع ⇒ تكبير + تسمية (كما في فيسبوك).
+  int? _hovered;
 
-  /// قائمة المستخدمين: صورة رمزية (أول حرف) + الاسم + أيقونة التفاعل.
-  Widget _usersList(List<String> names, IconData icon, Color color) {
+  /// تفاعل واحد في صفّ الإيموجي: تكبير عند المرور/الاختيار + إظهار الاسم.
+  Widget _emojiButton(PostReaction reaction) {
+    final active = _current == reaction.value;
+    final hovered = _hovered == reaction.value;
+
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: () {
+          setState(() => _current = active ? 0 : reaction.value);
+          widget.onReact(_current);
+        },
+        onHover: (event) =>
+            setState(() => _hovered = event ? reaction.value : null),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedScale(
+                scale: active ? 1.35 : (hovered ? 1.25 : 1),
+                duration: const Duration(milliseconds: 160),
+                curve: Curves.easeOutBack,
+                child: Text(
+                  reaction.emoji,
+                  textScaler: TextScaler.noScaling,
+                  style: TextStyle(
+                    fontSize: 30,
+                    height: 1.1,
+                    shadows: [
+                      if (active || hovered)
+                        Shadow(
+                          color: reaction.color.withValues(alpha: 0.55),
+                          blurRadius: 12,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              AnimatedOpacity(
+                opacity: active || hovered ? 1 : 0,
+                duration: const Duration(milliseconds: 140),
+                child: Text(
+                  reaction.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: reaction.color,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// المتفاعلون: تفاعل المستخدم أولاً ثم الوهميين، مع إيموجي التفاعل
+  /// بلون التفاعل لكل شخص (كما يعرض فيسبوك).
+  Widget _reactedList() {
     final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
+
+    final entries = <(String, int)>[
+      if (_current != 0) ('أنت', _current),
+      for (final reaction in PostReaction.all)
+        for (final name
+            in widget.reactedUsers[reaction.value] ?? const <String>[])
+          (name, reaction.value),
+    ];
+
     return ListView.separated(
-      padding: const EdgeInsets.only(top: 8),
-      itemCount: names.length,
+      padding: const EdgeInsets.only(top: 8, bottom: 8),
+      itemCount: entries.length,
       separatorBuilder: (_, _) => const SizedBox(height: 6),
       itemBuilder: (context, i) {
-        final name = names[i];
+        final (name, value) = entries[i];
+        final reaction = PostReaction.byValue(value)!;
+        final mine = name == 'أنت';
+
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Row(
@@ -864,12 +960,12 @@ class PostReactionSheetState extends State<PostReactionSheet> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: color.withValues(alpha: 0.15),
+                  color: reaction.color.withValues(alpha: 0.15),
                 ),
                 child: Text(
                   name.characters.first,
                   style: TextStyle(
-                    color: color,
+                    color: reaction.color,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
@@ -881,64 +977,18 @@ class PostReactionSheetState extends State<PostReactionSheet> {
                   name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: primary, fontSize: 14),
+                  style: TextStyle(
+                    color: primary,
+                    fontSize: 14,
+                    fontWeight: mine ? FontWeight.w700 : FontWeight.w400,
+                  ),
                 ),
               ),
-              Icon(icon, size: 16, color: color),
+              ReactionEmoji(value, size: 18),
             ],
           ),
         );
       },
-    );
-  }
-
-  /// زر التفاعل داخل الورقة (نفس شكل أزرار المنشور).
-  Widget _reactButton({
-    required IconData icon,
-    required String label,
-    required int value,
-    required Color activeColor,
-  }) {
-    final color = _current == value ? activeColor : _idle;
-    return Expanded(
-      child: InkWell(
-        onTap: () {
-          // الضغط على المختار يلغيه (نفس فكرة الدورة في البطاقة).
-          setState(() => _current = _current == value ? 0 : value);
-          widget.onReact(_current);
-        },
-        borderRadius: BorderRadius.circular(999),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 9),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, size: 20, color: color),
-                  const SizedBox(width: 6),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: color,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -947,13 +997,11 @@ class PostReactionSheetState extends State<PostReactionSheet> {
     final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
     final line = widget.isDark ? AppColors.outline : AppColors.lightOutline;
 
-    // أرقام المتفاعلين تتبع تفاعل المستخدم (كما في السلوك السابق).
-    final likeCount = widget.likedUsers.length + (_current == 1 ? 1 : 0);
-    final dislikeCount = widget.dislikedUsers.length + (_current == -1 ? 1 : 0);
+    final selected = PostReaction.byValue(_current);
 
     return DraggableSheetBody(
-      initialExtent: 0.6,
-      snapSizes: const [0.35, 0.45, 0.55, 0.6, 0.7, 0.8, 0.92],
+      initialExtent: 0.55,
+      snapSizes: const [0.35, 0.45, 0.55, 0.65, 0.8],
       builder: (context, scrollController) => Column(
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -964,8 +1012,6 @@ class PostReactionSheetState extends State<PostReactionSheet> {
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
               child: Row(
                 children: [
-                  Icon(LucideIcons.thumbsUp, size: 18, color: _idle),
-                  const SizedBox(width: 8),
                   Text(
                     'تفاعل المنشور',
                     style: TextStyle(
@@ -974,66 +1020,52 @@ class PostReactionSheetState extends State<PostReactionSheet> {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
+                  const Spacer(),
+                  if (selected != null)
+                    Text(
+                      selected.label,
+                      style: TextStyle(
+                        color: selected.color,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                 ],
               ),
             ),
           ),
           Divider(height: 1, color: line),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-            child: Row(
-              children: [
-                _reactButton(
-                  icon: LucideIcons.thumbsUp,
-                  label: 'إعجاب',
-                  value: 1,
-                  activeColor: AppColors.info,
-                ),
-                const SizedBox(width: 10),
-                _reactButton(
-                  icon: LucideIcons.thumbsDown,
-                  label: 'عدم إعجاب',
-                  value: -1,
-                  activeColor: AppColors.error,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          // ★ تبويب يحمل الأعداد + قائمة المتفاعلين.
-          Expanded(
-            child: DefaultTabController(
-              length: 2,
-              child: Column(
+          // ★ صفّ الإيموجي: العرض والتحييد بسحبة (onHover) على الحاسوب.
+          MouseRegion(
+            onHover: (event) {
+              final box = context.findRenderObject() as RenderBox?;
+              if (box == null) return;
+              final dx = event.localPosition.dx;
+              final width = box.size.width / PostReaction.all.length;
+              final index = (dx / width).floor().clamp(
+                0,
+                PostReaction.all.length - 1,
+              );
+              final value = PostReaction.all[index].value;
+              if (_hovered != value) setState(() => _hovered = value);
+            },
+            onExit: (_) => setState(() => _hovered = null),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TabBar(
-                    labelColor: primary,
-                    unselectedLabelColor: _idle,
-                    indicatorColor: widget.service.color,
-                    dividerColor: Colors.transparent,
-                    tabs: [
-                      Tab(text: 'إعجاب ($likeCount)'),
-                      Tab(text: 'عدم إعجاب ($dislikeCount)'),
-                    ],
-                  ),
-                  Expanded(
-                    child: TabBarView(
-                      children: [
-                        _usersList(
-                          widget.likedUsers,
-                          LucideIcons.thumbsUp,
-                          AppColors.info,
-                        ),
-                        _usersList(
-                          widget.dislikedUsers,
-                          LucideIcons.thumbsDown,
-                          AppColors.error,
-                        ),
-                      ],
-                    ),
-                  ),
+                  for (final reaction in PostReaction.all)
+                    _emojiButton(reaction),
                 ],
               ),
+            ),
+          ),
+          Divider(height: 1, color: line),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _reactedList(),
             ),
           ),
         ],

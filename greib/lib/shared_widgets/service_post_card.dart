@@ -6,6 +6,7 @@ import '../core/mock_data/mock_data.dart';
 import '../core/models/service_model.dart';
 import '../core/theme/app_colors.dart';
 import '../core/widgets/app_sheet.dart';
+import 'post_reaction.dart';
 import 'smart_image.dart';
 
 /// ============================================================================
@@ -130,12 +131,25 @@ class ServicePostCard extends StatefulWidget {
 }
 
 class _ServicePostCardState extends State<ServicePostCard> {
-  /// 0 = بلا تفاعل، 1 = إعجاب، -1 = عدم إعجاب (يُستخدم فقط في الوضع الذاتي).
+  /// 0 = بلا تفاعل، 1..7 = تفاعلات فيسبوك (إعجاب/حب/اهتمام/ضحك/دهشة/حزن/غضب).
   int _reaction = 0;
   bool _isSaved = false;
 
-  /// التفاعل المعروض: الخارجي إن وُجد، وإلا الداخلي.
-  int get _effectiveReaction => widget.reaction ?? _reaction;
+  /// التفاعل المعروض: الخارجي إن وُجد، وإلا الداخلي (مطبّع على النظام الجديد).
+  int get _effectiveReaction =>
+      PostReaction.normalize(widget.reaction ?? _reaction);
+
+  /// ★ إيموجي التفاعل المعروض داخل زر التفاعل (بلا تفاعل ⇒ أيقونة الإبهام).
+  String get _effectiveEmoji =>
+      ReactionEmoji.emojiOf(_effectiveReaction).isEmpty
+      ? ReactionEmoji.emojiOf(1)
+      : ReactionEmoji.emojiOf(_effectiveReaction);
+
+  /// لون الإيموجي المختار في الزر (بلا تفاعل ⇒ لون ثانوي).
+  Color get _effectiveReactionColor {
+    if (_effectiveReaction == 0) return _secondary;
+    return PostReaction.byValue(_effectiveReaction)?.color ?? _secondary;
+  }
 
   /// حالة الحفظ المعروضة: الخارجية إن وُجدت، وإلا الداخلية.
   bool get _effectiveSaved => widget.isSaved ?? _isSaved;
@@ -204,7 +218,10 @@ class _ServicePostCardState extends State<ServicePostCard> {
     return (min + seed.hashCode.abs() % span).toString();
   }
 
-  /// دورة الضغط: بلا <- إعجاب <- عدم إعجاب <- بلا.
+  /// ★ الضغط على زر التفاعل:
+  ///   - في وضع "الورقة" (delegateReactionToCallback) يفتح ورقة الإيموجي فقط.
+  ///   - في الوضع الذاتي: أول ضغطة = تفاعل مجدول (1) ⇒ عندها يفتح الورقة،
+  ///     وإلا تبديل مباشرة بين التفاعل المختار وبلا تفاعل.
   void _cycleReaction() {
     // ★ وضع "الورقة": النقر يستدعي callback فقط (يفتح ورقة الاختيار) ولا
     // يغيّر الحالة هنا، لأن الاختيار الفعلي يتم داخل الورقة.
@@ -213,9 +230,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
       return;
     }
 
-    final next = _effectiveReaction >= 1
-        ? -1
-        : (_effectiveReaction == 0 ? 1 : 0);
+    final next = _effectiveReaction >= 1 ? 0 : 1;
     // وضع مُتحكَّم به ⇒ نُبلغ الأب ولا نلمس الحالة الداخلية.
     if (widget.onReactionChanged != null) {
       widget.onReactionChanged!(next);
@@ -711,35 +726,61 @@ class _ServicePostCardState extends State<ServicePostCard> {
   }
 
   // ---------- 4. أيقونات التفاعل + حالة الاتصال في الزاوية المقابلة ----------
+  /// ★ إيموجي تفاعل مجمّعة فوق أزرار الإجراءات (مثل فيسبوك):负面 شفافة
+  ///   تكشف ما تحتها، وكل إطار بلون تفاعلها.
   Widget _reactionChips() {
+    final chips = <Widget>[
+      for (final reaction in PostReaction.all.take(3))
+        _reactionChip(reaction.emoji, reaction.color),
+    ];
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 16, 0),
-      child: Row(
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          _reactionChip(LucideIcons.thumbsUp, AppColors.info),
-          const SizedBox(width: 2),
-          _reactionChip(LucideIcons.thumbsDown, AppColors.error),
+          Row(mainAxisSize: MainAxisSize.min, children: chips),
+          // عدّاد التفاعل على يسار الحزمة (يمين بصرياً بعد التداخل).
+          PositionedDirectional(
+            start: -34,
+            top: 3,
+            child: Text(
+              widget.likeCount ?? _countFor(80, 10),
+              style: TextStyle(
+                color: _secondary,
+                fontSize: 12.5,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _reactionChip(IconData icon, Color color) {
+  Widget _reactionChip(String emoji, Color color) {
+    final ring = widget.isDark
+        ? AppColors.background
+        : AppColors.lightBackground;
+
     return Container(
       width: 20,
       height: 20,
+      margin: const EdgeInsetsDirectional.only(end: 2),
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color,
-        border: Border.all(
-          // حد بنفس لون خلفية المنشور (وإلا ظهرت حلقة فاتحة في الوضع الداكن).
-          color: widget.isDark
-              ? AppColors.background
-              : AppColors.lightBackground,
-          width: 1.5,
-        ),
+        color: color.withValues(alpha: 0.14),
+        border: Border.all(color: ring, width: 1.5),
+        boxShadow: [
+          BoxShadow(color: color.withValues(alpha: 0.25), blurRadius: 6),
+        ],
       ),
-      child: Icon(icon, size: 11, color: Colors.white),
+      child: Text(
+        emoji,
+        textScaler: TextScaler.noScaling,
+        style: const TextStyle(fontSize: 12, height: 1.1),
+      ),
     );
   }
 
@@ -771,14 +812,8 @@ class _ServicePostCardState extends State<ServicePostCard> {
                   flex: 2,
                   child: _pillButton(
                     grouped: true,
-                    icon: _effectiveReaction >= 0
-                        ? LucideIcons.thumbsUp
-                        : LucideIcons.thumbsDown,
-                    color: _effectiveReaction == 0
-                        ? _secondary
-                        : (_effectiveReaction > 0
-                              ? AppColors.info
-                              : AppColors.error),
+                    emoji: _effectiveEmoji,
+                    color: _effectiveReactionColor,
                     count: widget.likeCount ?? _countFor(80, 10),
                     onTap: _cycleReaction,
                     trailingGap: 16,
@@ -828,7 +863,8 @@ class _ServicePostCardState extends State<ServicePostCard> {
 
   /// زر "كبسولة" (Pill) يملأ الخلية بالتساوي، مع تصغير تلقائي عند ضيق الشاشة.
   Widget _pillButton({
-    required IconData icon,
+    IconData? icon,
+    String? emoji,
     required Color color,
     required VoidCallback onTap,
     String? label,
@@ -870,7 +906,15 @@ class _ServicePostCardState extends State<ServicePostCard> {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(icon, size: iconSize, color: color),
+                  if (icon != null)
+                    Icon(icon, size: iconSize, color: color)
+                  else if (emoji != null)
+                    // ★ إيموجي تفاعل (نظامي ⇒ يتلوّن تلقائياً كإيموجي الجهاز).
+                    Text(
+                      emoji,
+                      textScaler: TextScaler.noScaling,
+                      style: TextStyle(fontSize: iconSize, height: 1.1),
+                    ),
                   if (label != null) ...[
                     const SizedBox(width: 6),
                     Text(
