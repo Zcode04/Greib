@@ -8,6 +8,7 @@ import '../core/theme/app_colors.dart';
 import '../core/widgets/app_sheet.dart';
 import 'post_reaction.dart';
 import 'smart_image.dart';
+import 'share_arrow_icon.dart';
 
 /// ============================================================================
 ///  ServicePostCard — بطاقة المنشور الموحّدة.
@@ -816,7 +817,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
                 Expanded(
                   child: _pillButton(
                     grouped: true,
-                    icon: LucideIcons.repeat2,
+                    iconWidget: ShareArrowIcon(size: 20, color: _secondary),
                     color: _secondary,
                     count: widget.shareCount ?? _countFor(20, 1),
                     onTap: () => (widget.onShare ?? _showLater)(),
@@ -833,6 +834,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
   /// زر "كبسولة" (Pill) يملأ الخلية بالتساوي، مع تصغير تلقائي عند ضيق الشاشة.
   Widget _pillButton({
     IconData? icon,
+    Widget? iconWidget,
     String? emoji,
     required Color color,
     required VoidCallback onTap,
@@ -875,7 +877,9 @@ class _ServicePostCardState extends State<ServicePostCard> {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (icon != null)
+                  if (iconWidget != null)
+                    iconWidget
+                  else if (icon != null)
                     Icon(icon, size: iconSize, color: color)
                   else if (emoji != null)
                     // ★ إيموجي تفاعل (نظامي ⇒ يتلوّن تلقائياً كإيموجي الجهاز).

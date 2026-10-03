@@ -12,6 +12,7 @@ import '../../../shared_widgets/service_post_card.dart';
 import '../../../shared_widgets/smart_image.dart';
 import '../data/account_repository.dart';
 import '../data/services_repository.dart';
+import '../../../shared_widgets/share_arrow_icon.dart';
 
 /// ============================================================================
 ///  AccountProfilePage — صفحة حساب المستخدم/المتجر (بروفايل مستقل).
@@ -707,7 +708,7 @@ class _AccountPostsTab extends StatelessWidget {
             onRequest: () => sheets.openServiceChat(context, service: service),
             onShare: () => sheets.showAction(
               context,
-              icon: LucideIcons.repeat2,
+              iconWidget: const ShareArrowIcon(size: 18),
               title: 'إعادة النشر',
               hint: 'نشر رابط منشور «${account.name}» على صفحتك.',
             ),

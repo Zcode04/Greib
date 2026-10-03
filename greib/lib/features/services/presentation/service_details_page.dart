@@ -10,6 +10,7 @@ import '../../../shared_widgets/post_sheets.dart';
 import '../../../shared_widgets/service_post_card.dart';
 import '../data/account_repository.dart';
 import '../data/services_repository.dart';
+import '../../../shared_widgets/share_arrow_icon.dart';
 
 /// ============================================================================
 ///  ServiceDetailsPage — صفحة الخدمة بتصميم "بروفايل".
@@ -524,7 +525,7 @@ class _PostsTab extends StatelessWidget {
             onRequest: () => sheets.openServiceChat(context, service: service),
             onShare: () => sheets.showAction(
               context,
-              icon: LucideIcons.repeat2,
+              iconWidget: const ShareArrowIcon(size: 18),
               title: 'إعادة النشر',
               hint: 'نشر رابط «${service.title}» على صفحتك.',
             ),

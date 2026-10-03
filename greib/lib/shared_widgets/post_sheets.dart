@@ -148,6 +148,7 @@ class PostSheetsController extends ChangeNotifier {
   void showAction(
     BuildContext context, {
     IconData? icon,
+    Widget? iconWidget,
     required String title,
     String? hint,
     List<Widget> Function(BuildContext sheetContext)? options,
@@ -164,7 +165,10 @@ class PostSheetsController extends ChangeNotifier {
       builder: (sheetContext) {
         // رأس الورقة (أيقونة اختيارية + جملة + تلميح) — مشترك بين النمطين.
         final header = <Widget>[
-          if (icon != null) ...[
+          if (iconWidget != null) ...[
+            iconWidget,
+            const SizedBox(height: 8),
+          ] else if (icon != null) ...[
             Icon(icon, size: 18, color: secondary),
             const SizedBox(height: 8),
           ],

@@ -12,6 +12,7 @@ import '../../../../shared_widgets/post_sheets.dart';
 import '../../../../shared_widgets/service_post_card.dart';
 import '../../../../core/widgets/app_sheet.dart';
 import '../../communication_and_support/chat_screen.dart';
+import '../../../../shared_widgets/share_arrow_icon.dart';
 
 class SpotlightSection extends StatefulWidget {
   final bool isDark;
@@ -536,7 +537,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                 core.showComments(context, postId: postId, service: service),
             onShare: () => core.showAction(
               context,
-              icon: LucideIcons.repeat2,
+              iconWidget: const ShareArrowIcon(size: 18),
               title: 'إعادة النشر',
               hint: 'نشر رابط «${service.title}» على صفحتك.',
             ),
