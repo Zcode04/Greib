@@ -32,25 +32,19 @@ class PostReaction {
   /// اللون (لون الأيقونة في الزر + لون الإطار المميّز).
   final Color color;
 
-  /// كل التفاعلات بالترتيب المعروض في.facebook/إنستغرام.
+  /// ★ كل التفاعلات المعروضة (مثل فيسبوك): إعجاب، حب، دهشة، حزن، غضب.
+  ///   (تم حذف «اهتمام» و«ضحك» من المجموعة.)
   static const List<PostReaction> all = [
     PostReaction(value: 1, emoji: '👍', label: 'إعجاب', color: AppColors.info),
     PostReaction(value: 2, emoji: '❤️', label: 'حب', color: Color(0xFFE5484D)),
     PostReaction(
       value: 3,
-      emoji: '🥺',
-      label: ' اهتمام',
-      color: Color(0xFFF2A33C),
-    ),
-    PostReaction(value: 4, emoji: '😆', label: 'ضحك', color: Color(0xFFF5B301)),
-    PostReaction(
-      value: 5,
       emoji: '😮',
       label: 'دهشة',
       color: Color(0xFF8B5CF6),
     ),
-    PostReaction(value: 6, emoji: '😔', label: 'حزن', color: Color(0xFF3B82F6)),
-    PostReaction(value: 7, emoji: '😡', label: 'غضب', color: AppColors.error),
+    PostReaction(value: 4, emoji: '😔', label: 'حزن', color: Color(0xFF3B82F6)),
+    PostReaction(value: 5, emoji: '😡', label: 'غضب', color: AppColors.error),
   ];
 
   /// تفاعل غير معروف ⇒ null (لا نخترع إيموجي).
@@ -61,11 +55,12 @@ class PostReaction {
     return null;
   }
 
-  /// ★ توحيد القيمة القديمة (1 = إعجاب، -1 = عدم إعجاب) على النظام الجديد:
-  ///   1 ⇒ إعجاب، -1 ⇒ حزن، وما دون ذلك ⇒ بلا تفاعل.
+  /// ★ توحيد القيم القديمة/المحذوفة على المجموعة الحالية:
+  ///   1 ⇒ إعجاب، -1 ⇒ حزن، 4/7 (ضحك/غضب القديم) ⇒ غضب، وما عداه ⇒ بلا.
   static int normalize(int value) {
-    if (value == -1) return 6;
-    return (value >= 1 && value <= 7) ? value : 0;
+    if (value == -1) return 4;
+    if (value == 7) return 5;
+    return (value >= 1 && value <= 5) ? value : 0;
   }
 
   /// الإيموجي المقابل للقيمة (سريع للعرض داخل البطاقة).

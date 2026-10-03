@@ -131,7 +131,7 @@ class ServicePostCard extends StatefulWidget {
 }
 
 class _ServicePostCardState extends State<ServicePostCard> {
-  /// 0 = بلا تفاعل، 1..7 = تفاعلات فيسبوك (إعجاب/حب/اهتمام/ضحك/دهشة/حزن/غضب).
+  /// 0 = بلا تفاعل، 1..5 = تفاعلات فيسبوك (إعجاب/حب/دهشة/حزن/غضب).
   int _reaction = 0;
   bool _isSaved = false;
 
@@ -726,8 +726,8 @@ class _ServicePostCardState extends State<ServicePostCard> {
   }
 
   // ---------- 4. أيقونات التفاعل + حالة الاتصال في الزاوية المقابلة ----------
-  /// ★ إيموجي تفاعل مجمّعة فوق أزرار الإجراءات (مثل فيسبوك):负面 شفافة
-  ///   تكشف ما تحتها، وكل إطار بلون تفاعلها.
+  /// ★ إيموجي تفاعل مجمّعة فوق أزرار الإجراءات (مثل فيسبوك): ثلاث دوائر
+  ///   متجاورة، كل واحدة بلون تفاعلها.
   Widget _reactionChips() {
     final chips = <Widget>[
       for (final reaction in PostReaction.all.take(3))
