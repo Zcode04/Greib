@@ -86,6 +86,19 @@ class _TrendingStoriesSectionState extends State<TrendingStoriesSection>
             child: _StoryCard(
               item: _kItems[i],
               isPressed: _pressedIndex == i,
+              onTap: () {
+                setState(() => _pressedIndex = null);
+                Navigator.of(context).push(
+                  PageRouteBuilder(
+                    opaque: false,
+                    barrierColor: Colors.transparent,
+                    transitionDuration: const Duration(milliseconds: 260),
+                    pageBuilder: (_, __, ___) => StoryViewerPage(items: _kItems, initialIndex: i),
+                    transitionsBuilder: (_, animation, __, child) =>
+                        FadeTransition(opacity: animation, child: child),
+                  ),
+                );
+              },
               onTapDown: () => setState(() => _pressedIndex = i),
               onTapUp: () => setState(() => _pressedIndex = null),
             ),
@@ -178,13 +191,15 @@ class _UserRequestCard extends StatelessWidget {
 class _StoryCard extends StatelessWidget {
   final _TrendingItem item;
   final bool isPressed;
+  final VoidCallback onTap;
   final VoidCallback onTapDown;
   final VoidCallback onTapUp;
-  const _StoryCard({required this.item, required this.isPressed, required this.onTapDown, required this.onTapUp});
+  const _StoryCard({required this.item, required this.isPressed, required this.onTap, required this.onTapDown, required this.onTapUp});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      onTap: onTap,
       onTapDown: (_) => onTapDown(),
       onTapUp: (_) => onTapUp(),
       onTapCancel: onTapUp,
@@ -228,6 +243,180 @@ class _StoryCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+//  شاشة عرض القصة (Story Viewer) — بملء الشاشة
+// ─────────────────────────────────────────────
+class StoryViewerPage extends StatefulWidget {
+  final List<_TrendingItem> items;
+  final int initialIndex;
+  const StoryViewerPage({super.key, required this.items, required this.initialIndex});
+
+  @override
+  State<StoryViewerPage> createState() => _StoryViewerPageState();
+}
+
+class _StoryViewerPageState extends State<StoryViewerPage> {
+  late final PageController _controller;
+  late int _index;
+
+  @override
+  void initState() {
+    super.initState();
+    _index = widget.initialIndex;
+    _controller = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          PageView.builder(
+            controller: _controller,
+            itemCount: widget.items.length,
+            onPageChanged: (i) => setState(() => _index = i),
+            itemBuilder: (_, i) => _StoryFullView(item: widget.items[i]),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 12,
+            left: 0,
+            right: 0,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _ProgressBar(
+                      count: widget.items.length,
+                      currentIndex: _index,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).maybePop(),
+                    behavior: HitTestBehavior.opaque,
+                    child: const Padding(
+                      padding: EdgeInsets.all(6),
+                      child: Icon(Icons.close_rounded, color: Colors.white, size: 26),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: MediaQuery.of(context).padding.bottom + 40,
+            left: 24,
+            right: 24,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.45),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: Text(
+                    widget.items[_index].badge,
+                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  widget.items[_index].title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    height: 1.3,
+                    shadows: [Shadow(color: Colors.black87, blurRadius: 10)],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                    label: const Text('استكشف الآن'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF3B82F6),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StoryFullView extends StatelessWidget {
+  final _TrendingItem item;
+  const _StoryFullView({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.network(
+          item.imageUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade900),
+          loadingBuilder: (_, child, progress) {
+            if (progress == null) return child;
+            return Container(color: Colors.black, child: const Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2)));
+          },
+        ),
+        const DecoratedBox(
+          decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0x88000000), Colors.transparent, Color(0x99000000)], stops: [0, 0.45, 1])),
+        ),
+      ],
+    );
+  }
+}
+
+class _ProgressBar extends StatelessWidget {
+  final int count;
+  final int currentIndex;
+  const _ProgressBar({required this.count, required this.currentIndex});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: List.generate(count, (i) {
+        return Expanded(
+          child: Container(
+            margin: const EdgeInsetsDirectional.only(end: 4),
+            height: 3,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(i <= currentIndex ? 0.95 : 0.35),
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+        );
+      }),
     );
   }
 }
