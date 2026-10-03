@@ -894,19 +894,28 @@ class PostReactionSheetState extends State<PostReactionSheet> {
                 scale: active ? 1.35 : (hovered ? 1.25 : 1),
                 duration: const Duration(milliseconds: 160),
                 curve: Curves.easeOutBack,
-                child: Text(
-                  reaction.emoji,
-                  textScaler: TextScaler.noScaling,
-                  style: TextStyle(
-                    fontSize: 30,
-                    height: 1.1,
-                    shadows: [
-                      if (active || hovered)
-                        Shadow(
-                          color: reaction.color.withValues(alpha: 0.55),
-                          blurRadius: 12,
-                        ),
-                    ],
+                child: Container(
+                  decoration: active || hovered
+                      ? BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: reaction.color.withValues(alpha: 0.18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: reaction.color.withValues(alpha: 0.45),
+                              blurRadius: 12,
+                            ),
+                          ],
+                        )
+                      : null,
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: ReactionGlyph(
+                    reaction.value,
+                    size: 30,
+                    color: active || hovered
+                        ? reaction.color
+                        : (widget.isDark
+                              ? AppColors.textPrimary
+                              : AppColors.lightText),
                   ),
                 ),
               ),
@@ -988,7 +997,7 @@ class PostReactionSheetState extends State<PostReactionSheet> {
                   ),
                 ),
               ),
-              ReactionEmoji(value, size: 18),
+              ReactionGlyph(value, size: 18, color: reaction.color),
             ],
           ),
         );
