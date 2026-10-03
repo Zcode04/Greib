@@ -772,6 +772,10 @@ class _ServicePostCardState extends State<ServicePostCard> {
   ///
   /// ★ الضغط على الإيموجي يفتح نفس ورقة التفاعل السفلية (سلوك زر التفاعل).
   Widget _reactionChips() {
+    if (_effectiveReaction == 0) {
+      return const SizedBox.shrink();
+    }
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 16, 0),
       child: InkWell(
@@ -782,11 +786,10 @@ class _ServicePostCardState extends State<ServicePostCard> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              for (final value in const [1, 2, 4, 5, 6])
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(end: 2),
-                  child: ReactionEmoji(value, size: 20),
-                ),
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: 2),
+                child: ReactionEmoji(_effectiveReaction, size: 20),
+              ),
             ],
           ),
         ),
