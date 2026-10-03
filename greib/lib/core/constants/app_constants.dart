@@ -20,6 +20,4 @@ class AppConstants {
   static const String keyThemeMode = 'theme_mode';
   static const String keyLanguage = 'language';
   static const String keyLastTab = 'last_tab_index';
-
-  static const String keyHomeBackground = 'home_background_option';
 }

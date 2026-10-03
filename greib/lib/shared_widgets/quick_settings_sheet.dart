@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../core/theme/design_tokens.dart';
-import 'background_color_dialog.dart';
 
 class QuickSettingsItem {
   final String label;
@@ -29,13 +28,9 @@ class QuickSettingsSheet extends StatelessWidget {
   /// البنود الافتراضية — [`context`] هو سياق الشاشة الأصلية (خارج الورقة)
   /// حتى نستطيع فتح حوار تغيير الخلفية بعد إغلاق الورقة.
   static List<QuickSettingsItem> defaultItemsFor(BuildContext context) => [
-        QuickSettingsItem(
+        const QuickSettingsItem(
           label: 'تغيير لون الخلفية',
           icon: LucideIcons.palette,
-          onTap: () {
-            Navigator.of(context).pop();
-            BackgroundColorDialog.show(context);
-          },
         ),
         const QuickSettingsItem(
           label: 'تغيير لون الخطوط',

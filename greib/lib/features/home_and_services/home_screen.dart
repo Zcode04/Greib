@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import '../../core/permissions/permissions.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/home_background_controller.dart';
 import '../../features/auth/auth_service.dart';
 import '../../core/widgets/header_collapse_state.dart';
 import '../../shared_widgets/animated_background.dart';
@@ -93,30 +91,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // ★ خلفية الصفحة الرئيسية فقط: اختيار المستخدم (سادة/تدرّج) أو الافتراضي.
-    // بقية الصفحات تستمر على AppColors.background حسب الوضع.
-    final homeBg = context.watch<HomeBackgroundController>().selected;
-
     return Scaffold(
-      backgroundColor: homeBg?.solid ??
-          (isDark ? AppColors.background : AppColors.lightBackground),
+      backgroundColor: (isDark ? AppColors.background : AppColors.lightBackground),
       // القائمة الجانبية (Drawer) انتقلت إلى MainShellScreen — مصدر واحد للتنقل.
       body: Stack(
         children: [
-          if (homeBg != null && homeBg.isGradient)
-            Positioned.fill(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 350),
-                curve: Curves.easeOut,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: homeBg.colors,
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                  ),
-                ),
-              ),
-            ),
           SingleChildScrollView(
             controller: _scrollController,
             clipBehavior: Clip.none,
