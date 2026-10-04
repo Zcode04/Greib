@@ -121,7 +121,6 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
   Widget _commentRow(PostComment c) {
     final accent = widget.service.color;
     final primary = Theme.of(context).colorScheme.onSurface;
-    final bubble = Theme.of(context).colorScheme.surfaceContainerHighest;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,28 +135,22 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
           child: Icon(LucideIcons.user, size: 16, color: accent),
         ),
         const SizedBox(width: 10),
+        // ★ النص بلا فقاعة/خلفية.
         Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: c.mine ? accent.withValues(alpha: 0.12) : bubble,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  c.author,
-                  style: TextStyle(
-                    color: primary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                c.author,
+                style: TextStyle(
+                  color: primary.withValues(alpha: 0.7),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
                 ),
-                const SizedBox(height: 2),
-                Text(c.text, style: TextStyle(color: primary, fontSize: 13)),
-              ],
-            ),
+              ),
+              const SizedBox(height: 2),
+              Text(c.text, style: TextStyle(color: primary, fontSize: 14)),
+            ],
           ),
         ),
       ],
