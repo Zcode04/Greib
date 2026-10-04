@@ -58,7 +58,7 @@ const List<_ShellTab> _tabs = [
   _ShellTab(
     route: '/search',
     title: 'البحث',
-    icon: LucideIcons.search,
+    icon: LucideIcons.clapperboard,
     label: 'البحث',
   ),
 ];
