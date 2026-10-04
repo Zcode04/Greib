@@ -541,10 +541,6 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         // ★ لون موحّد مع بقية الأوراق (لون نص السطح) بلا عنوان علوي.
         final sheetText = Theme.of(sheetContext).colorScheme.onSurface;
 
-        final outline = Theme.of(
-          sheetContext,
-        ).dividerColor.withValues(alpha: 0.6);
-
         Widget row(IconData icon, String label, VoidCallback onTap) {
           return InkWell(
             onTap: onTap,
@@ -576,11 +572,10 @@ class _SpotlightSectionState extends State<SpotlightSection> {
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Divider(height: 1, color: outline),
               Expanded(
                 child: ListView(
                   controller: scrollController,
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
                   children: [
                     if (images.isNotEmpty)
                       row(
