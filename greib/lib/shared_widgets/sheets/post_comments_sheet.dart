@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/models/service_model.dart';
-import '../../core/widgets/draggable_sheet_body.dart';
 
 /// ============================================================================
 ///  PostCommentsSheet — ورقة التعليقات (Bottom Sheet):
@@ -33,6 +32,12 @@ class PostCommentsSheet extends StatefulWidget {
 
 class PostCommentsSheetState extends State<PostCommentsSheet> {
   final TextEditingController _input = TextEditingController();
+  final FocusNode _inputFocus = FocusNode();
+
+  /// ★ مفتاح ورقة التعليقات لنموّها للأعلى أثناء الكتابة.
+  ///   (حالة DraggableScrollableSheet خاصة في Flutter ⇒ نُناديها ديناميكياً).
+  final GlobalKey<State<DraggableScrollableSheet>> _sheetKey =
+      GlobalKey<State<DraggableScrollableSheet>>();
 
   /// ★ التعليقات الموسّعة (اضغط «عرض المزيد»).
   final Set<int> _expanded = {};
@@ -46,10 +51,54 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
   /// ★ يظهر العدّاد بعد هذا العدد (تحذير مبكر).
   static const int _counterAfter = 300;
 
+  /// ★ حجم الورقة الأساسي وأقصى نسبة نموّها مع طول الكتابة.
+  static const double _baseExtent = 0.6;
+  static const double _maxExtent = 0.92;
+
+  @override
+  void initState() {
+    super.initState();
+    // ★ عند فتح لوحة المفاتيح يتمدّد الحقل والأورقة للأعلى.
+    _inputFocus.addListener(_onFocusChanged);
+    _input.addListener(_onTextChanged);
+  }
+
   @override
   void dispose() {
-    _input.dispose();
+    _inputFocus
+      ..removeListener(_onFocusChanged)
+      ..dispose();
+    _input
+      ..removeListener(_onTextChanged)
+      ..dispose();
     super.dispose();
+  }
+
+  void _onFocusChanged() {
+    if (_inputFocus.hasFocus) _growTo(_baseExtent);
+  }
+
+  /// ★ نموّ متناسب مع طول النص: كلما كبرت الرسالة كبرت الورقة.
+  void _onTextChanged() {
+    final ratio = _input.text.characters.length / _maxChars;
+    _growTo((_baseExtent + ratio * (_maxExtent - _baseExtent)).clamp(
+      _baseExtent,
+      _maxExtent,
+    ));
+  }
+
+  void _growTo(double size) {
+    final state = _sheetKey.currentState;
+    if (state == null) return;
+    final current = (state as dynamic).size as double?;
+    if (current != null && (current - size).abs() < 0.01) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      (_sheetKey.currentState as dynamic).animateTo(
+        size.clamp(0.35, _maxExtent),
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+      );
+    });
   }
 
   void _submit() {
@@ -58,15 +107,21 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
     setState(() => widget.comments.add(PostComment('أنت', text, mine: true)));
     _input.clear();
   }
+
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.onSurface;
     final secondary = primary.withValues(alpha: 0.6);
 
-    // ★ بلا عنوان ولا فواصل: قائمة التعليقات ثم حقل الإرسال.
-    return DraggableSheetBody(
-      initialExtent: 0.6,
-      snapSizes: const [0.35, 0.45, 0.55, 0.6, 0.7, 0.8, 0.92],
+    // ★ بلا عنوان ولا فواصل: قائمة التعليقات ثم حقل الإرسال،
+    //   والورقة تنمو للأعلى تلقائياً مع الكتابة حتى 500 حرف.
+    return DraggableScrollableSheet(
+      key: _sheetKey,
+      expand: false,
+      initialChildSize: _baseExtent,
+      minChildSize: 0.35,
+      maxChildSize: _maxExtent,
+      snap: false,
       builder: (context, scrollController) => Column(
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -97,8 +152,9 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
                     Expanded(
                       child: TextField(
                         controller: _input,
+                        focusNode: _inputFocus,
                         minLines: 1,
-                        maxLines: 3,
+                        maxLines: 8,
                         maxLength: _maxChars,
                         textInputAction: TextInputAction.send,
                         onSubmitted: (_) => _submit(),
