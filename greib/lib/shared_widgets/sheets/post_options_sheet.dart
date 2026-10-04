@@ -73,6 +73,33 @@ class PostOptionsSheet extends StatelessWidget {
           ),
           _tile(
             context,
+            icon: LucideIcons.image,
+            label: 'عرض الصورة',
+            onTap: () {
+              Navigator.of(context, rootNavigator: true).pop();
+              _showLater(context);
+            },
+          ),
+          _tile(
+            context,
+            icon: LucideIcons.shoppingBag,
+            label: 'طلب الآن',
+            onTap: () {
+              Navigator.of(context, rootNavigator: true).pop();
+              _showLater(context);
+            },
+          ),
+          _tile(
+            context,
+            icon: LucideIcons.user,
+            label: 'عرض الملف الشخصي',
+            onTap: () {
+              Navigator.of(context, rootNavigator: true).pop();
+              _showLater(context);
+            },
+          ),
+          _tile(
+            context,
             icon: isSaved ? LucideIcons.bookmarkCheck : LucideIcons.bookmark,
             label: isSaved ? 'إلغاء حفظ المنشور' : 'حفظ المنشور',
             onTap: () {

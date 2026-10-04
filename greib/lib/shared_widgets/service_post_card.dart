@@ -361,65 +361,76 @@ class _ServicePostCardState extends State<ServicePostCard> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: _accent.withValues(alpha: 0.15),
-              border: Border.all(color: _accent.withValues(alpha: 0.3)),
-              image: authorAvatar != null
-                  ? DecorationImage(
-                      image: NetworkImage(authorAvatar),
-                      fit: BoxFit.cover,
-                      onError: (_, _) {},
-                    )
-                  : null,
-            ),
-            // ★ صورة البروفايل تحل محل الأيقونة فقط عند وجودها.
-            child: authorAvatar == null
-                ? Icon(
-                    MockData.getIconByName(_service.iconName),
-                    color: _accent,
-                    size: 20,
-                  )
-                : null,
-          ),
-          const SizedBox(width: 10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ★ العنوان: اسم صاحب المنشور + أيقونة التوثيق بجواره.
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        widget.authorName ?? _derivedAuthorName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: _primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
-                      ),
+            child: GestureDetector(
+              onTap: _showPostOptions,
+              behavior: HitTestBehavior.opaque,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _accent.withValues(alpha: 0.15),
+                      border: Border.all(color: _accent.withValues(alpha: 0.3)),
+                      image: authorAvatar != null
+                          ? DecorationImage(
+                              image: NetworkImage(authorAvatar),
+                              fit: BoxFit.cover,
+                              onError: (_, _) {},
+                            )
+                          : null,
                     ),
-                    if (widget.authorVerified) ...[
-                      const SizedBox(width: 3),
-                      Icon(LucideIcons.badgeCheck, size: 15, color: _accent),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 2),
-                // ★ الفئة (حالة الاتصال نُقلت لأسفل التفاعلات).
-                Text(
-                  category,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: _secondary, fontSize: 12),
-                ),
-              ],
+                    // ★ صورة البروفايل تحل محل الأيقونة فقط عند وجودها.
+                    child: authorAvatar == null
+                        ? Icon(
+                            MockData.getIconByName(_service.iconName),
+                            color: _accent,
+                            size: 20,
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ★ العنوان: اسم صاحب المنشور + أيقونة التوثيق بجواره.
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                widget.authorName ?? _derivedAuthorName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: _primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                            if (widget.authorVerified) ...[
+                              const SizedBox(width: 3),
+                              Icon(LucideIcons.badgeCheck, size: 15, color: _accent),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        // ★ الفئة (حالة الاتصال نُقلت لأسفل التفاعلات).
+                        Text(
+                          category,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: _secondary, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           // إجراءات المنشور في طرف الهيدر: خيارات (⋯) ثم إغلاق (✕).
