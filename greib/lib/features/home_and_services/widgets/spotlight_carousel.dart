@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/models/service_model.dart';
 import '../../../../core/widgets/draggable_sheet_body.dart';
 import '../../services/data/services_repository.dart';
+import '../../services/data/account_repository.dart';
 import '../../../../shared_widgets/smart_image.dart';
 import '../../../../shared_widgets/post_sheets.dart';
 import '../../../../shared_widgets/service_post_card.dart';
@@ -648,6 +649,17 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                         // ★ نستخدم سياق الـState لا سياق الورقة (أُغلقت).
                         () => this.context.push('/service/${service.id}'),
                       ),
+                    ),
+                    // 4) عرض الملف الشخصي ⇒ حساب مقدم الخدمة.
+                    row(
+                      LucideIcons.user,
+                      'عرض الملف الشخصي',
+                      () => pick(() {
+                        final accounts = AccountRepository.instance.forService(service.id);
+                        if (accounts.isNotEmpty) {
+                          this.context.push('/account/${accounts.first.id}');
+                        }
+                      }),
                     ),
                   ],
                 ),
