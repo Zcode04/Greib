@@ -40,6 +40,12 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
   /// ★ عدد الكلمات المعروضة قبل الطي (بأسلوب منصات التواصل).
   static const int _collapsedWords = 10;
 
+  /// ★ الحد الأقصى لطول التعليق الواحد (حرف) — حماية لقاعدة البيانات.
+  static const int _maxChars = 500;
+
+  /// ★ يظهر العدّاد بعد هذا العدد (تحذير مبكر).
+  static const int _counterAfter = 300;
+
   @override
   void dispose() {
     _input.dispose();
@@ -52,10 +58,8 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
     setState(() => widget.comments.add(PostComment('أنت', text, mine: true)));
     _input.clear();
   }
-
   @override
   Widget build(BuildContext context) {
-    final accent = widget.service.color;
     final primary = Theme.of(context).colorScheme.onSurface;
     final secondary = primary.withValues(alpha: 0.6);
 
@@ -79,47 +83,65 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
               ),
             ),
           ),
-          // حقل التعليق + زر الإرسال.
+          // حقل التعليق + زر الإرسال (بحد أقصى 500 حرف).
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 12, 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _input,
-                    minLines: 1,
-                    maxLines: 3,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _submit(),
-                    style: TextStyle(color: primary, fontSize: 14),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      hintText: 'اكتب تعليقاً…',
-                      hintStyle: TextStyle(color: secondary, fontSize: 13),
-                      filled: true,
-                      fillColor:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(999),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(999),
-                        borderSide: BorderSide.none,
+            child: ValueListenableBuilder<TextEditingValue>(
+              valueListenable: _input,
+              builder: (context, value, _) {
+                final count = value.text.characters.length;
+                final nearLimit = count >= _counterAfter;
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _input,
+                        minLines: 1,
+                        maxLines: 3,
+                        maxLength: _maxChars,
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: (_) => _submit(),
+                        style: TextStyle(color: primary, fontSize: 14),
+                        decoration: InputDecoration(
+                          isDense: true,
+                          counterText: nearLimit
+                              ? '$count/$_maxChars'
+                              : '',
+                          hintText: 'اكتب تعليقاً…',
+                          hintStyle: TextStyle(color: secondary, fontSize: 13),
+                          filled: true,
+                          fillColor:
+                              Theme.of(context).colorScheme.surfaceContainerHighest,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(999),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(999),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  onPressed: _submit,
-                  icon: Icon(LucideIcons.send, size: 20, color: accent),
-                ),
-              ],
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: count == 0 ? null : _submit,
+                      icon: Icon(
+                        LucideIcons.send,
+                        size: 20,
+                        color: count == 0
+                            ? secondary
+                            : Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ],
