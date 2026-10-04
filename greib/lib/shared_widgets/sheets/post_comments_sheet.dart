@@ -37,8 +37,8 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
   /// ★ التعليقات الموسّعة (اضغط «عرض المزيد»).
   final Set<int> _expanded = {};
 
-  /// ★ عدد الأسطر المعروضة قبل الت expand.
-  static const int _collapsedLines = 3;
+  /// ★ عدد الكلمات المعروضة قبل الطي (بأسلوب منصات التواصل).
+  static const int _collapsedWords = 10;
 
   @override
   void dispose() {
@@ -132,6 +132,12 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
     final primary = Theme.of(context).colorScheme.onSurface;
     final expanded = _expanded.contains(index);
     final moreColor = Theme.of(context).colorScheme.primary;
+    // ★ طي ذكي بعد 10 كلمات + ثلاث نقاط، كمنصات التواصل.
+    final words = c.text.split(RegExp(r'\s+'));
+    final canExpand = words.length > _collapsedWords;
+    final shown = (!canExpand || expanded)
+        ? c.text
+        : '${words.take(_collapsedWords).join(' ')}…';
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,7 +152,7 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
           child: Icon(LucideIcons.user, size: 16, color: accent),
         ),
         const SizedBox(width: 10),
-        // ★ النص بلا فقاعة/خلفية، مختصراً مع «عرض المزيد» عند الحاجة.
+        // ★ النص بلا فقاعة/خلفية.
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,23 +166,19 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
-                c.text,
-                maxLines: expanded ? null : _collapsedLines,
-                overflow: expanded ? TextOverflow.visible : TextOverflow.ellipsis,
-                style: TextStyle(color: primary, fontSize: 14),
-              ),
-              _MoreToggle(
-                expanded: expanded,
-                color: moreColor,
-                onTap: () => setState(() {
-                  if (expanded) {
-                    _expanded.remove(index);
-                  } else {
-                    _expanded.add(index);
-                  }
-                }),
-              ),
+              Text(shown, style: TextStyle(color: primary, fontSize: 14)),
+              if (canExpand)
+                _MoreToggle(
+                  expanded: expanded,
+                  color: moreColor,
+                  onTap: () => setState(() {
+                    if (expanded) {
+                      _expanded.remove(index);
+                    } else {
+                      _expanded.add(index);
+                    }
+                  }),
+                ),
             ],
           ),
         ),
