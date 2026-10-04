@@ -526,19 +526,10 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     return [service.coverImage ?? fallback, ...extra];
   }
 
-  /// ★ ورقة خيارات صور المنشور: عند الضغط على أي صورة لا نفتح المعاينة
-  /// مباشرة، بل نعرض ثلاث خيارات: «مشاهدة صور» (المعاينة الكاملة)،
-  /// «طلب الآن» (محادثة مقدّم الخدمة)، و«عرض المزيد» (منشورات أخرى لنفس
-  /// الخدمة). تعمل في وضعي المنشورات والشرائح.
+  /// \u2605 \u0648\u0631\u0642\u0629 \u062e\u064a\u0627\u0631\u0627\u062a \u0635\u0648\u0631\u0629/\u0645\u0646\u0634\u0648\u0631 \u2014 \u0628\u0644\u0627 \u0639\u0646\u0648\u0627\u0646\u060c \u0641\u0642\u0637 \u0627\u0644\u0623\u0632\u0631\u0627\u0631 \u0627\u0644\u0623\u0631\u0628\u0639\u0629.
   void _showPostImagesSheet(ServiceCategory service, List<String> images) {
-    // ★ في الشريحة قد تكون الخدمة بلا صورة ⇒ لا معاينة (بلا قائمة صور وهمية).
-    final secondary = widget.isDark
-        ? AppColors.textSecondary
-        : AppColors.lightTextSecondary;
     final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
 
-    // ★ كل خيار ينتظر إغلاق الورقة فعلياً ثم ينفَّذ ⇒ الإجراء يعمل على
-    // الشاشة (لا داخل ورقة تُغلق) وبلا تكديس ورقة فوق ورقة.
     late final Future<void> sheet;
     sheet = showAppSheet<void>(
       context,
@@ -552,8 +543,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         Widget row(IconData icon, String label, VoidCallback onTap) {
           return InkWell(
             onTap: onTap,
+            borderRadius: BorderRadius.circular(8),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               child: Row(
                 children: [
                   Icon(icon, size: 22, color: service.color),
@@ -572,106 +564,45 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           );
         }
 
-        // ★ نفس سلوك ورقة التعليقات: ورقة كبيرة ديناميكية، السحب للأعلى
-        // يوسّعها حتى 92% من الشاشة، وللأسفل يصغّرها/يغلقها، مع Snap.
-        return DraggableSheetBody(
-          initialExtent: 0.6,
-          snapSizes: const [0.35, 0.45, 0.55, 0.6, 0.7, 0.8, 0.92],
-          builder: (context, scrollController) => Column(
-            mainAxisSize: MainAxisSize.max,
-            // ★ stretch ⇒ الرأس والخيارات تأخذ عرض الورقة كله (منطقة سحب كاملة).
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // ★ الرأس منطقة سحب أيضاً: للأعلى توسّع الورقة، ولأسفل تصغيرها.
-              SheetDragArea(
-                controller: scrollController,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-                  child: Row(
-                    children: [
-                      Icon(LucideIcons.images, size: 18, color: secondary),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          images.isEmpty
-                              ? service.title
-                              : 'صور «${service.title}» (${images.length})',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: primary,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (images.isNotEmpty)
+              row(
+                LucideIcons.maximize2,
+                '\u0645\u0634\u0627\u0647\u062f\u0629 \u0635\u0648\u0631',
+                () => pick(() => _core.openImagePreview(
+                  context, images: images, service: service,
+                )),
               ),
-              Divider(
-                height: 1,
-                color: widget.isDark
-                    ? AppColors.outline
-                    : AppColors.lightOutline,
-              ),
-              // ★ الخيارات مرتبطة بـ ScrollController الخاص بالورقة ⇒ السحب
-              // داخلها يوسّع الورقة (لا تمرير، لقلة الخيارات).
-              Expanded(
-                child: ListView(
-                  controller: scrollController,
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-                  children: [
-                    // 1) معاينة كاملة (كما كان سلوك الضغط على الصورة).
-                    if (images.isNotEmpty)
-                      row(
-                        LucideIcons.maximize2,
-                        'مشاهدة صور',
-                        () => pick(
-                          () => _core.openImagePreview(
-                            context,
-                            images: images,
-                            service: service,
-                          ),
-                        ),
-                      ),
-                    // 2) طلب الآن ⇒ محادثة مباشرة مع مقدّم الخدمة.
-                    row(
-                      LucideIcons.shoppingBag,
-                      'طلب الآن',
-                      () => pick(
-                        () => _core.openServiceChat(context, service: service),
-                      ),
-                    ),
-                    // 3) المزيد ⇒ الانتقال لصفحة تفاصيل الخدمة.
-                    row(
-                      LucideIcons.newspaper,
-                      'عرض المزيد',
-                      () => pick(
-                        // ★ نستخدم سياق الـState لا سياق الورقة (أُغلقت).
-                        () => this.context.push('/service/${service.id}'),
-                      ),
-                    ),
-                    // 4) عرض الملف الشخصي ⇒ حساب مقدم الخدمة.
-                    row(
-                      LucideIcons.user,
-                      'عرض الملف الشخصي',
-                      () => pick(() {
-                        final accounts = AccountRepository.instance.forService(service.id);
-                        if (accounts.isNotEmpty) {
-                          this.context.push('/account/${accounts.first.id}');
-                        }
-                      }),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            row(
+              LucideIcons.shoppingBag,
+              '\u0637\u0644\u0628 \u0627\u0644\u0622\u0646',
+              () => pick(() => _core.openServiceChat(context, service: service)),
+            ),
+            row(
+              LucideIcons.newspaper,
+              '\u0639\u0631\u0636 \u0627\u0644\u0645\u0632\u064a\u062f',
+              () => pick(() => this.context.push('/service/${service.id}')),
+            ),
+            row(
+              LucideIcons.user,
+              '\u0639\u0631\u0636 \u0627\u0644\u0645\u0644\u0641 \u0627\u0644\u0634\u062e\u0635\u064a',
+              () => pick(() {
+                final accounts = AccountRepository.instance.forService(service.id);
+                if (accounts.isNotEmpty) {
+                  this.context.push('/account/${accounts.first.id}');
+                }
+              }),
+            ),
+            const SizedBox(height: 8),
+          ],
         );
       },
     );
   }
+
 
   void _showSpotlightMoreSheet(ServiceCategory service) {
     final secondary = widget.isDark
