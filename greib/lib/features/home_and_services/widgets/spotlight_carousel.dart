@@ -2,16 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import '../../../../shared_widgets/glass_container.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/mock_data/mock_data.dart';
 import '../../../../core/models/service_model.dart';
+import '../../../../core/widgets/draggable_sheet_body.dart';
 import '../../services/data/services_repository.dart';
 import '../../../../shared_widgets/smart_image.dart';
 import '../../../../shared_widgets/post_sheets.dart';
 import '../../../../shared_widgets/service_post_card.dart';
 import '../../../../core/widgets/app_sheet.dart';
-import '../../communication_and_support/chat_screen.dart';
 import '../../../../shared_widgets/share_arrow_icon.dart';
 
 class SpotlightSection extends StatefulWidget {

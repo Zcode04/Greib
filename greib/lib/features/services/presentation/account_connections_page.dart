@@ -5,7 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/models/account_model.dart';
 import '../../../core/models/service_model.dart';
 import '../../../core/theme/design_tokens.dart';
-import '../../../shared_widgets/post_sheets.dart';
+import '../../../core/widgets/draggable_sheet_body.dart';
 import '../data/account_repository.dart';
 import '../data/services_repository.dart';
 

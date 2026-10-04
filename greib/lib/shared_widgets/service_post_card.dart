@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/mock_data/mock_data.dart';
@@ -9,6 +8,7 @@ import '../core/widgets/app_sheet.dart';
 import 'post_reaction.dart';
 import 'smart_image.dart';
 import 'share_arrow_icon.dart';
+import 'sheets/post_options_sheet.dart';
 
 /// ============================================================================
 ///  ServicePostCard — بطاقة المنشور الموحّدة.
@@ -214,16 +214,6 @@ class _ServicePostCardState extends State<ServicePostCard> {
     return seed == 0 ? 1 : seed;
   }
 
-  bool get _derivedIsOnline => _presenceSeed % 3 != 0;
-
-  String get _derivedPresence {
-    final minutes = _presenceSeed % 180 + 5;
-    if (minutes < 60) return 'آخر ظهور منذ $minutes دقيقة';
-    final hours = (minutes / 60).floor();
-    return 'آخر ظهور منذ $hours ${hours == 1 ? 'ساعة' : 'ساعات'}';
-  }
-
-  /// أسماء مستخدمين وهميين — مشتقّة ثابتة من البذرة (بلا عشوائية كل إطار).
   static const List<String> _peopleFirst = [
     'محمد',
     'سيدي',
@@ -303,230 +293,24 @@ class _ServicePostCardState extends State<ServicePostCard> {
   }
 
   // ---------- ورقة خيارات المنشور (⋯) ----------
-  /// تُغلق الورقة ثم ينفّذ الإجراء (رسالة "قريباً" مؤقتة للباقي).
-  void _runFromSheet(VoidCallback action) {
-    Navigator.of(context, rootNavigator: true).pop();
-    action();
-  }
-
   /// ★ ورقة القراءة (volume-2): قراءة المنشور، تلخيص، توضيح.
   Future<void> _showReadOptions() async {
     await showAppSheet(
       context,
-      builder: (sheetContext) {
-        final sheetText = Theme.of(sheetContext).colorScheme.onSurface;
-        // ★ بلا خطوط فاصلة: الأيقونات وحدها تكفي للتمييز.
-        Widget tile({
-          required IconData icon,
-          required String label,
-          required Color iconColor,
-          required VoidCallback onTap,
-        }) => _sheetTile(
-          sheetContext,
-          icon: icon,
-          label: label,
-          iconColor: iconColor,
-          onTap: onTap,
-          showDivider: false,
-        );
-        return SafeArea(
-          top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-                child: Row(
-                  children: [
-                    Icon(LucideIcons.volume2, size: 18, color: _secondary),
-                    const SizedBox(width: 8),
-                    Text(
-                      'قراءة المنشور',
-                      style: TextStyle(
-                        color: sheetText,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              tile(
-                icon: LucideIcons.bookOpen,
-                label: 'قراءة المنشور',
-                iconColor: sheetText,
-                onTap: () => _runFromSheet(_showLater),
-              ),
-              tile(
-                icon: LucideIcons.textQuote,
-                label: 'تلخيص',
-                iconColor: sheetText,
-                onTap: () => _runFromSheet(_showLater),
-              ),
-              tile(
-                icon: LucideIcons.lightbulb,
-                label: 'توضيح',
-                iconColor: sheetText,
-                onTap: () => _runFromSheet(_showLater),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
+      builder: (_) => PostReadSheet(service: _service),
     );
   }
 
-  /// ★ ورقة واحدة موحّدة لكلا الأيقونتين (⋯ خيارات و ✕ إغلاق): نفس البيانات
-  ///   بالتفصيل معاً — حفظ، اهتمام، إخفاء المنشور، إخفاء كل منشورات النشاط،
-  ///   والإبلاغ.
+  /// ★ ورقة خيارات المنشور (⋯): حفظ، عرض، إخفاء، إبلاغ.
   Future<void> _showPostOptions() async {
-    final saved = _effectiveSaved;
     await showAppSheet(
       context,
-      builder: (sheetContext) {
-        final sheetText = Theme.of(sheetContext).colorScheme.onSurface;
-        // ★ بلا خطوط فاصلة: الأيقونات وحدها تكفي للتمييز.
-        Widget tile({
-          required IconData icon,
-          required String label,
-          required Color iconColor,
-          required VoidCallback onTap,
-          bool trailingChevron = false,
-        }) => _sheetTile(
-          sheetContext,
-          icon: icon,
-          label: label,
-          iconColor: iconColor,
-          onTap: onTap,
-          trailingChevron: trailingChevron,
-          showDivider: false,
-        );
-        return SafeArea(
-          top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-                child: Row(
-                  children: [
-                    Text(
-                      'خيارات المنشور',
-                      style: TextStyle(
-                        color: sheetText,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // ★ فتح صفحة الخدمة (/service/<id>) من داخل الورقة.
-              tile(
-                icon: LucideIcons.arrowUpDown,
-                label: 'عرض المزيد',
-                iconColor: sheetText,
-                trailingChevron: true,
-                onTap: () {
-                  Navigator.of(context, rootNavigator: true).pop();
-                  context.push('/service/${_service.id}');
-                },
-              ),
-              // ★ عرض الشرائح: نفس الميزة المستخدمة في شريط أسفل المنشور
-              //   (أيقونة gallery-horizontal) ⇒ ينقل الوضع لشرائح أفقية.
-              tile(
-                icon: LucideIcons.galleryHorizontal,
-                label: 'عرض الشرائح',
-                iconColor: sheetText,
-                trailingChevron: true,
-                onTap: () =>
-                    _runFromSheet(() => (widget.onShowSlides ?? _showLater)()),
-              ),
-              tile(
-                icon: saved ? LucideIcons.bookmarkCheck : LucideIcons.bookmark,
-                label: saved ? 'إلغاء حفظ المنشور' : 'حفظ المنشور',
-                iconColor: sheetText,
-                onTap: () => _runFromSheet(_toggleSaved),
-              ),
-              tile(
-                icon: LucideIcons.thumbsUp,
-                label: 'مهتم',
-                iconColor: sheetText,
-                onTap: () => _runFromSheet(_showLater),
-              ),
-              tile(
-                icon: LucideIcons.thumbsDown,
-                label: 'غير مهتم',
-                iconColor: sheetText,
-                onTap: () => _runFromSheet(_showLater),
-              ),
-              tile(
-                icon: LucideIcons.eyeOff,
-                label: 'إخفاء المنشور',
-                iconColor: sheetText,
-                onTap: () => _runFromSheet(_showLater),
-              ),
-              tile(
-                icon: LucideIcons.eyeOff,
-                label: 'إخفاء جميع منشورات نشاط هذا التاجر',
-                iconColor: sheetText,
-                onTap: () => _runFromSheet(_showLater),
-              ),
-              tile(
-                icon: LucideIcons.flag,
-                label: 'الإبلاغ عن المنشور',
-                iconColor: sheetText,
-                onTap: () => _runFromSheet(_showLater),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  /// عنصر قائمة داخل الورقة: أيقونة + نص، مع فاصل رفيع تحته.
-  Widget _sheetTile(
-    BuildContext sheetContext, {
-    required IconData icon,
-    required String label,
-    required Color iconColor,
-    required VoidCallback onTap,
-    bool showDivider = true,
-    bool trailingChevron = false,
-  }) {
-    final sheetText = Theme.of(sheetContext).colorScheme.onSurface;
-    final sheetLine = Theme.of(sheetContext).colorScheme.outlineVariant;
-    return Column(
-      children: [
-        InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            child: Row(
-              children: [
-                Icon(icon, size: 22, color: iconColor),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: TextStyle(color: sheetText, fontSize: 15),
-                  ),
-                ),
-                if (trailingChevron)
-                  Icon(
-                    LucideIcons.chevronDown,
-                    size: 20,
-                    color: sheetText.withValues(alpha: 0.6),
-                  ),
-              ],
-            ),
-          ),
-        ),
-        if (showDivider) Divider(height: 1, thickness: 1, color: sheetLine),
-      ],
+      builder: (_) => PostOptionsSheet(
+        service: _service,
+        isSaved: _effectiveSaved,
+        onSaveToggle: _toggleSaved,
+        onShowSlides: widget.onShowSlides,
+      ),
     );
   }
 
