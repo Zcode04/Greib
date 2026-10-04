@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/models/service_model.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/widgets/draggable_sheet_body.dart';
 
 /// ============================================================================
@@ -51,12 +50,10 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
   @override
   Widget build(BuildContext context) {
     final accent = widget.service.color;
-    final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
-    final secondary = widget.isDark
-        ? AppColors.textSecondary
-        : AppColors.lightTextSecondary;
-    final line = widget.isDark ? AppColors.outline : AppColors.lightOutline;
+    final primary = Theme.of(context).colorScheme.onSurface;
+    final secondary = primary.withValues(alpha: 0.6);
 
+    // ★ بلا عنوان ولا فواصل: قائمة التعليقات ثم حقل الإرسال.
     return DraggableSheetBody(
       initialExtent: 0.6,
       snapSizes: const [0.35, 0.45, 0.55, 0.6, 0.7, 0.8, 0.92],
@@ -64,27 +61,6 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SheetDragArea(
-            controller: scrollController,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-              child: Row(
-                children: [
-                  Icon(LucideIcons.messagesSquare, size: 18, color: secondary),
-                  const SizedBox(width: 8),
-                  Text(
-                    'التعليقات (${widget.comments.length})',
-                    style: TextStyle(
-                      color: primary,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Divider(height: 1, color: line),
           Expanded(
             child: ListView.separated(
               controller: scrollController,
@@ -94,7 +70,6 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
               itemBuilder: (context, i) => _commentRow(widget.comments[i]),
             ),
           ),
-          Divider(height: 1, color: line),
           // حقل التعليق + زر الإرسال.
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 12, 12),
@@ -113,9 +88,8 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
                       hintText: 'اكتب تعليقاً…',
                       hintStyle: TextStyle(color: secondary, fontSize: 13),
                       filled: true,
-                      fillColor: widget.isDark
-                          ? AppColors.surface
-                          : AppColors.lightBackground,
+                      fillColor:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 14,
                         vertical: 10,
@@ -146,7 +120,8 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
 
   Widget _commentRow(PostComment c) {
     final accent = widget.service.color;
-    final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
+    final primary = Theme.of(context).colorScheme.onSurface;
+    final bubble = Theme.of(context).colorScheme.surfaceContainerHighest;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,9 +140,7 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: c.mine
-                  ? accent.withValues(alpha: 0.12)
-                  : (widget.isDark ? AppColors.surfaceCard : Colors.white),
+              color: c.mine ? accent.withValues(alpha: 0.12) : bubble,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Column(
