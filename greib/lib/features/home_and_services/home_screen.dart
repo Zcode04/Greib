@@ -5,7 +5,6 @@ import '../../core/permissions/permissions.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/auth/auth_service.dart';
 import '../../core/widgets/header_collapse_state.dart';
-import '../../shared_widgets/animated_background.dart';
 import '../../shared_widgets/latest_products_carousel.dart';
 import '../../shared_widgets/section_header.dart';
 import '../../shared_widgets/animated_list_item.dart';
@@ -203,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       (isDark
                               ? AppColors.background
                               : AppColors.lightBackground)
-                          .withOpacity(0.0), // شفاف في النهاية
+                          .withValues(alpha: 0.0), // شفاف في النهاية
                     ],
                     stops: const [
                       0.0,

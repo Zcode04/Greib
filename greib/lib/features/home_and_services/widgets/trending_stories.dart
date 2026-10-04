@@ -3,20 +3,20 @@ import 'package:flutter/material.dart';
 // ─────────────────────────────────────────────
 //  بيانات العناصر الرائجة
 // ─────────────────────────────────────────────
-class _TrendingItem {
+class TrendingItem {
   final String title;
   final String imageUrl;
   final String badge;
-  const _TrendingItem({required this.title, required this.imageUrl, this.badge = 'رائج'});
+  const TrendingItem({required this.title, required this.imageUrl, this.badge = 'رائج'});
 }
 
 const _kItems = [
-  _TrendingItem(title: 'توصيل سريع', imageUrl: 'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=400&q=80', badge: '🔥 رائج'),
-  _TrendingItem(title: 'فنادق فاخرة', imageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=80', badge: '⭐ مميز'),
-  _TrendingItem(title: 'رحلات جوية', imageUrl: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80', badge: '✈️ رائج'),
-  _TrendingItem(title: 'طب وصيدلة', imageUrl: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=80', badge: '💊 جديد'),
-  _TrendingItem(title: 'تسوق يومي', imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80', badge: '🛍 رائج'),
-  _TrendingItem(title: 'مطاعم مميزة', imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80', badge: '🍽 رائج'),
+  TrendingItem(title: 'توصيل سريع', imageUrl: 'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=400&q=80', badge: '🔥 رائج'),
+  TrendingItem(title: 'فنادق فاخرة', imageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=80', badge: '⭐ مميز'),
+  TrendingItem(title: 'رحلات جوية', imageUrl: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80', badge: '✈️ رائج'),
+  TrendingItem(title: 'طب وصيدلة', imageUrl: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=80', badge: '💊 جديد'),
+  TrendingItem(title: 'تسوق يومي', imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80', badge: '🛍 رائج'),
+  TrendingItem(title: 'مطاعم مميزة', imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80', badge: '🍽 رائج'),
 ];
 
 // ─────────────────────────────────────────────
@@ -53,7 +53,7 @@ class _TrendingStoriesSectionState extends State<TrendingStoriesSection>
         padding: EdgeInsets.zero,
         // +1 لبطاقة المستخدم
         itemCount: _kItems.length + 1,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        separatorBuilder: (_, _) => const SizedBox(width: 10),
         itemBuilder: (context, i) {
           // البطاقة الأخيرة: بطاقة المستخدم (تظهر في اليسار في RTL)
           if (i == _kItems.length) {
@@ -93,8 +93,8 @@ class _TrendingStoriesSectionState extends State<TrendingStoriesSection>
                     opaque: false,
                     barrierColor: Colors.transparent,
                     transitionDuration: const Duration(milliseconds: 260),
-                    pageBuilder: (_, __, ___) => StoryViewerPage(items: _kItems, initialIndex: i),
-                    transitionsBuilder: (_, animation, __, child) =>
+                    pageBuilder: (_, _, _) => StoryViewerPage(items: _kItems, initialIndex: i),
+                    transitionsBuilder: (_, animation, _, child) =>
                         FadeTransition(opacity: animation, child: child),
                   ),
                 );
@@ -146,7 +146,7 @@ class _UserRequestCard extends StatelessWidget {
               height: 62,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF3B82F6).withOpacity(0.15),
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
                 border: Border.all(color: const Color(0xFF3B82F6), width: 2),
               ),
               child: const Icon(Icons.person_rounded, color: Color(0xFF3B82F6), size: 34),
@@ -170,7 +170,7 @@ class _UserRequestCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: const Color(0xFF3B82F6),
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [BoxShadow(color: const Color(0xFF3B82F6).withOpacity(0.4), blurRadius: 8, offset: const Offset(0, 3))],
+                  boxShadow: [BoxShadow(color: const Color(0xFF3B82F6).withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 3))],
                 ),
                 child: const Text(
                   'طلب الآن',
@@ -189,7 +189,7 @@ class _UserRequestCard extends StatelessWidget {
 //  بطاقة قصة عادية
 // ─────────────────────────────────────────────
 class _StoryCard extends StatelessWidget {
-  final _TrendingItem item;
+  final TrendingItem item;
   final bool isPressed;
   final VoidCallback onTap;
   final VoidCallback onTapDown;
@@ -218,7 +218,7 @@ class _StoryCard extends StatelessWidget {
                 Image.network(
                   item.imageUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade800, child: const Icon(Icons.image_not_supported, color: Colors.white54, size: 40)),
+                  errorBuilder: (_, _, _) => Container(color: Colors.grey.shade800, child: const Icon(Icons.image_not_supported, color: Colors.white54, size: 40)),
                   loadingBuilder: (_, child, progress) {
                     if (progress == null) return child;
                     return Container(color: Colors.grey.shade900, child: const Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2)));
@@ -230,7 +230,7 @@ class _StoryCard extends StatelessWidget {
                   top: 10, left: 8,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: Colors.black.withOpacity(0.45), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white24, width: 0.8)),
+                    decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.45), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white24, width: 0.8)),
                     child: Text(item.badge, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
                   ),
                 ),
@@ -251,7 +251,7 @@ class _StoryCard extends StatelessWidget {
 //  شاشة عرض القصة (Story Viewer) — بملء الشاشة
 // ─────────────────────────────────────────────
 class StoryViewerPage extends StatefulWidget {
-  final List<_TrendingItem> items;
+  final List<TrendingItem> items;
   final int initialIndex;
   const StoryViewerPage({super.key, required this.items, required this.initialIndex});
 
@@ -326,7 +326,7 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.45),
+                    color: Colors.black.withValues(alpha: 0.45),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: Colors.white24),
                   ),
@@ -372,7 +372,7 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
 }
 
 class _StoryFullView extends StatelessWidget {
-  final _TrendingItem item;
+  final TrendingItem item;
   const _StoryFullView({required this.item});
 
   @override
@@ -383,7 +383,7 @@ class _StoryFullView extends StatelessWidget {
         Image.network(
           item.imageUrl,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade900),
+          errorBuilder: (_, _, _) => Container(color: Colors.grey.shade900),
           loadingBuilder: (_, child, progress) {
             if (progress == null) return child;
             return Container(color: Colors.black, child: const Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2)));
@@ -411,7 +411,7 @@ class _ProgressBar extends StatelessWidget {
             margin: const EdgeInsetsDirectional.only(end: 4),
             height: 3,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(i <= currentIndex ? 0.95 : 0.35),
+              color: Colors.white.withValues(alpha: i <= currentIndex ? 0.95 : 0.35),
               borderRadius: BorderRadius.circular(3),
             ),
           ),

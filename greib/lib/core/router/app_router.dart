@@ -12,7 +12,6 @@ import '../../features/location_and_tracking/maps_screen.dart';
 import '../../features/home_and_services/search_screen.dart';
 import '../../features/services/presentation/account_connections_page.dart';
 import '../../features/services/presentation/account_profile_page.dart';
-import '../../features/services/presentation/provider_profile_page.dart';
 import '../../features/services/presentation/service_details_page.dart';
 import '../../shared_widgets/coming_soon_screen.dart';
 import '../../shared_widgets/main_shell_screen.dart';
@@ -26,9 +25,6 @@ class AppRouter {
 
   /// بادئة مسار صفحة الخدمة الواحد (Path Parameter).
   static const String _serviceRoutePrefix = '/service/';
-
-  /// بادئة مسار صفحة مقدم الخدمة (Path Parameter).
-  static const String _providerRoutePrefix = '/provider/';
 
   /// بادئة مسار صفحة الحساب/المتجر (Path Parameter).
   static const String _accountRoutePrefix = '/account/';
@@ -61,10 +57,9 @@ class AppRouter {
     // لأن موضع الـ :id يتغيّر حسب الخدمة المختارة.
     if (location.startsWith(_serviceRoutePrefix)) return null;
 
-    // ★ نفس المنطق لصفحات البروفايل: /provider/:id و /account/:id
+    // ★ نفس المنطق لصفحات البروفايل: /account/:id
     //   (بادئة + معرّف متغيّر ⇒ لا يمكن listingها في _knownRoutes).
     //   كانت هذه المسارات محجوبة وتُعاد إلى /home، فصارت مفتوحة الآن.
-    if (location.startsWith(_providerRoutePrefix)) return null;
     if (location.startsWith(_accountRoutePrefix)) return null;
 
     if (_knownRoutes.contains(location)) return null;
@@ -154,13 +149,6 @@ class AppRouter {
         name: 'serviceDetails',
         builder: (context, state) =>
             ServiceDetailsPage(serviceId: state.pathParameters['id'] ?? ''),
-      ),
-      // ===== صفحة مقدم الخدمة: /provider/:id (معرّف = serviceId + _p + فهرس) =====
-      GoRoute(
-        path: '/provider/:id',
-        name: 'providerProfile',
-        builder: (context, state) =>
-            ProviderProfilePage(providerId: state.pathParameters['id'] ?? ''),
       ),
       // ===== صفحة الحساب/المتجر: /account/:id (معرّف = serviceId + :: + البذرة) =====
       // تُفتح بالضغط على صورة أي بروفايل في شريط «الحسابات» أسفل صفحة الخدمة.

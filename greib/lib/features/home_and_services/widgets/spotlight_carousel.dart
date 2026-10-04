@@ -435,53 +435,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     );
   }
 
-  Widget _buildSpotlightPosts(List<ServicePostEntry> posts) {
-    return LayoutBuilder(
-      // ★ التجاوب: العرض المتاح فعلياً من الـ LayoutBuilder (لا MediaQuery)
-      // + تمديد البطاقة لحواف الشاشة + حد أقصى على الشاشات العريضة.
-      builder: (context, constraints) {
-        final available = constraints.maxWidth.isFinite
-            ? constraints.maxWidth
-            : MediaQuery.sizeOf(context).width - widget.horizontalBleed * 2;
-        final bleed = widget.horizontalBleed.clamp(0.0, available / 2);
-        final screenWidth = available + bleed * 2;
-        // الهاتف: يملأ العرض كله (فيس بوك). التابلت/العريض: عمود
-        // بعرض مقروء ومتمركز.
-        final postWidth = screenWidth > _kMaxPostWidth
-            ? _kMaxPostWidth
-            : screenWidth;
 
-        return OverflowBox(
-          alignment: Alignment.center,
-          fit: OverflowBoxFit.deferToChild,
-          minWidth: screenWidth,
-          maxWidth: screenWidth,
-          child: SizedBox(
-            width: screenWidth,
-            child: Column(
-              // center ⇒ توسيط البطاقة على الشاشات العريضة (بلا أثر على الهاتف).
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: postWidth,
-                  child: ListView.separated(
-                    key: const ValueKey('posts'),
-                    shrinkWrap: true,
-                    padding: EdgeInsets.zero,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: posts.length,
-                    // ★ بلا فاصل بين المنشورات — المسافة العمودية من البطاقة نفسها.
-                    separatorBuilder: (_, _) => const SizedBox.shrink(),
-                    itemBuilder: (context, i) => _spotlightPostItem(posts[i]),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   /// ★ المنشور في الصفحة الرئيسية = نفس بطاقة `ServicePostCard` ونفس نواة
   /// الأوراق `PostSheetsController` المستخدمَين في تبويبات صفحة تفاصيل الخدمة
@@ -827,7 +781,6 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     final neonColor = widget.isDark
         ? AppColors.neon
         : AppColors.accentPrimaryDark;
-    final isFav = _core.isFavorite(entry.postId);
     
     final imageUrl = post.imageUrls.isNotEmpty 
         ? post.imageUrls.first 

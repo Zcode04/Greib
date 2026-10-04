@@ -1,11 +1,9 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../notifications/notification_manager.dart';
-import '../theme/app_colors.dart';
 import '../theme/design_tokens.dart';
 import '../theme/theme_controller.dart';
 import '../../shared_widgets/quick_settings_sheet.dart';
@@ -47,7 +45,7 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
         final logoSize = collapsed ? 18.0 : 24.0;
         final iconSize = collapsed ? 15.0 : 18.0;
         final btnBox = collapsed ? 28.0 : 32.0;
-        final bgColor = isDark ? AppColors.background : AppColors.lightBackground;
+
 
         // ★ تأثير زجاجي (Glassmorphism):
         // شفافية أعلى لرؤية تأثير الضبابي بوضوح، مع ظل ناعم حقيقي للأسفل

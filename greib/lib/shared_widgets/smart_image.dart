@@ -36,7 +36,7 @@ class SmartImage extends StatelessWidget {
       return placeholder ?? const _Fallback();
     }
 
-    final errorBuilder = (BuildContext _, Object __, StackTrace? ___) =>
+    Widget errorBuilder(BuildContext _, Object _, StackTrace? _) =>
         placeholder ?? const _Fallback();
 
     if (isAsset(path)) {
