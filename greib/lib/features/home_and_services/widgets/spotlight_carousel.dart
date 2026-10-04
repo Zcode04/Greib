@@ -541,21 +541,24 @@ class _SpotlightSectionState extends State<SpotlightSection> {
         // ★ لون موحّد مع بقية الأوراق (لون نص السطح) بلا عنوان علوي.
         final sheetText = Theme.of(sheetContext).colorScheme.onSurface;
 
+        final outline = Theme.of(
+          sheetContext,
+        ).dividerColor.withValues(alpha: 0.6);
+
         Widget row(IconData icon, String label, VoidCallback onTap) {
           return InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(8),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               child: Row(
                 children: [
-                  Icon(icon, size: 22, color: sheetText),
-                  const SizedBox(width: 14),
+                  Icon(icon, size: 24, color: sheetText),
+                  const SizedBox(width: 16),
                   Text(
                     label,
                     style: TextStyle(
                       color: sheetText,
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -565,40 +568,62 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           );
         }
 
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (images.isNotEmpty)
-              row(
-                LucideIcons.maximize2,
-                '\u0645\u0634\u0627\u0647\u062f\u0629 \u0635\u0648\u0631',
-                () => pick(() => _core.openImagePreview(
-                  context, images: images, service: service,
-                )),
+        // ★ نفس شكل ورقة زر الأقوان (⋯): قابلة للسحب بأحجام دينامية، بلا عنوان.
+        return DraggableSheetBody(
+          initialExtent: 0.45,
+          snapSizes: const [0.35, 0.45, 0.6, 0.92],
+          builder: (context, scrollController) => Column(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Divider(height: 1, color: outline),
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                  children: [
+                    if (images.isNotEmpty)
+                      row(
+                        LucideIcons.maximize2,
+                        'مشاهدة صور',
+                        () => pick(
+                          () => _core.openImagePreview(
+                            context,
+                            images: images,
+                            service: service,
+                          ),
+                        ),
+                      ),
+                    row(
+                      LucideIcons.shoppingBag,
+                      'طلب الآن',
+                      () => pick(
+                        () => _core.openServiceChat(context, service: service),
+                      ),
+                    ),
+                    row(
+                      LucideIcons.newspaper,
+                      'عرض المزيد',
+                      () => pick(
+                        () => this.context.push('/service/${service.id}'),
+                      ),
+                    ),
+                    row(
+                      LucideIcons.user,
+                      'عرض الملف الشخصي',
+                      () => pick(() {
+                        final accounts = AccountRepository.instance
+                            .forService(service.id);
+                        if (accounts.isNotEmpty) {
+                          this.context.push('/account/${accounts.first.id}');
+                        }
+                      }),
+                    ),
+                  ],
+                ),
               ),
-            row(
-              LucideIcons.shoppingBag,
-              '\u0637\u0644\u0628 \u0627\u0644\u0622\u0646',
-              () => pick(() => _core.openServiceChat(context, service: service)),
-            ),
-            row(
-              LucideIcons.newspaper,
-              '\u0639\u0631\u0636 \u0627\u0644\u0645\u0632\u064a\u062f',
-              () => pick(() => this.context.push('/service/${service.id}')),
-            ),
-            row(
-              LucideIcons.user,
-              '\u0639\u0631\u0636 \u0627\u0644\u0645\u0644\u0641 \u0627\u0644\u0634\u062e\u0635\u064a',
-              () => pick(() {
-                final accounts = AccountRepository.instance.forService(service.id);
-                if (accounts.isNotEmpty) {
-                  this.context.push('/account/${accounts.first.id}');
-                }
-              }),
-            ),
-            const SizedBox(height: 8),
-          ],
+            ],
+          ),
         );
       },
     );
