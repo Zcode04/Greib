@@ -41,6 +41,12 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
   /// ★ فهرس التعليق الجاري الرد عليه (null = رد عام).
   int? _replyingTo;
 
+  /// ★ خيوط الردود المفتوحة (تُعرض الردود مرتّبة زمنياً).
+  final Set<int> _openThreads = {};
+
+  /// ★ عدّاد تسلسلي للترتيب الزمني للردود.
+  static int _seq = 0;
+
   /// ★ مفتاح ورقة التعليقات لنموّها للأعلى أثناء الكتابة.
   ///   (حالة DraggableScrollableSheet خاصة في Flutter ⇒ نُناديها ديناميكياً).
   final GlobalKey<State<DraggableScrollableSheet>> _sheetKey =
@@ -129,6 +135,17 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
     _replyFocus.requestFocus();
   }
 
+  /// ★ فتح/طي خيط الردود.
+  void _toggleThread(int index) {
+    setState(() {
+      if (_openThreads.contains(index)) {
+        _openThreads.remove(index);
+      } else {
+        _openThreads.add(index);
+      }
+    });
+  }
+
   void _cancelReply() {
     setState(() => _replyingTo = null);
     _replyInput.clear();
@@ -140,7 +157,7 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
     if (text.isEmpty) return;
     setState(() {
       widget.comments[index].replies.add(
-        PostComment('أنت', text, mine: true),
+        PostComment('أنت', text, mine: true, seq: ++_seq),
       );
     });
     _replyInput.clear();
@@ -345,63 +362,78 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
               const SizedBox(height: 2),
               Text(shown, style: TextStyle(color: primary, fontSize: 14)),
               const SizedBox(height: 4),
-              // ★ «رد» + الردود المرتبطة + حقل الرد المباشر.
+              // ★ Threaded replies: عدّاد «رد N» يفتح خيط الردود مرتّباً زمنياً.
               Row(
                 children: [
                   _ReplyToggle(
                     color: moreColor,
-                    onTap: () => _startReply(index),
+                    count: c.replies.length,
+                    open: _openThreads.contains(index),
+                    onTap: () => _toggleThread(index),
                   ),
                   const SizedBox(width: 12),
-                  Text(
-                    c.author,
-                    style: TextStyle(color: secondary, fontSize: 12),
+                  GestureDetector(
+                    onTap: () => _startReply(index),
+                    behavior: HitTestBehavior.opaque,
+                    child: Text(
+                      'رد',
+                      style: TextStyle(
+                        color: secondary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
               ),
-              for (final reply in c.replies)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: accent.withValues(alpha: 0.1),
-                        ),
-                        child: Icon(
-                          LucideIcons.user,
-                          size: 12,
-                          color: accent,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text.rich(
-                          TextSpan(
-                            children: [
-                              TextSpan(
-                                text: '${reply.author}: ',
-                                style: TextStyle(
-                                  color: primary.withValues(alpha: 0.7),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              TextSpan(
-                                text: reply.text,
-                                style: TextStyle(color: primary, fontSize: 13),
-                              ),
-                            ],
+              if (_openThreads.contains(index) && c.replies.isNotEmpty)
+                for (final reply in c.replies.toList()
+                  ..sort((a, b) => a.seq.compareTo(b.seq)))
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8, right: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: accent.withValues(alpha: 0.1),
+                          ),
+                          child: Icon(
+                            LucideIcons.user,
+                            size: 12,
+                            color: accent,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: '${reply.author}: ',
+                                  style: TextStyle(
+                                    color: primary.withValues(alpha: 0.7),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: reply.text,
+                                  style: TextStyle(
+                                    color: primary,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
               if (_replyingTo == index)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
@@ -429,9 +461,16 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
 
 /// ★ زر «رد» على تعليق.
 class _ReplyToggle extends StatelessWidget {
-  const _ReplyToggle({required this.color, required this.onTap});
+  const _ReplyToggle({
+    required this.color,
+    required this.count,
+    required this.open,
+    required this.onTap,
+  });
 
   final Color color;
+  final int count;
+  final bool open;
   final VoidCallback onTap;
 
   @override
@@ -442,16 +481,24 @@ class _ReplyToggle extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(LucideIcons.cornerUpLeft, size: 14, color: color),
+          Icon(LucideIcons.messageCircle, size: 14, color: color),
           const SizedBox(width: 4),
           Text(
-            'رد',
+            count == 0 ? 'رد' : 'رد $count',
             style: TextStyle(
               color: color,
               fontSize: 13,
               fontWeight: FontWeight.w700,
             ),
           ),
+          if (count > 0) ...[
+            const SizedBox(width: 2),
+            Icon(
+              open ? LucideIcons.chevronUp : LucideIcons.chevronDown,
+              size: 16,
+              color: color,
+            ),
+          ],
         ],
       ),
     );
@@ -511,6 +558,7 @@ class PostComment {
     this.text, {
     this.mine = false,
     this.replies = const [],
+    this.seq = 0,
   });
 
   final String author;
@@ -521,4 +569,7 @@ class PostComment {
 
   /// ★ الردود على هذا التعليق (علاقة مباشرة بالمعلّق).
   final List<PostComment> replies;
+
+  /// ★ تسلسل زمني لعرض الردود بالترتيب (الأقدم أولاً).
+  final int seq;
 }

@@ -101,8 +101,8 @@ class PostSheetsController extends ChangeNotifier {
           'محمد',
           'جرّبتها أمس وأنصح فيها بشدة.',
           replies: [
-            PostComment('سارة', 'نعم خدمة ممتازة والأسعار مناسبة.'),
-            PostComment('ريم', 'هل تعمل في جميع المناطق؟'),
+            PostComment('سارة', 'نعم خدمة ممتازة والأسعار مناسبة.', seq: 1),
+            PostComment('ريم', 'هل تعمل في جميع المناطق؟', seq: 2),
           ],
         ),
         const PostComment(
