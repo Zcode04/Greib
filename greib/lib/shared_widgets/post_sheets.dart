@@ -929,21 +929,6 @@ class PostReactionSheetState extends State<PostReactionSheet> {
                 curve: Curves.easeOutBack,
                 child: iconChild,
               ),
-              const SizedBox(height: 4),
-              AnimatedOpacity(
-                opacity: active || hovered ? 1 : 0,
-                duration: const Duration(milliseconds: 140),
-                child: Text(
-                  reaction.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: reaction.color,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
             ],
           ),
         ),
