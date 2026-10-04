@@ -92,6 +92,10 @@ class ServicePostCard extends StatefulWidget {
   final VoidCallback? onShare;
   final VoidCallback? onImageTap;
 
+  /// ★ الضغط على اسم/صورة صاحب المنشور — يفتح ورقة الخيارات الخاصة به.
+  /// إن لم يُمرَّر يفتح ورقة خيارات المنشور الافتراضية.
+  final VoidCallback? onAuthorTap;
+
   /// ★ تبديل المنشور إلى وضع الشرائح (من ورقة خيارات المنشور).
   /// الصفحة الرئيسية تمرّره ليشغّل نفس وضع «عرض الشرائح» في الشريط أسفل المنشور.
   final VoidCallback? onShowSlides;
@@ -124,6 +128,7 @@ class ServicePostCard extends StatefulWidget {
     this.onComment,
     this.onShare,
     this.onImageTap,
+    this.onAuthorTap,
     this.onShowSlides,
   });
 
@@ -363,7 +368,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
         children: [
           Expanded(
             child: GestureDetector(
-              onTap: _showPostOptions,
+              onTap: widget.onAuthorTap ?? _showPostOptions,
               behavior: HitTestBehavior.opaque,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,

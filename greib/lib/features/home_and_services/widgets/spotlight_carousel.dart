@@ -486,6 +486,8 @@ class _SpotlightSectionState extends State<SpotlightSection> {
             // ★ نفس الاستدعاءات المستخدمة في صفحة التفاصيل (نواة واحدة).
             onRequest: () => core.openServiceChat(context, service: service),
             onImageTap: () => _showPostImagesSheet(service, images),
+            // ★ الضغط على اسم/صورة صاحب المنشور يعرض نفس ورقة الخيارات.
+            onAuthorTap: () => _showPostImagesSheet(service, images),
             onComment: () =>
                 core.showComments(context, postId: postId, service: service),
             onShare: () => core.showAction(
