@@ -56,10 +56,10 @@ const List<_ShellTab> _tabs = [
     label: 'الدردشة',
   ),
   _ShellTab(
-    route: '/search',
-    title: 'البحث',
+    route: '/reels',
+    title: 'الريلز',
     icon: LucideIcons.clapperboard,
-    label: 'البحث',
+    label: 'Reels',
   ),
 ];
 
@@ -76,8 +76,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
   /// ★ فهرس تبويب «الرئيسية» (يُشتق من القائمة بدل رقم ثابت).
   static int get _homeTabIndex => _tabs.indexWhere((t) => t.route == '/home');
 
-  /// ★ عدد التبويبات التي تبني محتوى الـ Shell (بدون «البحث»).
-  ///   «البحث» يفتح صفحة مستقلة، فلا يُحفظ كمؤشر نشط.
+  /// ★ عدد التبويبات التي تبني محتوى الـ Shell (بدون «الريلز»).
+  ///   «الريلز» يفتح صفحة مستقلة، فلا يُحفظ كمؤشر نشط.
   int get _shellTabCount => _tabs.length - 1;
 
   @override
@@ -89,8 +89,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
   void _onTabSelected(int index) {
     final tab = _tabs[index];
 
-    // ★ البحث صفحة مستقلة (خارج الـ Shell): نفتحها بدل تبديل التبويب.
-    if (tab.route == '/search') {
+    // ★ الريلز صفحة مستقلة (خارج الـ Shell): نفتحها بدل تبديل التبويب.
+    if (tab.route == '/reels') {
       context.push(tab.route);
       return;
     }

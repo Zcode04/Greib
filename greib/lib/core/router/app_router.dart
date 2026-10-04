@@ -10,6 +10,7 @@ import '../../features/communication_and_support/support_tickets_screen.dart';
 import '../../features/location_and_tracking/tracking_screen.dart';
 import '../../features/location_and_tracking/maps_screen.dart';
 import '../../features/home_and_services/search_screen.dart';
+import '../../features/home_and_services/reels_screen.dart';
 import '../../features/services/presentation/account_connections_page.dart';
 import '../../features/services/presentation/account_profile_page.dart';
 import '../../features/services/presentation/service_details_page.dart';
@@ -36,6 +37,7 @@ class AppRouter {
     '/tracking',
     '/orders',
     '/search',
+    '/reels',
     '/settings',
     '/doctors',
     '/support',
@@ -94,6 +96,10 @@ class AppRouter {
       GoRoute(
         path: '/search',
         builder: (context, state) => const SearchScreen(),
+      ),
+      GoRoute(
+        path: '/reels',
+        builder: (context, state) => const ReelsScreen(),
       ),
       GoRoute(
         path: '/notifications',

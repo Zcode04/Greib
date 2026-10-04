@@ -1,0 +1,1098 @@
+// features/home_and_services/reels_screen.dart
+//
+// صفحة Reels — نسخة وهمية (واجهة فقط، بدون مشغّل فيديو).
+//
+// التصميم يحاكي تجربة Reels في TikTok / Facebook:
+// • تمرير عمودي بفيديو واحد لكل صفحة (PageView عمودي، ملء الشاشة)
+// • طبقة محتوى فوق الفيديو: اسم الحساب، الوصف، الموسيقى، الإحصاءات
+// • عمود تفاعل على اليمين (إعجاب/تعليق/مشاركة/حفظ/صورة)
+// • قلب(double-tap) مع قلوب متطايرة، وكتم الصوت، وشريط تقدّم زمني متحرك
+//
+// البيانات كلها محلية داخل هذا الملف (Mock)، فاستبدالها لاحقاً بواجهة
+// برمجية يتم في `_ReelsPage.demo` فقط دون المساس ببناء الواجهة.
+
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/design_tokens.dart';
+
+/// ============================================================================
+///  نموذج الريل — بيانات وهمية لريل واحد.
+/// ============================================================================
+class ReelItem {
+  final String id;
+  final String authorName;
+  final String authorHandle;
+  final String avatarUrl;
+  final bool verified;
+  final String caption;
+  final String audioTitle;
+  final String coverUrl;
+  final List<String> tags;
+
+  final int likes;
+  final int comments;
+  final int shares;
+  final int saves;
+
+  const ReelItem({
+    required this.id,
+    required this.authorName,
+    required this.authorHandle,
+    required this.avatarUrl,
+    this.verified = false,
+    required this.caption,
+    required this.audioTitle,
+    required this.coverUrl,
+    this.tags = const [],
+    this.likes = 0,
+    this.comments = 0,
+    this.shares = 0,
+    this.saves = 0,
+  });
+}
+
+/// ============================================================================
+///  ReelsScreen — صفحة الريلز (المسار /reels).
+/// ============================================================================
+class ReelsScreen extends StatefulWidget {
+  const ReelsScreen({super.key});
+
+  @override
+  State<ReelsScreen> createState() => _ReelsScreenState();
+}
+
+class _ReelsScreenState extends State<ReelsScreen> {
+  late final PageController _pageController;
+
+  int _currentIndex = 0;
+  bool _muted = true;
+
+  /// حالات الإعجاب/الحفظ — مفتاحها معرّف الريل.
+  final Set<String> _liked = {};
+  final Set<String> _saved = {};
+
+  /// الريل الذي يتطاير فوقه قلب واحد (عند الضغط المزدوج).
+  String? _burstReelId;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+    _burstReelId = _demo.first.id;
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _toggleLike(String id) {
+    setState(() => _liked.contains(id) ? _liked.remove(id) : _liked.add(id));
+  }
+
+  void _toggleSave(String id) {
+    setState(() => _saved.contains(id) ? _saved.remove(id) : _saved.add(id));
+  }
+
+  void _toggleMute() => setState(() => _muted = !_muted);
+
+  void _handleDoubleTap(ReelItem reel) {
+    setState(() {
+      if (!_liked.contains(reel.id)) _liked.add(reel.id);
+      _burstReelId = reel.id;
+    });
+  }
+
+  void _openSheet(String message) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _MockSheet(message: message),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reels = _demo;
+
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: Stack(
+          children: [
+            PageView.builder(
+              controller: _pageController,
+              scrollDirection: Axis.vertical,
+              itemCount: reels.length,
+              onPageChanged: (index) => setState(() => _currentIndex = index),
+              itemBuilder: (context, index) {
+                final reel = reels[index];
+                return _ReelPage(
+                  key: ValueKey(reel.id),
+                  reel: reel,
+                  isActive: index == _currentIndex,
+                  isMuted: _muted,
+                  liked: _liked.contains(reel.id),
+                  saved: _saved.contains(reel.id),
+                  showBurst: _burstReelId == reel.id,
+                  onTap: _toggleMute,
+                  onDoubleTap: () => _handleDoubleTap(reel),
+                  onBurstFinished: () {
+                    if (_burstReelId == reel.id) {
+                      setState(() => _burstReelId = null);
+                    }
+                  },
+                  onLike: () => _toggleLike(reel.id),
+                  onSave: () => _toggleSave(reel.id),
+                  onComment: () => _openSheet('التعليقات'),
+                  onShare: () => _openSheet('مشاركة الريل'),
+                );
+              },
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: SafeArea(
+                child: _buildTopBar(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: () => context.pop(),
+            tooltip: 'رجوع',
+            icon: const Icon(
+              LucideIcons.chevronRight,
+              color: Colors.white,
+              size: 26,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          const Expanded(
+            child: Center(child: _TopTitle(label: 'الريلز')),
+          ),
+          IconButton(
+            onPressed: _toggleMute,
+            tooltip: _muted ? 'تشغيل الصوت' : 'كتم الصوت',
+            icon: Icon(
+              _muted ? LucideIcons.volumeX : LucideIcons.volume2,
+              color: Colors.white,
+              size: 21,
+            ),
+          ),
+          IconButton(
+            onPressed: () => _openSheet('الكاميرا'),
+            tooltip: 'الكاميرا',
+            icon: const Icon(
+              LucideIcons.camera,
+              color: Colors.white,
+              size: 21,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// ============================================================================
+///  _ReelPage — صفحة واحدة = ريل واحد بملء الشاشة وطبقات التفاعل.
+/// ============================================================================
+class _ReelPage extends StatelessWidget {
+  final ReelItem reel;
+  final bool isActive;
+  final bool isMuted;
+  final bool liked;
+  final bool saved;
+  final bool showBurst;
+
+  final VoidCallback onTap;
+  final VoidCallback onDoubleTap;
+  final VoidCallback onBurstFinished;
+  final VoidCallback onLike;
+  final VoidCallback onSave;
+  final VoidCallback onComment;
+  final VoidCallback onShare;
+
+  const _ReelPage({
+    super.key,
+    required this.reel,
+    required this.isActive,
+    required this.isMuted,
+    required this.liked,
+    required this.saved,
+    required this.showBurst,
+    required this.onTap,
+    required this.onDoubleTap,
+    required this.onBurstFinished,
+    required this.onLike,
+    required this.onSave,
+    required this.onComment,
+    required this.onShare,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // 1) خلفية الفيديو (محاكاة: صورة متحركة + تدرّج).
+        _VideoBackdrop(reel: reel, isActive: isActive),
+
+        // 2) تدرّجات لقراءة المحتوى فوق الفيديو.
+        const _EdgeScrim(top: true),
+        const _EdgeScrim(top: false),
+
+        // 3) طبقة اللمسات: نقرة = كتم، ضغط مزدوج = قلب.
+        Positioned.fill(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap,
+            onDoubleTap: onDoubleTap,
+            child: const SizedBox.expand(),
+          ),
+        ),
+
+        // 4) قلوب الضغط المزدوج.
+        if (showBurst)
+          Positioned.fill(
+            child: _HeartBurst(onFinished: onBurstFinished),
+          ),
+
+        // 5) زر تشغيل/كتم وسط الشاشة عند الكتم.
+        if (isMuted)
+          Center(
+            child: AnimatedOpacity(
+              opacity: isActive ? 0.0 : 1.0,
+              duration: const Duration(milliseconds: 250),
+              child: const Icon(
+                LucideIcons.volumeX,
+                color: Colors.white54,
+                size: 56,
+              ),
+            ),
+          ),
+
+        // 6) محتوى الريل + عمود التفاعل + شريط التقدّم.
+        Positioned.fill(
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Spacer(),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: _ReelMeta(reel: reel, liked: liked),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      _ActionRail(
+                        reel: reel,
+                        liked: liked,
+                        saved: saved,
+                        isActive: isActive,
+                        onLike: onLike,
+                        onSave: onSave,
+                        onComment: onComment,
+                        onShare: onShare,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  _ProgressBar(isActive: isActive),
+                  const SizedBox(height: AppSpacing.lg),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// ============================================================================
+///  _VideoBackdrop — محاكاة الفيديو: صورة بحركة بطيئة + حركة تكبير خفيفة.
+///  (يُستبدل لاحقاً بمشغّل فيديو حقيقي دون تغيير بقية الواجهة).
+/// ============================================================================
+class _VideoBackdrop extends StatefulWidget {
+  final ReelItem reel;
+  final bool isActive;
+
+  const _VideoBackdrop({required this.reel, required this.isActive});
+
+  @override
+  State<_VideoBackdrop> createState() => _VideoBackdropState();
+}
+
+class _VideoBackdropState extends State<_VideoBackdrop>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 9),
+    );
+    _syncPlayback();
+  }
+
+  @override
+  void didUpdateWidget(covariant _VideoBackdrop oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive != widget.isActive) _syncPlayback();
+  }
+
+  /// التوقف عند مغادرة الريل_CURRENT يقلّل استهلاك الإطارات في الشاشة الخلفية.
+  void _syncPlayback() {
+    if (widget.isActive) {
+      _controller.repeat();
+    } else {
+      _controller.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final t = _controller.value;
+        return Transform.scale(
+          scale: 1.06 + 0.06 * t,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.network(
+                widget.reel.coverUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, _, _) =>
+                    const ColoredBox(color: Color(0xFF1B1B2B)),
+              ),
+              // توهج متحرك أسفل الصفحة يحاكي إضاءة الفيديو.
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      AppColors.accentPrimary.withValues(
+                        alpha: 0.10 + 0.10 * t,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// ============================================================================
+///  _EdgeScrim — تدرّج أسود عند الحافة العليا أو السفلية لزيادة وضوح النص.
+/// ============================================================================
+class _EdgeScrim extends StatelessWidget {
+  final bool top;
+
+  const _EdgeScrim({required this.top});
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: top ? Alignment.topCenter : Alignment.bottomCenter,
+            end: top ? Alignment.bottomCenter : Alignment.topCenter,
+            colors: [
+              Colors.black.withValues(alpha: 0.55),
+              Colors.transparent,
+            ],
+            stops: const [0.0, 0.42],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// ============================================================================
+///  _HeartBurst — قلب كبير يظهر عند الضغط المزدوج ويختفي تلقائياً.
+///
+class _HeartBurst extends StatefulWidget {
+  final VoidCallback onFinished;
+
+  const _HeartBurst({required this.onFinished});
+
+  @override
+  State<_HeartBurst> createState() => _HeartBurstState();
+}
+
+class _HeartBurstState extends State<_HeartBurst>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )
+      ..forward()
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) widget.onFinished();
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scale = Tween<double>(begin: 0.3, end: 1.25).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeOutBack,
+      ),
+    );
+    final fade = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.45, 1, curve: Curves.easeIn),
+      ),
+    );
+    final drift = Tween<Offset>(
+      begin: Offset.zero,
+      end: const Offset(0, -18),
+    ).animate(_controller);
+
+    return Center(
+      child: FadeTransition(
+        opacity: fade,
+        child: SlideTransition(
+          position: drift,
+          child: ScaleTransition(
+            scale: scale,
+            child: const Icon(
+              LucideIcons.heart,
+              color: Colors.redAccent,
+              size: 116,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// ============================================================================
+///  _ReelMeta — اسم صاحب الريل، الوصف، الموسيقى، الأزرار (متابعة/تسجيل صوتي).
+/// ============================================================================
+class _ReelMeta extends StatelessWidget {
+  final ReelItem reel;
+  final bool liked;
+
+  const _ReelMeta({required this.reel, required this.liked});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            ClipOval(
+              child: Image.network(
+                reel.avatarUrl,
+                width: 34,
+                height: 34,
+                fit: BoxFit.cover,
+                errorBuilder: (context, _, _) => const CircleAvatar(
+                  radius: 17,
+                  backgroundColor: AppColors.surfaceCard,
+                  child: Icon(LucideIcons.user, size: 18, color: Colors.white70),
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Flexible(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      reel.authorHandle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  if (reel.verified) ...[
+                    const SizedBox(width: 4),
+                    const Icon(
+                      LucideIcons.badgeCheck,
+                      size: 15,
+                      color: Color(0xFF3DA5FF),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            const _FollowPill(),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          reel.caption,
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(color: Colors.white, fontSize: 13.5, height: 1.5),
+        ),
+        if (reel.tags.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(
+            reel.tags.map((tag) => '#$tag').join('  '),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFFBFC4D6),
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          children: [
+            const Icon(
+              LucideIcons.music2,
+              size: 14,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                reel.audioTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.white, fontSize: 12.5),
+              ),
+            ),
+          ],
+        ),
+        if (liked) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(AppRadii.full),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(LucideIcons.heart, size: 12, color: Colors.redAccent),
+                SizedBox(width: 4),
+                Text(
+                  'أعجبك الريل',
+                  style: TextStyle(color: Colors.white, fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _FollowPill extends StatelessWidget {
+  const _FollowPill();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(AppRadii.full),
+        border: Border.all(color: Colors.white38),
+      ),
+      child: const Text(
+        'متابعة',
+        style: TextStyle(color: Colors.white, fontSize: 11.5, height: 1.3),
+      ),
+    );
+  }
+}
+
+/// ============================================================================
+///  _ActionRail — عمود التفاعل على يمين الشاشة (إعجاب، تعليق، مشاركة، حفظ).
+/// ============================================================================
+class _ActionRail extends StatelessWidget {
+  final ReelItem reel;
+  final bool liked;
+  final bool saved;
+  final bool isActive;
+  final VoidCallback onLike;
+  final VoidCallback onSave;
+  final VoidCallback onComment;
+  final VoidCallback onShare;
+
+  const _ActionRail({
+    required this.reel,
+    required this.liked,
+    required this.saved,
+    required this.isActive,
+    required this.onLike,
+    required this.onSave,
+    required this.onComment,
+    required this.onShare,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _RailButton(
+          icon: liked ? LucideIcons.heart : LucideIcons.heart,
+          iconColor: liked ? Colors.redAccent : Colors.white,
+          filled: liked,
+          count: reel.likes + (liked ? 1 : 0),
+          tooltip: 'إعجاب',
+          onTap: onLike,
+        ),
+        _RailButton(
+          icon: LucideIcons.messageSquare,
+          count: reel.comments,
+          tooltip: 'تعليق',
+          onTap: onComment,
+        ),
+        _RailButton(
+          icon: LucideIcons.bookmark,
+          iconColor: saved ? Colors.amberAccent : Colors.white,
+          filled: saved,
+          count: reel.saves + (saved ? 1 : 0),
+          tooltip: 'حفظ',
+          onTap: onSave,
+        ),
+        _RailButton(
+          icon: LucideIcons.share2,
+          count: reel.shares,
+          tooltip: 'مشاركة',
+          onTap: onShare,
+        ),
+        _AvatarStackButton(isActive: isActive),
+      ],
+    );
+  }
+}
+
+class _RailButton extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final bool filled;
+  final int count;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  const _RailButton({
+    required this.icon,
+    required this.count,
+    required this.tooltip,
+    required this.onTap,
+    this.iconColor = Colors.white,
+    this.filled = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+      child: Semantics(
+        label: tooltip,
+        button: true,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: Column(
+            children: [
+              AnimatedScale(
+                scale: filled ? 1.12 : 1.0,
+                duration: const Duration(milliseconds: 180),
+                child: Icon(icon, size: 30, color: iconColor),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                _format(count),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// صورة الملف الشخصي داخل عمود التفاعل + علامة «+» (إضافة ستوري).
+class _AvatarStackButton extends StatelessWidget {
+  final bool isActive;
+
+  const _AvatarStackButton({required this.isActive});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 42,
+      height: 50,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.topCenter,
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 1.6),
+            ),
+            child: ClipOval(
+              child: Image.network(
+                _demo.last.avatarUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, _, _) => const CircleAvatar(
+                  backgroundColor: AppColors.surfaceCard,
+                  child: Icon(LucideIcons.user, color: Colors.white70),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            child: Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: AppColors.accentPrimary,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.black, width: 1.6),
+              ),
+              child: isActive
+                  ? const Icon(
+                      LucideIcons.plus,
+                      size: 13,
+                      color: AppColors.onAccentPrimary,
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// ============================================================================
+///  _ProgressBar — شريط تقدّم زمني متحرك أسفل الريل (بديل شريط المشغّل).
+/// ============================================================================
+class _ProgressBar extends StatefulWidget {
+  final bool isActive;
+
+  const _ProgressBar({required this.isActive});
+
+  @override
+  State<_ProgressBar> createState() => _ProgressBarState();
+}
+
+class _ProgressBarState extends State<_ProgressBar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 6),
+    );
+    _sync();
+  }
+
+  @override
+  void didUpdateWidget(covariant _ProgressBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive != widget.isActive) _sync();
+  }
+
+  void _sync() {
+    if (widget.isActive) {
+      _controller.repeat();
+    } else {
+      _controller.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadii.full),
+      child: SizedBox(
+        height: 3,
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) => LinearProgressIndicator(
+            value: _controller.value,
+            backgroundColor: Colors.white24,
+            valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TopTitle extends StatefulWidget {
+  final String label;
+
+  const _TopTitle({required this.label});
+
+  @override
+  State<_TopTitle> createState() => _TopTitleState();
+}
+
+class _TopTitleState extends State<_TopTitle>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: Tween<double>(begin: 0.55, end: 1).animate(_controller),
+      child: Text(
+        widget.label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+/// ============================================================================
+///  _MockSheet — ورقة منبثقة وهمية (تعليقات/مشاركة) بدل ربط API.
+/// ============================================================================
+class _MockSheet extends StatelessWidget {
+  final String message;
+
+  const _MockSheet({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: SafeArea(
+        child: Container(
+          margin: const EdgeInsets.all(AppSpacing.md),
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
+            borderRadius: BorderRadius.circular(AppRadii.xxl),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 42,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  borderRadius: BorderRadius.circular(AppRadii.full),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                message,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'هذه الشاشة تجريبية حالياً، وسيتم ربطها بالبيانات لاحقاً.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('إغلاق'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// اختصار الأعداد (12.4K / 3.1M) بنفس أسلوب المنصات الاجتماعية.
+String _format(int value) {
+  if (value >= 1000000) {
+    final m = value / 1000000;
+    return '${m.toStringAsFixed(m >= 10 ? 0 : 1)}M';
+  }
+  if (value >= 1000) {
+    final k = value / 1000;
+    return '${k.toStringAsFixed(k >= 10 ? 0 : 1)}K';
+  }
+  return '$value';
+}
+
+/// ============================================================================
+///  بيانات وهمية — تُستبدل لاحقاً بمصدر بيانات حقيقي.
+/// ============================================================================
+const List<ReelItem> _demo = [
+  ReelItem(
+    id: 'r1',
+    authorName: 'ليان الحربي',
+    authorHandle: '@layan.coffee',
+    avatarUrl: 'https://i.pravatar.cc/150?img=5',
+    verified: true,
+    caption: 'جرّبنا قهوة مختصة من محصول العندي الطازج ☕️ morning routine',
+    audioTitle: 'الصوت الأصلي — ليان الحربي',
+    coverUrl: 'https://picsum.photos/seed/reel1/900/1600',
+    tags: ['قهوة', 'مorning'],
+    likes: 12400,
+    comments: 412,
+    shares: 890,
+    saves: 2300,
+  ),
+  ReelItem(
+    id: 'r2',
+    authorName: 'متجر غريب',
+    authorHandle: '@greib.store',
+    avatarUrl: 'https://i.pravatar.cc/150?img=7',
+    verified: true,
+    caption: 'وصل حديثاً: سماعات لاسلكية بخصم 40% لفترة محدودة 🎧',
+    audioTitle: 'Trending audio — متجر غريب',
+    coverUrl: 'https://picsum.photos/seed/reel2/900/1600',
+    tags: ['عروض', 'تقنية'],
+    likes: 8300,
+    comments: 205,
+    shares: 640,
+    saves: 1500,
+  ),
+  ReelItem(
+    id: 'r3',
+    authorName: 'سعد المطيري',
+    authorHandle: '@saad.travel',
+    avatarUrl: 'https://i.pravatar.cc/150?img=12',
+    caption: 'قبل ما تخطط رحلتك، شوف هالمشاهد 🌊',
+    audioTitle: 'صوت أصلي — سعد المطيري',
+    coverUrl: 'https://picsum.photos/seed/reel3/900/1600',
+    tags: ['سفر', 'تصوير'],
+    likes: 24600,
+    comments: 980,
+    shares: 2100,
+    saves: 5400,
+  ),
+  ReelItem(
+    id: 'r4',
+    authorName: 'ورشة غريب',
+    authorHandle: '@greib.fix',
+    avatarUrl: 'https://i.pravatar.cc/150?img=15',
+    verified: true,
+    caption: 'خطوات صيانة بسيطة توفر عليك فاتورة pricey 🔧',
+    audioTitle: 'صوت أصلي — ورشة غريب',
+    coverUrl: 'https://picsum.photos/seed/reel4/900/1600',
+    tags: ['صيانة', 'نصائح'],
+    likes: 5600,
+    comments: 143,
+    shares: 320,
+    saves: 980,
+  ),
+];

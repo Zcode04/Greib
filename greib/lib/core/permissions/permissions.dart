@@ -26,6 +26,7 @@ class PermissionService {
     '/tracking',
     '/orders',
     '/search',
+    '/reels',
     '/wallet',
     '/favorites',
     '/profile',
