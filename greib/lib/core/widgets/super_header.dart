@@ -11,7 +11,7 @@ import 'header_collapse_state.dart';
 
 /// ============================================================================
 ///  SuperHeader — هيدر التطبيق الموحّد (Super-App 2026):
-///   شعار + إشعارات + ليلي + قائمة نقطية (البحث انتقل إلى الشريط السفلي).
+///   شعار + بحث + إشعارات + ليلي + قائمة نقطية (البحث متاح هنا وفي الشريط السفلي).
 ///  الاستخدام داخل الـ Shell: appBar: SuperHeader(onMore:)
 /// ============================================================================
 class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -96,7 +96,18 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // ★ عرض ثابت لكل زر => مسافات أفقية متساوية بين الأيقونات الثلاث
+                            // ★ عرض ثابت لكل زر => مسافات أفقية متساوية بين الأيقونات
+                            SizedBox(
+                              width: btnBox,
+                              child: _HeaderIconBtn(
+                                box: btnBox,
+                                iconSize: iconSize,
+                                icon: LucideIcons.search,
+                                color: theme.colorScheme.onSurface,
+                                onPressed: () => context.push('/search'),
+                                tooltip: 'البحث',
+                              ),
+                            ),
                             SizedBox(
                               width: btnBox,
                               child: _HeaderIconBtn(
