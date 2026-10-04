@@ -97,7 +97,14 @@ class PostSheetsController extends ChangeNotifier {
       postId,
       () => [
         const PostComment('سارة', 'الخدمة ممتازة وسرعة التنفيذ رهيبة.'),
-        const PostComment('محمد', 'جرّبتها أمس وأنصح فيها بشدة.'),
+        const PostComment(
+          'محمد',
+          'جرّبتها أمس وأنصح فيها بشدة.',
+          replies: [
+            PostComment('سارة', 'نعم خدمة ممتازة والأسعار مناسبة.'),
+            PostComment('ريم', 'هل تعمل في جميع المناطق؟'),
+          ],
+        ),
         const PostComment(
           'ريم',
           'توفر Apple Intelligence في إصدار تجريبي. قد لا تتوفر بعض الميزات في '

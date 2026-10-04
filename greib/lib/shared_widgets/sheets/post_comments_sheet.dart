@@ -34,6 +34,13 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
   final TextEditingController _input = TextEditingController();
   final FocusNode _inputFocus = FocusNode();
 
+  /// ★ حقل الرد المباشر (علاقة بتعليق محدّد).
+  final TextEditingController _replyInput = TextEditingController();
+  final FocusNode _replyFocus = FocusNode();
+
+  /// ★ فهرس التعليق الجاري الرد عليه (null = رد عام).
+  int? _replyingTo;
+
   /// ★ مفتاح ورقة التعليقات لنموّها للأعلى أثناء الكتابة.
   ///   (حالة DraggableScrollableSheet خاصة في Flutter ⇒ نُناديها ديناميكياً).
   final GlobalKey<State<DraggableScrollableSheet>> _sheetKey =
@@ -61,6 +68,8 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
     // ★ عند فتح لوحة المفاتيح يتمدّد الحقل والأورقة للأعلى.
     _inputFocus.addListener(_onFocusChanged);
     _input.addListener(_onTextChanged);
+    _replyFocus.addListener(_onFocusChanged);
+    _replyInput.addListener(_onTextChanged);
   }
 
   @override
@@ -69,6 +78,12 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
       ..removeListener(_onFocusChanged)
       ..dispose();
     _input
+      ..removeListener(_onTextChanged)
+      ..dispose();
+    _replyFocus
+      ..removeListener(_onFocusChanged)
+      ..dispose();
+    _replyInput
       ..removeListener(_onTextChanged)
       ..dispose();
     super.dispose();
@@ -106,6 +121,30 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
     if (text.isEmpty) return;
     setState(() => widget.comments.add(PostComment('أنت', text, mine: true)));
     _input.clear();
+  }
+
+  /// ★ بدء الرد على تعليق محدّد (علاقة مباشرة بالمعلّق).
+  void _startReply(int index) {
+    setState(() => _replyingTo = index);
+    _replyFocus.requestFocus();
+  }
+
+  void _cancelReply() {
+    setState(() => _replyingTo = null);
+    _replyInput.clear();
+    _replyFocus.unfocus();
+  }
+
+  void _submitReply(int index) {
+    final text = _replyInput.text.trim();
+    if (text.isEmpty) return;
+    setState(() {
+      widget.comments[index].replies.add(
+        PostComment('أنت', text, mine: true),
+      );
+    });
+    _replyInput.clear();
+    _cancelReply();
   }
 
   @override
@@ -205,11 +244,71 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
     );
   }
 
+  /// ★ حقل الرد المباشر (يظهر أسفل التعليق المحدّد).
+  Widget _replyField(int index) {
+    final primary = Theme.of(context).colorScheme.onSurface;
+    final accent = Theme.of(context).colorScheme.primary;
+
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: _replyInput,
+            focusNode: _replyFocus,
+            minLines: 1,
+            maxLines: 4,
+            maxLength: _maxChars,
+            textInputAction: TextInputAction.send,
+            onSubmitted: (_) => _submitReply(index),
+            style: TextStyle(color: primary, fontSize: 13),
+            decoration: InputDecoration(
+              isDense: true,
+              counterText: '',
+              hintText: 'اكتب رداً…',
+              hintStyle: TextStyle(
+                color: primary.withValues(alpha: 0.6),
+                fontSize: 13,
+              ),
+              filled: true,
+              fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(999),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(999),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 6),
+        IconButton(
+          onPressed: () => _submitReply(index),
+          icon: Icon(LucideIcons.send, size: 18, color: accent),
+        ),
+        IconButton(
+          onPressed: _cancelReply,
+          icon: Icon(
+            LucideIcons.x,
+            size: 18,
+            color: primary.withValues(alpha: 0.6),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _commentRow(PostComment c, {required int index}) {
     final accent = widget.service.color;
     final primary = Theme.of(context).colorScheme.onSurface;
     final expanded = _expanded.contains(index);
     final moreColor = Theme.of(context).colorScheme.primary;
+    final secondary = primary.withValues(alpha: 0.6);
     // ★ طي ذكي بعد 10 كلمات + ثلاث نقاط، كمنصات التواصل.
     final words = c.text.split(RegExp(r'\s+'));
     final canExpand = words.length > _collapsedWords;
@@ -245,6 +344,69 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
               ),
               const SizedBox(height: 2),
               Text(shown, style: TextStyle(color: primary, fontSize: 14)),
+              const SizedBox(height: 4),
+              // ★ «رد» + الردود المرتبطة + حقل الرد المباشر.
+              Row(
+                children: [
+                  _ReplyToggle(
+                    color: moreColor,
+                    onTap: () => _startReply(index),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    c.author,
+                    style: TextStyle(color: secondary, fontSize: 12),
+                  ),
+                ],
+              ),
+              for (final reply in c.replies)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: accent.withValues(alpha: 0.1),
+                        ),
+                        child: Icon(
+                          LucideIcons.user,
+                          size: 12,
+                          color: accent,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: '${reply.author}: ',
+                                style: TextStyle(
+                                  color: primary.withValues(alpha: 0.7),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              TextSpan(
+                                text: reply.text,
+                                style: TextStyle(color: primary, fontSize: 13),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              if (_replyingTo == index)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: _replyField(index),
+                ),
               if (canExpand)
                 _MoreToggle(
                   expanded: expanded,
@@ -261,6 +423,37 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// ★ زر «رد» على تعليق.
+class _ReplyToggle extends StatelessWidget {
+  const _ReplyToggle({required this.color, required this.onTap});
+
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(LucideIcons.cornerUpLeft, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            'رد',
+            style: TextStyle(
+              color: color,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -313,11 +506,19 @@ class _MoreToggle extends StatelessWidget {
 
 /// تعليق واحد (وهمي أو يكتبه المستخدم).
 class PostComment {
-  const PostComment(this.author, this.text, {this.mine = false});
+  const PostComment(
+    this.author,
+    this.text, {
+    this.mine = false,
+    this.replies = const [],
+  });
 
   final String author;
   final String text;
 
   /// تعليق المستخدم الحالي ⇒ يُعرض بلون مختلف.
   final bool mine;
+
+  /// ★ الردود على هذا التعليق (علاقة مباشرة بالمعلّق).
+  final List<PostComment> replies;
 }
