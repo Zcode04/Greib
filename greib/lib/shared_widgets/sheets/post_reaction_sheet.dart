@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../core/models/service_model.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/widgets/draggable_sheet_body.dart';
 import '../post_reaction.dart';
 
@@ -115,8 +114,6 @@ class _PostReactionSheetState extends State<PostReactionSheet> {
   }
 
   Widget _reactedList() {
-    final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
-
     final entries = <(String, int)>[
       if (_current != 0) ('أنت', _current),
       for (final reaction in PostReaction.all)
@@ -133,6 +130,7 @@ class _PostReactionSheetState extends State<PostReactionSheet> {
         final (name, value) = entries[i];
         final reaction = PostReaction.byValue(value)!;
         final mine = name == 'أنت';
+        final primary = Theme.of(context).colorScheme.onSurface;
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -181,10 +179,7 @@ class _PostReactionSheetState extends State<PostReactionSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
-    final line = widget.isDark ? AppColors.outline : AppColors.lightOutline;
-    final selected = PostReaction.byValue(_current);
-
+    // ★ بلا عنوان ولا فواصل: الإيموجيز في الأعلى ثم قائمة المتفاعلين.
     return DraggableSheetBody(
       initialExtent: 0.55,
       snapSizes: const [0.35, 0.45, 0.55, 0.65, 0.8],
@@ -192,35 +187,6 @@ class _PostReactionSheetState extends State<PostReactionSheet> {
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SheetDragArea(
-            controller: scrollController,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-              child: Row(
-                children: [
-                  Text(
-                    'تفاعل المنشور',
-                    style: TextStyle(
-                      color: primary,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (selected != null)
-                    Text(
-                      selected.label,
-                      style: TextStyle(
-                        color: selected.color,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-          Divider(height: 1, color: line),
           MouseRegion(
             onHover: (event) {
               final box = context.findRenderObject() as RenderBox?;
@@ -245,7 +211,6 @@ class _PostReactionSheetState extends State<PostReactionSheet> {
               ),
             ),
           ),
-          Divider(height: 1, color: line),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
