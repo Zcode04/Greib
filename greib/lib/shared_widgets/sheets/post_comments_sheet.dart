@@ -34,6 +34,12 @@ class PostCommentsSheet extends StatefulWidget {
 class PostCommentsSheetState extends State<PostCommentsSheet> {
   final TextEditingController _input = TextEditingController();
 
+  /// ★ التعليقات الموسّعة (اضغط «عرض المزيد»).
+  final Set<int> _expanded = {};
+
+  /// ★ عدد الأسطر المعروضة قبل الت expand.
+  static const int _collapsedLines = 3;
+
   @override
   void dispose() {
     _input.dispose();
@@ -67,7 +73,10 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               itemCount: widget.comments.length,
               separatorBuilder: (_, _) => const SizedBox(height: 10),
-              itemBuilder: (context, i) => _commentRow(widget.comments[i]),
+              itemBuilder: (context, i) => _commentRow(
+                widget.comments[i],
+                index: i,
+              ),
             ),
           ),
           // حقل التعليق + زر الإرسال.
@@ -118,9 +127,11 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
     );
   }
 
-  Widget _commentRow(PostComment c) {
+  Widget _commentRow(PostComment c, {required int index}) {
     final accent = widget.service.color;
     final primary = Theme.of(context).colorScheme.onSurface;
+    final expanded = _expanded.contains(index);
+    final moreColor = Theme.of(context).colorScheme.primary;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,7 +146,7 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
           child: Icon(LucideIcons.user, size: 16, color: accent),
         ),
         const SizedBox(width: 10),
-        // ★ النص بلا فقاعة/خلفية.
+        // ★ النص بلا فقاعة/خلفية، مختصراً مع «عرض المزيد» عند الحاجة.
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,11 +160,73 @@ class PostCommentsSheetState extends State<PostCommentsSheet> {
                 ),
               ),
               const SizedBox(height: 2),
-              Text(c.text, style: TextStyle(color: primary, fontSize: 14)),
+              Text(
+                c.text,
+                maxLines: expanded ? null : _collapsedLines,
+                overflow: expanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                style: TextStyle(color: primary, fontSize: 14),
+              ),
+              _MoreToggle(
+                expanded: expanded,
+                color: moreColor,
+                onTap: () => setState(() {
+                  if (expanded) {
+                    _expanded.remove(index);
+                  } else {
+                    _expanded.add(index);
+                  }
+                }),
+              ),
             ],
           ),
         ),
       ],
+    );
+  }
+}
+
+/// ★ زر «عرض المزيد / عرض أقل» أسفل التعليق الطويل.
+class _MoreToggle extends StatelessWidget {
+  const _MoreToggle({
+    required this.expanded,
+    required this.color,
+    required this.onTap,
+  });
+
+  final bool expanded;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                expanded ? 'عرض أقل' : 'عرض المزيد',
+                style: TextStyle(
+                  color: color,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                expanded ? LucideIcons.chevronUp : LucideIcons.chevronDown,
+                size: 16,
+                color: color,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
