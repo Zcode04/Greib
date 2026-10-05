@@ -34,7 +34,7 @@ const List<_ShellTab> _tabs = [
   _ShellTab(
     route: '/profile',
     title: 'حسابي',
-    icon: LucideIcons.user,
+    icon: LucideIcons.mapPin,
     label: 'حسابي',
   ),
   _ShellTab(
@@ -160,6 +160,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       extendBodyBehindAppBar: true,
       appBar: SuperHeader(
         title: isHomeTab ? null : activeTab.title,
+        onAccount: () => _onTabSelected(0),
         extraActions: _buildHeaderActions(context).map((a) {
           return IconButton(
             icon: Badge(

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:provider/provider.dart';
 
 import '../core/mock_data/mock_data.dart';
 import '../core/theme/design_tokens.dart';
+import '../core/theme/theme_controller.dart';
 
 class QuickSettingsItem {
   final String label;
@@ -78,6 +81,8 @@ class _QuickSettingsSheetState extends State<QuickSettingsSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // ★ نُبقي الورقة متجاوبة مع تبديل النمط أثناء فتحها.
+    context.watch<ThemeController>();
 
     return ConstrainedBox(
       constraints: BoxConstraints(
@@ -162,21 +167,72 @@ class _QuickSettingsSheetState extends State<QuickSettingsSheet> {
     );
   }
 
-  /// قائمة البنود الرئيسية.
+  /// قائمة البنود الرئيسية + بند «الوضع الليلي» (نُقل من الهيدر إلى هنا).
   Widget _buildMenu(ThemeData theme) {
-    return ListView.separated(
-      shrinkWrap: true,
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-      itemCount: widget.items.length,
-      separatorBuilder: (_, _) => Divider(
-        height: 1,
-        indent: 68,
-        endIndent: AppSpacing.lg,
-        color: theme.dividerColor,
-      ),
-      itemBuilder: (context, index) {
-        final item = widget.items[index];
-        return ListTile(
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(
+          child: ListView.separated(
+            shrinkWrap: true,
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+            itemCount: widget.items.length,
+            separatorBuilder: (_, _) => Divider(
+              height: 1,
+              indent: 68,
+              endIndent: AppSpacing.lg,
+              color: theme.dividerColor,
+            ),
+            itemBuilder: (context, index) {
+              final item = widget.items[index];
+              return ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.xs,
+                ),
+                leading: Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppRadii.sm),
+                  ),
+                  child: Icon(
+                    item.icon,
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                title: Text(
+                  item.label,
+                  style: AppTypography.titleMedium.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontSize: 15,
+                  ),
+                ),
+                subtitle: item.subtitle == null
+                    ? null
+                    : Text(
+                        item.subtitle!,
+                        style: AppTypography.bodySmall.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                trailing: Icon(
+                  LucideIcons.chevronLeft,
+                  size: 18,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                onTap: item.enabled ? (item.onTap ?? _openSections) : null,
+              );
+            },
+          ),
+        ),
+        // ★ بند «البحث» — كان أيقونة في الهيدر، ونُقل هنا مثل الوضع الليلي.
+        Divider(height: 1, indent: 68, endIndent: AppSpacing.lg, color: theme.dividerColor),
+        ListTile(
           contentPadding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,
             vertical: AppSpacing.xs,
@@ -188,31 +244,67 @@ class _QuickSettingsSheetState extends State<QuickSettingsSheet> {
               color: theme.colorScheme.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppRadii.sm),
             ),
-            child: Icon(item.icon, size: 18, color: theme.colorScheme.primary),
+            child: Icon(
+              LucideIcons.search,
+              size: 18,
+              color: theme.colorScheme.primary,
+            ),
           ),
           title: Text(
-            item.label,
+            'البحث',
             style: AppTypography.titleMedium.copyWith(
               color: theme.colorScheme.onSurface,
               fontSize: 15,
             ),
           ),
-          subtitle: item.subtitle == null
-              ? null
-              : Text(
-                  item.subtitle!,
-                  style: AppTypography.bodySmall.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
           trailing: Icon(
             LucideIcons.chevronLeft,
             size: 18,
             color: theme.colorScheme.onSurfaceVariant,
           ),
-          onTap: item.enabled ? (item.onTap ?? _openSections) : null,
-        );
-      },
+          onTap: () {
+            final router = GoRouter.of(context);
+            Navigator.of(context).pop();
+            router.push('/search');
+          },
+        ),
+        // ★ مبدّل الوضع الليلي/النهاري — كان أيقونة في الهيدر، ونُقل هنا.
+        Divider(height: 1, indent: 68, endIndent: AppSpacing.lg, color: theme.dividerColor),
+        SwitchListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.xs,
+          ),
+          value: isDark,
+          onChanged: (_) => context.read<ThemeController>().toggleTheme(),
+          secondary: Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppRadii.sm),
+            ),
+            child: Icon(
+              isDark ? LucideIcons.moon : LucideIcons.sun,
+              size: 18,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+          title: Text(
+            'الوضع الليلي',
+            style: AppTypography.titleMedium.copyWith(
+              color: theme.colorScheme.onSurface,
+              fontSize: 15,
+            ),
+          ),
+          subtitle: Text(
+            isDark ? 'مُفعّل — اضغط للتبديل إلى النهاري' : 'مُطفأ — اضغط للتبديل إلى الليلي',
+            style: AppTypography.bodySmall.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

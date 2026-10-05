@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 
 import '../notifications/notification_manager.dart';
 import '../theme/design_tokens.dart';
-import '../theme/theme_controller.dart';
 import '../../shared_widgets/quick_settings_sheet.dart';
 import 'header_collapse_state.dart';
 
@@ -20,10 +19,15 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget>? extraActions;
   final bool showBackButton;
 
+  /// نقر أيقونة «حسابي» في الهيدر.
+  /// null = السلوك الافتراضي (فتح /profile). الـ Shell يمرّر هنا تبديل التبويب
+  /// حتى تصل الأيقونة إلى نفس صفحة الشريط السفلي.
+  final VoidCallback? onAccount;
+
   /// الأدوات المعروضة داخل الورقة (فارغة = الافتراضي).
   final List<QuickSettingsItem> settingsItems;
 
-  const SuperHeader({super.key, this.title, this.onMore, this.extraActions, this.showBackButton = false, this.settingsItems = const []});
+  const SuperHeader({super.key, this.title, this.onMore, this.extraActions, this.showBackButton = false, this.settingsItems = const [], this.onAccount});
 
   @override
   Size get preferredSize => const Size.fromHeight(64);
@@ -97,15 +101,17 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             // ★ عرض ثابت لكل زر => مسافات أفقية متساوية بين الأيقونات
+                            //   زر البحث نُقل إلى ورقة «⋯» (QuickSettingsSheet) مثل الوضع الليلي.
+                            //   نسخة من أيقونة «حسابي» (نفس أيقونة الشريط السفلي) في الهيدر.
                             SizedBox(
                               width: btnBox,
                               child: _HeaderIconBtn(
                                 box: btnBox,
                                 iconSize: iconSize,
-                                icon: LucideIcons.search,
+                                icon: LucideIcons.user,
                                 color: theme.colorScheme.onSurface,
-                                onPressed: () => context.push('/search'),
-                                tooltip: 'البحث',
+                                onPressed: onAccount ?? () => context.push('/profile'),
+                                tooltip: 'حسابي',
                               ),
                             ),
                             SizedBox(
@@ -121,17 +127,8 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                                 tooltip: 'الإشعارات',
                               ),
                             ),
-                            SizedBox(
-                              width: btnBox,
-                              child: _HeaderIconBtn(
-                                box: btnBox,
-                                iconSize: iconSize,
-                                icon: isDark ? LucideIcons.sun : LucideIcons.moon,
-                                color: theme.colorScheme.onSurface,
-                                onPressed: () => context.read<ThemeController>().toggleTheme(),
-                                tooltip: isDark ? 'الوضع النهاري' : 'الوضع الليلي',
-                              ),
-                            ),
+                            // ★ زر الوضع الليلي/النهاري نُقل إلى ورقة «⋯»
+                            //   (QuickSettingsSheet) ليقلّ عدد أيقونات الهيدر.
                             SizedBox(
                               width: btnBox,
                               child: _HeaderIconBtn(
