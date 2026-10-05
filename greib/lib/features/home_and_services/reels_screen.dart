@@ -15,7 +15,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../core/models/service_model.dart';
 import '../../core/theme/design_tokens.dart';
+import '../../core/widgets/app_sheet.dart';
+import '../../shared_widgets/post_sheets.dart' show PostComment, PostCommentsSheet;
 
 /// ============================================================================
 ///  نموذج الريل — بيانات وهمية لريل واحد.
@@ -76,11 +79,17 @@ class _ReelsScreenState extends State<ReelsScreen> {
   /// الريل الذي يتطاير فوقه قلب واحد (عند الضغط المزدوج).
   String? _burstReelId;
 
+  /// ★ تعليقات كل ريل — تُملأ مرة واحدة وتبقى محفوظة أثناء التنقّل بين الريلات.
+  final Map<String, List<PostComment>> _comments = {};
+
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
     _burstReelId = _demo.first.id;
+    for (final reel in _demo) {
+      _comments[reel.id] = _mockComments(reel);
+    }
   }
 
   @override
@@ -114,6 +123,36 @@ class _ReelsScreenState extends State<ReelsScreen> {
     );
   }
 
+  /// ★ ورقة التعليقات: نفس `PostCommentsSheet` المستخدمة في بطاقة البوست
+  ///   (نفس التصميم والحقول والردود)، وتعمل على بيانات وهمية لكل ريل.
+  void _openComments(ReelItem reel) {
+    final list = _comments.putIfAbsent(reel.id, () => _mockComments(reel));
+    showAppSheet<void>(
+      context,
+      builder: (_) => PostCommentsSheet(
+        service: _reelServiceStub(reel),
+        isDark: Theme.of(context).brightness == Brightness.dark,
+        comments: list,
+      ),
+    ).whenComplete(() {
+      if (mounted) setState(() {});
+    });
+  }
+
+  /// ★ خدمة وهمية قصيرة العمر: ورقة التعليقات تقرأ منها اللون فقط،
+  ///   فتبقى صالحة دون تغيير بنية `PostCommentsSheet` (تُشترك مع البوست).
+  ServiceCategory _reelServiceStub(ReelItem reel) {
+    return ServiceCategory(
+      id: 'reel_${reel.id}',
+      title: reel.authorName,
+      subtitle: reel.audioTitle,
+      description: reel.caption,
+      iconName: 'play',
+      color: AppColors.accentPrimary,
+      colorHex: '3B82F6',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final reels = _demo;
@@ -138,6 +177,9 @@ class _ReelsScreenState extends State<ReelsScreen> {
                   isMuted: _muted,
                   liked: _liked.contains(reel.id),
                   saved: _saved.contains(reel.id),
+                  commentCount: (_comments[reel.id]?.length ?? 0) > reel.comments
+                      ? (_comments[reel.id]?.length ?? 0)
+                      : reel.comments,
                   showBurst: _burstReelId == reel.id,
                   onTap: _toggleMute,
                   onDoubleTap: () => _handleDoubleTap(reel),
@@ -148,7 +190,7 @@ class _ReelsScreenState extends State<ReelsScreen> {
                   },
                   onLike: () => _toggleLike(reel.id),
                   onSave: () => _toggleSave(reel.id),
-                  onComment: () => _openSheet('التعليقات'),
+                  onComment: () => _openComments(reel),
                   onShare: () => _openSheet('مشاركة الريل'),
                 );
               },
@@ -222,6 +264,7 @@ class _ReelPage extends StatelessWidget {
   final bool liked;
   final bool saved;
   final bool showBurst;
+  final int commentCount;
 
   final VoidCallback onTap;
   final VoidCallback onDoubleTap;
@@ -239,6 +282,7 @@ class _ReelPage extends StatelessWidget {
     required this.liked,
     required this.saved,
     required this.showBurst,
+    required this.commentCount,
     required this.onTap,
     required this.onDoubleTap,
     required this.onBurstFinished,
@@ -312,6 +356,7 @@ class _ReelPage extends StatelessWidget {
                         reel: reel,
                         liked: liked,
                         saved: saved,
+                        commentCount: commentCount,
                         isActive: isActive,
                         onLike: onLike,
                         onSave: onSave,
@@ -680,6 +725,7 @@ class _ActionRail extends StatelessWidget {
   final ReelItem reel;
   final bool liked;
   final bool saved;
+  final int commentCount;
   final bool isActive;
   final VoidCallback onLike;
   final VoidCallback onSave;
@@ -690,6 +736,7 @@ class _ActionRail extends StatelessWidget {
     required this.reel,
     required this.liked,
     required this.saved,
+    required this.commentCount,
     required this.isActive,
     required this.onLike,
     required this.onSave,
@@ -712,7 +759,7 @@ class _ActionRail extends StatelessWidget {
         ),
         _RailButton(
           icon: LucideIcons.messageSquare,
-          count: reel.comments,
+          count: commentCount,
           tooltip: 'تعليق',
           onTap: onComment,
         ),
@@ -1033,7 +1080,38 @@ String _format(int value) {
 }
 
 /// ============================================================================
-///  بيانات وهمية — تُستبدل لاحقاً بمصدر بيانات حقيقي.
+/// تعليقات وهمية لكل ريل (مطابقة لنموذج `PostComment` المستخدم في البوست).
+List<PostComment> _mockComments(ReelItem reel) {
+  return [
+    PostComment(
+      'سارة',
+      'المونتاج خفيف والفكرة واضحة 👏',
+      replies: [
+        PostComment(reel.authorName, 'شكراً سارة ❤️', seq: 1),
+        PostComment('ريم', 'نفس الرابط، ستجده في البايو', seq: 2),
+      ],
+    ),
+    PostComment(
+      'محمد',
+      'وين أقدر ألقى الشي نفسه؟ أحد يعرف الاسم؟',
+      replies: [PostComment('خالد', 'موجود عند المحل الثاني في القائمة', seq: 3)],
+    ),
+    PostComment('ريم', 'أجمل ريل اليوم بلا منافس 🔥'),
+    PostComment(
+      'خالد',
+      'التفاصيل المهمة في آخر عشر ثوانٍ: نفّذت بالضبط نفس الخطوات التي '
+      'شرحتها في الحساب، ونجحت من أول مرة دون أي تعديل أو إضافة، وهذا يبين '
+      'أن الكلام موثوق ومبني على تجربة حقيقية.',
+      replies: [
+        PostComment('ريم', 'الحين أقدر أبدأ بثقة', seq: 4),
+        PostComment('نور', 'نفس النتيجة عندي تماماً', seq: 5),
+        PostComment('يوسف', 'محتوى يستاهل المتابعة 👏', seq: 6),
+      ],
+    ),
+  ];
+}
+
+/// بيانات وهمية — تُستبدل لاحقاً بمصدر بيانات حقيقي.
 /// ============================================================================
 const List<ReelItem> _demo = [
   ReelItem(
