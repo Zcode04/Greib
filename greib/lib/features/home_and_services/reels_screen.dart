@@ -194,6 +194,7 @@ class _ReelsScreenState extends State<ReelsScreen> {
                   onSave: () => _toggleSave(reel.id),
                   onComment: () => _openComments(reel),
                   onShare: () => _openSheet('مشاركة الريل'),
+                  onMore: () => _openSheet('خيارات الريل'),
                 );
               },
             ),
@@ -275,6 +276,7 @@ class _ReelPage extends StatelessWidget {
   final VoidCallback onSave;
   final VoidCallback onComment;
   final VoidCallback onShare;
+  final VoidCallback onMore;
 
   const _ReelPage({
     super.key,
@@ -292,6 +294,7 @@ class _ReelPage extends StatelessWidget {
     required this.onSave,
     required this.onComment,
     required this.onShare,
+    required this.onMore,
   });
 
   @override
@@ -364,6 +367,7 @@ class _ReelPage extends StatelessWidget {
                         onSave: onSave,
                         onComment: onComment,
                         onShare: onShare,
+                        onMore: onMore,
                       ),
                     ],
                   ),
@@ -733,6 +737,7 @@ class _ActionRail extends StatelessWidget {
   final VoidCallback onSave;
   final VoidCallback onComment;
   final VoidCallback onShare;
+  final VoidCallback onMore;
 
   const _ActionRail({
     required this.reel,
@@ -744,6 +749,7 @@ class _ActionRail extends StatelessWidget {
     required this.onSave,
     required this.onComment,
     required this.onShare,
+    required this.onMore,
   });
 
   @override
@@ -781,6 +787,12 @@ class _ActionRail extends StatelessWidget {
           tooltip: 'مشاركة',
           onTap: onShare,
         ),
+        // ★ زر «المزيد» — نقطتان فقط بلا عدّاد (نفس لغة الأزرار الأخرى).
+        _RailButton(
+          icon: LucideIcons.ellipsis,
+          tooltip: 'المزيد',
+          onTap: onMore,
+        ),
         _AvatarStackButton(isActive: isActive),
       ],
     );
@@ -796,14 +808,17 @@ class _RailButton extends StatelessWidget {
 
   final Color iconColor;
   final bool filled;
-  final int count;
+
+  /// العدّاد أسفل الأيقونة — null يعني زر بلا عدّاد (مثل «المزيد»).
+  final int? count;
+
   final String tooltip;
   final VoidCallback onTap;
 
   const _RailButton({
-    required this.count,
     required this.tooltip,
     required this.onTap,
+    this.count,
     this.icon,
     this.iconWidget,
     this.iconColor = Colors.white,
@@ -833,14 +848,17 @@ class _RailButton extends StatelessWidget {
                     ),
               ),
               const SizedBox(height: 3),
-              Text(
-                _format(count),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              if (count != null)
+                Text(
+                  _format(count!),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                )
+              else
+                const SizedBox(height: 14.5),
             ],
           ),
         ),
