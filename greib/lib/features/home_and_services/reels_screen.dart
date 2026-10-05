@@ -18,6 +18,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/models/service_model.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_sheet.dart';
+import '../../shared_widgets/post_reaction.dart';
+import '../../shared_widgets/share_arrow_icon.dart';
 import '../../shared_widgets/post_sheets.dart' show PostComment, PostCommentsSheet;
 
 /// ============================================================================
@@ -556,9 +558,9 @@ class _HeartBurstState extends State<_HeartBurst>
           position: drift,
           child: ScaleTransition(
             scale: scale,
-            child: const Icon(
-              LucideIcons.heart,
-              color: Colors.redAccent,
+            child: Icon(
+              LucideIcons.thumbsUp,
+              color: _likeColor,
               size: 116,
             ),
           ),
@@ -680,12 +682,12 @@ class _ReelMeta extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(AppRadii.full),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(LucideIcons.heart, size: 12, color: Colors.redAccent),
-                SizedBox(width: 4),
-                Text(
+                Icon(LucideIcons.thumbsUp, size: 12, color: _likeColor),
+                const SizedBox(width: 4),
+                const Text(
                   'أعجبك الريل',
                   style: TextStyle(color: Colors.white, fontSize: 11),
                 ),
@@ -749,9 +751,11 @@ class _ActionRail extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // ★ توحيد المكوّنات مع بطاقة البوست:
+        //   إعجاب = thumbsUp، مشاركة = ShareArrowIcon (سهم إعادة النشر).
         _RailButton(
-          icon: liked ? LucideIcons.heart : LucideIcons.heart,
-          iconColor: liked ? Colors.redAccent : Colors.white,
+          icon: LucideIcons.thumbsUp,
+          iconColor: liked ? _likeColor : Colors.white,
           filled: liked,
           count: reel.likes + (liked ? 1 : 0),
           tooltip: 'إعجاب',
@@ -772,7 +776,7 @@ class _ActionRail extends StatelessWidget {
           onTap: onSave,
         ),
         _RailButton(
-          icon: LucideIcons.share2,
+          iconWidget: ShareArrowIcon(size: 26, color: Colors.white),
           count: reel.shares,
           tooltip: 'مشاركة',
           onTap: onShare,
@@ -784,7 +788,12 @@ class _ActionRail extends StatelessWidget {
 }
 
 class _RailButton extends StatelessWidget {
-  final IconData icon;
+  /// أيقونة Lucide (تُرسم بـ Icon). تُتجاهل إذا مُرّر [iconWidget].
+  final IconData? icon;
+
+  /// أيقونة SVG جاهزة (مثل سهم المشاركة) — لها الأولوية على [icon].
+  final Widget? iconWidget;
+
   final Color iconColor;
   final bool filled;
   final int count;
@@ -792,10 +801,11 @@ class _RailButton extends StatelessWidget {
   final VoidCallback onTap;
 
   const _RailButton({
-    required this.icon,
     required this.count,
     required this.tooltip,
     required this.onTap,
+    this.icon,
+    this.iconWidget,
     this.iconColor = Colors.white,
     this.filled = false,
   });
@@ -815,7 +825,12 @@ class _RailButton extends StatelessWidget {
               AnimatedScale(
                 scale: filled ? 1.12 : 1.0,
                 duration: const Duration(milliseconds: 180),
-                child: Icon(icon, size: 30, color: iconColor),
+                child: iconWidget ??
+                    Icon(
+                      icon ?? LucideIcons.circle,
+                      size: 30,
+                      color: iconColor,
+                    ),
               ),
               const SizedBox(height: 3),
               Text(
@@ -1065,6 +1080,11 @@ class _MockSheet extends StatelessWidget {
     );
   }
 }
+
+/// ★ لون «الإعجاب» — مأخوذ من تفاعل البوست نفسه (AppColors.info) حتى
+///   يبقى الزران متطابقين بين الريلز وبطاقة المنشور.
+Color get _likeColor =>
+    PostReaction.byValue(1)?.color ?? AppColors.info;
 
 /// اختصار الأعداد (12.4K / 3.1M) بنفس أسلوب المنصات الاجتماعية.
 String _format(int value) {
