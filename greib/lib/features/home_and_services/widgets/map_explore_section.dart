@@ -467,6 +467,11 @@ class _MapExploreSectionState extends State<MapExploreSection> {
     required Color secondary,
   }) {
     final presence = place.online ? 'متصل الآن' : place.lastSeen;
+    // ★ لون واحد هادئ لل بطاقات：根据 السمة ⇒ يذوب في خلفية البطاقة
+    //   بدل اللون العكسي (النيون/الأزرق) الذي كان يبرز على عنصر المستخدم.
+    final quiet = widget.isDark
+        ? Colors.white.withValues(alpha: 0.06)
+        : Colors.black.withValues(alpha: 0.04);
 
     return GlassContainer(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -474,16 +479,12 @@ class _MapExploreSectionState extends State<MapExploreSection> {
       opacity: widget.isDark ? 0.05 : 0.08,
       child: Row(
         children: [
-          // ---------- بروفايل الجهة ----------
+          // ---------- بروفايل الجهة (بلا حلقة ملوّنة) ----------
           Container(
             width: 42,
             height: 42,
             alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: tint.withValues(alpha: 0.14),
-              border: Border.all(color: tint.withValues(alpha: 0.35)),
-            ),
+            decoration: BoxDecoration(shape: BoxShape.circle, color: quiet),
             child: Text(place.emoji, style: const TextStyle(fontSize: 19)),
           ),
           const SizedBox(width: 10),
