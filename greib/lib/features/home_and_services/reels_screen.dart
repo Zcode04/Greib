@@ -256,15 +256,6 @@ class _ReelsScreenState extends State<ReelsScreen> {
               size: 21,
             ),
           ),
-          IconButton(
-            onPressed: () => _openSheet('الكاميرا'),
-            tooltip: 'الكاميرا',
-            icon: const Icon(
-              LucideIcons.camera,
-              color: Colors.white,
-              size: 21,
-            ),
-          ),
         ],
       ),
     );
