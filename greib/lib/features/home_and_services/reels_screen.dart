@@ -18,6 +18,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/models/service_model.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_sheet.dart';
+import '../../shared_widgets/sheets/reels_options_sheet.dart';
 import '../../shared_widgets/post_reaction.dart';
 import '../../shared_widgets/share_arrow_icon.dart';
 import '../../shared_widgets/post_sheets.dart' show PostComment, PostCommentsSheet;
@@ -155,6 +156,19 @@ class _ReelsScreenState extends State<ReelsScreen> {
     );
   }
 
+  /// ★ ورقة خيارات الريل (⋯) — نفس ورقة خيارات المنشور مع عناصر خاصة بالريل.
+  void _openOptions(ReelItem reel) {
+    showAppSheet<void>(
+      context,
+      builder: (_) => ReelsOptionsSheet(
+        reelTitle: reel.caption,
+        authorName: reel.authorName,
+        isSaved: _saved.contains(reel.id),
+        onSaveToggle: () => _toggleSave(reel.id),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final reels = _demo;
@@ -194,7 +208,7 @@ class _ReelsScreenState extends State<ReelsScreen> {
                   onSave: () => _toggleSave(reel.id),
                   onComment: () => _openComments(reel),
                   onShare: () => _openSheet('مشاركة الريل'),
-                  onMore: () => _openSheet('خيارات الريل'),
+                  onMore: () => _openOptions(reel),
                 );
               },
             ),
