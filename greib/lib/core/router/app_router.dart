@@ -12,6 +12,7 @@ import '../../features/dashboards/admin_dashboard_screen.dart';
 import '../../features/dashboards/agent_dashboard_screen.dart';
 import '../../features/communication_and_support/notifications_screen.dart';
 import '../../features/communication_and_support/support_tickets_screen.dart';
+import '../../features/communication_and_support/chat_screen.dart';
 import '../../features/location_and_tracking/tracking_screen.dart';
 import '../../features/location_and_tracking/maps_screen.dart';
 import '../../features/location_and_tracking/my_location_screen.dart';
@@ -119,6 +120,12 @@ class AppRouter {
         builder: (context, state) => const SupportTicketsScreen(),
       ),
       GoRoute(path: '/maps', builder: (context, state) => const MapsScreen()),
+      // ★ صفحة الدردشة مستقلة: تُفتح من زر «تواصل الآن» في قسم «موقعي»
+      //   (تبويب الدردشة في الشريط السفلي يعرض نفس الشاشة داخل الـ Shell).
+      GoRoute(
+        path: '/chat',
+        builder: (context, state) => const ChatListScreen(),
+      ),
       GoRoute(
         path: '/my_location',
         builder: (context, state) => const MyLocationScreen(),

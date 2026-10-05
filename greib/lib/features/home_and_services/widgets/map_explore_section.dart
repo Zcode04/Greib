@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -37,6 +38,81 @@ class _MapExploreSectionState extends State<MapExploreSection> {
     'التكاسي الأقرب إليك',
   ];
 
+  /// ★ بيانات «الأقرب إليك» — أسماء جهات حقيقية (لا أرقام) لكل تبويب.
+  ///   `online` = متصل الآن، و`lastSeen` = نص آخر ظهور عند عدم الاتصال.
+  static const List<_NearbyPlace> _nearby = [
+    // ---------- المتاجر ----------
+    _NearbyPlace('متجر الحلويات', 'حلويات شرقية وغربية', true, '', '🍰', 0.4),
+    _NearbyPlace(
+      'متجر الملابس',
+      'أزياء رجالية ونسائية',
+      false,
+      'آخر ظهور قبل 5 دقائق',
+      '👕',
+      0.8,
+    ),
+    _NearbyPlace('متجر الأمانة', 'بقالة ومواد غذائية', true, '', '🛒', 1.2),
+    _NearbyPlace(
+      'متجر Florence',
+      'عطور ومستحضرات',
+      false,
+      'آخر ظهور قبل 12 دقيقة',
+      '🌸',
+      1.6,
+    ),
+    // ---------- المحلات ----------
+    _NearbyPlace('محل第二章 بيفوت', 'ملابس رجالية', true, '', '🧥', 0.3),
+    _NearbyPlace(
+      'محل الأثاث الحديث',
+      'طقم صالون كامل',
+      false,
+      'آخر ظهور قبل 8 دقائق',
+      '🛋️',
+      0.9,
+    ),
+    _NearbyPlace('محل الإلكترونيات', 'هواتف وإكسسوارات', true, '', '📱', 1.4),
+    _NearbyPlace(
+      'محل الزهور',
+      'تنسيق هدايا ومناسبات',
+      false,
+      'آخر ظهور قبل 20 دقيقة',
+      '💐',
+      2.1,
+    ),
+    // ---------- التكاسي ----------
+    _NearbyPlace(
+      'تاكسي أحمد',
+      'سيارة فضة · التوصيل خلال 4 دقائق',
+      true,
+      '',
+      '🚕',
+      0.2,
+    ),
+    _NearbyPlace(
+      'تاكسي النور',
+      'سيارة بيضاء · التوصيل خلال 6 دقائق',
+      false,
+      'آخر ظهور قبل 3 دقائق',
+      '🚙',
+      0.7,
+    ),
+    _NearbyPlace(
+      'تاكسي السرعة',
+      'سيارة سوداء · التوصيل خلال 9 دقائق',
+      true,
+      '',
+      '🚖',
+      1.5,
+    ),
+  ];
+
+  /// عناصر التبويب النشط (0 = متاجر، 1 = محلات، 2 = تكاسي).
+  List<_NearbyPlace> get _nearbyForTab => switch (_tab) {
+    1 => _nearby.sublist(4, 8),
+    2 => _nearby.sublist(8),
+    _ => _nearby.sublist(0, 4),
+  };
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -47,6 +123,8 @@ class _MapExploreSectionState extends State<MapExploreSection> {
         _worldCard(),
         const SizedBox(height: 14),
         _tabsBar(),
+        const SizedBox(height: 14),
+        _nearbyList(),
       ],
     );
   }
@@ -229,6 +307,183 @@ class _MapExploreSectionState extends State<MapExploreSection> {
       }),
     );
   }
+
+  // ---------- 4) قائمة «الأقرب إليك» ----------
+  /// ★ تحت التبويبات: بطاقات الجهة القريبة (بروفايل + الاسم + حالة الاتصال
+  ///   + زر «تواصل الآن» ⇒ يفتح صفحة الدردشة).
+  Widget _nearbyList() {
+    final tint = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+    final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
+    final secondary = widget.isDark
+        ? AppColors.textSecondary
+        : AppColors.lightTextSecondary;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < _nearbyForTab.length; i++) ...[
+          if (i > 0) const SizedBox(height: 8),
+          _nearbyCard(
+            _nearbyForTab[i],
+            tint: tint,
+            primary: primary,
+            secondary: secondary,
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// ★ بطاقة جهة قريبة واحدة: بروفايل دائري + الاسم + الوصف + حالة
+  ///   الاتصال + زر «تواصل الآن».
+  Widget _nearbyCard(
+    _NearbyPlace place, {
+    required Color tint,
+    required Color primary,
+    required Color secondary,
+  }) {
+    final presence = place.online ? 'متصل الآن' : place.lastSeen;
+
+    return GlassContainer(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      borderRadius: BorderRadius.circular(20),
+      opacity: widget.isDark ? 0.05 : 0.08,
+      child: Row(
+        children: [
+          // ---------- بروفايل الجهة ----------
+          Container(
+            width: 42,
+            height: 42,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: tint.withValues(alpha: 0.14),
+              border: Border.all(color: tint.withValues(alpha: 0.35)),
+            ),
+            child: Text(place.emoji, style: const TextStyle(fontSize: 19)),
+          ),
+          const SizedBox(width: 10),
+          // ---------- الاسم + الوصف + حالة الاتصال ----------
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  place.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: primary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  place.category,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: secondary, fontSize: 11.5),
+                ),
+                const SizedBox(height: 3),
+                // حالة الاتصال: نقطة ملوّنة + نصها.
+                Row(
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: place.online
+                            ? const Color(0xFF10B981)
+                            : secondary,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Flexible(
+                      child: Text(
+                        presence,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: place.online ? tint : secondary,
+                          fontSize: 11,
+                          fontWeight: place.online
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      ' · ${place.distance} كم',
+                      style: TextStyle(color: secondary, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          // ---------- زر «تواصل الآن» ⇒ صفحة الدردشة ----------
+          InkWell(
+            borderRadius: BorderRadius.circular(999),
+            onTap: () => context.push('/chat'),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: tint.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: tint.withValues(alpha: 0.35)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(LucideIcons.messageCircle, size: 15, color: tint),
+                  const SizedBox(width: 5),
+                  Text(
+                    'تواصل الآن',
+                    style: TextStyle(
+                      color: tint,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// ============================================================================
+///  _NearbyPlace — جهة قريبة واحدة (متجر/محل/تاكسي).
+/// ============================================================================
+class _NearbyPlace {
+  final String name;
+  final String category;
+
+  /// متصل الآن = true، وإلا فنص آخر ظهور في [lastSeen].
+  final bool online;
+  final String lastSeen;
+
+  /// رمز البروفايل.
+  final String emoji;
+
+  /// المسافة بالكيلومترات.
+  final double distance;
+
+  const _NearbyPlace(
+    this.name,
+    this.category,
+    this.online,
+    this.lastSeen,
+    this.emoji,
+    this.distance,
+  );
 }
 
 /// ============================================================================
