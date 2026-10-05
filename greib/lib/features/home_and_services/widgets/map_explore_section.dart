@@ -13,10 +13,11 @@ import '../../../shared_widgets/glass_container.dart';
 ///  ★ الترتيب من الأعلى:
 ///    1) شريط البحث (كبسولة علوية).
 ///    2) بطاقة العالم — الكرة الأرضية ثلاثية الأبعاد (CustomPaint).
-///    3) ثلاثة تبويبات: المتاجر / المحلات / التكاسي الأقرب إليك،
-///       والمؤشر (نقطة/خط صغير) يظهر فوق التبويب النشط في المنتصف.
+///    3) تبويبات «الأقرب إليك» (المتاجر/المحلات/التكاسي/الوكالات/
+///       المطاعم/الصيدليات/التوصيل/العقارات/الترفيه/الصحة/الرياضة)،
+///       والمؤشر يظهر فوق التبويب النشط، وتحته قائمة الجهات القريبة.
 ///
-///  ملاحظة: الكرة مرسومة بـ CustomPaint حالياً (بلا مكتب�� خرائط) — تُستبدل
+///  ملاحظة: الكرة مرسومة بـ CustomPaint حالياً (بلا مكتبات خرائط) — تُستبدل
 ///  لاحقاً بطبقة خرائط حقيقية بنفس الواجهة والتبويبات.
 /// ============================================================================
 class MapExploreSection extends StatefulWidget {
@@ -29,89 +30,195 @@ class MapExploreSection extends StatefulWidget {
 }
 
 class _MapExploreSectionState extends State<MapExploreSection> {
-  /// التبويب النشط: 0 = المتاجر، 1 = المحلات، 2 = التكاسي.
+  /// ★ شريط التبويبات الأفقي — محكّل واحد (لا يُبنى في كل rebuild).
+  final ScrollController _tabsController = ScrollController();
+
+  @override
+  void dispose() {
+    _tabsController.dispose();
+    super.dispose();
+  }
+
+  /// ★ التبويب النشط (فهرس في [_tabs]).
   int _tab = 0;
 
-  static const List<String> _tabs = [
-    'المتاجر الأقرب إليك',
-    'المحلات الأقرب إليك',
-    'التكاسي الأقرب إليك',
+  /// ★ تبويبات «الأقرب إليك» — تغطي كل خدمات التطبيق، وكل تبويب له جهاته
+  ///   القريبة بنفس الشكل (بروفايل + حالة اتصال + زر تواصل).
+  static const List<_NearbyTab> _tabs = [
+    _NearbyTab('المتاجر', [
+      _NearbyPlace('متجر الحلويات', 'حلويات شرقية وغربية', true, '', '🍰', 0.4),
+      _NearbyPlace(
+        'متجر الملابس',
+        'أزياء رجالية ونسائية',
+        false,
+        'آخر ظهور قبل 5 دقائق',
+        '👕',
+        0.8,
+      ),
+      _NearbyPlace('متجر الأمانة', 'بقالة ومواد غذائية', true, '', '🛒', 1.2),
+      _NearbyPlace(
+        'متجر Florence',
+        'عطور ومستحضرات',
+        false,
+        'آخر ظهور قبل 12 دقيقة',
+        '🌸',
+        1.6,
+      ),
+    ]),
+    _NearbyTab('المحلات', [
+      _NearbyPlace('محل بيفوت', 'ملابس رجالية', true, '', '🧥', 0.3),
+      _NearbyPlace(
+        'محل الأثاث الحديث',
+        'طقم صالون كامل',
+        false,
+        'آخر ظهور قبل 8 دقائق',
+        '🛋️',
+        0.9,
+      ),
+      _NearbyPlace('محل الإلكترونيات', 'هواتف وإكسسوارات', true, '', '📱', 1.4),
+      _NearbyPlace(
+        'محل الزهور',
+        'تنسيق هدايا ومناسبات',
+        false,
+        'آخر ظهور قبل 20 دقيقة',
+        '💐',
+        2.1,
+      ),
+    ]),
+    _NearbyTab('التكاسي', [
+      _NearbyPlace(
+        'تاكسي أحمد',
+        'سيارة فضة · التوصيل خلال 4 دقائق',
+        true,
+        '',
+        '🚕',
+        0.2,
+      ),
+      _NearbyPlace(
+        'تاكسي النور',
+        'سيارة بيضاء · التوصيل خلال 6 دقائق',
+        false,
+        'آخر ظهور قبل 3 دقائق',
+        '🚙',
+        0.7,
+      ),
+      _NearbyPlace(
+        'تاكسي السرعة',
+        'سيارة سوداء · التوصيل خلال 9 دقائق',
+        true,
+        '',
+        '🚖',
+        1.5,
+      ),
+    ]),
+    _NearbyTab('الوكالات', [
+      _NearbyPlace(
+        'وكالة النور للسيارات',
+        'تأجير سيارات وتأمين',
+        true,
+        '',
+        '🚗',
+        0.5,
+      ),
+      _NearbyPlace(
+        'وكالة الأمانة العقارية',
+        'بيع وتأجير عقارات',
+        false,
+        'آخر ظهور قبل 7 دقائق',
+        '🏢',
+        1.1,
+      ),
+      _NearbyPlace('وكالة الشحن السريع', 'شحن بري وبحري', true, '', '📦', 1.9),
+    ]),
+    _NearbyTab('المطاعم', [
+      _NearbyPlace('مطعم السراج', 'مشاوي ومشويات', true, '', '🍽️', 0.4),
+      _NearbyPlace(
+        'مطعم البيت',
+        'مأكولات عربية',
+        false,
+        'آخر ظهور قبل 10 دقائق',
+        '🍲',
+        0.9,
+      ),
+      _NearbyPlace('مطعم البحر', 'مأكولات بحرية', true, '', '🦐', 1.5),
+    ]),
+    _NearbyTab('الصيدليات', [
+      _NearbyPlace(
+        'صيدلية الحياة',
+        'أدوية ومستلزمات طبية',
+        true,
+        '',
+        '💊',
+        0.3,
+      ),
+      _NearbyPlace(
+        'صيدلية الشفاء',
+        'مستلزمات الأم والطفل',
+        false,
+        'آخر ظهور قبل 15 دقيقة',
+        '🩺',
+        1.0,
+      ),
+    ]),
+    _NearbyTab('التوصيل', [
+      _NearbyPlace(
+        'فريق توصيل گريب',
+        'توصيل خلال 30 دقيقة',
+        true,
+        '',
+        '🚚',
+        0.6,
+      ),
+      _NearbyPlace('توصيل سريع', 'توصيل داخل المدينة', true, '', '🛵', 1.3),
+    ]),
+    _NearbyTab('العقارات', [
+      _NearbyPlace('شقق النخيل', 'شقق للإيجار', true, '', '🏠', 0.8),
+      _NearbyPlace(
+        'مكاتب الأفق',
+        'مكاتب تجارية',
+        false,
+        'آخر ظهور قبل 14 دقيقة',
+        '🏢',
+        1.7,
+      ),
+    ]),
+    _NearbyTab('الترفيه', [
+      _NearbyPlace('صالة السلام', 'ألعاب جماعية', true, '', '🎳', 1.2),
+      _NearbyPlace(
+        'مقهى الأصيل',
+        'قهوة مختصة',
+        false,
+        'آخر ظهور قبل 6 دقائق',
+        '☕',
+        0.6,
+      ),
+    ]),
+    _NearbyTab('الصحة', [
+      _NearbyPlace('مركز LIFE الصحي', 'فحوصات دورية', true, '', '🩺', 1.4),
+      _NearbyPlace(
+        'مختبر برود',
+        'تحاليل مخبرية',
+        false,
+        'آخر ظهور قبل 25 دقيقة',
+        '🧪',
+        2.2,
+      ),
+    ]),
+    _NearbyTab('الرياضة', [
+      _NearbyPlace('نادي النصر الرياضية', 'تدريب وألعاب', true, '', '🏋️', 0.9),
+      _NearbyPlace(
+        'ملعب الوصل',
+        'حجز ملاعب',
+        false,
+        'آخر ظهور قبل 18 دقيقة',
+        '⚽',
+        1.8,
+      ),
+    ]),
   ];
 
-  /// ★ بيانات «الأقرب إليك» — أسماء جهات حقيقية (لا أرقام) لكل تبويب.
-  ///   `online` = متصل الآن، و`lastSeen` = نص آخر ظهور عند عدم الاتصال.
-  static const List<_NearbyPlace> _nearby = [
-    // ---------- المتاجر ----------
-    _NearbyPlace('متجر الحلويات', 'حلويات شرقية وغربية', true, '', '🍰', 0.4),
-    _NearbyPlace(
-      'متجر الملابس',
-      'أزياء رجالية ونسائية',
-      false,
-      'آخر ظهور قبل 5 دقائق',
-      '👕',
-      0.8,
-    ),
-    _NearbyPlace('متجر الأمانة', 'بقالة ومواد غذائية', true, '', '🛒', 1.2),
-    _NearbyPlace(
-      'متجر Florence',
-      'عطور ومستحضرات',
-      false,
-      'آخر ظهور قبل 12 دقيقة',
-      '🌸',
-      1.6,
-    ),
-    // ---------- المحلات ----------
-    _NearbyPlace('محل第二章 بيفوت', 'ملابس رجالية', true, '', '🧥', 0.3),
-    _NearbyPlace(
-      'محل الأثاث الحديث',
-      'طقم صالون كامل',
-      false,
-      'آخر ظهور قبل 8 دقائق',
-      '🛋️',
-      0.9,
-    ),
-    _NearbyPlace('محل الإلكترونيات', 'هواتف وإكسسوارات', true, '', '📱', 1.4),
-    _NearbyPlace(
-      'محل الزهور',
-      'تنسيق هدايا ومناسبات',
-      false,
-      'آخر ظهور قبل 20 دقيقة',
-      '💐',
-      2.1,
-    ),
-    // ---------- التكاسي ----------
-    _NearbyPlace(
-      'تاكسي أحمد',
-      'سيارة فضة · التوصيل خلال 4 دقائق',
-      true,
-      '',
-      '🚕',
-      0.2,
-    ),
-    _NearbyPlace(
-      'تاكسي النور',
-      'سيارة بيضاء · التوصيل خلال 6 دقائق',
-      false,
-      'آخر ظهور قبل 3 دقائق',
-      '🚙',
-      0.7,
-    ),
-    _NearbyPlace(
-      'تاكسي السرعة',
-      'سيارة سوداء · التوصيل خلال 9 دقائق',
-      true,
-      '',
-      '🚖',
-      1.5,
-    ),
-  ];
-
-  /// عناصر التبويب النشط (0 = متاجر، 1 = محلات، 2 = تكاسي).
-  List<_NearbyPlace> get _nearbyForTab => switch (_tab) {
-    1 => _nearby.sublist(4, 8),
-    2 => _nearby.sublist(8),
-    _ => _nearby.sublist(0, 4),
-  };
+  /// جهات التبويب النشط.
+  List<_NearbyPlace> get _nearbyForTab => _tabs[_tab].places;
 
   @override
   Widget build(BuildContext context) {
@@ -241,7 +348,7 @@ class _MapExploreSectionState extends State<MapExploreSection> {
                       ),
                     ),
                   ),
-                  // الكرة الدوّارة + نقاط approximates المواقع.
+                  // الكرة الدوّارة + نقاط المواقع.
                   const Center(child: _SpinningGlobe()),
                 ],
               ),
@@ -252,7 +359,9 @@ class _MapExploreSectionState extends State<MapExploreSection> {
     );
   }
 
-  // ---------- 3) التبويبات الثلاثة + مؤشر التبويب النشط ----------
+  // ---------- 3) تبويبات الأقرب إليك + مؤشر التبويب النشط ----------
+  /// ★ شريط أفقي قابل للتمرير (عدد التبويبات كبير الآن) ⇒ يبقى التبويب
+  ///   النشط في المرأى: نُبقي المؤشر ظاهراً فوقه فقط.
   Widget _tabsBar() {
     final tint = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
     final inactive = widget.isDark
@@ -260,35 +369,40 @@ class _MapExploreSectionState extends State<MapExploreSection> {
         : AppColors.lightTextSecondary;
     final active = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
 
-    return Row(
-      children: List.generate(_tabs.length, (i) {
-        final selected = i == _tab;
-        return Expanded(
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () => setState(() => _tab = i),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // ★ المؤشر: يظهر في الأعلى فوق التبويب النشط فقط.
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOut,
-                    height: 3,
-                    width: selected ? 22 : 0,
-                    decoration: BoxDecoration(
-                      color: tint,
-                      borderRadius: BorderRadius.circular(3),
+    return Directionality(
+      // ★ مربّع النقر يتبع اتجاه الكتابة (الصفحة عربية ⇒ تخطيط RTL).
+      textDirection: TextDirection.rtl,
+      child: SingleChildScrollView(
+        controller: _tabsController,
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: List.generate(_tabs.length, (i) {
+            final selected = i == _tab;
+            return InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => setState(() => _tab = i),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 10,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // ★ المؤشر: يظهر في الأعلى فوق التبويب النشط فقط.
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOut,
+                      height: 3,
+                      width: selected ? 22 : 0,
+                      decoration: BoxDecoration(
+                        color: tint,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  FittedBox(
-                    // ★ لا فيض النص على الشاشات الضيقة.
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      _tabs[i],
+                    const SizedBox(height: 8),
+                    Text(
+                      _tabs[i].label,
                       maxLines: 1,
                       style: TextStyle(
                         color: selected ? active : inactive,
@@ -298,13 +412,13 @@ class _MapExploreSectionState extends State<MapExploreSection> {
                             : FontWeight.w500,
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ),
-        );
-      }),
+            );
+          }),
+        ),
+      ),
     );
   }
 
@@ -321,6 +435,16 @@ class _MapExploreSectionState extends State<MapExploreSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // ★ عنوان يوضّح التبويب النشط («الأقرب إليك»).
+        Text(
+          '${_tabs[_tab].label} الأقرب إليك',
+          style: TextStyle(
+            color: primary,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
         for (var i = 0; i < _nearbyForTab.length; i++) ...[
           if (i > 0) const SizedBox(height: 8),
           _nearbyCard(
@@ -460,7 +584,17 @@ class _MapExploreSectionState extends State<MapExploreSection> {
 }
 
 /// ============================================================================
-///  _NearbyPlace — جهة قريبة واحدة (متجر/محل/تاكسي).
+///  _NearbyTab — تبويب «الأقرب إليك» (اسم + جهاته القريبة).
+/// ============================================================================
+class _NearbyTab {
+  final String label;
+  final List<_NearbyPlace> places;
+
+  const _NearbyTab(this.label, this.places);
+}
+
+/// ============================================================================
+///  _NearbyPlace — جهة قريبة واحدة (متجر/محل/تاكسي/وكالة/مطعم…).
 /// ============================================================================
 class _NearbyPlace {
   final String name;
