@@ -18,6 +18,7 @@ import 'widgets/sticky_location_button.dart';
 import 'widgets/trending_stories.dart';
 import 'widgets/home_categories_tab_bar.dart';
 import 'widgets/spotlight_carousel.dart';
+import 'widgets/map_explore_section.dart';
 import 'widgets/doctors_row.dart';
 import 'widgets/quick_actions.dart';
 
@@ -150,6 +151,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 AnimatedListItem(
                   index: 1,
                   child: SpotlightSection(isDark: isDark),
+                ),
+                const SizedBox(height: 28),
+
+                // ★ قسم العالم: بحث + بطاقة العالم (3 دي) + ثلاثة تبويبات
+                //   (المتاجر / المحلات / التكاسي الأقرب إليك).
+                AnimatedListItem(
+                  index: 2,
+                  child: MapExploreSection(isDark: isDark),
                 ),
                 const SizedBox(height: 28),
 

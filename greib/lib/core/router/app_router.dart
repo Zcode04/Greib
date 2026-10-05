@@ -1,6 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../permissions/permissions.dart';
+import '../theme/app_colors.dart';
+import '../widgets/super_header.dart';
+import '../../core/mock_data/mock_data.dart';
+import '../../shared_widgets/profile_widget.dart';
 import '../../features/auth/auth_service.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/dashboards/admin_dashboard_screen.dart';
@@ -9,6 +14,7 @@ import '../../features/communication_and_support/notifications_screen.dart';
 import '../../features/communication_and_support/support_tickets_screen.dart';
 import '../../features/location_and_tracking/tracking_screen.dart';
 import '../../features/location_and_tracking/maps_screen.dart';
+import '../../features/location_and_tracking/my_location_screen.dart';
 import '../../features/home_and_services/search_screen.dart';
 import '../../features/home_and_services/reels_screen.dart';
 import '../../features/services/presentation/account_connections_page.dart';
@@ -42,6 +48,8 @@ class AppRouter {
     '/doctors',
     '/support',
     '/maps',
+    // ★ صفحة «موقعي» (العالم + الأقرب إليك) — تفتح من تبويب الشريط السفلي.
+    '/my_location',
     '/wallet',
     '/favorites',
     '/profile',
@@ -97,10 +105,7 @@ class AppRouter {
         path: '/search',
         builder: (context, state) => const SearchScreen(),
       ),
-      GoRoute(
-        path: '/reels',
-        builder: (context, state) => const ReelsScreen(),
-      ),
+      GoRoute(path: '/reels', builder: (context, state) => const ReelsScreen()),
       GoRoute(
         path: '/notifications',
         builder: (context, state) => const NotificationsScreen(),
@@ -114,6 +119,31 @@ class AppRouter {
         builder: (context, state) => const SupportTicketsScreen(),
       ),
       GoRoute(path: '/maps', builder: (context, state) => const MapsScreen()),
+      GoRoute(
+        path: '/my_location',
+        builder: (context, state) => const MyLocationScreen(),
+      ),
+      // ★ صفحة الحساب: كانت تبويباً في الشريط السفلي، والآن تُفتح من أيقونة
+      //   الحساب في الهيدر (تبويب «موقعي» حلّ مكانها في الشريط).
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) {
+          final user = AuthService.instance.currentUser;
+          final profile = MockData.demoProfiles.firstWhere(
+            (p) => p.email == user?.email || p.phone == user?.phone,
+            orElse: () => MockData.demoProfiles.first,
+          );
+          return Scaffold(
+            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.background
+                : AppColors.lightBackground,
+            appBar: SuperHeader(showBackButton: true),
+            extendBody: true,
+            extendBodyBehindAppBar: true,
+            body: ProfileWidget(profile: profile),
+          );
+        },
+      ),
       // صفحات عامة مؤقتة: تمنع الكراش عند فتح أقسام ما زالت قيد التطوير.
       GoRoute(
         path: '/shopping',

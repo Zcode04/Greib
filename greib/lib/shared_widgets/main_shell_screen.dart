@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import '../core/mock_data/mock_data.dart';
 import '../core/permissions/permissions.dart';
 import '../core/storage/app_prefs.dart';
 import '../core/theme/app_colors.dart';
@@ -14,7 +13,6 @@ import '../features/home_and_services/home_screen.dart';
 import '../features/wallet_and_finance/wallet_screen.dart';
 import '../core/widgets/super_header.dart'; // تمت الإضافة
 import 'floating_bottom_nav.dart';
-import 'profile_widget.dart';
 
 class _ShellTab {
   final String route;
@@ -31,11 +29,13 @@ class _ShellTab {
 }
 
 const List<_ShellTab> _tabs = [
+  // ★ «موقعي» بدل «حسابي»: تبويب مستقل يفتح صفحة «موقعي» (العالم + الأقرب
+  //   إليك). صفحة الحساب ما زالت متاحة من أيقونة الحساب في الهيدر و /profile.
   _ShellTab(
-    route: '/profile',
-    title: 'حسابي',
-    icon: LucideIcons.mapPin,
-    label: 'حسابي',
+    route: '/my_location',
+    title: 'موقعي',
+    icon: LucideIcons.mapPinned,
+    label: 'موقعي',
   ),
   _ShellTab(
     route: '/wallet',
@@ -76,21 +76,36 @@ class _MainShellScreenState extends State<MainShellScreen> {
   /// ★ فهرس تبويب «الرئيسية» (يُشتق من القائمة بدل رقم ثابت).
   static int get _homeTabIndex => _tabs.indexWhere((t) => t.route == '/home');
 
-  /// ★ عدد التبويبات التي تبني محتوى الـ Shell (بدون «الريلز»).
-  ///   «الريلز» يفتح صفحة مستقلة، فلا يُحفظ كمؤشر نشط.
-  int get _shellTabCount => _tabs.length - 1;
+  /// ★ التبويبات التي تبني محتوى الـ Shell: كل ما عداه صفحات مستقلة
+  ///   («الريلز» و«موقعي») تُفتح بـ push ولا تُحفظ كمؤشر نشط.
+  static const Set<String> _standaloneRoutes = {'/reels', '/my_location'};
+
+  /// ★ فهارس التبويبات التي تبني محتوى الـ Shell (فهارس داخل `_tabs`).
+  ///   صفحة مستقلة («موقعي»/«الريلز») ولا يحفظ مؤشراً نشطاً.
+  static final List<int> _shellIndexes = [
+    for (var i = 0; i < _tabs.length; i++)
+      if (!_standaloneRoutes.contains(_tabs[i].route)) i,
+  ];
 
   @override
   void initState() {
     super.initState();
-    _currentIndex = AppPrefs.lastTabIndex.clamp(0, _shellTabCount - 1);
+    // ★ المؤشر المحفوظ يقتصر على فهارس الـ Shell ⇒ لا يقف أبداً على تبويب
+    //   مستقل («موقعي»/«الريلز») بعد إعادة فتح التطبيق.
+    final saved = AppPrefs.lastTabIndex;
+    _currentIndex = _shellIndexes.contains(saved)
+        ? saved
+        : _shellIndexes.firstWhere(
+            (i) => _tabs[i].route == '/home',
+            orElse: () => _shellIndexes.first,
+          );
   }
 
   void _onTabSelected(int index) {
     final tab = _tabs[index];
 
-    // ★ الريلز صفحة مستقلة (خارج الـ Shell): نفتحها بدل تبديل التبويب.
-    if (tab.route == '/reels') {
+    // ★ الصفحات المستقلة («الريلز» و«موقعي») تُفتح بـ push ولا تحفظ مؤشراً.
+    if (_standaloneRoutes.contains(tab.route)) {
       context.push(tab.route);
       return;
     }
@@ -100,20 +115,15 @@ class _MainShellScreenState extends State<MainShellScreen> {
     AppPrefs.setLastTabIndex(index);
   }
 
+  /// ★ جسم التبويب: مبني على المسار (لا على رقم ثابت) ⇒ ترتيب التبويبات
+  ///   أو إضافتها لا تكسر أي حالة محفوظة.
   Widget _buildBody(int index) {
-    switch (index) {
-      case 0:
-        final user = AuthService.instance.currentUser;
-        final profile = MockData.demoProfiles.firstWhere(
-          (p) => p.email == user?.email || p.phone == user?.phone,
-          orElse: () => MockData.demoProfiles.first,
-        );
-        return ProfileWidget(profile: profile);
-      case 1:
+    switch (_tabs[index].route) {
+      case '/wallet':
         return const WalletScreen();
-      case 2:
+      case '/home':
         return const HomeScreen();
-      case 3:
+      case '/chat':
         return const ChatListScreen();
       default:
         return const HomeScreen();
@@ -160,7 +170,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
       extendBodyBehindAppBar: true,
       appBar: SuperHeader(
         title: isHomeTab ? null : activeTab.title,
-        onAccount: () => _onTabSelected(0),
+        // ★ أيقونة الحساب تفتح صفحة الحساب (المستقلة) — لم تعد تبويباً.
+        onAccount: () => context.push('/profile'),
         extraActions: _buildHeaderActions(context).map((a) {
           return IconButton(
             icon: Badge(
