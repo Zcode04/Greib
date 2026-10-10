@@ -3,6 +3,7 @@ import 'package:latlong2/latlong.dart';
 
 import 'location_service.dart';
 import 'mauritania_regions.dart';
+import 'mr_admin_zones.dart';
 import 'place_model.dart';
 
 /// LocationController — متحكم الموقع الموحّد V3 (موريتانيا أولاً).
@@ -136,11 +137,15 @@ class LocationController extends ChangeNotifier {
   }
 
   /// تسمية النقطة: الـ Geocoder أولاً (الاسم الحقيقي للحي/الشارع)،
-  /// وعند فشله (Offline/لا نتائج) الجدول الثابت داخل موريتانيا.
+  /// ثم الحدود الإدارية الرسمية (بلدية · مقاطعة · ولاية — يقيني Offline)،
+  /// وأخيراً الجدول الثابت "الأقرب" كملاذ أخير.
   Future<String> _resolveLabel(LatLng p) async {
     final geocoded = await LocationService.instance.reverseGeocodeOrNull(p);
     if (geocoded != null && geocoded.isNotEmpty) return geocoded;
     if (MauritaniaRegions.isInsideMauritania(p)) {
+      await MrAdminZones.instance.ensureLoaded();
+      final zone = MrAdminZones.instance.labelFor(p);
+      if (zone != null) return zone;
       return MauritaniaRegions.regionLabel(p);
     }
     return '';
