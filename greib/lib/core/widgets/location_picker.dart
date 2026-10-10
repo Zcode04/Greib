@@ -1,9 +1,9 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui;
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:latlong2/latlong.dart' hide Path;
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
@@ -417,71 +417,92 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
               ),
             ),
 
-            // ── بطاقة التفاصيل (تتمدد للأسفل) ──
-            AnimatedSize(
-              duration: const Duration(milliseconds: 280),
-              curve: Curves.easeOutCubic,
-              alignment: Alignment.topCenter,
-              child: _detailsOpen
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.md),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: ink.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(_cardRadius),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Material(
-                          color: Colors.transparent,
-                          child: Column(
-                            children: [
-                              _detailRow(
-                                theme,
-                                label: 'الدولة',
-                                value: 'موريتانيا 🇲🇷',
-                                dropdown: true,
-                                onTap: () => _showCountriesSheet(context),
-                              ),
-                              _detailRow(
-                                theme,
-                                label: 'الولاية',
-                                value: nearestRegion.nameAr,
-                              ),
-                              if (nearestDistrict != null)
-                                _detailRow(
-                                  theme,
-                                  label: 'المقاطعة',
-                                  value: nearestDistrict.nameAr,
-                                ),
-                              _detailRow(
-                                theme,
-                                label: 'أنت الآن مضبوط في',
-                                value: location.cityName,
-                              ),
-                            ],
+            // ── الكرة الأرضية + لوحة التفاصيل تطفو فوقها ──
+            const SizedBox(height: AppSpacing.sm),
+            SizedBox(
+              height: 270,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // الكرة (اضغط عليها لإعادة تحديد الموقع).
+                  Positioned.fill(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: location.isLocating ? null : _locate,
+                      child: AnimatedOpacity(
+                        opacity: _detailsOpen ? 0.45 : 1,
+                        duration: const Duration(milliseconds: 300),
+                        child: CustomPaint(
+                          painter: _GlobePainter(
+                            t: _globeCtrl,
+                            color: ink,
+                            userLat: point.latitude * math.pi / 180,
+                            userLng: point.longitude * math.pi / 180,
                           ),
+                          size: Size.infinite,
                         ),
                       ),
-                    )
-                  : const SizedBox(width: double.infinity),
-            ),
-
-            // ── الكرة الأرضية (اضغط عليها لإعادة التحديد) ──
-            const SizedBox(height: AppSpacing.sm),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: location.isLocating ? null : _locate,
-              child: SizedBox(
-                height: 220,
-                child: CustomPaint(
-                  painter: _GlobePainter(
-                    t: _globeCtrl,
-                    color: ink,
-                    userLat: point.latitude * math.pi / 180,
-                    userLng: point.longitude * math.pi / 180,
+                    ),
                   ),
-                  size: Size.infinite,
-                ),
+                  // اللوحة الزجاجية.
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 260),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeIn,
+                    transitionBuilder: (child, anim) => FadeTransition(
+                      opacity: anim,
+                      child: ScaleTransition(
+                        scale: Tween<double>(begin: 0.94, end: 1).animate(anim),
+                        child: child,
+                      ),
+                    ),
+                    child: !_detailsOpen
+                        ? const SizedBox.shrink(key: ValueKey('closed'))
+                        : ClipRRect(
+                            key: const ValueKey('open'),
+                            borderRadius: BorderRadius.circular(_cardRadius + 4),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                              child: Container(
+                                color: theme.colorScheme.surface
+                                    .withValues(alpha: 0.72),
+                                child: Material(
+                                  color: ink.withValues(alpha: 0.05),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      _detailRow(
+                                        theme,
+                                        label: 'الدولة',
+                                        value: 'موريتانيا 🇲🇷',
+                                        dropdown: true,
+                                        onTap: () =>
+                                            _showCountriesSheet(context),
+                                      ),
+                                      _detailRow(
+                                        theme,
+                                        label: 'الولاية',
+                                        value: nearestRegion.nameAr,
+                                      ),
+                                      if (nearestDistrict != null)
+                                        _detailRow(
+                                          theme,
+                                          label: 'المقاطعة',
+                                          value: nearestDistrict.nameAr,
+                                        ),
+                                      _detailRow(
+                                        theme,
+                                        label: 'أنت الآن مضبوط في',
+                                        value: location.cityName,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -673,8 +694,8 @@ class _GlobePainter extends CustomPainter {
     );
 
     // شبكة خطوط الطول والعرض.
-    final front = ui.Path();
-    final back = ui.Path();
+    final front = Path();
+    final back = Path();
     void seg(double la1, double ln1, double la2, double ln2) {
       final a = proj(la1, ln1);
       final b = proj(la2, ln2);
