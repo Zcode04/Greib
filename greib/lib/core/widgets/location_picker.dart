@@ -138,7 +138,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                     final isMauritania = name == 'موريتانيا';
                     return Material(
                       color: isMauritania
-                          ? theme.colorScheme.primary.withValues(alpha: 0.08)
+                          ? theme.colorScheme.onSurface.withValues(alpha: 0.06)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(99),
                       child: InkWell(
@@ -170,7 +170,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                                 Icon(
                                   LucideIcons.check,
                                   size: 18,
-                                  color: theme.colorScheme.primary,
+                                  color: theme.colorScheme.onSurface,
                                 )
                               else
                                 Text(
@@ -277,15 +277,15 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary
-                        .withValues(alpha: 0.07),
+                    color: theme.colorScheme.onSurface
+                        .withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(AppRadii.lg),
                   ),
                   child: Row(
                     children: [
                       Icon(LucideIcons.mapPin,
                           size: 16,
-                          color: theme.colorScheme.primary),
+                          color: theme.colorScheme.onSurface),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
@@ -299,7 +299,8 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                       ),
                       Icon(LucideIcons.chevronLeft,
                           size: 16,
-                          color: theme.colorScheme.primary),
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.6)),
                     ],
                   ),
                 ),
@@ -308,7 +309,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
           const SizedBox(height: AppSpacing.md),
           // ★ الدولة: موريتانيا — محددة دائماً. الضغط يفتح قائمة الدول العربية.
           Material(
-            color: theme.colorScheme.primary.withValues(alpha: 0.08),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(99),
             child: InkWell(
               borderRadius: BorderRadius.circular(99),
@@ -322,7 +323,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(99),
                   border: Border.all(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.25),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.15),
                   ),
                 ),
                 child: Row(
@@ -340,7 +341,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                     Icon(
                       LucideIcons.chevronDown,
                       size: 18,
-                      color: theme.colorScheme.primary,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ],
                 ),
@@ -379,7 +380,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
 
                 return Material(
                   color: selected
-                      ? theme.colorScheme.primary.withValues(alpha: 0.08)
+                      ? theme.colorScheme.onSurface.withValues(alpha: 0.06)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(AppRadii.lg),
                   child: InkWell(
@@ -393,8 +394,8 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.primary
-                                  .withValues(alpha: 0.1),
+                              color: theme.colorScheme.onSurface
+                                  .withValues(alpha: 0.08),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -402,7 +403,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                                   ? LucideIcons.mapPinned
                                   : LucideIcons.mapPin,
                               size: 19,
-                              color: theme.colorScheme.primary,
+                              color: theme.colorScheme.onSurface,
                             ),
                           ),
                           const SizedBox(width: AppSpacing.md),
@@ -431,7 +432,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                             Icon(
                               LucideIcons.check,
                               size: 20,
-                              color: theme.colorScheme.primary,
+                              color: theme.colorScheme.onSurface,
                             ),
                         ],
                       ),
