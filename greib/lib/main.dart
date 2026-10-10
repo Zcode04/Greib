@@ -7,6 +7,7 @@ import 'core/storage/app_prefs.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
 import 'core/router/app_router.dart';
+import 'core/widgets/location_gate.dart';
 import 'features/auth/auth_service.dart';
 import 'features/services/data/account_repository.dart';
 import 'features/services/data/services_repository.dart';
@@ -39,7 +40,8 @@ Widget buildGreibMenkApp() {
         value: LocationController(),
       ),
     ],
-    child: const GreibMenkApp(),
+    // ★ بوابة إذن الموقع الدقيق عند أول فتح — أساس الصلابة.
+    child: const LocationGate(child: GreibMenkApp()),
   );
 }
 

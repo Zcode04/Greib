@@ -5,18 +5,17 @@ import 'package:geocoding/geocoding.dart' as geo;
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
-/// ============================================================================
-///  LocationService — خدمة الموقع الحقيقية (GPS + Geocoding).
-///
-///  • طبقة واحدة لكل التطبيق: لا أحد ينادي Geolocator مباشرة.
-///  • تدعم وضع Mock تلقائياً (للمحاكي / بدون إذن) بإحداثيات دبي.
-/// ============================================================================
+import 'mauritania_regions.dart';
+
+/// LocationService — GPS دقيق + Geocoding.
+/// • الافتراضي = نواكشوط (موريتانيا أولاً).
+/// • الدقة: LocationAccuracy.best للتماسك والصلابة.
 class LocationService {
   LocationService._();
   static final LocationService instance = LocationService._();
 
-  /// دبي مارينا — الإحداثية الافتراضية عند غياب GPS.
-  static const LatLng kDefaultLatLng = LatLng(25.0805, 55.1403);
+  /// نواكشوط — الإحداثية الافتراضية.
+  static const LatLng kDefaultLatLng = MauritaniaRegions.kDefaultLatLng;
 
   LatLng? _lastKnown;
   LatLng? get lastKnown => _lastKnown;
@@ -53,15 +52,15 @@ class LocationService {
     }
   }
 
-  /// الموقع الحالي مرة واحدة (مع fallback لئلا يعلق الـ UI).
-  Future<LatLng> currentLatLng({Duration timeout = const Duration(seconds: 8)}) async {
+  /// الموقع الحالي بدقة عالية (مع fallback لئلا يعلق الـ UI).
+  Future<LatLng> currentLatLng({Duration timeout = const Duration(seconds: 10)}) async {
     try {
       final ok = await ensurePermission();
       if (!ok) return _lastKnown ?? kDefaultLatLng;
       final pos = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 8),
+          accuracy: LocationAccuracy.best,
+          timeLimit: Duration(seconds: 10),
         ),
       ).timeout(timeout);
       _lastKnown = LatLng(pos.latitude, pos.longitude);
@@ -71,12 +70,12 @@ class LocationService {
     }
   }
 
-  /// بث الحركة (للتتبع الحي) — يُستخدم في شاشة التتبع فقط.
+  /// بث الحركة الدقيق — للتتبع الحي.
   Stream<LatLng> positionStream() {
     try {
       const settings = LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 10,
+        accuracy: LocationAccuracy.best,
+        distanceFilter: 5,
       );
       return Geolocator.getPositionStream(locationSettings: settings)
           .map((p) {

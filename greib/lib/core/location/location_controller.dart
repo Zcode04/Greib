@@ -2,43 +2,49 @@ import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'location_service.dart';
+import 'mauritania_regions.dart';
 import 'place_model.dart';
 
-/// ============================================================================
-///  LocationController — متحكم الموقع الموحّد V2 (متوافق رجعياً 100%).
+/// LocationController — متحكم الموقع الموحّد V3 (موريتانيا أولاً).
 ///
-///  • يحافظ على API القديم: cities / city / cityName / setCity — فلا ينكسر
-///    أي ويدجت (StickyTabsBar / LocationPill / LocationPicker).
-///  • يضيف: إحداثيات حقيقية لكل مدينة + موقع GPS حي + عنوان معكوس.
-/// ============================================================================
+///  • المدن = ولايات موريتانيا الـ15 بإحداثيات ثابتة (Offline).
+///  • بقية دول العالم: GPS حي + reverseGeocode ديناميكي.
+///  • API القديم محفوظ: cities / city / cityName / setCity.
 
-/// مدينة ضمن التطبيق — الآن بإحداثيات حقيقية.
+/// مدينة/ولاية — بإحداثيات ثابتة.
 class AppCity {
   final String name;
   final List<String> areas;
   final double lat;
   final double lng;
+  final MrRegion? mrRegion;
 
   const AppCity({
     required this.name,
     this.areas = const [],
     required this.lat,
     required this.lng,
+    this.mrRegion,
   });
 
   LatLng get latLng => LatLng(lat, lng);
+
+  /// اسم المنطقة + إحداثياتها — للعرض بجوار بعض.
+  String get labelWithCoords =>
+      '$name · ${lat.toStringAsFixed(4)}، ${lng.toStringAsFixed(4)}';
 }
 
 class LocationController extends ChangeNotifier {
-  /// المدن المدعومة — بإحداثيات عواصم حقيقية.
-  static const List<AppCity> cities = [
-    AppCity(name: 'دبي', areas: ['الممزر', 'ديرة', 'الكرامة', 'القصيص', 'البرشاء'], lat: 25.2048, lng: 55.2708),
-    AppCity(name: 'أبوظبي', areas: ['مدينة خليفة', 'السعديات', 'الروضة', 'التل'], lat: 24.4539, lng: 54.3773),
-    AppCity(name: 'الشارقة', areas: ['المجاز', 'النوف', 'الحيرة'], lat: 25.3463, lng: 55.4209),
-    AppCity(name: 'العين', areas: ['وسط المدينة', 'الفلاح'], lat: 24.2075, lng: 55.7447),
-    AppCity(name: 'عجمان', areas: ['البستان', 'الراشدية'], lat: 25.4052, lng: 55.5136),
-    AppCity(name: 'رأس الخيمة', areas: ['المعيريض', 'الظيت'], lat: 25.7885, lng: 55.9593),
-  ];
+  /// ولايات موريتانيا الـ15 — مولّدة من المصدر الوحيد للحقيقة.
+  static List<AppCity> get cities => MauritaniaRegions.regions
+      .map((r) => AppCity(
+            name: r.nameAr,
+            areas: [r.capitalAr, ...r.districts.map((d) => d.nameAr)],
+            lat: r.lat,
+            lng: r.lng,
+            mrRegion: r,
+          ))
+      .toList();
 
   LocationController() {
     _init();
@@ -51,17 +57,25 @@ class LocationController extends ChangeNotifier {
     }
   }
 
-  AppCity _city = cities.first;
-  AppCity get city => _city;
-  String get cityName => _city.name;
+  AppCity? _city;
+  AppCity get city => _city ?? cities.first;
+  String get cityName => city.name;
 
-  /// ── الجديد: الموقع الحي ──
+  /// ── الموقع الحي ──
   LatLng? _gpsLatLng;
-  LatLng get activeLatLng => _gpsLatLng ?? _city.latLng;
+  LatLng get activeLatLng => _gpsLatLng ?? city.latLng;
   bool get hasGpsFix => _gpsLatLng != null;
 
+  /// اسم المنطقة الحالي بجانب إحداثياتها — للعرض في الكبسولات.
+  /// داخل موريتانيا: من الجدول الثابت. خارجها: من reverseGeocode.
   String _currentAddress = '';
   String get currentAddress => _currentAddress;
+
+  String get currentLabelWithCoords {
+    final p = activeLatLng;
+    final name = _currentAddress.isEmpty ? cityName : _currentAddress;
+    return '$name · ${p.latitude.toStringAsFixed(4)}، ${p.longitude.toStringAsFixed(4)}';
+  }
 
   bool _locating = false;
   bool get isLocating => _locating;
@@ -71,12 +85,12 @@ class LocationController extends ChangeNotifier {
   PlaceModel? get confirmedPlace => _confirmedPlace;
 
   void setCity(AppCity city) {
-    if (city.name == _city.name) return;
+    if (city.name == _city?.name) return;
     _city = city;
     notifyListeners();
   }
 
-  /// جلب موقع GPS الحقيقي + عكس العنوان. آمن للنداء المتكرر.
+  /// جلب موقع GPS الدقيق + تسمية المنطقة. آمن للنداء المتكرر.
   Future<LatLng> locateMe() async {
     if (_locating) return activeLatLng;
     _locating = true;
@@ -84,8 +98,15 @@ class LocationController extends ChangeNotifier {
     try {
       final p = await LocationService.instance.currentLatLng();
       _gpsLatLng = p;
-      _currentAddress = await LocationService.instance.reverseGeocode(p);
-      _adoptNearestCity(p);
+      if (MauritaniaRegions.isInsideMauritania(p)) {
+        // ★ داخل موريتانيا: الاسم من الجدول الثابت (مستقر Offline).
+        _currentAddress = MauritaniaRegions.regionLabel(p);
+        _adoptNearestCity(p);
+      } else {
+        // ★ خارج موريتانيا: الاسم ديناميكي حسب الموقع الحالي.
+        _currentAddress =
+            await LocationService.instance.reverseGeocode(p);
+      }
     } finally {
       _locating = false;
       notifyListeners();
@@ -97,9 +118,16 @@ class LocationController extends ChangeNotifier {
   Future<void> setGpsLatLng(LatLng p, {bool reverseGeocode = true}) async {
     _gpsLatLng = p;
     if (reverseGeocode) {
-      _currentAddress = await LocationService.instance.reverseGeocode(p);
+      if (MauritaniaRegions.isInsideMauritania(p)) {
+        _currentAddress = MauritaniaRegions.regionLabel(p);
+      } else {
+        _currentAddress =
+            await LocationService.instance.reverseGeocode(p);
+      }
     }
-    _adoptNearestCity(p);
+    if (MauritaniaRegions.isInsideMauritania(p)) {
+      _adoptNearestCity(p);
+    }
     notifyListeners();
   }
 

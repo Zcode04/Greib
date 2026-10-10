@@ -6,36 +6,42 @@ import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 
 import 'location_service.dart';
+import 'mauritania_regions.dart';
 import 'place_model.dart';
+
+/// PlacesService — بحث مجاني عبر Nominatim (بلا API Key).
+/// • متحيز لموريتانيا (countrycodes=mr).
+/// • نتائج محلية فورية: الولايات + المقاطعات + المعالم (Offline).
 
 /// ============================================================================
 ///  PlacesService — بحث حقيقي مجاني عبر Nominatim (OpenStreetMap).
 ///
 ///  • بلا API Key — يعمل فوراً.
 ///  • debounce مدمج + حد أدنى 3 أحرف + إلغاء الطلبات القديمة.
-///  • قاعدة محلية للإمارات كـ fallback عند انقطاع الإنترنت.
+///  • قاعدة محلية لموريتانيا كـ fallback عند انقطاع الإنترنت.
 /// ============================================================================
 class PlacesService {
   PlacesService._();
   static final PlacesService instance = PlacesService._();
 
   static const String _host = 'nominatim.openstreetmap.org';
-  static const String _ua = 'greib-menk/1.0 (contact: support@greibmenk.ae)';
+  static const String _ua = 'greib-menk/1.0 (contact: support@greibmenk.mr)';
 
   Timer? _debounce;
   int _seq = 0;
 
-  /// معالم إماراتية شهيرة — fallback فوري + نتائج عند البحث الفارغ.
+  /// معالم موريتانية شهيرة — fallback فوري + نتائج عند البحث الفارغ.
+  /// الإحداثيات ثابتة من MauritaniaRegions (مستقرة Offline).
   static const List<PlaceModel> uaeLandmarks = [
-    PlaceModel(name: 'برج خليفة', address: 'داون تاون دبي، دبي', lat: 25.1972, lng: 55.2744, cityName: 'دبي'),
-    PlaceModel(name: 'دبي مارينا', address: 'دبي مارينا، دبي', lat: 25.0805, lng: 55.1403, cityName: 'دبي'),
-    PlaceModel(name: 'مول الإمارات', address: 'البرشاء، دبي', lat: 25.0805, lng: 55.1210, cityName: 'دبي'),
-    PlaceModel(name: 'جزيرة ياس', address: 'جزيرة ياس، أبوظبي', lat: 24.4889, lng: 54.6050, cityName: 'أبوظبي'),
-    PlaceModel(name: 'جامع الشيخ زايد', address: 'أبوظبي', lat: 24.4128, lng: 54.4753, cityName: 'أبوظبي'),
-    PlaceModel(name: 'كورنيش الشارقة', address: 'المجاز، الشارقة', lat: 25.3306, lng: 55.3870, cityName: 'الشارقة'),
-    PlaceModel(name: 'جبل جيس', address: 'رأس الخيمة', lat: 25.9500, lng: 56.1833, cityName: 'رأس الخيمة'),
-    PlaceModel(name: 'كورنيش عجمان', address: 'عجمان', lat: 25.4052, lng: 55.5136, cityName: 'عجمان'),
-    PlaceModel(name: 'جبل حفيت', address: 'العين', lat: 24.0567, lng: 55.7783, cityName: 'العين'),
+    PlaceModel(name: 'المسجد السعودي', address: 'تفرغ زينة، نواكشوط', lat: 18.0910, lng: -15.9950, cityName: 'نواكشوط الغربية'),
+    PlaceModel(name: 'سوق العاصمة', address: 'لكصر، نواكشوط', lat: 18.1080, lng: -15.9785, cityName: 'نواكشوط الغربية'),
+    PlaceModel(name: 'مطار نواكشوط أم التونسي', address: 'نواكشوط', lat: 18.0970, lng: -15.9470, cityName: 'نواكشوط الشمالية'),
+    PlaceModel(name: 'ميناء نواكشوط', address: 'الميناء، نواكشوط', lat: 18.0430, lng: -16.0120, cityName: 'نواكشوط الجنوبية'),
+    PlaceModel(name: 'ميناء نواذيبو', address: 'نواذيبو', lat: 20.9333, lng: -17.0333, cityName: 'داخلت نواذيبو'),
+    PlaceModel(name: 'سوق كيفه المركزي', address: 'كيفه', lat: 16.6167, lng: -11.4000, cityName: 'لعصابة'),
+    PlaceModel(name: 'سوق روصو', address: 'روصو', lat: 16.5000, lng: -15.2333, cityName: 'الترارزة'),
+    PlaceModel(name: 'سوق النعمة', address: 'النعمة', lat: 16.6167, lng: -7.2500, cityName: 'الحوض الشرقي'),
+    PlaceModel(name: 'سوق أطار', address: 'أطار', lat: 20.5167, lng: -13.0500, cityName: 'آدرار'),
   ];
 
   void dispose() => _debounce?.cancel();
@@ -69,13 +75,13 @@ class PlacesService {
     // 1) نتائج محلية فورية (تظهر قبل الشبكة).
     final local = _searchLocal(q);
 
-    // 2) نتائج الشبكة (Nominatim) — تُدمج مع المحلية.
+    // 2) نتائج الشبكة (Nominatim) — متحيزة لموريتانيا.
     try {
       final uri = Uri.https(_host, '/search', {
-        'q': '$q, الإمارات',
+        'q': '$q, موريتانيا',
         'format': 'jsonv2',
         'accept-language': 'ar',
-        'countrycodes': 'ae',
+        'countrycodes': 'mr',
         'limit': '7',
         'addressdetails': '1',
       });
@@ -126,12 +132,46 @@ class PlacesService {
 
   List<PlaceModel> _searchLocal(String q) {
     final needle = q.replaceAll('ال', '');
-    return uaeLandmarks.where((p) {
-      return p.name.contains(q) ||
+    bool match(String s) =>
+        s.contains(q) || s.replaceAll('ال', '').contains(needle);
+
+    final out = <PlaceModel>[];
+    // 1) الولايات — بإحداثيات ثابتة.
+    for (final r in MauritaniaRegions.regions) {
+      if (match(r.nameAr) || match(r.capitalAr)) {
+        out.add(PlaceModel(
+          name: r.nameAr,
+          address: '${r.capitalAr} · ${r.coordsLabel()}',
+          lat: r.lat,
+          lng: r.lng,
+          cityName: r.nameAr,
+        ));
+      }
+      // 2) المقاطعات — بإحداثيات ثابتة.
+      for (final d in r.districts) {
+        if (match(d.nameAr)) {
+          out.add(PlaceModel(
+            name: d.nameAr,
+            address: '${r.nameAr} · ${d.coordsLabel()}',
+            lat: d.lat,
+            lng: d.lng,
+            cityName: r.nameAr,
+          ));
+        }
+      }
+      if (out.length >= 8) break;
+    }
+    // 3) المعالم.
+    for (final p in uaeLandmarks) {
+      if (p.name.contains(q) ||
           p.address.contains(q) ||
           p.name.replaceAll('ال', '').contains(needle) ||
-          (p.cityName ?? '').contains(q);
-    }).toList();
+          (p.cityName ?? '').contains(q)) {
+        out.add(p);
+      }
+      if (out.length >= 10) break;
+    }
+    return out;
   }
 
   List<PlaceModel> _nearbyLandmarks(LatLng? near) {

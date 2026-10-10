@@ -30,7 +30,7 @@ class LocationPickerSheet extends StatelessWidget {
         children: [
           Center(
             child: Text(
-              'اختر مدينتك',
+              'اختر ولايتك',
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w800,
               ),
@@ -156,7 +156,8 @@ class LocationPickerSheet extends StatelessWidget {
                                   ),
                                 ),
                                 Text(
-                                  city.areas.join(' · '),
+                                  // ★ اسم العاصمة + إحداثيات ثابتة بجانبها.
+                                  '${city.areas.isNotEmpty ? city.areas.first : ''} · ${city.lat.toStringAsFixed(4)}، ${city.lng.toStringAsFixed(4)}',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: theme.textTheme.bodySmall?.copyWith(
