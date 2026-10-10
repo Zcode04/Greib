@@ -31,9 +31,8 @@ class _PlaceEntry {
 /// LocationPickerSheet — اختيار المدينة + موقع GPS الحقيقي.
 /// تُفتح من SuperHeader وتُحدّث LocationController مباشرة.
 ///
-/// تعرض «موريتانيا» كدولة محددة، ثم جميع الولايات والمقاطعات مرتبة
-/// (كل ولاية تليها مقاطعاتها) بتحميل تدريجي: 5 عناصر أولاً وزر
-/// «عرض المزيد» يجلب المزيد حتى نهاية القائمة.
+/// البنية: عنوان ← زر GPS ← بطاقة «موقعك الحالي» (دولة/ولاية/مقاطعة)
+/// ← قائمة «الأقرب إليك» مع المسافة، بتحميل تدريجي (5 عناصر + عرض المزيد).
 class LocationPickerSheet extends StatefulWidget {
   const LocationPickerSheet({super.key});
 
@@ -42,8 +41,8 @@ class LocationPickerSheet extends StatefulWidget {
 }
 
 class _LocationPickerSheetState extends State<LocationPickerSheet> {
-  /// عدد العناصر التي تظهر في البداية وفي كل ضغطة «عرض المزيد».
   static const int _pageSize = 5;
+  static const double _cardRadius = 18;
 
   int _visibleCount = _pageSize;
 
@@ -52,7 +51,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
     for (final r in MauritaniaRegions.regions) ...[
       _PlaceEntry(
         name: r.nameAr,
-        subtitle: 'ولاية · العاصمة: ${r.capitalAr}',
+        subtitle: 'ولاية · العاصمة ${r.capitalAr}',
         lat: r.lat,
         lng: r.lng,
         isRegion: true,
@@ -104,6 +103,115 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
     ('🇰🇲', 'جزر القمر'),
   ];
 
+  // ───────────────────────── مكوّنات مساعدة ─────────────────────────
+
+  Color _hairline(ThemeData t) => t.colorScheme.onSurface.withValues(alpha: 0.08);
+
+  Widget _sectionLabel(ThemeData theme, String text, {String? trailing}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              text,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+          ),
+          if (trailing != null)
+            Text(
+              trailing,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// صف داخل بطاقة «موقعك الحالي».
+  Widget _hierarchyRow(
+    ThemeData theme, {
+    required String label,
+    required String value,
+    required VoidCallback onTap,
+    IconData? trailing,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm + 2,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (trailing != null)
+              Icon(
+                trailing,
+                size: 18,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _divider(ThemeData theme) => Divider(
+        height: 1,
+        thickness: 1,
+        indent: AppSpacing.md,
+        endIndent: AppSpacing.md,
+        color: _hairline(theme),
+      );
+
+  String _distanceLabel(double km) {
+    if (km < 1) return 'أقل من 1 كم';
+    if (km < 100) return '${km.toStringAsFixed(0)} كم';
+    return '${(km / 10).round() * 10} كم';
+  }
+
+  void _select(BuildContext context, _PlaceEntry entry) {
+    final city = AppCity(
+      name: entry.name,
+      areas: [entry.region.nameAr, entry.region.capitalAr],
+      lat: entry.lat,
+      lng: entry.lng,
+      mrRegion: entry.region,
+    );
+    context.read<LocationController>().setCity(city);
+    context.pop();
+  }
+
+  // ───────────────────────── شاشة الدول ─────────────────────────
+
   void _showCountriesSheet(BuildContext context) {
     final theme = Theme.of(context);
     showAppSheet(
@@ -119,72 +227,90 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'اختر الدولة',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
+              Center(
+                child: Text(
+                  'اختر الدولة',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
               Flexible(
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: _arabCountries.length,
-                  separatorBuilder: (_, _) =>
-                      const SizedBox(height: AppSpacing.xs),
-                  itemBuilder: (context, index) {
-                    final (flag, name) = _arabCountries[index];
-                    final isMauritania = name == 'موريتانيا';
-                    return Material(
-                      color: isMauritania
-                          ? theme.colorScheme.onSurface.withValues(alpha: 0.06)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(99),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(99),
-                        onTap: isMauritania
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(_cardRadius),
+                    border: Border.all(color: _hairline(theme)),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.zero,
+                    itemCount: _arabCountries.length,
+                    separatorBuilder: (_, _) => Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: _hairline(theme),
+                    ),
+                    itemBuilder: (context, index) {
+                      final (flag, name) = _arabCountries[index];
+                      final active = name == 'موريتانيا';
+                      return InkWell(
+                        onTap: active
                             ? () => Navigator.of(sheetContext).pop()
                             : null,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: AppSpacing.md,
-                            vertical: AppSpacing.sm,
+                            vertical: AppSpacing.sm + 2,
                           ),
                           child: Row(
                             children: [
-                              Text(flag, style: const TextStyle(fontSize: 20)),
-                              const SizedBox(width: AppSpacing.sm),
+                              Text(flag, style: const TextStyle(fontSize: 22)),
+                              const SizedBox(width: AppSpacing.md),
                               Expanded(
                                 child: Text(
                                   name,
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w700,
-                                    color: isMauritania
+                                    color: active
                                         ? null
-                                        : theme.colorScheme.onSurfaceVariant,
+                                        : theme.colorScheme.onSurface
+                                            .withValues(alpha: 0.45),
                                   ),
                                 ),
                               ),
-                              if (isMauritania)
-                                Icon(
-                                  LucideIcons.check,
-                                  size: 18,
-                                  color: theme.colorScheme.onSurface,
-                                )
+                              if (active)
+                    Icon(LucideIcons.check,
+                                    size: 18, color: theme.colorScheme.onSurface)
                               else
-                                Text(
-                                  'قريباً',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.05),
+                                    borderRadius: BorderRadius.circular(99),
+                                  ),
+                                  child: Text(
+                                    'قريباً',
+                                    style:
+                                        theme.textTheme.labelSmall?.copyWith(
+                                      color:
+                                          theme.colorScheme.onSurfaceVariant,
+                                    ),
                                   ),
                                 ),
                             ],
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
@@ -194,75 +320,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
     );
   }
 
-  void _select(BuildContext context, _PlaceEntry entry) {
-    final city = AppCity(
-      name: entry.name,
-      areas: [entry.region.nameAr, entry.region.capitalAr],
-      lat: entry.lat,
-      lng: entry.lng,
-      mrRegion: entry.region,
-    );
-    context.read<LocationController>().setCity(city);
-    context.pop();
-  }
-
-  /// صف كبسولة لملخص الموقع: «المقاطعة: كنكوصة» / «الولاية: لعصابة» / «الدولة: موريتانيا».
-  Widget _summaryPill(
-    ThemeData theme, {
-    required String label,
-    required String value,
-    IconData? trailing,
-    VoidCallback? onTap,
-  }) {
-    return Material(
-      color: theme.colorScheme.onSurface.withValues(alpha: 0.06),
-      borderRadius: BorderRadius.circular(99),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(99),
-        onTap: onTap,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(99),
-            border: Border.all(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.15),
-            ),
-          ),
-          child: Row(
-            children: [
-              Text(
-                '$label: ',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              if (trailing != null)
-                Icon(
-                  trailing,
-                  size: 18,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  // ───────────────────────── البناء ─────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -275,13 +333,17 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
     final nearestDistrict =
         MauritaniaRegions.nearestDistrict(nearestRegion, point);
 
-    // «الأقرب لمنطقتك»: كل الولايات والمقاطعات مرتبة حسب المسافة من الموقع.
+    // ترتيب كل الأماكن حسب المسافة (تُحسب مرة واحدة لكل عنصر).
     const distCalc = Distance();
-    double kmTo(_PlaceEntry e) => distCalc.as(
-        LengthUnit.Kilometer, point, LatLng(e.lat, e.lng));
+    final km = <_PlaceEntry, double>{
+      for (final e in _entries)
+        e: distCalc.as(LengthUnit.Kilometer, point, LatLng(e.lat, e.lng)),
+    };
     final sorted = List<_PlaceEntry>.from(_entries)
-      ..sort((a, b) => kmTo(a).compareTo(kmTo(b)));
+      ..sort((a, b) => km[a]!.compareTo(km[b]!));
     final shown = sorted.take(_visibleCount).toList();
+
+    final ink = theme.colorScheme.onSurface;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -294,119 +356,157 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── العنوان ──
           Center(
-            child: Text(
-              'اختر موقعك',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
+            child: Column(
+              children: [
+                Text(
+                  'اختر موقعك',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'لنعرض لك الأقرب إليك أولاً',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: AppSpacing.sm),
-          // ★ زر GPS الحقيقي.
+          const SizedBox(height: AppSpacing.md),
+
+          // ── زر GPS: لون الحبر بدل الأزرق ──
           SizedBox(
             width: double.infinity,
+            height: 52,
             child: FilledButton.icon(
               style: FilledButton.styleFrom(
+                backgroundColor: ink,
+                foregroundColor: theme.colorScheme.surface,
+                disabledBackgroundColor: ink.withValues(alpha: 0.12),
+                elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(99),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                textStyle: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               onPressed: location.isLocating
                   ? null
                   : () async {
-                      await context
-                          .read<LocationController>()
-                          .locateMe();
+                      await context.read<LocationController>().locateMe();
                       if (context.mounted) context.pop();
                     },
               icon: location.isLocating
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Colors.white,
+                        color: ink.withValues(alpha: 0.5),
                       ),
                     )
                   : const Icon(LucideIcons.locateFixed, size: 18),
-              label: Text(location.isLocating
-                  ? 'جارٍ تحديد موقعك…'
-                  : 'استخدم موقعي الحالي 📍'),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          // ★ ملخص الموقع الحالي من الإحداثيات: مقاطعة ← ولاية ← دولة.
-          Text(
-            'موقعك الحالي هو:',
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          if (nearestDistrict != null) ...[
-            _summaryPill(
-              theme,
-              label: 'المقاطعة',
-              value: nearestDistrict.nameAr,
-              onTap: () => _select(
-                context,
-                _entries.firstWhere(
-                  (e) => !e.isRegion && e.name == nearestDistrict.nameAr,
-                ),
+              label: Text(
+                location.isLocating
+                    ? 'جارٍ تحديد موقعك…'
+                    : 'استخدم موقعي الحالي',
               ),
             ),
-            const SizedBox(height: AppSpacing.sm),
-          ],
-          _summaryPill(
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
+          // ── بطاقة موقعك الحالي: دولة ← ولاية ← مقاطعة ──
+          _sectionLabel(theme, 'موقعك الحالي'),
+          Container(
+            decoration: BoxDecoration(
+              color: ink.withValues(alpha: 0.03),
+              borderRadius: BorderRadius.circular(_cardRadius),
+              border: Border.all(color: _hairline(theme)),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Material(
+              color: Colors.transparent,
+              child: Column(
+                children: [
+                  _hierarchyRow(
+                    theme,
+                    label: 'الدولة',
+                    value: 'موريتانيا 🇲🇷',
+                    trailing: LucideIcons.chevronDown,
+                    onTap: () => _showCountriesSheet(context),
+                  ),
+                  _divider(theme),
+                  _hierarchyRow(
+                    theme,
+                    label: 'الولاية',
+                    value: nearestRegion.nameAr,
+                    onTap: () => _select(
+                      context,
+                      _entries.firstWhere(
+                        (e) => e.isRegion && e.name == nearestRegion.nameAr,
+                      ),
+                    ),
+                  ),
+                  if (nearestDistrict != null) ...[
+                    _divider(theme),
+                    _hierarchyRow(
+                      theme,
+                      label: 'المقاطعة',
+                      value: nearestDistrict.nameAr,
+                      onTap: () => _select(
+                        context,
+                        _entries.firstWhere(
+                          (e) =>
+                              !e.isRegion && e.name == nearestDistrict.nameAr,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
+          // ── الأقرب إليك ──
+          _sectionLabel(
             theme,
-            label: 'الولاية',
-            value: nearestRegion.nameAr,
-            onTap: () => _select(
-              context,
-              _entries.firstWhere(
-                (e) => e.isRegion && e.name == nearestRegion.nameAr,
-              ),
-            ),
+            'الأقرب إليك',
+            trailing: '${_entries.length} موقعاً',
           ),
-          const SizedBox(height: AppSpacing.sm),
-          _summaryPill(
-            theme,
-            label: 'الدولة',
-            value: 'موريتانيا 🇲🇷',
-            trailing: LucideIcons.chevronDown,
-            onTap: () => _showCountriesSheet(context),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Center(
-            child: Text(
-              'الأقرب لمنطقتك:',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
           Flexible(
             child: ListView.separated(
               shrinkWrap: true,
+              padding: EdgeInsets.zero,
               itemCount: shown.length + (_hasMore ? 1 : 0),
-              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+              separatorBuilder: (_, _) => const SizedBox(height: 6),
               itemBuilder: (context, index) {
-                // زر «عرض المزيد» كآخر عنصر في القائمة.
+                // زر «عرض المزيد» كآخر عنصر.
                 if (index == shown.length) {
-                  return SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: _showMore,
-                      icon: const Icon(LucideIcons.chevronDown, size: 18),
-                      label: Text(
-                        'عرض المزيد (${_entries.length - _visibleCount} متبقٍ)',
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(99),
+                  return Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.xs),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 46,
+                      child: OutlinedButton.icon(
+                        onPressed: _showMore,
+                        icon: const Icon(LucideIcons.chevronDown, size: 18),
+                        label: Text(
+                          'عرض المزيد · ${_entries.length - _visibleCount} متبقٍ',
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: ink,
+                          side: BorderSide(
+                            color: ink.withValues(alpha: 0.14),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                         ),
                       ),
                     ),
@@ -418,14 +518,24 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
 
                 return Material(
                   color: selected
-                      ? theme.colorScheme.onSurface.withValues(alpha: 0.06)
+                      ? ink.withValues(alpha: 0.08)
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(AppRadii.lg),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(
+                      color: selected
+                          ? ink.withValues(alpha: 0.45)
+                          : _hairline(theme),
+                    ),
+                  ),
+                  clipBehavior: Clip.antiAlias,
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(AppRadii.lg),
                     onTap: () => _select(context, entry),
                     child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.md),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm + 2,
+                      ),
                       child: Row(
                         children: [
                           Expanded(
@@ -434,12 +544,15 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                               children: [
                                 Text(
                                   entry.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w800,
                                   ),
                                 ),
+                                const SizedBox(height: 2),
                                 Text(
-                                  '${entry.subtitle} · ${entry.lat.toStringAsFixed(4)}، ${entry.lng.toStringAsFixed(4)}',
+                                  entry.subtitle,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: theme.textTheme.bodySmall?.copyWith(
@@ -449,11 +562,17 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                               ],
                             ),
                           ),
+                          const SizedBox(width: AppSpacing.sm),
                           if (selected)
-                            Icon(
-                              LucideIcons.check,
-                              size: 20,
-                              color: theme.colorScheme.onSurface,
+                            Icon(LucideIcons.check,
+                                size: 20, color: ink)
+                          else
+                            Text(
+                              _distanceLabel(km[entry]!),
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                         ],
                       ),
