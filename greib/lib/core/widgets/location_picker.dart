@@ -393,17 +393,18 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── التعريف: أنت الآن في + اسم المنطقة ──
+            // ── التعريف: أنت الآن في: ──
             const SizedBox(height: AppSpacing.sm),
             Text(
-              location.isLocating ? 'جارٍ تحديد موقعك…' : 'أنت الآن في',
+              location.isLocating ? 'جارٍ تحديد موقعك…' : 'أنت الآن في:',
               textAlign: TextAlign.center,
               style: theme.textTheme.titleSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 15),
+            // اسم المنطقة تحت «أنت الآن في:» بخط كبير.
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
               child: Text(
@@ -412,25 +413,18 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.headlineMedium?.copyWith(
+                style: theme.textTheme.headlineLarge?.copyWith(
+                  fontSize: 30,
+                  height: 1.2,
                   fontWeight: FontWeight.w900,
                 ),
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
-            Center(
-              child: _pillButton(
-                theme,
-                label: 'تفاصيل موقعي',
-                open: _detailsOpen,
-                onTap: () => setState(() => _detailsOpen = !_detailsOpen),
-              ),
-            ),
 
             // ── الكرة الأرضية + لوحة التفاصيل تطفو فوقها ──
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height:0),
             SizedBox(
-              height: 270,
+              height: 260,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
@@ -520,6 +514,15 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
+            Center(
+              child: _pillButton(
+                theme,
+                label: 'تفاصيل موقعي',
+                open: _detailsOpen,
+                onTap: () => setState(() => _detailsOpen = !_detailsOpen),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
             Divider(height: 1, thickness: 1, color: ink.withValues(alpha: 0.12)),
             const SizedBox(height: AppSpacing.md),
 
