@@ -424,7 +424,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
             // ── الكرة الأرضية + لوحة التفاصيل تطفو فوقها ──
             const SizedBox(height:0),
             SizedBox(
-              height: 260,
+              height: 365,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
