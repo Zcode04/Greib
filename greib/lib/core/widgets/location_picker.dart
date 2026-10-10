@@ -32,7 +32,7 @@ class _PlaceEntry {
 /// تُفتح من SuperHeader وتُحدّث LocationController مباشرة.
 ///
 /// البنية: عنوان ← زر GPS ← بطاقة «موقعك الحالي» (دولة/ولاية/مقاطعة)
-/// ← قائمة «الأقرب إليك» مع المسافة، بتحميل تدريجي (5 عناصر + عرض المزيد).
+/// ← قائمة «الأقرب إليك» مع المسافة، بتحميل تدريجي (3 عناصر + عرض المزيد).
 class LocationPickerSheet extends StatefulWidget {
   const LocationPickerSheet({super.key});
 
@@ -41,7 +41,7 @@ class LocationPickerSheet extends StatefulWidget {
 }
 
 class _LocationPickerSheetState extends State<LocationPickerSheet> {
-  static const int _pageSize = 5;
+  static const int _pageSize = 3;
   static const double _cardRadius = 18;
 
   int _visibleCount = _pageSize;
@@ -452,7 +452,13 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
               ),
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: ink.withValues(alpha: 0.12),
+          ),
+          const SizedBox(height: AppSpacing.md),
 
           // ── الأقرب إليك ──
           _sectionLabel(
