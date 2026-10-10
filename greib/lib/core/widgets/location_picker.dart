@@ -119,6 +119,11 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
               onPressed: location.isLocating
                   ? null
                   : () async {
@@ -238,7 +243,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadii.lg),
+                          borderRadius: BorderRadius.circular(99),
                         ),
                       ),
                     ),
