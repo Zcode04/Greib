@@ -40,8 +40,7 @@ Widget buildGreibMenkApp() {
         value: LocationController(),
       ),
     ],
-    // ★ بوابة إذن الموقع الدقيق عند أول فتح — أساس الصلابة.
-    child: const LocationGate(child: GreibMenkApp()),
+    child: const GreibMenkApp(),
   );
 }
 
@@ -66,6 +65,10 @@ class GreibMenkApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       routerConfig: AppRouter.router,
+      // ★ بوابة إذن الموقع الدقيق عند أول فتح — داخل MaterialApp
+      // حتى تتوفر Directionality وTheme لشاشة الإذن.
+      builder: (context, child) =>
+          LocationGate(child: child ?? const SizedBox.shrink()),
     );
   }
 }
