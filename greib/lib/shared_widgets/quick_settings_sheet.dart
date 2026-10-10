@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../core/mock_data/mock_data.dart';
 import '../core/theme/design_tokens.dart';
+import '../core/storage/app_prefs.dart';
 import '../core/theme/theme_controller.dart';
 
 class QuickSettingsItem {
@@ -303,6 +304,23 @@ class _QuickSettingsSheetState extends State<QuickSettingsSheet> {
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
+        ),
+        Divider(height: 1, indent: 68, endIndent: AppSpacing.lg, color: theme.dividerColor),
+        SwitchListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+          value: AppPrefs.useRealMaps,
+          onChanged: (v) async {
+            await AppPrefs.setUseRealMaps(v);
+            if (context.mounted) setState(() {});
+          },
+          secondary: Container(
+            width: 38, height: 38,
+            decoration: BoxDecoration(color: theme.colorScheme.primary.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(AppRadii.sm)),
+            child: Icon(LucideIcons.map, size: 18, color: theme.colorScheme.primary),
+          ),
+          title: Text('الخرائط الحقيقية', style: AppTypography.titleMedium.copyWith(color: theme.colorScheme.onSurface, fontSize: 15)),
+          subtitle: Text(AppPrefs.useRealMaps ? 'مفعّلة — GPS وخريطة OSM حقيقية' : 'مطفأة — الوضع الوهمي للعروض',
+            style: AppTypography.bodySmall.copyWith(color: theme.colorScheme.onSurfaceVariant)),
         ),
       ],
     );

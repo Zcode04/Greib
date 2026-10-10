@@ -20,4 +20,6 @@ class AppConstants {
   static const String keyThemeMode = 'theme_mode';
   static const String keyLanguage = 'language';
   static const String keyLastTab = 'last_tab_index';
+  static const String keyUseRealMaps = 'use_real_maps';
+  static const String keyMapStyle    = 'map_style_kind'; // 0=osm, 1=osmDark, 2=satellite
 }

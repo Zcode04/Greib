@@ -5,11 +5,10 @@ import 'package:provider/provider.dart';
 
 import '../location/location_controller.dart';
 import '../theme/design_tokens.dart';
+import 'confirm_location_sheet.dart';
 
-/// ============================================================================
-///  LocationPickerSheet — ورقة اختيار المدينة (تجربة Geolocation UI).
-///  تُفتح من SuperHeader وتُحدّث LocationController مباشرة.
-/// ============================================================================
+/// LocationPickerSheet — اختيار المدينة + موقع GPS الحقيقي.
+/// تُفتح من SuperHeader وتُحدّث LocationController مباشرة.
 class LocationPickerSheet extends StatelessWidget {
   const LocationPickerSheet({super.key});
 
@@ -37,6 +36,75 @@ class LocationPickerSheet extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(height: AppSpacing.sm),
+          // ★ زر GPS الحقيقي.
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: location.isLocating
+                  ? null
+                  : () async {
+                      await context
+                          .read<LocationController>()
+                          .locateMe();
+                      if (context.mounted) context.pop();
+                    },
+              icon: location.isLocating
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(LucideIcons.locateFixed, size: 18),
+              label: Text(location.isLocating
+                  ? 'جارٍ تحديد موقعك…'
+                  : 'استخدم موقعي الحالي 📍'),
+            ),
+          ),
+          // عنوان GPS الحالي + زر الخريطة.
+          if (location.hasGpsFix && location.currentAddress.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(AppRadii.lg),
+                onTap: () async {
+                  context.pop();
+                  await ConfirmLocationSheet.show(context);
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary
+                        .withValues(alpha: 0.07),
+                    borderRadius: BorderRadius.circular(AppRadii.lg),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(LucideIcons.mapPin,
+                          size: 16,
+                          color: theme.colorScheme.primary),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          location.currentAddress,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      Icon(LucideIcons.chevronLeft,
+                          size: 16,
+                          color: theme.colorScheme.primary),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           const SizedBox(height: AppSpacing.md),
           Flexible(
             child: ListView.separated(

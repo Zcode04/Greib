@@ -29,6 +29,11 @@ dependencies:
   permission_handler: ^11.3.0
   share_plus: ^10.1.2
   go_router: ^18.0.1
+  # ── منظومة الخرائط الحقيقية (مجانية 100% بدون API Key) ──
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  geolocator: ^13.0.4
+  geocoding: ^3.0.0
 
 dev_dependencies:
   flutter_test:

@@ -3,8 +3,15 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:provider/provider.dart';
 
+import '../../../core/location/location_controller.dart';
+import '../../../core/storage/app_prefs.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/confirm_location_sheet.dart';
+import '../../../core/widgets/map_style_selector.dart';
+import '../../../core/widgets/place_search_sheet.dart';
+import '../../../core/widgets/real_map_view.dart';
 import '../../../shared_widgets/glass_container.dart';
 
 /// ============================================================================
@@ -227,7 +234,7 @@ class _MapExploreSectionState extends State<MapExploreSection> {
       children: [
         _searchBar(),
         const SizedBox(height: 14),
-        _worldCard(),
+        _liveMapCard(),
         const SizedBox(height: 14),
         _tabsBar(),
         const SizedBox(height: 14),
@@ -236,50 +243,62 @@ class _MapExploreSectionState extends State<MapExploreSection> {
     );
   }
 
-  // ---------- 1) شريط البحث العلوي ----------
+  // ---------- 1) شريط البحث — يفتح بحثاً حقيقياً ----------
   Widget _searchBar() {
     final tint = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
     final hint = widget.isDark
         ? AppColors.textSecondary
         : AppColors.lightTextSecondary;
-
-    return GlassContainer(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      borderRadius: BorderRadius.circular(24),
-      opacity: widget.isDark ? 0.06 : 0.1,
-      child: Row(
-        children: [
-          Icon(LucideIcons.search, size: 18, color: hint),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'ابحث عن متجر أو محل أو تاكسي…',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: hint, fontSize: 14),
+    return GestureDetector(
+      onTap: () async {
+        final loc = context.read<LocationController>();
+        final near = loc.activeLatLng;
+        final picked = await PlaceSearchSheet.show(context, near: near);
+        if (picked == null) return;
+        if (!context.mounted) return;
+        loc.confirmPlace(picked);
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('تم اختيار: ${picked.name}')),
+        );
+      },
+      child: GlassContainer(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        borderRadius: BorderRadius.circular(24),
+        opacity: widget.isDark ? 0.06 : 0.1,
+        child: Row(
+          children: [
+            Icon(LucideIcons.search, size: 18, color: hint),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'ابحث عن متجر أو محل أو تاكسي...',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: hint, fontSize: 14),
+              ),
             ),
-          ),
-          Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(
-              color: tint.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
+            Container(
+              width: 30, height: 30,
+              decoration: BoxDecoration(
+                color: tint.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(LucideIcons.slidersHorizontal, size: 16, color: tint),
             ),
-            child: Icon(LucideIcons.slidersHorizontal, size: 16, color: tint),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  // ---------- 2) بطاقة العالم (الكرة ثلاثية الأبعاد) ----------
-  Widget _worldCard() {
-    final tint = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+  // ---------- 2) بطاقة الخريطة الحية + تبديل حية/كرة ----------
+  Widget _liveMapCard() {
+    final loc = context.watch<LocationController>();
     final label = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
-
+    final tint = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
     return GlassContainer(
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
       borderRadius: BorderRadius.circular(28),
       opacity: widget.isDark ? 0.05 : 0.1,
       child: Column(
@@ -287,77 +306,52 @@ class _MapExploreSectionState extends State<MapExploreSection> {
           Row(
             children: [
               Expanded(
-                child: Text(
-                  'العالم',
-                  style: TextStyle(
-                    color: label,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
+                child: Text('الخريطة الحية',
+                  style: TextStyle(color: label, fontSize: 15, fontWeight: FontWeight.w700)),
+              ),
+              InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () async {
+                  await MapStyleSelector.show(context);
+                  if (context.mounted) setState(() {});
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: tint.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12)),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(LucideIcons.layers,
+                        size: 13, color: tint),
+                      const SizedBox(width: 4),
+                      Text('نمط الخريطة',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: tint)),
+                    ],
                   ),
                 ),
               ),
-              Text(
-                'موقعك الحالي',
-                style: TextStyle(
-                  color: widget.isDark
-                      ? AppColors.textSecondary
-                      : AppColors.lightTextSecondary,
-                  fontSize: 12,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Icon(LucideIcons.locateFixed, size: 14, color: tint),
             ],
           ),
-          const SizedBox(height: 12),
-          // ★ الكرة: نسبة ثابتة حتى لا تتشوّه على أي شاشة.
-          AspectRatio(
-            aspectRatio: 1.6,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // خلفية متدرّجة (توهّج نيون داكن / أزرق فاتح).
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        center: const Alignment(0.2, -0.2),
-                        radius: 1.1,
-                        colors: widget.isDark
-                            ? [
-                                tint.withValues(alpha: 0.18),
-                                AppColors.background,
-                              ]
-                            : [
-                                tint.withValues(alpha: 0.12),
-                                AppColors.lightSurface,
-                              ],
-                      ),
-                    ),
-                  ),
-                  // شبكة خطوط الطول/العرض (بلا تفاعل — طبقة زخرفية فقط).
-                  IgnorePointer(
-                    child: CustomPaint(
-                      painter: _GlobeGridPainter(
-                        line:
-                            (widget.isDark
-                                    ? AppColors.textSecondary
-                                    : AppColors.lightTextSecondary)
-                                .withValues(alpha: 0.28),
-                      ),
-                    ),
-                  ),
-                  // الكرة الدوّارة + نقاط المواقع.
-                  const Center(child: _SpinningGlobe()),
-                ],
+          const SizedBox(height: 10),
+          GestureDetector(
+            onTap: () => ConfirmLocationSheet.show(context),
+            child: AbsorbPointer(
+              child: RealMapView(
+                initialCenter: loc.activeLatLng,
+                initialZoom: 13, height: 200,
+                interactive: false, showLocateButton: false,
+                useStoredStyle: true,
               ),
             ),
-          ),
+          )
         ],
       ),
     );
   }
+
+
 
   // ---------- 3) تبويبات الأقرب إليك + مؤشر التبويب النشط ----------
   /// ★ شريط أفقي قابل للتمرير (عدد التبويبات كبير الآن) ⇒ يبقى التبويب

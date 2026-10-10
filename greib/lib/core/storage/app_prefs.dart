@@ -53,4 +53,22 @@ class AppPrefs {
   static Future<void> setLastTabIndex(int value) async {
     await _prefs?.setInt(AppConstants.keyLastTab, value);
   }
+
+  // ------------------------- الخرائط الحقيقية -------------------------
+  /// مفتاح التبديل الاحترافي: حقيقي (GPS+OSM) أم وهمي (Mock القديم).
+  static bool get useRealMaps =>
+      _prefs?.getBool(AppConstants.keyUseRealMaps) ?? true;
+
+  static Future<void> setUseRealMaps(bool value) async {
+    await _prefs?.setBool(AppConstants.keyUseRealMaps, value);
+  }
+
+  // ----------------------- نمط الخريطة (0=عادي, 1=داكن, 2=أقمار) -----------------------
+  /// يُحفظ كـ int حتى يعمل بشكل مستقل عن وضع التطبيق الداكن.
+  static int get mapStyleIndex =>
+      _prefs?.getInt(AppConstants.keyMapStyle) ?? 0;
+
+  static Future<void> setMapStyleIndex(int value) async {
+    await _prefs?.setInt(AppConstants.keyMapStyle, value);
+  }
 }
