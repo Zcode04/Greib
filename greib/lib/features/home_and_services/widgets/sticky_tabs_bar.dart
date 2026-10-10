@@ -52,7 +52,12 @@ class _StickyTabsBarState extends State<StickyTabsBar>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final city = context.watch<LocationController>().cityName;
+    final appCity = context.watch<LocationController>().city;
+    // نعرض اسم المدينة (عاصمة الولاية) بدل اسم الولاية — مثل «كيفة» بدل «لعصابة».
+    final region = appCity.mrRegion;
+    final city = (region != null && appCity.name == region.nameAr)
+        ? region.capitalAr
+        : appCity.name;
     // نفس أبعاد زر الموقع الأصلي تماماً + عرض متجاوب مع الشاشة.
     final screenW = MediaQuery.of(context).size.width;
     const double itemH = 34.0;
