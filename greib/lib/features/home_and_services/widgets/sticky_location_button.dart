@@ -5,6 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../core/location/location_controller.dart';
 import '../../../core/theme/design_tokens.dart';
+import '../../../core/widgets/app_sheet.dart';
 import '../../../core/widgets/location_picker.dart';
 
 /// زر ثابت أعلى يسار الشاشة — "تصفح آلي" مع أيقونة circle-gauge.
@@ -175,14 +176,8 @@ class LocationPill extends StatelessWidget {
   final bool compact;
 
   void _open(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.xxl)),
-      ),
+    showAppSheet(
+      context,
       builder: (_) => const LocationPickerSheet(),
     );
   }

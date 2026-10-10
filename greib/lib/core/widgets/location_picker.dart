@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../location/location_controller.dart';
 import '../location/mauritania_regions.dart';
 import '../theme/design_tokens.dart';
+import 'app_sheet.dart';
 import 'confirm_location_sheet.dart';
 
 /// عنصر واحد في قائمة الاختيار — ولاية أو مقاطعة.
@@ -105,13 +106,9 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
 
   void _showCountriesSheet(BuildContext context) {
     final theme = Theme.of(context);
-    showModalBottomSheet(
-      context: context,
-      useSafeArea: true,
-      backgroundColor: theme.colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.xxl)),
-      ),
+    showAppSheet(
+      context,
+      scrollControlled: false,
       builder: (sheetContext) {
         return Padding(
           padding: const EdgeInsets.fromLTRB(
