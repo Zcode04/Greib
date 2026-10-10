@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -353,6 +352,17 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
     final theme = Theme.of(context);
     final location = context.watch<LocationController>();
     final ink = theme.colorScheme.onSurface;
+    // اللوحة سوداء دائماً، فنجعل نصوصها فاتحة في الوضعين.
+    final panelTheme = theme.copyWith(
+      textTheme: theme.textTheme.apply(
+        bodyColor: Colors.white,
+        displayColor: Colors.white,
+      ),
+      colorScheme: theme.colorScheme.copyWith(
+        onSurface: Colors.white,
+        onSurfaceVariant: Colors.white70,
+      ),
+    );
 
     // موقع المستخدم الفعلي: GPS الحي إن وُجد، وإلا مركز المدينة المختارة.
     final point = location.activeLatLng;
@@ -458,31 +468,27 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                     ),
                     child: !_detailsOpen
                         ? const SizedBox.shrink(key: ValueKey('closed'))
-                        : ClipRRect(
+                        : Container(
                             key: const ValueKey('open'),
-                            borderRadius: BorderRadius.circular(_cardRadius + 4),
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topRight,
-                                    end: Alignment.bottomLeft,
-                                    colors: [
-                                      ink.withValues(alpha: 0.16),
-                                      ink.withValues(alpha: 0.05),
-                                      ink.withValues(alpha: 0.10),
-                                    ],
-                                    stops: const [0.0, 0.55, 1.0],
-                                  ),
-                                ),
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: Column(
+                            clipBehavior: Clip.antiAlias,
+                            decoration: BoxDecoration(
+                              // خلفية سوداء بشفافية ضئيلة.
+                              color: Colors.black.withValues(alpha: 0.35),
+                              borderRadius:
+                                  BorderRadius.circular(_cardRadius + 4),
+                              // ستروك ضئيل.
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.18),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       _detailRow(
-                                        theme,
+                                        panelTheme,
                                         label: 'الدولة',
                                         value: 'موريتانيا 🇲🇷',
                                         dropdown: true,
@@ -490,25 +496,23 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                                             _showCountriesSheet(context),
                                       ),
                                       _detailRow(
-                                        theme,
+                                        panelTheme,
                                         label: 'الولاية',
                                         value: nearestRegion.nameAr,
                                       ),
                                       if (nearestDistrict != null)
                                         _detailRow(
-                                          theme,
+                                          panelTheme,
                                           label: 'المقاطعة',
                                           value: nearestDistrict.nameAr,
                                         ),
                                       _detailRow(
-                                        theme,
+                                        panelTheme,
                                         label: 'أنت الآن مضبوط في',
                                         value: location.cityName,
                                       ),
                                     ],
                                   ),
-                                ),
-                              ),
                             ),
                           ),
                   ),
