@@ -430,7 +430,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                       behavior: HitTestBehavior.opaque,
                       onTap: location.isLocating ? null : _locate,
                       child: AnimatedOpacity(
-                        opacity: _detailsOpen ? 0.45 : 1,
+                        opacity: _detailsOpen ? 0.7 : 1,
                         duration: const Duration(milliseconds: 300),
                         child: CustomPaint(
                           painter: _GlobePainter(
@@ -462,12 +462,22 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                             key: const ValueKey('open'),
                             borderRadius: BorderRadius.circular(_cardRadius + 4),
                             child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                               child: Container(
-                                color: theme.colorScheme.surface
-                                    .withValues(alpha: 0.72),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topRight,
+                                    end: Alignment.bottomLeft,
+                                    colors: [
+                                      ink.withValues(alpha: 0.16),
+                                      ink.withValues(alpha: 0.05),
+                                      ink.withValues(alpha: 0.10),
+                                    ],
+                                    stops: const [0.0, 0.55, 1.0],
+                                  ),
+                                ),
                                 child: Material(
-                                  color: ink.withValues(alpha: 0.05),
+                                  color: Colors.transparent,
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
