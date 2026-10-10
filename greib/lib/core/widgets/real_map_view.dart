@@ -106,14 +106,15 @@ class RealMapViewState extends State<RealMapView>
         ok = await LocationPermissionPrompt.request(context);
       }
       if (!ok) return;
-      final p = await LocationService.instance.currentLatLng();
-      if (!mounted) return;
-      setState(() => _myLocation = p);
-      moveTo(p, zoom: 16);
+      final fix = await LocationService.instance.currentFix();
+      // لا نحرّك الخريطة لإصلاح فاشل أو رديء الدقة — أمانة العرض أولاً.
+      if (fix == null || !fix.isAcceptable || !mounted) return;
+      setState(() => _myLocation = fix.point);
+      moveTo(fix.point, zoom: 16);
       // تحديث Controller أيضاً إذا كان موجوداً.
       if (mounted) {
         final loc = context.read<LocationController>();
-        await loc.setGpsLatLng(p);
+        await loc.setGpsLatLng(fix.point, accuracyMeters: fix.accuracyMeters);
       }
     } finally {
       if (mounted) setState(() => _locating = false);

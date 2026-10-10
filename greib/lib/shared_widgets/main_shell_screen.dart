@@ -73,6 +73,10 @@ class MainShellScreen extends StatefulWidget {
 class _MainShellScreenState extends State<MainShellScreen> {
   int _currentIndex = 0;
 
+  /// ★ يُظهر إشعار تسجيل الدخول الاخافي مرة واحدة لكل جلسة
+  ///   (عند دخول غير مسجّل) لتفادي طلب تسجيل الدخول في كل مرة.
+  bool _loginHintShown = false;
+
   /// ★ فهرس تبويب «الرئيسية» (يُشتق من القائمة بدل رقم ثابت).
   static int get _homeTabIndex => _tabs.indexWhere((t) => t.route == '/home');
 
@@ -99,6 +103,17 @@ class _MainShellScreenState extends State<MainShellScreen> {
             (i) => _tabs[i].route == '/home',
             orElse: () => _shellIndexes.first,
           );
+    // ★ بعد الإطار الأول: إذا لم يكن مسجّلاً، نظهر شاشة تسجيل الدخول
+    //   كإشعار اخافي (modal) فوق الواجهة مرة واحدة — بدلاً من طلب تسجيل
+    //   دخول كل مرة. يُغلق أو يُتخطّى.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_loginHintShown || !mounted) return;
+      if (AuthService.instance.isLoggedIn) return;
+      _loginHintShown = true;
+      if (context.mounted) {
+        context.push('/login');
+      }
+    });
   }
 
   void _onTabSelected(int index) {

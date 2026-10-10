@@ -53,51 +53,74 @@ class MauritaniaRegions {
       lat: 16.6167, lng: -7.2500, districts: [
         MrDistrict(nameAr: 'النعمة', lat: 16.6167, lng: -7.2500),
         MrDistrict(nameAr: 'باسكنو', lat: 15.8667, lng: -6.9333),
-        MrDistrict(nameAr: 'ولاتة', lat: 17.3000, lng: -7.0333)]),
+        MrDistrict(nameAr: 'ولاتة', lat: 17.3000, lng: -7.0333),
+        MrDistrict(nameAr: 'أجريج', lat: 16.6833, lng: -6.6333),
+        MrDistrict(nameAr: 'تمبدغة', lat: 16.2333, lng: -8.1500),
+        MrDistrict(nameAr: 'عدل بكرو', lat: 17.0500, lng: -7.6167)]),
     MrRegion(nameAr: 'الحوض الغربي', capitalAr: 'العيون',
       lat: 16.6667, lng: -9.6167, districts: [
         MrDistrict(nameAr: 'العيون', lat: 16.6667, lng: -9.6167),
         MrDistrict(nameAr: 'كوبني', lat: 15.8000, lng: -9.3833),
-        MrDistrict(nameAr: 'الطينطان', lat: 16.3833, lng: -10.1667)]),
+        MrDistrict(nameAr: 'الطينطان', lat: 16.3833, lng: -10.1667),
+        MrDistrict(nameAr: 'أولاد ياج', lat: 16.6167, lng: -9.2333)]),
     MrRegion(nameAr: 'لعصابة', capitalAr: 'كيفه',
       lat: 16.6167, lng: -11.4000, districts: [
         MrDistrict(nameAr: 'كيفه', lat: 16.6167, lng: -11.4000),
-        MrDistrict(nameAr: 'باركيول', lat: 16.5167, lng: -11.2333)]),
+        MrDistrict(nameAr: 'باركيول', lat: 16.5167, lng: -11.2333),
+        MrDistrict(nameAr: 'كنكوصه', lat: 16.2833, lng: -11.9167),
+        MrDistrict(nameAr: 'غورو', lat: 16.4667, lng: -12.0500),
+        MrDistrict(nameAr: 'بوعمريه', lat: 16.5000, lng: -11.6333)]),
     MrRegion(nameAr: 'غورغول', capitalAr: 'كيهيدي',
       lat: 16.1500, lng: -13.5000, districts: [
         MrDistrict(nameAr: 'كيهيدي', lat: 16.1500, lng: -13.5000),
-        MrDistrict(nameAr: 'مونغل', lat: 16.0167, lng: -13.3333)]),
+        MrDistrict(nameAr: 'مونغل', lat: 16.0167, lng: -13.3333),
+        MrDistrict(nameAr: 'مقطع لحجار', lat: 15.9000, lng: -13.1500),
+        MrDistrict(nameAr: 'امبان', lat: 15.8833, lng: -13.5167)]),
     MrRegion(nameAr: 'البراكنة', capitalAr: 'ألاك',
       lat: 17.0500, lng: -13.9167, districts: [
         MrDistrict(nameAr: 'ألاك', lat: 17.0500, lng: -13.9167),
-        MrDistrict(nameAr: 'بوغي', lat: 16.5833, lng: -14.2667)]),
+        MrDistrict(nameAr: 'بوغي', lat: 16.5833, lng: -14.2667),
+        MrDistrict(nameAr: 'بابابي', lat: 16.7833, lng: -14.0333),
+        MrDistrict(nameAr: 'مقامه', lat: 16.8000, lng: -13.7167),
+        MrDistrict(nameAr: 'واد الناقة', lat: 17.5667, lng: -15.4167)]),
     MrRegion(nameAr: 'الترارزة', capitalAr: 'روصو',
-      lat: 16.5000, lng: -15.2333, districts: [
-        MrDistrict(nameAr: 'روصو', lat: 16.5000, lng: -15.2333),
-        MrDistrict(nameAr: 'بوتلميت', lat: 17.0333, lng: -14.7833)]),
+      lat: 16.5138, lng: -15.8050, districts: [
+        MrDistrict(nameAr: 'روصو', lat: 16.5138, lng: -15.8050),
+        MrDistrict(nameAr: 'بوتلميت', lat: 17.0333, lng: -14.7833),
+        MrDistrict(nameAr: 'كرمسين', lat: 16.5000, lng: -14.9167),
+        MrDistrict(nameAr: 'اركيز', lat: 16.9333, lng: -15.3667),
+        MrDistrict(nameAr: 'المذرذره', lat: 17.0833, lng: -15.5000),
+        MrDistrict(nameAr: 'ركيز', lat: 17.4500, lng: -15.3333)]),
     MrRegion(nameAr: 'آدرار', capitalAr: 'أطار',
       lat: 20.5167, lng: -13.0500, districts: [
         MrDistrict(nameAr: 'أطار', lat: 20.5167, lng: -13.0500),
         MrDistrict(nameAr: 'شنقيط', lat: 20.4500, lng: -12.3500),
-        MrDistrict(nameAr: 'وادان', lat: 20.9333, lng: -11.6167)]),
+        MrDistrict(nameAr: 'وادان', lat: 20.9333, lng: -11.6167),
+        MrDistrict(nameAr: 'أوجفت', lat: 20.4667, lng: -13.0667),
+        MrDistrict(nameAr: 'تشوم', lat: 21.3667, lng: -13.0333)]),
     MrRegion(nameAr: 'داخلت نواذيبو', capitalAr: 'نواذيبو',
       lat: 20.9333, lng: -17.0333, districts: [
         MrDistrict(nameAr: 'نواذيبو', lat: 20.9333, lng: -17.0333),
         MrDistrict(nameAr: 'الشامي', lat: 21.0000, lng: -16.1000)]),
     MrRegion(nameAr: 'تكانت', capitalAr: 'تجكجة',
       lat: 18.4333, lng: -11.4333, districts: [
-        MrDistrict(nameAr: 'تجكجة', lat: 18.4333, lng: -11.4333)]),
+        MrDistrict(nameAr: 'تجكجة', lat: 18.4333, lng: -11.4333),
+        MrDistrict(nameAr: 'المجرية', lat: 18.5833, lng: -11.3667),
+        MrDistrict(nameAr: 'الرشيد', lat: 18.1333, lng: -11.5333),
+        MrDistrict(nameAr: 'تيشيت', lat: 18.4333, lng: -9.9667)]),
     MrRegion(nameAr: 'كيدي ماغا', capitalAr: 'سيلبابي',
       lat: 15.1500, lng: -12.1833, districts: [
         MrDistrict(nameAr: 'سيلبابي', lat: 15.1500, lng: -12.1833),
         MrDistrict(nameAr: 'غابو', lat: 15.0333, lng: -12.5667)]),
     MrRegion(nameAr: 'إنشيري', capitalAr: 'أكجوجت',
       lat: 19.7500, lng: -14.3833, districts: [
-        MrDistrict(nameAr: 'أكجوجت', lat: 19.7500, lng: -14.3833)]),
+        MrDistrict(nameAr: 'أكجوجت', lat: 19.7500, lng: -14.3833),
+        MrDistrict(nameAr: 'بنشاب', lat: 19.8833, lng: -13.8500)]),
     MrRegion(nameAr: 'تيرس زمور', capitalAr: 'ازويرات',
       lat: 22.6833, lng: -12.4833, districts: [
         MrDistrict(nameAr: 'ازويرات', lat: 22.6833, lng: -12.4833),
-        MrDistrict(nameAr: 'افديرك', lat: 22.6667, lng: -12.6833)]),
+        MrDistrict(nameAr: 'افديرك', lat: 22.6667, lng: -12.6833),
+        MrDistrict(nameAr: 'بير مغرين', lat: 25.2167, lng: -11.5833)]),
   ];
 
   static MrRegion nearestRegion(LatLng p) {
@@ -129,7 +152,9 @@ class MauritaniaRegions {
     if (dist == null) return region.nameAr;
     const d = Distance();
     final km = d.as(LengthUnit.Kilometer, p, dist.latLng);
-    if (km > 60) return region.nameAr;
+    // فوق 15 كم عن أقرب مقاطعة معروفة = الاسم غير مؤكد → نعرض الولاية فقط
+    // بدل تسمية مقاطعة قد تكون خاطئة.
+    if (km > 15) return region.nameAr;
     return '${dist.nameAr} · ${region.nameAr}';
   }
 }

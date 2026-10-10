@@ -67,14 +67,22 @@ class LocationController extends ChangeNotifier {
   bool get hasGpsFix => _gpsLatLng != null;
 
   /// اسم المنطقة الحالي بجانب إحداثياتها — للعرض في الكبسولات.
-  /// داخل موريتانيا: من الجدول الثابت. خارجها: من reverseGeocode.
+  /// الاسم من الـ Geocoder أولاً (الحي الحقيقي)، والجدول الثابت احتياط Offline.
   String _currentAddress = '';
   String get currentAddress => _currentAddress;
+
+  /// هامش دقة آخر إصلاح GPS مقبول — null إذا كان الموقع يدوياً/افتراضياً.
+  double? _accuracyMeters;
+  double? get accuracyMeters => _accuracyMeters;
 
   String get currentLabelWithCoords {
     final p = activeLatLng;
     final name = _currentAddress.isEmpty ? cityName : _currentAddress;
-    return '$name · ${p.latitude.toStringAsFixed(4)}، ${p.longitude.toStringAsFixed(4)}';
+    final coords =
+        '${p.latitude.toStringAsFixed(4)}، ${p.longitude.toStringAsFixed(4)}';
+    final acc = _accuracyMeters;
+    if (acc == null) return '$name · $coords';
+    return '$name · $coords · دقة ±${acc.round()}م';
   }
 
   bool _locating = false;
@@ -91,21 +99,20 @@ class LocationController extends ChangeNotifier {
   }
 
   /// جلب موقع GPS الدقيق + تسمية المنطقة. آمن للنداء المتكرر.
+  /// لا يعتمد إلا إصلاحاً حقيقياً بدقة مقبولة — وإلا يُبقي الموقع السابق كما هو.
   Future<LatLng> locateMe() async {
     if (_locating) return activeLatLng;
     _locating = true;
     notifyListeners();
     try {
-      final p = await LocationService.instance.currentLatLng();
-      _gpsLatLng = p;
-      if (MauritaniaRegions.isInsideMauritania(p)) {
-        // ★ داخل موريتانيا: الاسم من الجدول الثابت (مستقر Offline).
-        _currentAddress = MauritaniaRegions.regionLabel(p);
-        _adoptNearestCity(p);
-      } else {
-        // ★ خارج موريتانيا: الاسم ديناميكي حسب الموقع الحالي.
-        _currentAddress =
-            await LocationService.instance.reverseGeocode(p);
+      final fix = await LocationService.instance.currentFix();
+      if (fix != null && fix.isAcceptable) {
+        _gpsLatLng = fix.point;
+        _accuracyMeters = fix.accuracyMeters;
+        _currentAddress = await _resolveLabel(fix.point);
+        if (MauritaniaRegions.isInsideMauritania(fix.point)) {
+          _adoptNearestCity(fix.point);
+        }
       }
     } finally {
       _locating = false;
@@ -114,21 +121,29 @@ class LocationController extends ChangeNotifier {
     return activeLatLng;
   }
 
-  /// تثبيت موقع من الخريطة (سحب الدبوس).
-  Future<void> setGpsLatLng(LatLng p, {bool reverseGeocode = true}) async {
+  /// تثبيت موقع من الخريطة (سحب الدبوس) — أو من إصلاح GPS عبر [accuracyMeters].
+  Future<void> setGpsLatLng(LatLng p,
+      {bool reverseGeocode = true, double? accuracyMeters}) async {
     _gpsLatLng = p;
+    _accuracyMeters = accuracyMeters; // يدوي = null (لا دقة GPS مرتبطة).
     if (reverseGeocode) {
-      if (MauritaniaRegions.isInsideMauritania(p)) {
-        _currentAddress = MauritaniaRegions.regionLabel(p);
-      } else {
-        _currentAddress =
-            await LocationService.instance.reverseGeocode(p);
-      }
+      _currentAddress = await _resolveLabel(p);
     }
     if (MauritaniaRegions.isInsideMauritania(p)) {
       _adoptNearestCity(p);
     }
     notifyListeners();
+  }
+
+  /// تسمية النقطة: الـ Geocoder أولاً (الاسم الحقيقي للحي/الشارع)،
+  /// وعند فشله (Offline/لا نتائج) الجدول الثابت داخل موريتانيا.
+  Future<String> _resolveLabel(LatLng p) async {
+    final geocoded = await LocationService.instance.reverseGeocodeOrNull(p);
+    if (geocoded != null && geocoded.isNotEmpty) return geocoded;
+    if (MauritaniaRegions.isInsideMauritania(p)) {
+      return MauritaniaRegions.regionLabel(p);
+    }
+    return '';
   }
 
   void confirmPlace(PlaceModel place) {

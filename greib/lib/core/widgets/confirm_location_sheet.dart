@@ -34,6 +34,8 @@ class _ConfirmLocationSheetState extends State<ConfirmLocationSheet> {
   String _address = 'جارٍ تحديد موقعك...';
   bool _busy = false;
   Marker? _picked;
+  /// هامش دقة آخر إصلاح GPS — null عند الاختيار اليدوي/سحب الخريطة.
+  double? _accuracyM;
 
   @override
   void initState() {
@@ -47,13 +49,17 @@ class _ConfirmLocationSheetState extends State<ConfirmLocationSheet> {
     if (!mounted) return;
     setState(() {
       _center = p;
-      _address = loc.currentAddress.isEmpty ? 'دبي، الإمارات' : loc.currentAddress;
+      _accuracyM = loc.accuracyMeters;
+      _address = loc.currentAddress.isEmpty
+          ? 'تعذّر التحديد التلقائي — حرّك الخريطة لاختيار موقعك'
+          : loc.currentAddress;
     });
     _mapKey.currentState?.moveTo(p, zoom: 15);
   }
 
   Future<void> _onCenter(LatLng p) async {
     _center = p;
+    _accuracyM = null; // اختيار يدوي — لا دقة GPS مرتبطة.
     if (_busy) return;
     _busy = true;
     final addr = await LocationService.instance.reverseGeocode(p);
@@ -101,17 +107,35 @@ class _ConfirmLocationSheetState extends State<ConfirmLocationSheet> {
             child: Row(children: [
               Icon(LucideIcons.mapPin, size: 20, color: theme.colorScheme.primary),
               const SizedBox(width: 8),
-              Expanded(child: Text(_address, maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w700))),
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(_address, maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w700)),
+                  if (_accuracyM != null)
+                    Text('دقة GPS: ±${_accuracyM!.round()} م',
+                      style: TextStyle(fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
+                ])),
             ])),
           const SizedBox(height: 12),
           Row(children: [
             Expanded(child: OutlinedButton.icon(
               onPressed: () async {
-                final p = await context.read<LocationController>().locateMe();
+                final loc = context.read<LocationController>();
+                final p = await loc.locateMe();
+                if (!mounted) return;
                 _mapKey.currentState?.moveTo(p, zoom: 15);
-                setState(() => _center = p);
+                setState(() {
+                  _center = p;
+                  _accuracyM = loc.accuracyMeters;
+                  if (loc.currentAddress.isNotEmpty) {
+                    _address = loc.currentAddress;
+                  }
+                });
               },
               icon: const Icon(LucideIcons.locateFixed, size: 18),
               label: const Text('موقعي'))),

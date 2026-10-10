@@ -45,6 +45,8 @@ class _MapsScreenState extends State<MapsScreen>
 
   // ── موقع GPS الحي + Pulse animation ──
   LatLng? _myLocation;
+  /// هامش دقة آخر إصلاح GPS — null عند اختيار يدوي/سحب الخريطة.
+  double? _accuracyM;
   late final AnimationController _pulse;
   late final Animation<double> _pulseAnim;
   bool _locating = false;
@@ -91,8 +93,11 @@ class _MapsScreenState extends State<MapsScreen>
     if (!mounted) return;
     setState(() {
       _center     = p;
-      _myLocation = p;
-      _address    = loc.currentAddress.isEmpty ? 'دبي، الإمارات' : loc.currentAddress;
+      _myLocation = loc.hasGpsFix ? p : null;
+      _address    = loc.currentAddress.isEmpty
+          ? 'تعذّر تحديد موقعك — فعّل GPS وحاول مجدداً'
+          : loc.currentAddress;
+      _accuracyM  = loc.accuracyMeters;
       _ready      = true;
     });
     _move(p, 15);
@@ -111,17 +116,20 @@ class _MapsScreenState extends State<MapsScreen>
         await LocationPermissionPrompt.request(context);
         return;
       }
-      final p = await LocationService.instance.currentLatLng();
+      final fix = await LocationService.instance.currentFix();
+      // إصلاح فاشل أو رديء = لا نحرّك الخريطة ولا نعرض موقعاً وهمياً.
+      if (fix == null || !fix.isAcceptable || !mounted) return;
+      // التسمية عبر الكنترولر: الـ Geocoder أولاً، وجدول موريتانيا احتياطاً.
+      final loc = context.read<LocationController>();
+      await loc.setGpsLatLng(fix.point, accuracyMeters: fix.accuracyMeters);
       if (!mounted) return;
       setState(() {
-        _myLocation = p;
-        _center     = p;
+        _myLocation = fix.point;
+        _center     = fix.point;
+        _accuracyM  = fix.accuracyMeters;
+        if (loc.currentAddress.isNotEmpty) _address = loc.currentAddress;
       });
-      _move(p, 16);
-      if (mounted) {
-        final addr = await LocationService.instance.reverseGeocode(p);
-        if (mounted) setState(() => _address = addr);
-      }
+      _move(fix.point, 16);
     } finally {
       if (mounted) setState(() => _locating = false);
     }
@@ -211,6 +219,7 @@ class _MapsScreenState extends State<MapsScreen>
                 onPositionChanged: (pos, _) async {
                   _center = pos.center;
                   if (!_ready) return;
+                  _accuracyM = null; // سحب يدوي — لا دقة GPS مرتبطة.
                   final addr = await LocationService.instance
                       .reverseGeocode(_center);
                   if (mounted) setState(() => _address = addr);
@@ -277,15 +286,30 @@ class _MapsScreenState extends State<MapsScreen>
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(
-                        _address,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: isDark ? Colors.white70 : Colors.black54,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _address,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: isDark ? Colors.white70 : Colors.black54,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (_accuracyM != null)
+                            Text(
+                              'دقة GPS: ±${_accuracyM!.round()} م',
+                              style: TextStyle(
+                                color: isDark ? Colors.white38 : Colors.black38,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                     Icon(LucideIcons.search,

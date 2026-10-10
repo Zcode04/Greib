@@ -172,16 +172,18 @@ void main() {
     expect(router.state.matchedLocation, '/home');
   });
 
-  testWidgets('حماية المسارات: الزائر غير المسجّل يُعاد إلى شاشة الدخول',
+  testWidgets(
+      'الدخول المباشر: الزائر غير المسجّل لا يُعاد توجيهه إلى /login',
       (tester) async {
     AuthService.instance.logout();
 
-    final router = AppRouter.createRouter(initialLocation: '/wallet');
-    await tester.pumpWidget(
-      MaterialApp.router(routerConfig: router),
-    );
-    await tester.pump(const Duration(milliseconds: 500));
-
-    expect(router.state.matchedLocation, '/login');
+    // ★ دخول مباشر: لم يعد غير المسجّلين يُعاد توجيههم إلى شاشة تسجيل
+    //   الدخول كحاجز في كل مرة. يُفتح التطبيق على الواجهة مباشرة، وتظهر
+    //   شاشة الدخول كإشعار اخافي (modal) يُغلق/يُتخطّى — يُطوّر لاحقاً.
+    expect(AppRouter.resolveRedirect('/home'), isNull);
+    expect(AppRouter.resolveRedirect('/wallet'), isNull);
+    expect(AppRouter.resolveRedirect('/reels'), isNull);
+    expect(AppRouter.resolveRedirect('/settings'), isNull);
+    expect(AppRouter.resolveRedirect('/search'), isNull);
   });
 }

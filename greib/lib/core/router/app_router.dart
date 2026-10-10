@@ -58,11 +58,16 @@ class AppRouter {
     '/shopping',
   };
 
+  // ★ دخول مباشر: لا يُعاد توجيه غير المسجّلين إلى شاشة تسجيل الدخول كـ
+  //   Route مستقل. بدلاً من ذلك يُفتح التطبيق مباشرة على /home وتظهر نموذج
+  //   تسجيل الدخول كـ *إشعار اخافي* (modal) فوق الواجهة يمكن إغلاقه —
+  //   ويُظهر مرة واحدة لكل جلسة عند عدم تسجيل الدخول. التطوير الكامل للهوية
+  //   يُؤوّد لاحقاً.
   static String? resolveRedirect(String location) {
     if (_publicRoutes.contains(location)) return null;
 
     final auth = AuthService.instance;
-    if (!auth.isLoggedIn) return '/login';
+    // (تمت إزالة إعادة التوجيه الإجبارية إلى /login — الدخول الآن مباشر.)
 
     // صفحة الخدمة الواحدة: أي مسار يبدأ بـ /service/ يُعتبر معروفاً
     // لأن موضع الـ :id يتغيّر حسب الخدمة المختارة.
@@ -85,11 +90,21 @@ class AppRouter {
   /// الراوتر المستخدم في التطبيق.
   static final GoRouter router = createRouter();
 
-  static GoRouter createRouter({String initialLocation = '/login'}) => GoRouter(
-    initialLocation: initialLocation,
-    redirect: (context, state) => _guard(state),
-    routes: [
-      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+  static GoRouter createRouter({String initialLocation = '/home'}) => GoRouter(
+        initialLocation: initialLocation,
+        redirect: (context, state) => _guard(state),
+        routes: [
+          // ★ /login كـ modal (fullscreenDialog) يظهر فوق الواجهة كإشعار
+          //   اخافي بدلاً من شاشة مستقلة تحلّ محل الواجهة — يُمكن إغلاقه
+          //   أو التخطيه بدلاً من منع الدخول.
+          GoRoute(
+            path: '/login',
+            pageBuilder: (context, state) => MaterialPage(
+              key: state.pageKey,
+              fullscreenDialog: true,
+              child: const LoginScreen(),
+            ),
+          ),
       GoRoute(
         path: '/home',
         builder: (context, state) => const MainShellScreen(),
