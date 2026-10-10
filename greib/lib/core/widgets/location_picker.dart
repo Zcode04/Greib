@@ -77,6 +77,126 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
     });
   }
 
+  /// الدول العربية — موريتانيا فعّالة حالياً، والباقي قيد التطوير لاحقاً.
+  static const List<(String, String)> _arabCountries = [
+    ('🇲🇷', 'موريتانيا'),
+    ('🇸🇦', 'السعودية'),
+    ('🇦🇪', 'الإمارات'),
+    ('🇶🇦', 'قطر'),
+    ('🇰🇼', 'الكويت'),
+    ('🇧🇭', 'البحرين'),
+    ('🇴🇲', 'عُمان'),
+    ('🇾🇪', 'اليمن'),
+    ('🇮🇶', 'العراق'),
+    ('🇸🇾', 'سوريا'),
+    ('🇱🇧', 'لبنان'),
+    ('🇯🇴', 'الأردن'),
+    ('🇵🇸', 'فلسطين'),
+    ('🇪🇬', 'مصر'),
+    ('🇸🇩', 'السودان'),
+    ('🇱🇾', 'ليبيا'),
+    ('🇹🇳', 'تونس'),
+    ('🇩🇿', 'الجزائر'),
+    ('🇲🇦', 'المغرب'),
+    ('🇩🇯', 'جيبوتي'),
+    ('🇸🇴', 'الصومال'),
+    ('🇰🇲', 'جزر القمر'),
+  ];
+
+  void _showCountriesSheet(BuildContext context) {
+    final theme = Theme.of(context);
+    showModalBottomSheet(
+      context: context,
+      useSafeArea: true,
+      backgroundColor: theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.xxl)),
+      ),
+      builder: (sheetContext) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.xs,
+            AppSpacing.lg,
+            AppSpacing.xl,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'اختر الدولة',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: _arabCountries.length,
+                  separatorBuilder: (_, _) =>
+                      const SizedBox(height: AppSpacing.xs),
+                  itemBuilder: (context, index) {
+                    final (flag, name) = _arabCountries[index];
+                    final isMauritania = name == 'موريتانيا';
+                    return Material(
+                      color: isMauritania
+                          ? theme.colorScheme.primary.withValues(alpha: 0.08)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(99),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(99),
+                        onTap: isMauritania
+                            ? () => Navigator.of(sheetContext).pop()
+                            : null,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.md,
+                            vertical: AppSpacing.sm,
+                          ),
+                          child: Row(
+                            children: [
+                              Text(flag, style: const TextStyle(fontSize: 20)),
+                              const SizedBox(width: AppSpacing.sm),
+                              Expanded(
+                                child: Text(
+                                  name,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: isMauritania
+                                        ? null
+                                        : theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                              if (isMauritania)
+                                Icon(
+                                  LucideIcons.check,
+                                  size: 18,
+                                  color: theme.colorScheme.primary,
+                                )
+                              else
+                                Text(
+                                  'قريباً',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _select(BuildContext context, _PlaceEntry entry) {
     final city = AppCity(
       name: entry.name,
@@ -189,38 +309,45 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
               ),
             ),
           const SizedBox(height: AppSpacing.md),
-          // ★ الدولة: موريتانيا — محددة دائماً.
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.sm,
-            ),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(AppRadii.lg),
-              border: Border.all(
-                color: theme.colorScheme.primary.withValues(alpha: 0.25),
-              ),
-            ),
-            child: Row(
-              children: [
-                const Text('🇲🇷', style: TextStyle(fontSize: 20)),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    'موريتانيا',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+          // ★ الدولة: موريتانيا — محددة دائماً. الضغط يفتح قائمة الدول العربية.
+          Material(
+            color: theme.colorScheme.primary.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(99),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(99),
+              onTap: () => _showCountriesSheet(context),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(99),
+                  border: Border.all(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.25),
                   ),
                 ),
-                Icon(
-                  LucideIcons.check,
-                  size: 18,
-                  color: theme.colorScheme.primary,
+                child: Row(
+                  children: [
+                    const Text('🇲🇷', style: TextStyle(fontSize: 20)),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        'موريتانيا',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      LucideIcons.chevronDown,
+                      size: 18,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
           const SizedBox(height: AppSpacing.md),
