@@ -105,8 +105,6 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
 
   // ───────────────────────── مكوّنات مساعدة ─────────────────────────
 
-  Color _hairline(ThemeData t) => t.colorScheme.onSurface.withValues(alpha: 0.08);
-
   Widget _sectionLabel(ThemeData theme, String text, {String? trailing}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -143,6 +141,9 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
   }) {
     return InkWell(
       onTap: onTap,
+      overlayColor: WidgetStatePropertyAll(
+        theme.colorScheme.onSurface.withValues(alpha: 0.08),
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
@@ -183,14 +184,6 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
       ),
     );
   }
-
-  Widget _divider(ThemeData theme) => Divider(
-        height: 1,
-        thickness: 1,
-        indent: AppSpacing.md,
-        endIndent: AppSpacing.md,
-        color: _hairline(theme),
-      );
 
   String _distanceLabel(double km) {
     if (km < 1) return 'أقل من 1 كم';
@@ -242,18 +235,13 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(_cardRadius),
-                    border: Border.all(color: _hairline(theme)),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: ListView.separated(
                     shrinkWrap: true,
                     padding: EdgeInsets.zero,
                     itemCount: _arabCountries.length,
-                    separatorBuilder: (_, _) => Divider(
-                      height: 1,
-                      thickness: 1,
-                      color: _hairline(theme),
-                    ),
+                    separatorBuilder: (_, _) => const SizedBox(height: 2),
                     itemBuilder: (context, index) {
                       final (flag, name) = _arabCountries[index];
                       final active = name == 'موريتانيا';
@@ -282,10 +270,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                                   ),
                                 ),
                               ),
-                              if (active)
-                    Icon(LucideIcons.check,
-                                    size: 18, color: theme.colorScheme.onSurface)
-                              else
+                              if (!active)
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 10,
@@ -423,12 +408,10 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
           // ── بطاقة موقعك الحالي: دولة ← ولاية ← مقاطعة ──
           _sectionLabel(theme, 'موقعك الحالي'),
           Container(
-            decoration: BoxDecoration(
-              color: ink.withValues(alpha: 0.03),
-              borderRadius: BorderRadius.circular(_cardRadius),
-              border: Border.all(color: _hairline(theme)),
-            ),
             clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(_cardRadius),
+            ),
             child: Material(
               color: Colors.transparent,
               child: Column(
@@ -440,7 +423,6 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                     trailing: LucideIcons.chevronDown,
                     onTap: () => _showCountriesSheet(context),
                   ),
-                  _divider(theme),
                   _hierarchyRow(
                     theme,
                     label: 'الولاية',
@@ -453,8 +435,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                     ),
                   ),
                   if (nearestDistrict != null) ...[
-                    _divider(theme),
-                    _hierarchyRow(
+                      _hierarchyRow(
                       theme,
                       label: 'المقاطعة',
                       value: nearestDistrict.nameAr,
@@ -501,9 +482,8 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                         ),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: ink,
-                          side: BorderSide(
-                            color: ink.withValues(alpha: 0.14),
-                          ),
+                          side: BorderSide.none,
+                          backgroundColor: ink.withValues(alpha: 0.06),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
@@ -514,22 +494,16 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                 }
 
                 final entry = shown[index];
-                final selected = entry.name == location.cityName;
 
                 return Material(
-                  color: selected
-                      ? ink.withValues(alpha: 0.08)
-                      : Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(
-                      color: selected
-                          ? ink.withValues(alpha: 0.45)
-                          : _hairline(theme),
-                    ),
-                  ),
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
                   clipBehavior: Clip.antiAlias,
                   child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    overlayColor: WidgetStatePropertyAll(
+                      ink.withValues(alpha: 0.08),
+                    ),
                     onTap: () => _select(context, entry),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -563,10 +537,6 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                             ),
                           ),
                           const SizedBox(width: AppSpacing.sm),
-                          if (selected)
-                            Icon(LucideIcons.check,
-                                size: 20, color: ink)
-                          else
                             Text(
                               _distanceLabel(km[entry]!),
                               style: theme.textTheme.labelMedium?.copyWith(
