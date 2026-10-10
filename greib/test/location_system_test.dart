@@ -74,8 +74,8 @@ void main() {
   });
 
   group('MapConfig — التبديل الاحترافي', () {
-    test('kUseRealMaps مفعّل افتراضياً', () {
-      expect(MapConfig.kUseRealMaps, isTrue);
+    test('الوضع العادي = الكرة 3D (kUseRealMaps معطّل افتراضياً)', () {
+      expect(MapConfig.kUseRealMaps, isFalse);
     });
 
     test('الوضع الداكن يستخدم بلاطات داكنة', () {

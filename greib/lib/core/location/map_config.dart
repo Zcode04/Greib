@@ -20,8 +20,10 @@ enum MapProviderKind {
 class MapConfig {
   MapConfig._();
 
-  /// ★ المفتاح الرئيسي: هل نعرض خرائط OSM الحقيقية أم الكرة القديمة؟
-  static bool kUseRealMaps = true;
+  /// ★ المفتاح الرئيسي: هل نعرض خرائط OSM الحقيقية أم الكرة 3D الأصلية؟
+  /// ★ الافتراضي = false (الكرة الأرضية 3D هي الوضع العادي).
+  /// لا تتحول لخريطة إلا باختيار صريح من المستخدم عبر «نمط الخريطة».
+  static bool kUseRealMaps = false;
 
   // ── مُعرّفات الأنماط الثلاثة (مطابقة لـ MapProviderKind.index) ──────────
   static const int styleOsm       = 0; // عادي (فاتح)

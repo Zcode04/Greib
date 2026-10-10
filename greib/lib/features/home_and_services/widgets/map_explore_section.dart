@@ -292,9 +292,12 @@ class _MapExploreSectionState extends State<MapExploreSection> {
     );
   }
 
-  // ---------- 2) بطاقة الخريطة الحية + تبديل حية/كرة ----------
+  // ---------- 2) بطاقة العالم 3D (الوضع العادي) + خريطة اختيارية ----------
+  /// ★ العادي = الكرة الأرضية الدوّارة _worldCardInner كما كانت قبل المكتبات.
+  /// الخريطة الحقيقية لا تظهر إلا إذا فعّلها المستخدم من زر «الخريطة».
   Widget _liveMapCard() {
     final loc = context.watch<LocationController>();
+    final useReal = AppPrefs.useRealMaps;
     final label = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
     final tint = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
     return GlassContainer(
@@ -306,13 +309,17 @@ class _MapExploreSectionState extends State<MapExploreSection> {
           Row(
             children: [
               Expanded(
-                child: Text('الخريطة الحية',
+                child: Text(useReal ? 'الخريطة الحية' : 'العالم',
                   style: TextStyle(color: label, fontSize: 15, fontWeight: FontWeight.w700)),
               ),
               InkWell(
                 borderRadius: BorderRadius.circular(12),
                 onTap: () async {
-                  await MapStyleSelector.show(context);
+                  if (useReal) {
+                    await MapStyleSelector.show(context);
+                  } else {
+                    await AppPrefs.setUseRealMaps(true);
+                  }
                   if (context.mounted) setState(() {});
                 },
                 child: Container(
@@ -323,31 +330,114 @@ class _MapExploreSectionState extends State<MapExploreSection> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(LucideIcons.layers,
+                      Icon(useReal ? LucideIcons.layers : LucideIcons.map,
                         size: 13, color: tint),
                       const SizedBox(width: 4),
-                      Text('نمط الخريطة',
+                      Text(useReal ? 'نمط الخريطة' : 'الخريطة',
                         style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: tint)),
                     ],
                   ),
                 ),
               ),
+              if (useReal) ...[
+                const SizedBox(width: 6),
+                InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () async {
+                    await AppPrefs.setUseRealMaps(false);
+                    if (context.mounted) setState(() {});
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: tint.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12)),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(LucideIcons.globe, size: 13, color: tint),
+                        const SizedBox(width: 4),
+                        Text('كرة 3D',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: tint)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 10),
-          GestureDetector(
-            onTap: () => ConfirmLocationSheet.show(context),
-            child: AbsorbPointer(
-              child: RealMapView(
-                initialCenter: loc.activeLatLng,
-                initialZoom: 13, height: 200,
-                interactive: false, showLocateButton: false,
-                useStoredStyle: true,
+          if (useReal)
+            GestureDetector(
+              onTap: () => ConfirmLocationSheet.show(context),
+              child: AbsorbPointer(
+                child: RealMapView(
+                  initialCenter: loc.activeLatLng,
+                  initialZoom: 13, height: 200,
+                  interactive: false, showLocateButton: false,
+                  useStoredStyle: true,
+                ),
               ),
-            ),
-          )
+            )
+          else
+            _worldCardInner(),
         ],
       ),
+    );
+  }
+
+  // ---------- بطاقة العالم 3D الأصلية (الوضع العادي قبل المكتبات) ----------
+  Widget _worldCardInner() {
+    final tint = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+    final label = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text('العالم',
+                style: TextStyle(color: label, fontSize: 15, fontWeight: FontWeight.w700)),
+            ),
+            Text('موقعك الحالي',
+              style: TextStyle(
+                color: widget.isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
+                fontSize: 12)),
+            const SizedBox(width: 4),
+            Icon(LucideIcons.locateFixed, size: 14, color: tint),
+          ],
+        ),
+        const SizedBox(height: 12),
+        AspectRatio(
+          aspectRatio: 1.6,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: const Alignment(0.2, -0.2),
+                      radius: 1.1,
+                      colors: widget.isDark
+                          ? [tint.withValues(alpha: 0.18), AppColors.background]
+                          : [tint.withValues(alpha: 0.12), AppColors.lightSurface],
+                    ),
+                  ),
+                ),
+                IgnorePointer(
+                  child: CustomPaint(
+                    painter: _GlobeGridPainter(
+                      line: (widget.isDark ? AppColors.textSecondary : AppColors.lightTextSecondary)
+                          .withValues(alpha: 0.28)),
+                  ),
+                ),
+                const Center(child: _SpinningGlobe()),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 

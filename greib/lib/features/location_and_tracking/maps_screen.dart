@@ -11,17 +11,16 @@ import '../../core/location/place_model.dart';
 import '../../core/storage/app_prefs.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/location_permission_prompt.dart';
+import '../../core/widgets/globe_3d.dart';
 import '../../core/widgets/map_style_selector.dart';
 import '../../core/widgets/place_search_sheet.dart';
 import '../../shared_widgets/glass_container.dart';
 
 /// ============================================================================
-///  MapsScreen — شاشة الخريطة الكاملة v2.
+///  MapsScreen — شاشة الموقع الكاملة.
 ///
-///  جديد:
-///   • زر تبديل نمط الخريطة (عادي/داكن/أقمار) في شريط علوي.
-///   • طلب إذن GPS احترافي عند أول فتح.
-///   • مؤشر الموقع الحي (Pulse) مدمج في FlutterMap.
+///  ★ الوضع العادي = الكرة الأرضية 3D (التصميم الأصلي قبل المكتبات).
+///  الخريطة الحقيقية اختيارية: تظهر فقط عند ضغط زر «الخريطة».
 /// ============================================================================
 class MapsScreen extends StatefulWidget {
   const MapsScreen({super.key});
@@ -37,6 +36,9 @@ class _MapsScreenState extends State<MapsScreen>
   String _address = 'جارٍ تحديد موقعك…';
   Marker? _picked;
   bool _ready = false;
+
+  /// ★ هل الخريطة الحقيقية مفعّلة؟ الافتراضي = false (كرة 3D).
+  bool _showRealMap = false;
 
   // ── نمط الخريطة ──
   late MapProviderKind _kind;
@@ -71,9 +73,10 @@ class _MapsScreenState extends State<MapsScreen>
   }
 
   Future<void> _boot() async {
-    // طلب الإذن أولاً (إذا لم يُمنح بعد).
+    // طلب الإذن أولاً (إذا لم يُمنح بعد) — بدون حجز context عبر الفجوات.
     final ok = await LocationService.instance.ensurePermission();
-    if (!ok && mounted) {
+    if (!mounted) return;
+    if (!ok) {
       final granted = await LocationPermissionPrompt.request(context);
       if (!granted) {
         // fallback: استخدام الإحداثي الافتراضي.
@@ -82,6 +85,7 @@ class _MapsScreenState extends State<MapsScreen>
       }
     }
 
+    if (!mounted) return;
     final loc = context.read<LocationController>();
     final p   = await loc.locateMe();
     if (!mounted) return;
@@ -147,10 +151,14 @@ class _MapsScreenState extends State<MapsScreen>
     }
   }
 
-  List<Marker> get _allMarkers => [
-    if (_picked != null) _picked!,
-    if (_myLocation != null) _myLocationMarker,
-  ];
+  List<Marker> get _allMarkers {
+    final list = <Marker>[];
+    final picked = _picked;
+    if (picked != null) list.add(picked);
+    final myLoc = _myLocation;
+    if (myLoc != null) list.add(_myLocationMarker);
+    return list;
+  }
 
   Marker get _myLocationMarker => Marker(
     point: _myLocation!,
@@ -192,37 +200,42 @@ class _MapsScreenState extends State<MapsScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // ★ الخريطة الحقيقية.
-          FlutterMap(
-            mapController: _map,
-            options: MapOptions(
-              initialCenter: _center,
-              initialZoom: 14,
-              onPositionChanged: (pos, _) async {
-                _center = pos.center;
-                if (!_ready) return;
-                final addr = await LocationService.instance.reverseGeocode(_center);
-                if (mounted) setState(() => _address = addr);
-              },
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: MapConfig.tileUrl(_kind),
-                subdomains: MapConfig.subdomains(_kind),
-                userAgentPackageName: 'ae.greibmenk.app',
-                maxZoom: 19,
+          // ★ الوضع العادي: الكرة 3D تملأ الخلفية.
+          // الخريطة الحقيقية تظهر فقط عند تفعيل _showRealMap.
+          if (_showRealMap)
+            FlutterMap(
+              mapController: _map,
+              options: MapOptions(
+                initialCenter: _center,
+                initialZoom: 14,
+                onPositionChanged: (pos, _) async {
+                  _center = pos.center;
+                  if (!_ready) return;
+                  final addr = await LocationService.instance
+                      .reverseGeocode(_center);
+                  if (mounted) setState(() => _address = addr);
+                },
               ),
-              MarkerLayer(markers: _allMarkers),
-              RichAttributionWidget(
-                attributions: [
-                  TextSourceAttribution(MapConfig.attribution(_kind)),
-                ],
-              ),
-            ],
-          ),
+              children: [
+                TileLayer(
+                  urlTemplate: MapConfig.tileUrl(_kind),
+                  subdomains: MapConfig.subdomains(_kind),
+                  userAgentPackageName: 'ae.greibmenk.app',
+                  maxZoom: 19,
+                ),
+                MarkerLayer(markers: _allMarkers),
+                RichAttributionWidget(
+                  attributions: [
+                    TextSourceAttribution(MapConfig.attribution(_kind)),
+                  ],
+                ),
+              ],
+            )
+          else
+            _globeBackground(isDark),
 
-          // ── دبوس المركز (إذا لم يُختر مكان) ──
-          if (_picked == null)
+          // ── دبوس المركز (للخريطة الحقيقية فقط) ──
+          if (_showRealMap && _picked == null)
             Center(
               child: IgnorePointer(
                 child: Column(
@@ -283,13 +296,12 @@ class _MapsScreenState extends State<MapsScreen>
             ),
           ),
 
-          // ── أزرار الجانب الأيمن: موقعي + نمط الخريطة ──
+          // ── أزرار الجانب: موقعي + تبديل كرة/خريطة + نمط الخريطة ──
           Positioned(
             bottom: 200,
             right: 16,
             child: Column(
               children: [
-                // زر الموقع الحي
                 _MapFab(
                   icon: _locating
                       ? const SizedBox(
@@ -301,13 +313,23 @@ class _MapsScreenState extends State<MapsScreen>
                   tooltip: 'موقعي',
                 ),
                 const SizedBox(height: 12),
-                // زر تغيير نمط الخريطة
+                // ★ زر التبديل: كرة 3D ←→ خريطة حقيقية.
                 _MapFab(
-                  icon: Icon(_kindIcon(_kind), size: 20, color: Colors.white),
-                  color: _kindColor(_kind),
-                  onTap: _pickStyle,
-                  tooltip: 'نمط الخريطة',
+                  icon: Icon(_showRealMap ? LucideIcons.globe : LucideIcons.map,
+                      size: 20, color: Colors.white),
+                  color: _showRealMap ? const Color(0xFF8B5CF6) : const Color(0xFF3B82F6),
+                  onTap: () => setState(() => _showRealMap = !_showRealMap),
+                  tooltip: _showRealMap ? 'الوضع العادي (كرة 3D)' : 'الخريطة الحقيقية',
                 ),
+                if (_showRealMap) ...[
+                  const SizedBox(height: 12),
+                  _MapFab(
+                    icon: Icon(_kindIcon(_kind), size: 20, color: Colors.white),
+                    color: _kindColor(_kind),
+                    onTap: _pickStyle,
+                    tooltip: 'نمط الخريطة',
+                  ),
+                ],
               ],
             ),
           ),
@@ -402,6 +424,57 @@ class _MapsScreenState extends State<MapsScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// ★ خلفية الكرة 3D للوضع العادي — تملأ الشاشة خلف البطاقة السفلية.
+  Widget _globeBackground(bool isDark) {
+    final bg = isDark ? const Color(0xFF0F172A) : const Color(0xFFE8EEF5);
+    return Container(
+      color: bg,
+      child: SafeArea(
+        child: Column(
+          children: [
+            const SizedBox(height: 120),
+            // الكرة في الوسط.
+            Center(
+              child: Container(
+                width: 280,
+                height: 280,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: (isDark ? AppColors.neon : AppColors.accentPrimaryDark)
+                          .withValues(alpha: 0.25),
+                      blurRadius: 60,
+                      spreadRadius: 10,
+                    ),
+                  ],
+                ),
+                child: const Globe3D(size: 280),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'العالم',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _address,
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? Colors.white60 : Colors.black54,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -55,9 +55,10 @@ class AppPrefs {
   }
 
   // ------------------------- الخرائط الحقيقية -------------------------
-  /// مفتاح التبديل الاحترافي: حقيقي (GPS+OSM) أم وهمي (Mock القديم).
+  /// ★ الافتراضي = الكرة الأرضية 3D الأصلية (useRealMaps = false).
+  /// الخريطة الحقيقية لا تظهر إلا إذا اختارها المستخدم من «نمط الخريطة».
   static bool get useRealMaps =>
-      _prefs?.getBool(AppConstants.keyUseRealMaps) ?? true;
+      _prefs?.getBool(AppConstants.keyUseRealMaps) ?? false;
 
   static Future<void> setUseRealMaps(bool value) async {
     await _prefs?.setBool(AppConstants.keyUseRealMaps, value);
