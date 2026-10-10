@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
@@ -7,7 +8,6 @@ import '../location/location_controller.dart';
 import '../location/mauritania_regions.dart';
 import '../theme/design_tokens.dart';
 import 'app_sheet.dart';
-import 'confirm_location_sheet.dart';
 
 /// عنصر واحد في قائمة الاختيار — ولاية أو مقاطعة.
 class _PlaceEntry {
@@ -206,11 +206,82 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
     context.pop();
   }
 
+  /// صف كبسولة لملخص الموقع: «المقاطعة: كنكوصة» / «الولاية: لعصابة» / «الدولة: موريتانيا».
+  Widget _summaryPill(
+    ThemeData theme, {
+    required String label,
+    required String value,
+    IconData? trailing,
+    VoidCallback? onTap,
+  }) {
+    return Material(
+      color: theme.colorScheme.onSurface.withValues(alpha: 0.06),
+      borderRadius: BorderRadius.circular(99),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(99),
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(99),
+            border: Border.all(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.15),
+            ),
+          ),
+          child: Row(
+            children: [
+              Text(
+                '$label: ',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              if (trailing != null)
+                Icon(
+                  trailing,
+                  size: 18,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final location = context.watch<LocationController>();
-    final shown = _entries.take(_visibleCount).toList();
+
+    // موقع المستخدم الفعلي: GPS الحي إن وُجد، وإلا مركز المدينة المختارة.
+    final point = location.activeLatLng;
+    final nearestRegion = MauritaniaRegions.nearestRegion(point);
+    final nearestDistrict =
+        MauritaniaRegions.nearestDistrict(nearestRegion, point);
+
+    // «الأقرب لمنطقتك»: كل الولايات والمقاطعات مرتبة حسب المسافة من الموقع.
+    const distCalc = Distance();
+    double kmTo(_PlaceEntry e) => distCalc.as(
+        LengthUnit.Kilometer, point, LatLng(e.lat, e.lng));
+    final sorted = List<_PlaceEntry>.from(_entries)
+      ..sort((a, b) => kmTo(a).compareTo(kmTo(b)));
+    final shown = sorted.take(_visibleCount).toList();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -264,91 +335,58 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                   : 'استخدم موقعي الحالي 📍'),
             ),
           ),
-          // عنوان GPS الحالي + زر الخريطة.
-          if (location.hasGpsFix && location.currentAddress.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(AppRadii.lg),
-                onTap: () async {
-                  context.pop();
-                  await ConfirmLocationSheet.show(context);
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.onSurface
-                        .withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(AppRadii.lg),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(LucideIcons.mapPin,
-                          size: 16,
-                          color: theme.colorScheme.onSurface),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          location.currentAddress,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      Icon(LucideIcons.chevronLeft,
-                          size: 16,
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.6)),
-                    ],
-                  ),
+          const SizedBox(height: AppSpacing.md),
+          // ★ ملخص الموقع الحالي من الإحداثيات: مقاطعة ← ولاية ← دولة.
+          Text(
+            'موقعك الحالي هو:',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          if (nearestDistrict != null) ...[
+            _summaryPill(
+              theme,
+              label: 'المقاطعة',
+              value: nearestDistrict.nameAr,
+              onTap: () => _select(
+                context,
+                _entries.firstWhere(
+                  (e) => !e.isRegion && e.name == nearestDistrict.nameAr,
                 ),
               ),
             ),
-          const SizedBox(height: AppSpacing.md),
-          // ★ الدولة: موريتانيا — محددة دائماً. الضغط يفتح قائمة الدول العربية.
-          Material(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(99),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(99),
-              onTap: () => _showCountriesSheet(context),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(99),
-                  border: Border.all(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.15),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Text('🇲🇷', style: TextStyle(fontSize: 20)),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Text(
-                        'موريتانيا',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                    Icon(
-                      LucideIcons.chevronDown,
-                      size: 18,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-                  ],
-                ),
+            const SizedBox(height: AppSpacing.sm),
+          ],
+          _summaryPill(
+            theme,
+            label: 'الولاية',
+            value: nearestRegion.nameAr,
+            onTap: () => _select(
+              context,
+              _entries.firstWhere(
+                (e) => e.isRegion && e.name == nearestRegion.nameAr,
               ),
             ),
           ),
+          const SizedBox(height: AppSpacing.sm),
+          _summaryPill(
+            theme,
+            label: 'الدولة',
+            value: 'موريتانيا 🇲🇷',
+            trailing: LucideIcons.chevronDown,
+            onTap: () => _showCountriesSheet(context),
+          ),
           const SizedBox(height: AppSpacing.md),
+          Center(
+            child: Text(
+              'الأقرب لمنطقتك:',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
           Flexible(
             child: ListView.separated(
               shrinkWrap: true,
