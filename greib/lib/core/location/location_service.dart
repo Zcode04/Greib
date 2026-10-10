@@ -23,6 +23,19 @@ class LocationService {
 
   final Distance _distance = const Distance();
 
+  /// هل خدمة الموقع مفعّلة + الإذن ممنوح سلفاً (بدون طلب)؟
+  Future<bool> hasPermission() async {
+    try {
+      final enabled = await Geolocator.isLocationServiceEnabled();
+      if (!enabled) return false;
+      final perm = await Geolocator.checkPermission();
+      return perm == LocationPermission.always ||
+          perm == LocationPermission.whileInUse;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// هل خدمة الموقع مفعّلة + الإذن ممنوح؟
   Future<bool> ensurePermission() async {
     try {

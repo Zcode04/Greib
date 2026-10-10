@@ -129,6 +129,14 @@ class RealMapViewState extends State<RealMapView>
   }
 
   @override
+  void didUpdateWidget(RealMapView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialCenter != oldWidget.initialCenter) {
+      moveTo(widget.initialCenter, zoom: widget.initialZoom);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;

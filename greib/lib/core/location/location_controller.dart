@@ -40,6 +40,17 @@ class LocationController extends ChangeNotifier {
     AppCity(name: 'رأس الخيمة', areas: ['المعيريض', 'الظيت'], lat: 25.7885, lng: 55.9593),
   ];
 
+  LocationController() {
+    _init();
+  }
+
+  Future<void> _init() async {
+    final ok = await LocationService.instance.hasPermission();
+    if (ok) {
+      await locateMe();
+    }
+  }
+
   AppCity _city = cities.first;
   AppCity get city => _city;
   String get cityName => _city.name;
