@@ -4,18 +4,96 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../location/location_controller.dart';
+import '../location/mauritania_regions.dart';
 import '../theme/design_tokens.dart';
 import 'confirm_location_sheet.dart';
 
+/// عنصر واحد في قائمة الاختيار — ولاية أو مقاطعة.
+class _PlaceEntry {
+  final String name;
+  final String subtitle;
+  final double lat;
+  final double lng;
+  final bool isRegion;
+  final MrRegion region;
+
+  const _PlaceEntry({
+    required this.name,
+    required this.subtitle,
+    required this.lat,
+    required this.lng,
+    required this.isRegion,
+    required this.region,
+  });
+}
+
 /// LocationPickerSheet — اختيار المدينة + موقع GPS الحقيقي.
 /// تُفتح من SuperHeader وتُحدّث LocationController مباشرة.
-class LocationPickerSheet extends StatelessWidget {
+///
+/// تعرض «موريتانيا» كدولة محددة، ثم جميع الولايات والمقاطعات مرتبة
+/// (كل ولاية تليها مقاطعاتها) بتحميل تدريجي: 5 عناصر أولاً وزر
+/// «عرض المزيد» يجلب المزيد حتى نهاية القائمة.
+class LocationPickerSheet extends StatefulWidget {
   const LocationPickerSheet({super.key});
+
+  @override
+  State<LocationPickerSheet> createState() => _LocationPickerSheetState();
+}
+
+class _LocationPickerSheetState extends State<LocationPickerSheet> {
+  /// عدد العناصر التي تظهر في البداية وفي كل ضغطة «عرض المزيد».
+  static const int _pageSize = 5;
+
+  int _visibleCount = _pageSize;
+
+  /// قائمة مسطّحة مرتبة: كل ولاية تليها مقاطعاتها مباشرة.
+  static final List<_PlaceEntry> _entries = [
+    for (final r in MauritaniaRegions.regions) ...[
+      _PlaceEntry(
+        name: r.nameAr,
+        subtitle: 'ولاية · العاصمة: ${r.capitalAr}',
+        lat: r.lat,
+        lng: r.lng,
+        isRegion: true,
+        region: r,
+      ),
+      for (final d in r.districts)
+        _PlaceEntry(
+          name: d.nameAr,
+          subtitle: 'مقاطعة · ولاية ${r.nameAr}',
+          lat: d.lat,
+          lng: d.lng,
+          isRegion: false,
+          region: r,
+        ),
+    ],
+  ];
+
+  bool get _hasMore => _visibleCount < _entries.length;
+
+  void _showMore() {
+    setState(() {
+      _visibleCount = (_visibleCount + _pageSize).clamp(0, _entries.length);
+    });
+  }
+
+  void _select(BuildContext context, _PlaceEntry entry) {
+    final city = AppCity(
+      name: entry.name,
+      areas: [entry.region.nameAr, entry.region.capitalAr],
+      lat: entry.lat,
+      lng: entry.lng,
+      mrRegion: entry.region,
+    );
+    context.read<LocationController>().setCity(city);
+    context.pop();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final location = context.watch<LocationController>();
+    final shown = _entries.take(_visibleCount).toList();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -30,7 +108,7 @@ class LocationPickerSheet extends StatelessWidget {
         children: [
           Center(
             child: Text(
-              'اختر ولايتك',
+              'اختر موقعك',
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w800,
               ),
@@ -106,14 +184,69 @@ class LocationPickerSheet extends StatelessWidget {
               ),
             ),
           const SizedBox(height: AppSpacing.md),
+          // ★ الدولة: موريتانيا — محددة دائماً.
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(AppRadii.lg),
+              border: Border.all(
+                color: theme.colorScheme.primary.withValues(alpha: 0.25),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Text('🇲🇷', style: TextStyle(fontSize: 20)),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    'موريتانيا',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                Icon(
+                  LucideIcons.check,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
           Flexible(
             child: ListView.separated(
               shrinkWrap: true,
-              itemCount: LocationController.cities.length,
+              itemCount: shown.length + (_hasMore ? 1 : 0),
               separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
               itemBuilder: (context, index) {
-                final city = LocationController.cities[index];
-                final selected = city.name == location.cityName;
+                // زر «عرض المزيد» كآخر عنصر في القائمة.
+                if (index == shown.length) {
+                  return SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _showMore,
+                      icon: const Icon(LucideIcons.chevronDown, size: 18),
+                      label: Text(
+                        'عرض المزيد (${_entries.length - _visibleCount} متبقٍ)',
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadii.lg),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                final entry = shown[index];
+                final selected = entry.name == location.cityName;
 
                 return Material(
                   color: selected
@@ -122,10 +255,7 @@ class LocationPickerSheet extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppRadii.lg),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(AppRadii.lg),
-                    onTap: () {
-                      context.read<LocationController>().setCity(city);
-                      context.pop();
-                    },
+                    onTap: () => _select(context, entry),
                     child: Padding(
                       padding: const EdgeInsets.all(AppSpacing.md),
                       child: Row(
@@ -139,7 +269,9 @@ class LocationPickerSheet extends StatelessWidget {
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
-                              LucideIcons.mapPin,
+                              entry.isRegion
+                                  ? LucideIcons.mapPinned
+                                  : LucideIcons.mapPin,
                               size: 19,
                               color: theme.colorScheme.primary,
                             ),
@@ -150,14 +282,13 @@ class LocationPickerSheet extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  city.name,
+                                  entry.name,
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
                                 Text(
-                                  // ★ اسم العاصمة + إحداثيات ثابتة بجانبها.
-                                  '${city.areas.isNotEmpty ? city.areas.first : ''} · ${city.lat.toStringAsFixed(4)}، ${city.lng.toStringAsFixed(4)}',
+                                  '${entry.subtitle} · ${entry.lat.toStringAsFixed(4)}، ${entry.lng.toStringAsFixed(4)}',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: theme.textTheme.bodySmall?.copyWith(
