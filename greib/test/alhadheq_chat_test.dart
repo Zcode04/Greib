@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:greide_menk/features/communication_and_support/alhadheq_chat_screen.dart'
-    if (dart.library.io) 'package:greib_menk/features/communication_and_support/alhadheq_chat_screen.dart';
+import 'package:greib_menk/features/communication_and_support/alhadheq_chat_screen.dart';
 import 'package:greib_menk/core/theme/theme_controller.dart';
 import 'package:provider/provider.dart';
 

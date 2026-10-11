@@ -172,65 +172,108 @@ class _QuickSettingsSheetState extends State<QuickSettingsSheet> {
   Widget _buildMenu(ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Flexible(
-          child: ListView.separated(
-            shrinkWrap: true,
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-            itemCount: widget.items.length,
-            separatorBuilder: (_, _) => Divider(
-              height: 1,
-              indent: 68,
-              endIndent: AppSpacing.lg,
-              color: theme.dividerColor,
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // ★ بند «الحاذق» — المساعد الذكي (AI).
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.xs,
             ),
-            itemBuilder: (context, index) {
-              final item = widget.items[index];
-              return ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg,
-                  vertical: AppSpacing.xs,
-                ),
-                leading: Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(AppRadii.sm),
-                  ),
-                  child: Icon(
-                    item.icon,
-                    size: 18,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                title: Text(
-                  item.label,
-                  style: AppTypography.titleMedium.copyWith(
-                    color: theme.colorScheme.onSurface,
-                    fontSize: 15,
-                  ),
-                ),
-                subtitle: item.subtitle == null
-                    ? null
-                    : Text(
-                        item.subtitle!,
-                        style: AppTypography.bodySmall.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                trailing: Icon(
-                  LucideIcons.chevronLeft,
-                  size: 18,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                onTap: item.enabled ? (item.onTap ?? _openSections) : null,
-              );
+            leading: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppRadii.sm),
+              ),
+              child: Icon(
+                LucideIcons.sparkles,
+                size: 18,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+            title: Text(
+              'الحاذق',
+              style: AppTypography.titleMedium.copyWith(
+                color: theme.colorScheme.onSurface,
+                fontSize: 15,
+              ),
+            ),
+            subtitle: Text(
+              'المساعد الذكي (AI)',
+              style: AppTypography.bodySmall.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            trailing: Icon(
+              LucideIcons.chevronLeft,
+              size: 18,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            onTap: () {
+              final router = GoRouter.of(context);
+              Navigator.of(context).pop();
+              router.push('/alhadheq');
             },
           ),
-        ),
+          Divider(
+            height: 1,
+            indent: 68,
+            endIndent: AppSpacing.lg,
+            color: theme.dividerColor,
+          ),
+          for (int i = 0; i < widget.items.length; i++) ...[
+            if (i > 0)
+              Divider(
+                height: 1,
+                indent: 68,
+                endIndent: AppSpacing.lg,
+                color: theme.dividerColor,
+              ),
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.xs,
+              ),
+              leading: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppRadii.sm),
+                ),
+                child: Icon(
+                  widget.items[i].icon,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              title: Text(
+                widget.items[i].label,
+                style: AppTypography.titleMedium.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: 15,
+                ),
+              ),
+              subtitle: widget.items[i].subtitle == null
+                  ? null
+                  : Text(
+                      widget.items[i].subtitle!,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+              trailing: Icon(
+                LucideIcons.chevronLeft,
+                size: 18,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              onTap: widget.items[i].enabled ? (widget.items[i].onTap ?? _openSections) : null,
+            ),
+          ],
         // ★ بند «البحث» — كان أيقونة في الهيدر، ونُقل هنا مثل الوضع الليلي.
         Divider(height: 1, indent: 68, endIndent: AppSpacing.lg, color: theme.dividerColor),
         ListTile(
@@ -374,8 +417,9 @@ class _QuickSettingsSheetState extends State<QuickSettingsSheet> {
             style: AppTypography.bodySmall.copyWith(color: theme.colorScheme.onSurfaceVariant)),
         ),
       ],
-    );
-  }
+    ),
+  );
+}
 
   /// نفس أقسام الشريط في الرئيسية (الكل، الإلكترونيات، …) كقائمة قابلة للتمرير.
   Widget _buildSections(ThemeData theme) {
