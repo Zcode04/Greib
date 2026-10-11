@@ -305,6 +305,57 @@ class _QuickSettingsSheetState extends State<QuickSettingsSheet> {
             ),
           ),
         ),
+        // ★ بند «التحكم في الألوان» — يظهر أسفل الوضع الليلي مباشرة.
+        // ★ معطّل مؤقتاً: غير قابل للاستجابة عند النقر، وزر «غير متاح في
+        //   منطقتك» يظهر مكان سهم التنقل (يُفعَّل لاحقاً).
+        Divider(height: 1, indent: 68, endIndent: AppSpacing.lg, color: theme.dividerColor),
+        ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.xs,
+          ),
+          enabled: false, // ★ لا يستجيب للنقر
+          leading: Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppRadii.sm),
+            ),
+            child: Icon(
+              LucideIcons.palette,
+              size: 18,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          title: Text(
+            'التحكم في الألوان',
+            style: AppTypography.titleMedium.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontSize: 15,
+            ),
+          ),
+          subtitle: Text(
+            'تخصيص الخلفية والنصوص والأيقونات',
+            style: AppTypography.bodySmall.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          trailing: OutlinedButton(
+            // ★ زر معطّل: يوضّح أن الميزة غير مفعّلة في المنطقة حالياً.
+            onPressed: null,
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              minimumSize: const Size(0, 30),
+              side: BorderSide(
+                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+              ),
+              foregroundColor: theme.colorScheme.onSurfaceVariant,
+              textStyle: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700),
+            ),
+            child: const Text('غير متاح في منطقتك'),
+          ),
+        ),
         Divider(height: 1, indent: 68, endIndent: AppSpacing.lg, color: theme.dividerColor),
         SwitchListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),

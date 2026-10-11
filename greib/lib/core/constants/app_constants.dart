@@ -22,4 +22,8 @@ class AppConstants {
   static const String keyLastTab = 'last_tab_index';
   static const String keyUseRealMaps = 'use_real_maps';
   static const String keyMapStyle    = 'map_style_kind'; // 0=osm, 1=osmDark, 2=satellite
+
+  // ★ لوحة الألوان المخصّصة (صفحة «التحكم في الألوان») — خريطة حقل ← ARGB.
+  static const String keyColorPaletteDark  = 'color_palette_dark';
+  static const String keyColorPaletteLight = 'color_palette_light';
 }

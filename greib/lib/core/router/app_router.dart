@@ -21,6 +21,7 @@ import '../../features/home_and_services/reels_screen.dart';
 import '../../features/services/presentation/account_connections_page.dart';
 import '../../features/services/presentation/account_profile_page.dart';
 import '../../features/services/presentation/service_details_page.dart';
+import '../../features/settings/color_settings_screen.dart';
 import '../../shared_widgets/coming_soon_screen.dart';
 import '../../shared_widgets/main_shell_screen.dart';
 
@@ -56,6 +57,8 @@ class AppRouter {
     '/profile',
     '/chat',
     '/shopping',
+    // ★ صفحة «التحكم في الألوان» — تخصيص الخلفية/النصوص/الأيقونات.
+    '/color-settings',
   };
 
   // ★ دخول مباشر: لا يُعاد توجيه غير المسجّلين إلى شاشة تسجيل الدخول كـ
@@ -198,6 +201,11 @@ class AppRouter {
           subtitle: 'صفحة الإعدادات ستتوفر قريباً.',
           route: '/settings',
         ),
+      ),
+      // ★ صفحة التحكم في الألوان (تخصيص اللوحة المركزية فورياً).
+      GoRoute(
+        path: '/color-settings',
+        builder: (context, state) => const ColorSettingsScreen(),
       ),
       // ===== مسار واحد لكل الخدمات: /service/:id =====
       // إضافة خدمة جديدة = إضافة عنصر في assets/data/services.json فقط،

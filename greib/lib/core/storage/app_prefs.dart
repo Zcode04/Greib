@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/app_constants.dart';
@@ -71,5 +73,41 @@ class AppPrefs {
 
   static Future<void> setMapStyleIndex(int value) async {
     await _prefs?.setInt(AppConstants.keyMapStyle, value);
+  }
+
+  // -------------------- لوحة الألوان المخصّصة (تحكم في الألوان) --------------------
+  /// ★ تخصيصات المستخدم محفوظة كخريطة: مفتاح الحقل (مثل `background.primary`)
+  ///   ← قيمة ARGB. فارغة = لا تخصيص (اللوحة الافتراضية).
+
+  static String _paletteKeyFor(bool isDark) => isDark
+      ? AppConstants.keyColorPaletteDark
+      : AppConstants.keyColorPaletteLight;
+
+  /// كل التخصيصات المحفوظة لوضع معيّن (فارغة = لا تخصيص).
+  static Map<String, int> paletteOverrides({required bool isDark}) {
+    final raw = _prefs?.getString(_paletteKeyFor(isDark));
+    if (raw == null || raw.isEmpty) return const {};
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      return decoded.map((k, v) => MapEntry(k, (v as num).toInt()));
+    } catch (_) {
+      return const {};
+    }
+  }
+
+  /// حفظ/تحديث لون حقل واحد (يُستعاد تلقائياً عند إعادة التشغيل).
+  static Future<void> setPaletteOverride(
+    String field,
+    int argb, {
+    required bool isDark,
+  }) async {
+    final map = Map<String, int>.from(paletteOverrides(isDark: isDark));
+    map[field] = argb;
+    await _prefs?.setString(_paletteKeyFor(isDark), jsonEncode(map));
+  }
+
+  /// حذف كل تخصيصات الوضع (العودة للوحة الافتراضية).
+  static Future<void> clearPaletteOverrides({required bool isDark}) async {
+    await _prefs?.remove(_paletteKeyFor(isDark));
   }
 }

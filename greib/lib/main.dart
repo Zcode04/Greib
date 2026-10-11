@@ -20,6 +20,12 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppPrefs.init();
 
+  // ★ ميزة «التحكم في الألوان» معطّلة حالياً (زر «غير متاح في منطقتك»)
+  //   ⇒ نضمن اعتماد التطبيق على اللوحة الافتراضية وحده: نحذف أي تخصيص
+  //   محفوظ سابقاً حتى لا يعود مع تفعيل الكود لاحقاً.
+  await AppPrefs.clearPaletteOverrides(isDark: true);
+  await AppPrefs.clearPaletteOverrides(isDark: false);
+
   // نحمّل ملفات البيانات (المصدر الوحيد للحقيقة) قبل بناء الواجهة،
   // فتكون كل الصفحات جاهزة فوراً بلا شاشة تحميل وبلا وميض.
   await ServicesRepository.instance.load();
@@ -34,6 +40,7 @@ Widget buildGreibMenkApp() {
   return MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => ThemeController()),
+      // ★ اللوحة الافتراضية فقط (ميزة تخصيص الألوان معطّلة حالياً).
       ChangeNotifierProvider(create: (_) => ColorPaletteController()),
       ChangeNotifierProvider<AuthService>.value(value: AuthService.instance),
       ChangeNotifierProvider<NotificationManager>.value(

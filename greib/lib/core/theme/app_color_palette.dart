@@ -367,3 +367,24 @@ class AppColorPalette extends ThemeExtension<AppColorPalette> {
   }
 }
 
+/// ---------------------------------------------------------------------------
+///  مفاتيح حقول اللوحة القابلة للتخصيص (صفحة «التحكم في الألوان»)
+/// ---------------------------------------------------------------------------
+///  ★ عقد مشترك بين: شاشة التخصيص (كتابة/حفظ) و[ColorPaletteController.withStored]
+///    (استعادة عند الإقلاع) ⇒ أي تغيير في المفاتيح يظهر في المكانين معاً.
+class PaletteFieldKeys {
+  PaletteFieldKeys._();
+
+  // الخلفيات
+  static const String backgroundPrimary = 'background.primary';
+  static const String backgroundSurface = 'background.surface';
+
+  // النصوص
+  static const String textPrimary = 'text.primary';
+  static const String textSecondary = 'text.secondary';
+
+  // الأيقونات
+  static const String iconPrimary = 'icon.primary';
+  static const String iconActive = 'icon.active';
+}
+

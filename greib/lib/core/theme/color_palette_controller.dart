@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../storage/app_prefs.dart';
 import 'app_color_palette.dart';
 
 /// ============================================================================
@@ -32,6 +33,51 @@ class ColorPaletteController extends ChangeNotifier {
     AppColorPalette? light,
   })  : _dark = dark ?? AppColorPalette.dark(),
         _light = light ?? AppColorPalette.light();
+
+  /// ★ يبني المتحكم مع تطبيق تخصيصات المستخدم المحفوظة محلياً (AppPrefs)
+  ///   فوق اللوحات الافتراضية — فتُستعاد ألوانه المختارة بعد إعادة التشغيل.
+  ///
+  ///   ★ معلومة: ميزة «التحكم في الألوان» معطّلة حالياً (المطلوب اعتماد
+  ///   اللوحة الافتراضية)، فالتطبيق يستخدم المُنشئ العادي. هذا المُنشئ
+  ///   محفوظ كما هو لتفعيل الميزة لاحقاً.
+  factory ColorPaletteController.withStored() {
+    final controller = ColorPaletteController();
+    controller._applyStoredOverrides();
+    return controller;
+  }
+
+  /// يطبّق كل الألوان المحفوظة (لكل وضع) فوق اللوحة الحالية.
+  void _applyStoredOverrides() {
+    for (final isDark in const [true, false]) {
+      final stored = AppPrefs.paletteOverrides(isDark: isDark);
+      if (stored.isEmpty) continue;
+      final base = paletteFor(isDark);
+      var text = base.text;
+      var background = base.background;
+      var icon = base.icon;
+      stored.forEach((field, argb) {
+        final color = Color(argb);
+        switch (field) {
+          case PaletteFieldKeys.backgroundPrimary:
+            background = background.copyWith(primary: color);
+          case PaletteFieldKeys.backgroundSurface:
+            background = background.copyWith(surface: color);
+          case PaletteFieldKeys.textPrimary:
+            text = text.copyWith(primary: color);
+          case PaletteFieldKeys.textSecondary:
+            text = text.copyWith(secondary: color);
+          case PaletteFieldKeys.iconPrimary:
+            icon = icon.copyWith(primary: color);
+          case PaletteFieldKeys.iconActive:
+            icon = icon.copyWith(active: color);
+        }
+      });
+      _replace(
+        isDark: isDark,
+        palette: base.copyWith(text: text, background: background, icon: icon),
+      );
+    }
+  }
 
   /// اللوحة الحالية حسب الوضع (داكن/نهاري).
   AppColorPalette paletteFor(bool isDark) => isDark ? _dark : _light;
