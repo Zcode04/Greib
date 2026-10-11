@@ -4,12 +4,15 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/models/service_model.dart';
+import '../../../../core/mock_data/mock_data.dart';
 import '../../../../core/widgets/draggable_sheet_body.dart';
 import '../../services/data/services_repository.dart';
 import '../../services/data/account_repository.dart';
+import '../../services/data/commerce_aggregator_service.dart';
 import '../../../../shared_widgets/smart_image.dart';
 import '../../../../shared_widgets/post_sheets.dart';
 import '../../../../shared_widgets/service_post_card.dart';
+import '../../../../shared_widgets/store_category_tabs.dart';
 import '../../../../core/widgets/app_sheet.dart';
 import '../../../../shared_widgets/share_arrow_icon.dart';
 
@@ -58,6 +61,23 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   final Map<String, double?> _inlineFractions = {};
 
   @override
+  void initState() {
+    super.initState();
+    StoreSelectedCategory.notifier.addListener(_onCategoryChanged);
+  }
+
+  void _onCategoryChanged() {
+    if (mounted) {
+      setState(() {
+        _spotlightIndex = 0;
+      });
+      if (_spotlightController.hasClients) {
+        _spotlightController.jumpToPage(0);
+      }
+    }
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -70,6 +90,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
 
   @override
   void dispose() {
+    StoreSelectedCategory.notifier.removeListener(_onCategoryChanged);
     _spotlightController.dispose();
     for (final c in _inlineControllers.values) {
       c.dispose();
@@ -92,39 +113,117 @@ class _SpotlightSectionState extends State<SpotlightSection> {
           post: const ServicePost(text: '', imageUrls: [], timeAgo: ''),
         ),
     ];
+    final currentCategory = StoreSelectedCategory.notifier.value;
 
+    // منشورات الخدمات الأساسية (أو بديلة إن لم تكن هناك منشورات في الملف)
     final allEntries = ServicesRepository.instance.allPosts;
     final baseEntries = allEntries.isNotEmpty ? allEntries : fallbackPosts;
 
-    // إضافة بوستات وهمية ديناميكية لتجربة العرض الشرائحي لأي خدمة تم اختيارها
-    final List<ServicePostEntry> enhancedEntries = List.from(baseEntries);
-    if (enhancedEntries.isNotEmpty) {
-      final selectedServices = _isGlobalCarousel
-          ? services
-          : services.where((s) => _carouselServiceIds.contains(s.id)).toList();
-          
-      for (final targetService in selectedServices) {
+    // تجميع منشورات الفئات لتشمل كل تصنيف مختار أو الكل
+    final List<ServicePostEntry> enhancedEntries = [];
+
+    // إذا تم اختيار 'all'، نعرض منشورات جميع الخدمات ومنشورات التجارة
+    if (currentCategory == 'all') {
+      enhancedEntries.addAll(baseEntries);
+
+      // إضافة بوستات تفاعلية للأقسام التجارية الرئيسية لضمان ظهور منشورات لكل الفئات
+      for (final cat in MockData.productCategories) {
+        if (cat['id'] == 'all') continue;
+        final products = CommerceAggregatorService.instance.getProductsForCategorySync(cat['id']!);
+        if (products.isNotEmpty) {
+          final topProduct = products.first;
+          final catService = ServiceCategory(
+            id: 'store_${cat['id']}',
+            title: cat['label']!,
+            subtitle: 'وصل حديثاً من ${topProduct.sourceStore}',
+            description: topProduct.name,
+            iconName: 'shopping-bag',
+            color: const Color(0xFF10B981),
+            colorHex: '#10B981',
+            price: '${topProduct.customPrice.toStringAsFixed(0)} ${topProduct.currency}',
+            imageUrls: [topProduct.imageUrl],
+          );
+          enhancedEntries.add(ServicePostEntry(
+            postId: 'feed_${cat['id']}_${topProduct.id}',
+            index: 0,
+            service: catService,
+            post: ServicePost(
+              text: 'عروض حصرية في قسم ${cat['label']}: ${topProduct.name} بسعر ${topProduct.customPrice.toStringAsFixed(0)} ${topProduct.currency} فقط!',
+              imageUrls: [topProduct.imageUrl],
+              timeAgo: 'وصل حديثاً',
+            ),
+          ));
+        }
+      }
+    } else {
+      // فئة محددة: إما خدمة محلية (طعام، صيدلية، توصيل...) أو تجارة (أزياء، إلكترونيات، فنادق...)
+      final matchingServices = services.where((s) {
+        if (currentCategory == 'food' && s.id == 'food') return true;
+        if (currentCategory == 'pharmacy' && s.id == 'pharmacy') return true;
+        if (currentCategory == 'delivery' && (s.id == 'delivery' || s.id == 'ride')) return true;
+        return s.id == currentCategory;
+      }).toList();
+
+      if (matchingServices.isNotEmpty) {
+        for (final s in matchingServices) {
+          final sPosts = baseEntries.where((e) => e.service.id == s.id).toList();
+          if (sPosts.isNotEmpty) {
+            enhancedEntries.addAll(sPosts);
+          } else {
+            enhancedEntries.add(ServicePostEntry(
+              postId: s.id,
+              index: 0,
+              service: s,
+              post: ServicePost(
+                text: s.description,
+                imageUrls: s.imageUrls,
+                timeAgo: 'الآن',
+              ),
+            ));
+          }
+        }
+      }
+
+      // إضافة بوستات المنتجات المجمعة الخاصة بهذا التصنيف تحديداً
+      final catProducts = CommerceAggregatorService.instance.getProductsForCategorySync(currentCategory);
+      final catLabel = MockData.productCategories.firstWhere(
+        (c) => c['id'] == currentCategory,
+        orElse: () => {'label': 'المنتجات'},
+      )['label']!;
+
+      for (var i = 0; i < catProducts.length && i < 4; i++) {
+        final prod = catProducts[i];
+        final isHotel = prod.category == 'hotels';
+        final catService = ServiceCategory(
+          id: 'store_${prod.id}',
+          title: isHotel ? prod.name : catLabel,
+          subtitle: isHotel ? 'حجز فندقي عائلي' : 'متوفر عبر ${prod.sourceStore}',
+          description: prod.name,
+          iconName: isHotel ? 'hotel' : 'shopping-bag',
+          color: isHotel ? const Color(0xFF1E6B3C) : const Color(0xFF3B82F6),
+          colorHex: isHotel ? '#1E6B3C' : '#3B82F6',
+          price: isHotel ? '${prod.customPrice.toStringAsFixed(0)} ر.س/ليلة' : '${prod.customPrice.toStringAsFixed(0)} ${prod.currency}',
+          imageUrls: [prod.imageUrl],
+        );
+
         enhancedEntries.add(ServicePostEntry(
-          postId: '${targetService.id}_dummy1',
-          index: 100,
-          service: targetService,
+          postId: 'post_cat_${prod.id}',
+          index: i,
+          service: catService,
           post: ServicePost(
-            text: 'عرض خاص ومميز من (${targetService.title}) هذا الأسبوع!',
-            imageUrls: const ['https://images.unsplash.com/photo-1555685812-4b943f1cb0eb?w=800&q=80'],
-            timeAgo: 'قبل ساعتين',
-          ),
-        ));
-        enhancedEntries.add(ServicePostEntry(
-          postId: '${targetService.id}_dummy2',
-          index: 101,
-          service: targetService,
-          post: ServicePost(
-            text: 'تعرف على أحدث الإضافات لدينا في قسم ${targetService.title}.',
-            imageUrls: const ['https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80'],
-            timeAgo: 'قبل ٥ ساعات',
+            text: isHotel
+                ? 'إقامة مميزة في ${prod.name} - تقييم ${prod.rating} ★ مع إطلالة فاخرة وخدمات عائلية متكاملة.'
+                : 'وصل حديثاً في $catLabel: ${prod.name} بسعر ${prod.customPrice.toStringAsFixed(0)} ${prod.currency} (متجر ${prod.sourceStore})',
+            imageUrls: [prod.imageUrl],
+            timeAgo: i == 0 ? 'الآن' : 'منذ ساعة',
           ),
         ));
       }
+    }
+
+    // إذا لم يكن هناك شيء في التصفية، نعرض المنشورات الافتراضية
+    if (enhancedEntries.isEmpty) {
+      enhancedEntries.addAll(baseEntries);
     }
 
     final List<Widget> feedWidgets = [];
