@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/mock_data/mock_data.dart';
 import '../../../../core/models/doctor_model.dart';
 import '../../../../core/theme/design_tokens.dart';
@@ -66,7 +67,7 @@ class DoctorsRow extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+                      color: context.backgroundColors.surface,
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(2.0),
@@ -76,13 +77,13 @@ class DoctorsRow extends StatelessWidget {
                           fit: BoxFit.cover,
                           // لا نترك الصورة فارغة عند فشل الشبكة: أيقونة بديلة.
                           errorBuilder: (_, _, _) => Container(
-                            color: AppColors.accentPrimary.withValues(
+                            color: context.accentColor.withValues(
                               alpha: 0.15,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               LucideIcons.user,
                               size: 22,
-                              color: AppColors.accentPrimary,
+                              color: context.accentColor,
                             ),
                           ),
                         ),
@@ -99,10 +100,10 @@ class DoctorsRow extends StatelessWidget {
                     width: 16,
                     height: 16,
                     decoration: BoxDecoration(
-                      color: Colors.greenAccent[400],
+                      color: AppColors.success,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isDark ? const Color(0xFF121212) : Colors.white,
+                        color: context.backgroundColors.surface,
                         width: 2.5,
                       ),
                     ),
@@ -119,7 +120,7 @@ class DoctorsRow extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: isDark ? Colors.white : Colors.black87,
+                color: context.textColors.primary,
                 fontWeight: FontWeight.w700,
                 fontSize: 12,
               ),

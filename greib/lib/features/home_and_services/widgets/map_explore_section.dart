@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../../core/location/location_controller.dart';
 import '../../../core/storage/app_prefs.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/extensions/context_extensions.dart';
 import '../../../core/widgets/confirm_location_sheet.dart';
 import '../../../core/widgets/map_style_selector.dart';
 import '../../../core/widgets/place_search_sheet.dart';
@@ -245,10 +246,9 @@ class _MapExploreSectionState extends State<MapExploreSection> {
 
   // ---------- 1) شريط البحث — يفتح بحثاً حقيقياً ----------
   Widget _searchBar() {
-    final tint = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
-    final hint = widget.isDark
-        ? AppColors.textSecondary
-        : AppColors.lightTextSecondary;
+    // ★ كل الألوان من اللوحة المركزية (Color Palette) عبر السياق.
+    final tint = context.iconColors.primary;
+    final hint = context.textColors.secondary;
     return GestureDetector(
       onTap: () async {
         final loc = context.read<LocationController>();
@@ -298,8 +298,8 @@ class _MapExploreSectionState extends State<MapExploreSection> {
   Widget _liveMapCard() {
     final loc = context.watch<LocationController>();
     final useReal = AppPrefs.useRealMaps;
-    final label = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
-    final tint = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+    final label = context.textColors.primary;
+    final tint = context.iconColors.primary;
     return GlassContainer(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
       borderRadius: BorderRadius.circular(28),
@@ -388,8 +388,8 @@ class _MapExploreSectionState extends State<MapExploreSection> {
 
   // ---------- بطاقة العالم 3D الأصلية (الوضع العادي قبل المكتبات) ----------
   Widget _worldCardInner() {
-    final tint = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
-    final label = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
+    final tint = context.iconColors.primary;
+    final label = context.textColors.primary;
     return Column(
       children: [
         Row(
@@ -400,7 +400,7 @@ class _MapExploreSectionState extends State<MapExploreSection> {
             ),
             Text('موقعك الحالي',
               style: TextStyle(
-                color: widget.isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
+                color: context.textColors.secondary,
                 fontSize: 12)),
             const SizedBox(width: 4),
             Icon(LucideIcons.locateFixed, size: 14, color: tint),
@@ -419,17 +419,17 @@ class _MapExploreSectionState extends State<MapExploreSection> {
                     gradient: RadialGradient(
                       center: const Alignment(0.2, -0.2),
                       radius: 1.1,
-                      colors: widget.isDark
-                          ? [tint.withValues(alpha: 0.18), AppColors.background]
-                          : [tint.withValues(alpha: 0.12), AppColors.lightSurface],
+                      colors: [
+                        tint.withValues(alpha: 0.18),
+                        context.backgroundColors.primary,
+                      ],
                     ),
                   ),
                 ),
                 IgnorePointer(
                   child: CustomPaint(
                     painter: _GlobeGridPainter(
-                      line: (widget.isDark ? AppColors.textSecondary : AppColors.lightTextSecondary)
-                          .withValues(alpha: 0.28)),
+                      line: context.textColors.secondary.withValues(alpha: 0.28)),
                   ),
                 ),
                 const Center(child: _SpinningGlobe()),
@@ -447,11 +447,9 @@ class _MapExploreSectionState extends State<MapExploreSection> {
   /// ★ شريط أفقي قابل للتمرير (عدد التبويبات كبير الآن) ⇒ يبقى التبويب
   ///   النشط في المرأى: نُبقي المؤشر ظاهراً فوقه فقط.
   Widget _tabsBar() {
-    final tint = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
-    final inactive = widget.isDark
-        ? AppColors.textSecondary
-        : AppColors.lightTextSecondary;
-    final active = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
+    final tint = context.iconColors.primary;
+    final inactive = context.textColors.secondary;
+    final active = context.textColors.primary;
 
     return Directionality(
       // ★ مربّع النقر يتبع اتجاه الكتابة (الصفحة عربية ⇒ تخطيط RTL).
@@ -510,11 +508,9 @@ class _MapExploreSectionState extends State<MapExploreSection> {
   /// ★ تحت التبويبات: بطاقات الجهة القريبة (بروفايل + الاسم + حالة الاتصال
   ///   + زر «تواصل الآن» ⇒ يفتح صفحة الدردشة).
   Widget _nearbyList() {
-    final tint = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
-    final primary = widget.isDark ? AppColors.textPrimary : AppColors.lightText;
-    final secondary = widget.isDark
-        ? AppColors.textSecondary
-        : AppColors.lightTextSecondary;
+    final tint = context.iconColors.primary;
+    final primary = context.textColors.primary;
+    final secondary = context.textColors.secondary;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -551,11 +547,9 @@ class _MapExploreSectionState extends State<MapExploreSection> {
     required Color secondary,
   }) {
     final presence = place.online ? 'متصل الآن' : place.lastSeen;
-    // ★ لون واحد هادئ لل بطاقات：根据 السمة ⇒ يذوب في خلفية البطاقة
+    // ★ لون واحد هادئ لل بطاقات：حسب السمة ⇒ يذوب في خلفية البطاقة
     //   بدل اللون العكسي (النيون/الأزرق) الذي كان يبرز على عنصر المستخدم.
-    final quiet = widget.isDark
-        ? Colors.white.withValues(alpha: 0.06)
-        : Colors.black.withValues(alpha: 0.04);
+    final quiet = context.backgroundColors.secondary;
 
     return GlassContainer(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -605,7 +599,7 @@ class _MapExploreSectionState extends State<MapExploreSection> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: place.online
-                            ? const Color(0xFF10B981)
+                            ? AppColors.success
                             : secondary,
                       ),
                     ),
@@ -780,8 +774,13 @@ class _SpinningGlobeState extends State<_SpinningGlobe>
       width: 128,
       child: AnimatedBuilder(
         animation: _spin,
-        builder: (context, _) =>
-            CustomPaint(painter: _GlobePainter(turns: _spin.value)),
+        builder: (context, _) => CustomPaint(
+          painter: _GlobePainter(
+            turns: _spin.value,
+            brand: context.accentColor,
+            background: context.backgroundColors.primary,
+          ),
+        ),
       ),
     );
   }
@@ -794,7 +793,17 @@ class _GlobePainter extends CustomPainter {
   /// دوران الكرة (0..1 دورة كاملة).
   final double turns;
 
-  const _GlobePainter({required this.turns});
+  /// ★ لون الكرة من اللوحة المركزية (يسري مع تغيير الهوية فوراً).
+  final Color brand;
+
+  /// ★ لون الخلفية من اللوحة المركزية.
+  final Color background;
+
+  const _GlobePainter({
+    required this.turns,
+    required this.brand,
+    required this.background,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -804,11 +813,11 @@ class _GlobePainter extends CustomPainter {
 
     // 1) جسم الكرة: تدرّج كروي (فاتح أعلى اليمين ⇒ إحساس ثلاثي الأبعاد).
     final sphere = Paint()
-      ..shader = const RadialGradient(
+      ..shader = RadialGradient(
         center: Alignment(-0.35, -0.4),
         radius: 1.0,
-        colors: [Color(0xFF3B82F6), Color(0xFF0F172A)],
-        stops: [0.0, 1.0],
+        colors: [brand, background],
+        stops: const [0.0, 1.0],
       ).createShader(rect);
     canvas.drawCircle(center, radius, sphere);
 
@@ -868,10 +877,13 @@ class _GlobePainter extends CustomPainter {
       final p = center.translate(x, y);
       // نقلة فقط داخل قرص الكرة.
       if ((p - center).distance > radius * 0.94) continue;
-      canvas.drawCircle(p, 2.4, Paint()..color = const Color(0xFF10B981));
+      canvas.drawCircle(p, 2.4, Paint()..color = AppColors.success);
     }
   }
 
   @override
-  bool shouldRepaint(_GlobePainter oldDelegate) => oldDelegate.turns != turns;
+  bool shouldRepaint(_GlobePainter oldDelegate) =>
+      oldDelegate.turns != turns ||
+      oldDelegate.brand != brand ||
+      oldDelegate.background != background;
 }

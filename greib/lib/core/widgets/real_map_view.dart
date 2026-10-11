@@ -9,6 +9,7 @@ import '../location/location_service.dart';
 import '../location/map_config.dart';
 import '../storage/app_prefs.dart';
 
+import '../extensions/context_extensions.dart';
 import '../theme/design_tokens.dart';
 import 'location_permission_prompt.dart';
 
@@ -142,7 +143,8 @@ class RealMapViewState extends State<RealMapView>
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final kind = _tileKind();
-    final tint = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+    // ★ كل الألوان من اللوحة المركزية (Color Palette) عبر السياق.
+    final tint = context.iconColors.primary;
 
     // دمج الدبابيس: موقعي + Extra markers من الخارج.
     final markers = [
@@ -197,7 +199,7 @@ class RealMapViewState extends State<RealMapView>
                       Icon(
                         LucideIcons.mapPin,
                         size: 38,
-                        color: theme.colorScheme.primary,
+                        color: context.iconColors.primary,
                         shadows: const [Shadow(color: Colors.black38, blurRadius: 8)],
                       ),
                       const SizedBox(height: 30),
@@ -276,7 +278,7 @@ class RealMapViewState extends State<RealMapView>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: tint,
-                border: Border.all(color: Colors.white, width: 2.5),
+                border: Border.all(color: context.textColors.onAccent, width: 2.5),
                 boxShadow: [
                   BoxShadow(color: tint.withValues(alpha: 0.5), blurRadius: 8),
                 ],
@@ -299,14 +301,14 @@ class _KindBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, icon, color) = switch (kind) {
-      MapProviderKind.satellite => ('أقمار', LucideIcons.satellite, const Color(0xFF10B981)),
+      MapProviderKind.satellite => ('أقمار', LucideIcons.satellite, AppColors.success),
       MapProviderKind.osmDark   => ('داكن', LucideIcons.moon,      const Color(0xFF8B5CF6)),
-      MapProviderKind.osm       => ('عادي', LucideIcons.map,       const Color(0xFF3B82F6)),
+      MapProviderKind.osm       => ('عادي', LucideIcons.map,       context.accentColor),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: (isDark ? Colors.black : Colors.white).withValues(alpha: 0.82),
+        color: context.backgroundColors.surface.withValues(alpha: 0.82),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 6)],
       ),

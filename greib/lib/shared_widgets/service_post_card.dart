@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../core/extensions/context_extensions.dart';
 import '../core/mock_data/mock_data.dart';
 import '../core/models/service_model.dart';
-import '../core/theme/app_colors.dart';
 import '../core/widgets/app_sheet.dart';
 import 'post_reaction.dart';
 import 'smart_image.dart';
@@ -202,10 +202,9 @@ class _ServicePostCardState extends State<ServicePostCard> {
 
   ServiceCategory get _service => widget.service;
 
-  Color get _primary =>
-      widget.isDark ? AppColors.textPrimary : AppColors.lightText;
-  Color get _secondary =>
-      widget.isDark ? AppColors.textSecondary : AppColors.lightTextSecondary;
+  // ★ ألوان النص والخلفية تُقرأ من اللوحة الديناميكية (تتبع الوضع والتخصيص).
+  Color get _primary => context.textColors.primary;
+  Color get _secondary => context.textColors.secondary;
   Color get _accent => _service.color;
 
   static const double _kPillRadius = 999;
@@ -329,8 +328,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
       // ★ خلفية المنشور = خلفية التطبيق ⇒ تندمج البطاقة مع الصفحة من طرف
       // لطرف كما في فيسبوك، والضوء البصري يأتي من الصور والفواصل فقط.
       color:
-          widget.backgroundColor ??
-          (widget.isDark ? AppColors.background : AppColors.lightBackground),
+          widget.backgroundColor ?? context.backgroundColors.primary,
       // ★ مسافة عمودية مريحة بين المنشورات المتتابعة (فقط، بلا تغيير في الهيكل).
       padding: const EdgeInsets.only(top: 12, bottom: 20),
       child: Column(

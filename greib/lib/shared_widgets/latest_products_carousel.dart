@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../core/mock_data/mock_data.dart';
 import '../core/models/product_model.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/theme/app_colors.dart';
 
 /// بطاقة "الأحدث" — بانر بعرض كامل (ستايل متاجر إلكترونية) يعرض 4 منتجات.
@@ -50,7 +51,9 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     if (_latest.isEmpty) return const SizedBox.shrink();
-    final dotColor = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+    // ★ ألوان المؤشر من اللوحة الديناميكية.
+    final dotColor = context.accentColor;
+    final inactiveDotColor = context.backgroundColors.outline;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -76,7 +79,7 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
               decoration: BoxDecoration(
                 color: active
                     ? dotColor
-                    : (isDark ? Colors.white24 : AppColors.lightOutline),
+                    : inactiveDotColor,
                 borderRadius: BorderRadius.circular(5),
               ),
             );
@@ -87,9 +90,8 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
   }
 
   Widget _banner(Product p, bool isDark) {
-    final accent = isDark
-        ? AppColors.accentPrimary
-        : AppColors.accentPrimaryDark;
+    // ★ اللون الرسمي من اللوحة الديناميكية (يسري مع التخصيص فوراً).
+    final accent = context.accentColor;
     final hasDiscount = p.oldPrice != null && p.oldPrice! > p.price;
     final discountPct = hasDiscount
         ? (((p.oldPrice! - p.price) / p.oldPrice!) * 100).round()
@@ -99,10 +101,16 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         boxShadow: isDark
-            ? AppColors.violetGlow(blur: 22, alpha: 0.12)
+            ? [
+                BoxShadow(
+                  color: accent.withValues(alpha: 0.12),
+                  blurRadius: 22,
+                  offset: const Offset(0, 8),
+                ),
+              ]
             : [
                 BoxShadow(
-                  color: AppColors.accentPrimary.withValues(alpha: 0.22),
+                  color: accent.withValues(alpha: 0.22),
                   blurRadius: 18,
                   offset: const Offset(0, 8),
                 ),
@@ -116,13 +124,13 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
             Image.network(
               p.imageUrl,
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => Container(
-                color: AppColors.accentPrimaryDark,
-                child: const Center(
+              errorBuilder: (ctx, _, _) => Container(
+                color: accent,
+                child: Center(
                   child: Icon(
                     LucideIcons.shoppingBag,
                     size: 52,
-                    color: Colors.white,
+                    color: ctx.textColors.onAccent,
                   ),
                 ),
               ),
@@ -253,10 +261,9 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
                           children: [
                             Text(
                               '${p.price.toStringAsFixed(0)} ر.س',
-                              style: TextStyle(
-                                color: isDark
-                                    ? AppColors.neon
-                                    : const Color(0xFFFFD54F),
+                              style: const TextStyle(
+                                // ★ لون ثابت فاتح: النص فوق تدرّج داكن (صورة معتمة).
+                                color: Color(0xFFFFD54F),
                                 fontWeight: FontWeight.w900,
                                 fontSize: 16,
                               ),
@@ -298,7 +305,8 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
                     onPressed: () => context.push('/orders'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: accent,
-                      foregroundColor: isDark ? Colors.black : Colors.white,
+                      // ★ المحتوى فوق اللون الرسمي من اللوحة المركزية.
+                      foregroundColor: context.textColors.onAccent,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 18,
                         vertical: 12,
@@ -311,7 +319,7 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
                     icon: Icon(
                       LucideIcons.shoppingCart,
                       size: 16,
-                      color: isDark ? Colors.black : Colors.white,
+                      color: context.textColors.onAccent,
                     ),
                     label: const Text(
                       'اطلب',

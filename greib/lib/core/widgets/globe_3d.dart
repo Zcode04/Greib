@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../extensions/context_extensions.dart';
 import '../theme/app_colors.dart';
 
 /// Globe3D — الكرة الأرضية 3D الأصلية (الوضع العادي قبل المكتبات).
@@ -20,7 +21,8 @@ class GlobeCard extends StatelessWidget {
   const GlobeCard({super.key, required this.isDark});
   @override
   Widget build(BuildContext context) {
-    final tint = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+    // ★ كل الألوان من اللوحة المركزية (Color Palette) عبر السياق.
+    final tint = context.iconColors.primary;
     return AspectRatio(
       aspectRatio: 1.6,
       child: ClipRRect(
@@ -33,17 +35,17 @@ class GlobeCard extends StatelessWidget {
                 gradient: RadialGradient(
                   center: const Alignment(0.2, -0.2),
                   radius: 1.1,
-                  colors: isDark
-                      ? [tint.withValues(alpha: 0.18), AppColors.background]
-                      : [tint.withValues(alpha: 0.12), AppColors.lightSurface],
+                  colors: [
+                    tint.withValues(alpha: 0.18),
+                    context.backgroundColors.primary,
+                  ],
                 ),
               ),
             ),
             IgnorePointer(
               child: CustomPaint(
                 painter: _GlobeGridPainter(
-                  line: (isDark ? AppColors.textSecondary : AppColors.lightTextSecondary)
-                      .withValues(alpha: 0.28)),
+                  line: context.textColors.secondary.withValues(alpha: 0.28)),
               ),
             ),
             const Center(child: _SpinningGlobe()),
@@ -96,24 +98,41 @@ class _SpinningGlobeState extends State<_SpinningGlobe>
   Widget build(BuildContext context) {
     return SizedBox(height: 128, width: 128,
       child: AnimatedBuilder(animation: _spin,
-        builder: (context, _) =>
-            CustomPaint(painter: _GlobePainter(turns: _spin.value))));
+        builder: (context, _) => CustomPaint(
+          painter: _GlobePainter(
+            turns: _spin.value,
+            brand: context.accentColor,
+            background: context.backgroundColors.primary,
+          ),
+        )));
   }
 }
 
 class _GlobePainter extends CustomPainter {
   final double turns;
-  const _GlobePainter({required this.turns});
+
+  /// ★ لون الكرة من اللوحة المركزية (يسري مع تغيير الهوية فوراً).
+  final Color brand;
+
+  /// ★ لون الخلفية من اللوحة المركزية.
+  final Color background;
+
+  const _GlobePainter({
+    required this.turns,
+    required this.brand,
+    required this.background,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
     final radius = size.shortestSide / 2;
     final center = Offset(size.width / 2, size.height / 2);
     final rect = Rect.fromCircle(center: center, radius: radius);
     final sphere = Paint()
-      ..shader = const RadialGradient(
+      ..shader = RadialGradient(
         center: Alignment(-0.35, -0.4), radius: 1.0,
-        colors: [Color(0xFF3B82F6), Color(0xFF0F172A)],
-        stops: [0.0, 1.0]).createShader(rect);
+        colors: [brand, background],
+        stops: const [0.0, 1.0]).createShader(rect);
     canvas.drawCircle(center, radius, sphere);
     final line = Paint()
       ..color = Colors.white.withValues(alpha: 0.16)
@@ -144,9 +163,10 @@ class _GlobePainter extends CustomPainter {
       final y = ((refLat - pin[0]) / 90) * radius;
       final p = center.translate(x, y);
       if ((p - center).distance > radius * 0.94) continue;
-      canvas.drawCircle(p, 2.4, Paint()..color = const Color(0xFF10B981));
+      canvas.drawCircle(p, 2.4, Paint()..color = AppColors.success);
     }
   }
   @override
-  bool shouldRepaint(_GlobePainter old) => old.turns != turns;
+  bool shouldRepaint(_GlobePainter old) =>
+      old.turns != turns || old.brand != brand || old.background != background;
 }

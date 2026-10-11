@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../core/extensions/context_extensions.dart';
 import '../../../core/mock_data/mock_data.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../auth/mock_auth.dart';
@@ -32,10 +33,12 @@ class HeroBento extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        // ★ تدرّج الهوية من اللوحة المركزية: اللون الرسمي (ديناميكي) +
+        //   درجته الفاتحة (لا يوجد لها حقل مخصّص في اللوحة ⇒ من المصدر المركزي).
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.accentPrimary, AppColors.accentPrimaryLight],
+          colors: [context.accentColor, AppColors.accentPrimaryLight],
         ),
         borderRadius: BorderRadius.circular(AppRadii.xxl + 4),
         boxShadow: AppColors.violetGlow(blur: 28, alpha: 0.35),
@@ -52,7 +55,7 @@ class HeroBento extends StatelessWidget {
                     Text(
                       '$_greeting()، $firstName',
                       style: theme.textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
+                        color: context.textColors.onAccent,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -60,7 +63,7 @@ class HeroBento extends StatelessWidget {
                     Text(
                       'ماذا تخطط له اليوم؟',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.85),
+                        color: context.textColors.onAccent.withValues(alpha: 0.85),
                       ),
                     ),
                   ],
@@ -73,10 +76,10 @@ class HeroBento extends StatelessWidget {
                     vertical: AppSpacing.xs,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
+                    color: context.textColors.onAccent.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(AppRadii.full),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.3),
+                      color: context.textColors.onAccent.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(
@@ -85,13 +88,13 @@ class HeroBento extends StatelessWidget {
                       const Icon(
                         LucideIcons.gift,
                         size: 13,
-                        color: Color(0xFFFFD700),
+                        color: Color(0xFFFFD700), // ذهبي العضوية (زخرفي — خارج اللوحة)
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'ذهبي',
                         style: theme.textTheme.labelMedium?.copyWith(
-                          color: Colors.white,
+                          color: context.textColors.onAccent,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -153,7 +156,7 @@ class _BentoTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Material(
-      color: Colors.white.withValues(alpha: 0.16),
+      color: context.textColors.onAccent.withValues(alpha: 0.16),
       borderRadius: BorderRadius.circular(AppRadii.xl),
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadii.xl),
@@ -162,31 +165,31 @@ class _BentoTile extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppRadii.xl),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+            border: Border.all(color: context.textColors.onAccent.withValues(alpha: 0.25)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 20, color: Colors.white),
+              Icon(icon, size: 20, color: context.textColors.onAccent),
               const SizedBox(height: AppSpacing.md),
               Text(
                 label,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.85),
+                  color: context.textColors.onAccent.withValues(alpha: 0.85),
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 value,
                 style: theme.textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
+                  color: context.textColors.onAccent,
                   fontWeight: FontWeight.w800,
                 ),
               ),
               Text(
                 caption,
                 style: theme.textTheme.labelMedium?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.75),
+                  color: context.textColors.onAccent.withValues(alpha: 0.75),
                   fontSize: 10,
                 ),
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/models/user_model.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -54,6 +55,8 @@ class _ProfileWidgetState extends State<ProfileWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final roleEnum = PermissionService.roleFromString(widget.profile.role);
+    // ★ اللون الرسمي الافتراضي من اللوحة الديناميكية (يُستخدم عند غياب لون الدور).
+    final accent = context.accentColor;
 
     // ★ نفس تعديل تبويب الدردشة: جسم التبويب داخل MainShellScreen يمتد
     //   خلف الهيدر (extendBodyBehindAppBar: true) لأن SuperHeader شفاف،
@@ -83,11 +86,11 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                           colors: [
                             (roleEnum != null
                                     ? PermissionService.roleColor(roleEnum)
-                                    : AppColors.primary)
+                                    : accent)
                                 .withValues(alpha: 0.2),
                             (roleEnum != null
                                     ? PermissionService.roleColor(roleEnum)
-                                    : AppColors.primary)
+                                    : accent)
                                 .withValues(alpha: 0.08),
                           ],
                         ),
@@ -99,7 +102,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                         size: 48,
                         color: roleEnum != null
                             ? PermissionService.roleColor(roleEnum)
-                            : AppColors.primary,
+                            : accent,
                       ),
                     ),
                   ),
@@ -125,7 +128,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                         color:
                             (roleEnum != null
                                     ? PermissionService.roleColor(roleEnum)
-                                    : AppColors.primary)
+                                    : accent)
                                 .withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(AppRadii.full),
                       ),
@@ -136,7 +139,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                         style: TextStyle(
                           color: roleEnum != null
                               ? PermissionService.roleColor(roleEnum)
-                              : AppColors.primary,
+                              : accent,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -293,6 +296,8 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     String value,
   ) {
     final theme = Theme.of(context);
+    // ★ اللون الرسمي من اللوحة الديناميكية.
+    final accent = context.accentColor;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Row(
@@ -301,10 +306,10 @@ class _ProfileWidgetState extends State<ProfileWidget> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.08),
+              color: accent.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 20, color: AppColors.primary),
+            child: Icon(icon, size: 20, color: accent),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(

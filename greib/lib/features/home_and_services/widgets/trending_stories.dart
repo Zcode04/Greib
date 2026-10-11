@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/extensions/context_extensions.dart';
+
 // ─────────────────────────────────────────────
 //  بيانات العناصر الرائجة
 // ─────────────────────────────────────────────
@@ -128,13 +130,13 @@ class _UserRequestCard extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: isDark
-                ? [const Color(0xFF1B2537), const Color(0xFF0F172A)]
-                : [const Color(0xFFEFF6FF), const Color(0xFFDBEAFE)],
+                ? [context.backgroundColors.surface, context.backgroundColors.primary]
+                : [context.backgroundColors.surface, context.backgroundColors.secondary],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           border: Border.all(
-            color: isDark ? const Color(0xFF374151) : const Color(0xFFBFDBFE),
+            color: context.backgroundColors.outline,
             width: 1.2,
           ),
         ),
@@ -146,17 +148,17 @@ class _UserRequestCard extends StatelessWidget {
               height: 62,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
-                border: Border.all(color: const Color(0xFF3B82F6), width: 2),
+                color: context.accentColor.withValues(alpha: 0.15),
+                border: Border.all(color: context.accentColor, width: 2),
               ),
-              child: const Icon(Icons.person_rounded, color: Color(0xFF3B82F6), size: 34),
+              child: Icon(Icons.person_rounded, color: context.accentColor, size: 34),
             ),
             const SizedBox(height: 14),
             Text(
               'خدمة\nشخصية',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: isDark ? Colors.white : const Color(0xFF1E3A5F),
+                color: context.textColors.primary,
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
                 height: 1.3,
@@ -168,13 +170,13 @@ class _UserRequestCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6),
+                  color: context.accentColor,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [BoxShadow(color: const Color(0xFF3B82F6).withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 3))],
+                  boxShadow: [BoxShadow(color: context.accentColor.withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 3))],
                 ),
-                child: const Text(
+                child: Text(
                   'طلب الآن',
-                  style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700),
+                  style: TextStyle(color: context.textColors.onAccent, fontSize: 12, fontWeight: FontWeight.w700),
                 ),
               ),
             ),
@@ -355,7 +357,7 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                     icon: const Icon(Icons.arrow_back_rounded, size: 18),
                     label: const Text('استكشف الآن'),
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF3B82F6),
+                      backgroundColor: context.accentColor,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

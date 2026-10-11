@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/models/service_model.dart';
 import 'package:go_router/go_router.dart';
 import '../core/theme/design_tokens.dart';
@@ -23,7 +24,8 @@ class _CentralServiceCardState extends State<CentralServiceCard>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final service = widget.service;
-    final isDark = theme.brightness == Brightness.dark;
+    // ★ الأسطح تُقرأ من اللوحة الديناميكية بدل مقارنة الوضع اليدوية.
+    final surface = context.backgroundColors.surface;
 
     return GestureDetector(
       onTapDown: (_) => _animatePress(true),
@@ -37,7 +39,7 @@ class _CentralServiceCardState extends State<CentralServiceCard>
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
+            color: surface,
             borderRadius: BorderRadius.circular(AppRadii.xl),
             border: Border.all(
               color: service.color.withValues(alpha: 0.3),

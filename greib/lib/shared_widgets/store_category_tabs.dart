@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/mock_data/mock_data.dart';
-import '../core/theme/app_colors.dart';
 
 /// شريط تبويبات المتجر (14 تبويب) — يعرض مباشرة بعد قسم الأحدث.
 /// الأول (الكل) مفعّل افتراضيا. يبث التغيير عبر ValueNotifier مشترك.
@@ -13,10 +13,12 @@ class StoreCategoryTabsCompact extends StatelessWidget {
   const StoreCategoryTabsCompact({super.key});
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = isDark
-        ? AppColors.accentPrimary
-        : AppColors.accentPrimaryDark;
+    // ★ ألوان التبويبات من اللوحة الديناميكية (تتبع الوضع والتخصيص).
+    final accent = context.accentColor;
+    final surface = context.backgroundColors.surface;
+    final outline = context.backgroundColors.outline;
+    final textSecondary = context.textColors.secondary;
+    final onAccent = context.textColors.onAccent;
     return ValueListenableBuilder<String>(
       valueListenable: StoreSelectedCategory.notifier,
       builder: (context, selected, _) {
@@ -41,18 +43,10 @@ class StoreCategoryTabsCompact extends StatelessWidget {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: isSelected
-                        ? accent
-                        : (isDark
-                              ? AppColors.surfaceCard
-                              : AppColors.lightSurfaceVariant),
+                    color: isSelected ? accent : surface,
                     borderRadius: BorderRadius.circular(999),
                     border: Border.all(
-                      color: isSelected
-                          ? Colors.transparent
-                          : (isDark
-                                ? AppColors.outline
-                                : AppColors.lightOutline),
+                      color: isSelected ? Colors.transparent : outline,
                       width: 1,
                     ),
                   ),
@@ -61,11 +55,7 @@ class StoreCategoryTabsCompact extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: isSelected
-                          ? (isDark ? Colors.black : Colors.white)
-                          : (isDark
-                                ? AppColors.textSecondary
-                                : AppColors.lightTextSecondary),
+                      color: isSelected ? onAccent : textSecondary,
                     ),
                   ),
                 ),
@@ -82,10 +72,12 @@ class StoreCategoryTabs extends StatelessWidget {
   const StoreCategoryTabs({super.key});
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = isDark
-        ? AppColors.accentPrimary
-        : AppColors.accentPrimaryDark;
+    // ★ ألوان التبويبات من اللوحة الديناميكية (تتبع الوضع والتخصيص).
+    final accent = context.accentColor;
+    final surface = context.backgroundColors.surface;
+    final outline = context.backgroundColors.outline;
+    final textSecondary = context.textColors.secondary;
+    final onAccent = context.textColors.onAccent;
     return ValueListenableBuilder<String>(
       valueListenable: StoreSelectedCategory.notifier,
       builder: (context, selected, _) {
@@ -110,18 +102,10 @@ class StoreCategoryTabs extends StatelessWidget {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: isSelected
-                        ? accent
-                        : (isDark
-                              ? AppColors.surfaceCard
-                              : AppColors.lightSurfaceVariant),
+                    color: isSelected ? accent : surface,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: isSelected
-                          ? Colors.transparent
-                          : (isDark
-                                ? AppColors.outline
-                                : AppColors.lightOutline),
+                      color: isSelected ? Colors.transparent : outline,
                       width: 1,
                     ),
                     boxShadow: isSelected
@@ -139,11 +123,7 @@ class StoreCategoryTabs extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: isSelected
-                          ? (isDark ? Colors.black : Colors.white)
-                          : (isDark
-                                ? AppColors.textSecondary
-                                : AppColors.lightTextSecondary),
+                      color: isSelected ? onAccent : textSecondary,
                     ),
                   ),
                 ),

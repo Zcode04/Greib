@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
-import '../core/theme/app_colors.dart';
+import '../core/extensions/context_extensions.dart';
 
 class AnimatedBackground extends StatefulWidget {
   const AnimatedBackground({super.key});
@@ -31,14 +31,14 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    // بقع ضوئية من اللون الرسمي (Ice Blue) بدل البنفسجي القديم.
-    final color1 = isDark
-        ? AppColors.accentPrimaryContainerDark.withValues(alpha: 0.35)
-        : AppColors.accentPrimary.withValues(alpha: 0.45);
-    final color2 = isDark
-        ? AppColors.accentPrimary.withValues(alpha: 0.16)
-        : AppColors.accentPrimaryDark.withValues(alpha: 0.10);
+    // ★ بقع ضوئية من اللون الرسمي الديناميكي (تتبع الوضع والتخصيص).
+    final accent = context.accentColor;
+    final color1 = context.isDarkMode
+        ? accent.withValues(alpha: 0.35)
+        : accent.withValues(alpha: 0.45);
+    final color2 = context.isDarkMode
+        ? accent.withValues(alpha: 0.16)
+        : accent.withValues(alpha: 0.10);
 
     return AnimatedBuilder(
       animation: _controller,

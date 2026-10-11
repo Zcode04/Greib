@@ -10,6 +10,7 @@ import '../../core/location/map_config.dart';
 import '../../core/location/place_model.dart';
 import '../../core/storage/app_prefs.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/extensions/context_extensions.dart';
 import '../../core/widgets/location_permission_prompt.dart';
 import '../../core/widgets/globe_3d.dart';
 import '../../core/widgets/map_style_selector.dart';
@@ -145,7 +146,7 @@ class _MapsScreenState extends State<MapsScreen>
         point: picked.latLng,
         width: 48,
         height: 48,
-        child: const Icon(LucideIcons.mapPin, size: 44, color: Colors.redAccent),
+        child: const Icon(LucideIcons.mapPin, size: 44, color: AppColors.error),
       );
     });
     _move(picked.latLng, 16);
@@ -182,7 +183,7 @@ class _MapsScreenState extends State<MapsScreen>
             height: 48 * _pulseAnim.value,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.neon.withValues(alpha: 0.20 * (1 - _pulseAnim.value + 0.4)),
+              color: context.accentColor.withValues(alpha: 0.20 * (1 - _pulseAnim.value + 0.4)),
             ),
           ),
           Container(
@@ -190,9 +191,9 @@ class _MapsScreenState extends State<MapsScreen>
             height: 16,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.neon,
-              border: Border.all(color: Colors.white, width: 2.5),
-              boxShadow: [BoxShadow(color: AppColors.neon.withValues(alpha: 0.5), blurRadius: 8)],
+              color: context.accentColor,
+              border: Border.all(color: context.textColors.onAccent, width: 2.5),
+              boxShadow: [BoxShadow(color: context.accentColor.withValues(alpha: 0.5), blurRadius: 8)],
             ),
           ),
         ],
@@ -203,7 +204,7 @@ class _MapsScreenState extends State<MapsScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final tint = isDark ? AppColors.accentPrimary : AppColors.accentPrimaryDark;
+    final tint = context.iconColors.primary;
 
     return Scaffold(
       body: Stack(
@@ -252,7 +253,7 @@ class _MapsScreenState extends State<MapsScreen>
                   children: [
                     Icon(LucideIcons.mapPin,
                         size: 44,
-                        color: AppColors.accentFor(isDark),
+                        color: context.iconColors.primary,
                         shadows: const [Shadow(color: Colors.black38, blurRadius: 10)]),
                     const SizedBox(height: 60),
                   ],
@@ -295,7 +296,7 @@ class _MapsScreenState extends State<MapsScreen>
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              color: isDark ? Colors.white70 : Colors.black54,
+                              color: context.textColors.secondary,
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
                             ),
@@ -304,7 +305,7 @@ class _MapsScreenState extends State<MapsScreen>
                             Text(
                               'دقة GPS: ±${_accuracyM!.round()} م',
                               style: TextStyle(
-                                color: isDark ? Colors.white38 : Colors.black38,
+                                color: context.textColors.tertiary,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -313,7 +314,7 @@ class _MapsScreenState extends State<MapsScreen>
                       ),
                     ),
                     Icon(LucideIcons.search,
-                        color: isDark ? AppColors.accentPrimary : AppColors.accentPrimaryDark),
+                        color: context.iconColors.primary),
                   ],
                 ),
               ),
@@ -330,8 +331,8 @@ class _MapsScreenState extends State<MapsScreen>
                   icon: _locating
                       ? const SizedBox(
                           width: 20, height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Icon(LucideIcons.locateFixed, size: 20, color: Colors.white),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onAccentPrimary))
+                      : const Icon(LucideIcons.locateFixed, size: 20, color: AppColors.onAccentPrimary),
                   color: tint,
                   onTap: _locateMe,
                   tooltip: 'موقعي',
@@ -340,15 +341,15 @@ class _MapsScreenState extends State<MapsScreen>
                 // ★ زر التبديل: كرة 3D ←→ خريطة حقيقية.
                 _MapFab(
                   icon: Icon(_showRealMap ? LucideIcons.globe : LucideIcons.map,
-                      size: 20, color: Colors.white),
-                  color: _showRealMap ? const Color(0xFF8B5CF6) : const Color(0xFF3B82F6),
+                      size: 20, color: context.textColors.onAccent),
+                  color: _showRealMap ? const Color(0xFF8B5CF6) : context.accentColor,
                   onTap: () => setState(() => _showRealMap = !_showRealMap),
                   tooltip: _showRealMap ? 'الوضع العادي (كرة 3D)' : 'الخريطة الحقيقية',
                 ),
                 if (_showRealMap) ...[
                   const SizedBox(height: 12),
                   _MapFab(
-                    icon: Icon(_kindIcon(_kind), size: 20, color: Colors.white),
+                    icon: Icon(_kindIcon(_kind), size: 20, color: context.textColors.onAccent),
                     color: _kindColor(_kind),
                     onTap: _pickStyle,
                     tooltip: 'نمط الخريطة',
@@ -366,7 +367,7 @@ class _MapsScreenState extends State<MapsScreen>
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.background : Colors.white,
+                color: context.backgroundColors.surface,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                 boxShadow: [
                   BoxShadow(
@@ -385,7 +386,7 @@ class _MapsScreenState extends State<MapsScreen>
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey.withValues(alpha: 0.3),
+                        color: context.backgroundColors.outline,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -397,13 +398,10 @@ class _MapsScreenState extends State<MapsScreen>
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: CircleAvatar(
-                      backgroundColor:
-                          (isDark ? AppColors.accentPrimary : AppColors.accentPrimaryDark)
-                              .withValues(alpha: 0.2),
+                      backgroundColor: context.iconColors.primary
+                          .withValues(alpha: 0.2),
                       child: Icon(LucideIcons.home,
-                          color: isDark
-                              ? AppColors.accentPrimary
-                              : AppColors.accentPrimaryDark),
+                          color: context.iconColors.primary),
                     ),
                     title: const Text('المنزل',
                         style: TextStyle(fontWeight: FontWeight.bold)),
@@ -433,8 +431,8 @@ class _MapsScreenState extends State<MapsScreen>
                       context.pop(place);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accentPrimary,
-                      foregroundColor: AppColors.onAccentPrimary,
+                      backgroundColor: context.accentColor,
+                      foregroundColor: context.textColors.onAccent,
                       minimumSize: const Size(double.infinity, 50),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16)),
@@ -454,7 +452,7 @@ class _MapsScreenState extends State<MapsScreen>
 
   /// ★ خلفية الكرة 3D للوضع العادي — تملأ الشاشة خلف البطاقة السفلية.
   Widget _globeBackground(bool isDark) {
-    final bg = isDark ? const Color(0xFF0F172A) : const Color(0xFFE8EEF5);
+    final bg = context.backgroundColors.primary;
     return Container(
       color: bg,
       child: SafeArea(
@@ -470,7 +468,7 @@ class _MapsScreenState extends State<MapsScreen>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: (isDark ? AppColors.neon : AppColors.accentPrimaryDark)
+                      color: context.iconColors.primary
                           .withValues(alpha: 0.25),
                       blurRadius: 60,
                       spreadRadius: 10,
@@ -486,7 +484,7 @@ class _MapsScreenState extends State<MapsScreen>
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : Colors.black87,
+                color: context.textColors.primary,
               ),
             ),
             const SizedBox(height: 6),
@@ -494,7 +492,7 @@ class _MapsScreenState extends State<MapsScreen>
               _address,
               style: TextStyle(
                 fontSize: 13,
-                color: isDark ? Colors.white60 : Colors.black54,
+                color: context.textColors.secondary,
               ),
             ),
           ],
@@ -510,9 +508,9 @@ class _MapsScreenState extends State<MapsScreen>
   };
 
   Color _kindColor(MapProviderKind k) => switch (k) {
-    MapProviderKind.satellite => const Color(0xFF10B981),
-    MapProviderKind.osmDark   => const Color(0xFF8B5CF6),
-    MapProviderKind.osm       => const Color(0xFF3B82F6),
+    MapProviderKind.satellite => AppColors.success,
+    MapProviderKind.osmDark   => const Color(0xFF8B5CF6), // لون نمط الخريطة الداكنة (outside the palette)
+    MapProviderKind.osm       => context.accentColor,
   };
 }
 

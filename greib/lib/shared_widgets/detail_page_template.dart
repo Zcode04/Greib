@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/theme/design_tokens.dart';
 import 'app_button.dart';
 
@@ -39,29 +40,26 @@ class DetailPageTemplate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    // ★ الأسطح والخلفيات من اللوحة الديناميكية (تتبع الوضع والتخصيص).
+    final bg = context.backgroundColors.primary;
+    final surface = context.backgroundColors.surface;
+    final outline = context.backgroundColors.outline;
 
     return Scaffold(
       body: Stack(
         children: [
-          // الخلفية مع توهج أخضر
+          // الخلفية مع توهج اللون الرسمي
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: isDark
-                      ? [
-                          accentColor.withValues(alpha: 0.08),
-                          AppColors.backgroundPrimary,
-                          AppColors.backgroundPrimary,
-                        ]
-                      : [
-                          accentColor.withValues(alpha: 0.06),
-                          AppColors.lightBackground,
-                          AppColors.lightBackground,
-                        ],
+                  colors: [
+                    accentColor.withValues(alpha: 0.08),
+                    bg,
+                    bg,
+                  ],
                 ),
               ),
             ),
@@ -74,21 +72,13 @@ class DetailPageTemplate extends StatelessWidget {
                 SliverAppBar(
                   expandedHeight: 220,
                   pinned: true,
-                  backgroundColor: isDark
-                      ? AppColors.backgroundPrimary
-                      : AppColors.lightBackground,
+                  backgroundColor: bg,
                   leading: Container(
                     margin: const EdgeInsets.all(AppSpacing.sm),
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.surfaceCard.withValues(alpha: 0.9)
-                          : AppColors.lightSurface.withValues(alpha: 0.9),
+                      color: surface.withValues(alpha: 0.9),
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isDark
-                            ? AppColors.outline
-                            : AppColors.lightOutline,
-                      ),
+                      border: Border.all(color: outline),
                     ),
                     child: IconButton(
                       icon: const Icon(LucideIcons.arrowLeft, size: 18),
@@ -117,9 +107,7 @@ class DetailPageTemplate extends StatelessWidget {
                           width: 120,
                           height: 120,
                           decoration: BoxDecoration(
-                            color: isDark
-                                ? AppColors.surfaceCard
-                                : AppColors.lightSurface,
+                            color: surface,
                             borderRadius: BorderRadius.circular(AppRadii.xxl),
                             border: Border.all(
                               color: accentColor.withValues(alpha: 0.3),
@@ -169,7 +157,7 @@ class DetailPageTemplate extends StatelessWidget {
                                 _DetailChip(
                                   icon: LucideIcons.wallet,
                                   label: price!,
-                                  color: AppColors.accentFor(isDark),
+                                  color: context.accentColor,
                                 ),
                               if (deliveryTime != null) ...[
                                 const SizedBox(width: AppSpacing.sm),
@@ -250,7 +238,8 @@ class _DetailChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    // ★ لون النص من اللوحة الديناميكية.
+    final textColor = context.textColors.primary;
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -270,7 +259,7 @@ class _DetailChip extends StatelessWidget {
           Text(
             label,
             style: theme.textTheme.labelMedium?.copyWith(
-              color: isDark ? AppColors.textPrimary : AppColors.lightText,
+              color: textColor,
               fontWeight: FontWeight.w600,
             ),
           ),

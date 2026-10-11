@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../core/extensions/context_extensions.dart';
+import '../../core/theme/app_colors.dart';
 import 'auth_service.dart';
 
 // ==========================================
@@ -27,46 +29,48 @@ class AppPalette {
   });
 
   /// ★ الهوية الرسمية للتطبيق: خلفية Slate 900 + لون رسمي Sapphire #3B82F6
+  /// ★ القيم مأخوذة من النظام المركزي (AppColors ← AppColorPalette) — بلا ألوان صلبة.
   static const iceBlueGray = AppPalette(
-    primary: Color(0xFF3B82F6), // ★ Sapphire — اللون الرسمي
-    backgroundLight: Color(0xFFF1F5F9), // slate-100
-    backgroundDark: Color(0xFF0F172A), // ★ slate-900 — خلفية التطبيق الرسمية
-    cardLight: Colors.white,
-    cardDark: Color(0xFF1B2537), // slate-800
-    textPrimary: Color(0xFF0F172A), // slate-900
+    primary: AppColors.accentPrimary, // ★ Sapphire — اللون الرسمي
+    backgroundLight: AppColors.lightBackground, // slate-100
+    backgroundDark: AppColors.backgroundPrimary, // ★ slate-900 — خلفية التطبيق الرسمية
+    cardLight: AppColors.lightSurface,
+    cardDark: AppColors.surfaceCard, // slate-800
+    textPrimary: AppColors.lightText, // slate-900
   );
 
   // ★ كل الخيارات تستخدم نفس الهوية: خلفية Slate 900 + لون واحد Sapphire
   static const careemEmerald = AppPalette(
-    primary: Color(0xFF3B82F6),
-    backgroundLight: Color(0xFFF1F5F9),
-    backgroundDark: Color(0xFF0F172A),
-    cardLight: Colors.white,
-    cardDark: Color(0xFF1B2537),
-    textPrimary: Color(0xFF0F172A),
+    primary: AppColors.accentPrimary,
+    backgroundLight: AppColors.lightBackground,
+    backgroundDark: AppColors.backgroundPrimary,
+    cardLight: AppColors.lightSurface,
+    cardDark: AppColors.surfaceCard,
+    textPrimary: AppColors.lightText,
   );
 
   static const midnightObsidian = AppPalette(
-    primary: Color(0xFF3B82F6),
-    backgroundLight: Color(0xFFF1F5F9),
-    backgroundDark: Color(0xFF0F172A),
-    cardLight: Colors.white,
-    cardDark: Color(0xFF1B2537),
-    textPrimary: Color(0xFF0F172A),
+    primary: AppColors.accentPrimary,
+    backgroundLight: AppColors.lightBackground,
+    backgroundDark: AppColors.backgroundPrimary,
+    cardLight: AppColors.lightSurface,
+    cardDark: AppColors.surfaceCard,
+    textPrimary: AppColors.lightText,
   );
 
   static const royalIndigo = AppPalette(
-    primary: Color(0xFF3B82F6),
-    backgroundLight: Color(0xFFF1F5F9),
-    backgroundDark: Color(0xFF0F172A),
-    cardLight: Colors.white,
-    cardDark: Color(0xFF1B2537),
-    textPrimary: Color(0xFF0F172A),
+    primary: AppColors.accentPrimary,
+    backgroundLight: AppColors.lightBackground,
+    backgroundDark: AppColors.backgroundPrimary,
+    cardLight: AppColors.lightSurface,
+    cardDark: AppColors.surfaceCard,
+    textPrimary: AppColors.lightText,
   );
 
   /// المحتوى (نص/أيقونة) فوق اللون الأساسي — داكن إذا كان اللون فاتحاً.
-  Color get onPrimary =>
-      primary.computeLuminance() > 0.5 ? const Color(0xFF0F172A) : Colors.white;
+  Color get onPrimary => primary.computeLuminance() > 0.5
+      ? AppColors.lightText
+      : AppColors.onAccentPrimary;
 
   /// اللون الأساسي بدرجة تُقرأ على الخلفية الفاتحة (للنصوص والأيقونات).
   Color get primaryOnLight => primary.computeLuminance() > 0.5
@@ -104,20 +108,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _isLoading = false;
   String? _errorMessage;
-
-  // جلب ألوان الثيم المختار
-  AppPalette get _palette {
-    switch (widget.currentThemeStyle) {
-      case AppThemeStyle.careemEmerald:
-        return AppPalette.careemEmerald;
-      case AppThemeStyle.midnightObsidian:
-        return AppPalette.midnightObsidian;
-      case AppThemeStyle.royalIndigo:
-        return AppPalette.royalIndigo;
-      case AppThemeStyle.iceBlueGray:
-        return AppPalette.iceBlueGray; // ★ الهوية الرسمية
-    }
-  }
 
   @override
   void dispose() {
@@ -168,8 +158,9 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? _palette.backgroundDark : _palette.backgroundLight;
-    final cardColor = isDark ? _palette.cardDark : _palette.cardLight;
+    // ★ كل الألوان من اللوحة المركزية (Color Palette) عبر السياق.
+    final bgColor = context.backgroundColors.primary;
+    final cardColor = context.backgroundColors.surface;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -194,14 +185,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: _palette
-                            .primaryForeground(isDark)
+                        color: context.iconColors.primary
                             .withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(50),
                       ),
                       child: Icon(
                         LucideIcons.navigation,
-                        color: _palette.primaryForeground(isDark),
+                        color: context.iconColors.primary,
                         size: 24,
                       ),
                     ),
@@ -209,9 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextButton(
                       onPressed: _isLoading ? null : _continueAsGuest,
                       style: TextButton.styleFrom(
-                        foregroundColor: isDark
-                            ? Colors.white70
-                            : Colors.black54,
+                        foregroundColor: context.textColors.secondary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(50),
                         ),
@@ -245,7 +233,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : _palette.textPrimary,
+                    color: context.textColors.primary,
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -255,7 +243,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
-                    color: isDark ? Colors.white54 : Colors.black45,
+                    color: context.textColors.secondary,
                   ),
                 ),
 
@@ -320,14 +308,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           alignment: Alignment.centerLeft,
                           child: TextButton(
                             onPressed: () {},
-                            child: Text(
-                              'نسيت كلمة المرور؟',
-                              style: TextStyle(
-                                color: _palette.primaryForeground(isDark),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                      child: Text(
+                        'نسيت كلمة المرور؟',
+                        style: TextStyle(
+                          color: context.iconColors.primary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                           ),
                         ),
                       ],
@@ -343,8 +331,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _submit,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _palette.primary,
-                      foregroundColor: _palette.onPrimary,
+                      backgroundColor: context.accentColor,
+                      foregroundColor: context.textColors.onAccent,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(50),
@@ -355,7 +343,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 22,
                             height: 22,
                             child: CircularProgressIndicator(
-                              color: _palette.onPrimary,
+                              color: context.textColors.onAccent,
                               strokeWidth: 2.5,
                             ),
                           )
@@ -402,7 +390,7 @@ class _LoginScreenState extends State<LoginScreen> {
       height: 52,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E222A) : const Color(0xFFEFEFF4),
+        color: context.backgroundColors.secondary,
         borderRadius: BorderRadius.circular(50),
       ),
       child: Stack(
@@ -442,8 +430,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(
                         fontWeight: isLogin ? FontWeight.bold : FontWeight.w500,
                         color: isLogin
-                            ? (isDark ? Colors.white : _palette.textPrimary)
-                            : (isDark ? Colors.white54 : Colors.black45),
+                            ? context.textColors.primary
+                            : context.textColors.secondary,
                         fontSize: 14,
                       ),
                     ),
@@ -462,8 +450,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             ? FontWeight.bold
                             : FontWeight.w500,
                         color: !isLogin
-                            ? (isDark ? Colors.white : _palette.textPrimary)
-                            : (isDark ? Colors.white54 : Colors.black45),
+                            ? context.textColors.primary
+                            : context.textColors.secondary,
                         fontSize: 14,
                       ),
                     ),
@@ -488,24 +476,13 @@ class _LoginScreenState extends State<LoginScreen> {
     required bool isDark,
     required Color cardColor,
   }) {
-    // ألوان احترافية مخصصة للحقول
-    final fillColorDark = const Color(0xFF141820); // خلفية عميقة
-    final fillColorLight = const Color(0xFFF1F4F9); // رمادي ناعم
-    final borderIdle = isDark
-        ? const Color(0xFF2A2F3D)
-        : const Color(0xFFD1D9E6);
-    final labelColor = isDark
-        ? const Color(0xFF8A94A6)
-        : const Color(0xFF64748B);
-    final textColor = isDark
-        ? const Color(0xFFE2E8F0)
-        : const Color(0xFF0F172A);
-    final hintColor = isDark
-        ? const Color(0xFF3D4556)
-        : const Color(0xFFB0BAC9);
-    final iconColor = isDark
-        ? const Color(0xFF5A6478)
-        : const Color(0xFF94A3B8);
+    // ★ ألوان الحقول من اللوحة المركزية (Color Palette) — لا ألوان صلبة.
+    final fillColor = context.backgroundColors.surfaceElevated;
+    final borderIdle = context.backgroundColors.outline;
+    final labelColor = context.textColors.secondary;
+    final textColor = context.textColors.primary;
+    final hintColor = context.textColors.tertiary;
+    final iconColor = context.iconColors.muted;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -551,7 +528,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   )
                 : null,
             filled: true,
-            fillColor: isDark ? fillColorDark : fillColorLight,
+            fillColor: fillColor,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 20,
               vertical: 17,
@@ -564,7 +541,7 @@ class _LoginScreenState extends State<LoginScreen> {
             // حدود عند التركيز
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(50),
-              borderSide: BorderSide(color: _palette.primaryForeground(isDark), width: 1.8),
+              borderSide: BorderSide(color: context.iconColors.primary, width: 1.8),
             ),
             // حدود بدون تركيز (لا خط)
             border: OutlineInputBorder(
@@ -584,7 +561,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Row(
           children: [
             Expanded(
-              child: Divider(color: isDark ? Colors.white12 : Colors.black12),
+              child: Divider(color: context.backgroundColors.outline),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -592,12 +569,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 'أو الدخول بواسطة',
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? Colors.white38 : Colors.black38,
+                  color: context.textColors.tertiary,
                 ),
               ),
             ),
             Expanded(
-              child: Divider(color: isDark ? Colors.white12 : Colors.black12),
+              child: Divider(color: context.backgroundColors.outline),
             ),
           ],
         ),
@@ -639,10 +616,10 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          color: isDark ? _palette.cardDark : Colors.white,
+          color: context.backgroundColors.surface,
           borderRadius: BorderRadius.circular(50),
           border: Border.all(
-            color: isDark ? const Color(0xFF2D323E) : const Color(0xFFE2E8F0),
+            color: context.backgroundColors.outline,
           ),
         ),
         child: Row(
@@ -654,7 +631,7 @@ class _LoginScreenState extends State<LoginScreen> {
               label,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : Colors.black87,
+                color: context.textColors.primary,
                 fontSize: 14,
               ),
             ),
@@ -670,13 +647,13 @@ class _LoginScreenState extends State<LoginScreen> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            _palette.primaryForeground(isDark).withValues(alpha: 0.12),
-            _palette.primaryForeground(isDark).withValues(alpha: 0.04),
+            context.iconColors.primary.withValues(alpha: 0.12),
+            context.iconColors.primary.withValues(alpha: 0.04),
           ],
         ),
         borderRadius: BorderRadius.circular(50),
         border: Border.all(
-          color: _palette.primaryForeground(isDark).withValues(alpha: 0.25),
+          color: context.iconColors.primary.withValues(alpha: 0.25),
         ),
       ),
       child: Material(
@@ -692,12 +669,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                    color: _palette.primary,
+                    color: context.accentColor,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     LucideIcons.briefcase,
-                    color: _palette.onPrimary,
+                    color: context.textColors.onAccent,
                     size: 20,
                   ),
                 ),
@@ -711,7 +688,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
-                          color: isDark ? Colors.white : _palette.textPrimary,
+                          color: context.textColors.primary,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -719,7 +696,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         'سجّل كشريك لتقديم الخدمات وزيادة دخلك',
                         style: TextStyle(
                           fontSize: 11,
-                          color: isDark ? Colors.white60 : Colors.black54,
+                          color: context.textColors.secondary,
                         ),
                       ),
                     ],
@@ -727,7 +704,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 Icon(
                   LucideIcons.chevronLeft,
-                  color: _palette.primaryForeground(isDark),
+                  color: context.iconColors.primary,
                   size: 20,
                 ),
               ],
@@ -742,19 +719,19 @@ class _LoginScreenState extends State<LoginScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha: 0.1),
+        color: AppColors.error.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(50),
-        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          const Icon(LucideIcons.alertCircle, color: Colors.red, size: 18),
+          const Icon(LucideIcons.alertCircle, color: AppColors.error, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               message,
               style: const TextStyle(
-                color: Colors.red,
+                color: AppColors.error,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),

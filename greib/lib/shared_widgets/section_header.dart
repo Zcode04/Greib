@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/theme/design_tokens.dart';
 
 class SectionHeader extends StatelessWidget {
@@ -28,10 +29,9 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    // الافتراضي: اللون الرسمي بدرجة مقروءة (داكن في الوضع النهاري).
-    final color = iconColor ?? AppColors.accentFor(isDark);
-    final actionColor = AppColors.accentFor(isDark);
+    // ★ اللون الرسمي يُقرأ من اللوحة الديناميكية (يسري فوراً مع أي تخصيص).
+    final color = iconColor ?? context.accentColor;
+    final actionColor = context.accentColor;
 
     return Padding(
       padding: const EdgeInsets.symmetric(

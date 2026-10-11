@@ -16,6 +16,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/models/service_model.dart';
+import '../../core/extensions/context_extensions.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_sheet.dart';
 import '../../shared_widgets/sheets/reels_options_sheet.dart';
@@ -463,7 +464,7 @@ class _VideoBackdropState extends State<_VideoBackdrop>
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      AppColors.accentPrimary.withValues(
+                      context.accentColor.withValues(
                         alpha: 0.10 + 0.10 * t,
                       ),
                     ],
@@ -602,9 +603,9 @@ class _ReelMeta extends StatelessWidget {
                 width: 34,
                 height: 34,
                 fit: BoxFit.cover,
-                errorBuilder: (context, _, _) => const CircleAvatar(
+                errorBuilder: (context, _, _) => CircleAvatar(
                   radius: 17,
-                  backgroundColor: AppColors.surfaceCard,
+                  backgroundColor: context.backgroundColors.surface,
                   child: Icon(LucideIcons.user, size: 18, color: Colors.white70),
                 ),
               ),
@@ -898,8 +899,8 @@ class _AvatarStackButton extends StatelessWidget {
               child: Image.network(
                 _demo.last.avatarUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (context, _, _) => const CircleAvatar(
-                  backgroundColor: AppColors.surfaceCard,
+                errorBuilder: (context, _, _) => CircleAvatar(
+                  backgroundColor: context.backgroundColors.surface,
                   child: Icon(LucideIcons.user, color: Colors.white70),
                 ),
               ),
@@ -911,15 +912,15 @@ class _AvatarStackButton extends StatelessWidget {
               width: 20,
               height: 20,
               decoration: BoxDecoration(
-                color: AppColors.accentPrimary,
+                color: context.accentColor,
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.black, width: 1.6),
               ),
               child: isActive
-                  ? const Icon(
+                  ? Icon(
                       LucideIcons.plus,
                       size: 13,
-                      color: AppColors.onAccentPrimary,
+                      color: context.textColors.onAccent,
                     )
                   : const SizedBox.shrink(),
             ),
@@ -1050,7 +1051,6 @@ class _MockSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -1059,7 +1059,7 @@ class _MockSheet extends StatelessWidget {
           margin: const EdgeInsets.all(AppSpacing.md),
           padding: const EdgeInsets.all(AppSpacing.xl),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
+            color: context.backgroundColors.surface,
             borderRadius: BorderRadius.circular(AppRadii.xxl),
           ),
           child: Column(

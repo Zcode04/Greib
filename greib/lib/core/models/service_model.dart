@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_colors.dart';
+
 /// ============================================================================
 ///  ServiceCategory — نموذج الخدمة (Entity).
 ///
@@ -89,7 +91,8 @@ class ServiceCategory {
   static Color _hexToColor(String hex) {
     final cleaned = hex.replaceAll('#', '');
     final value = int.tryParse(cleaned, radix: 16);
-    if (value == null) return const Color(0xFF3B82F6);
+    // ★ اللون الاحتياطي من المصدر المركزي (لا قيمة صلبة).
+    if (value == null) return AppColors.accentPrimary;
     return Color(cleaned.length == 6 ? 0xFF000000 | value : value);
   }
 }

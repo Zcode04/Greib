@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../extensions/context_extensions.dart';
 import '../theme/design_tokens.dart';
 
 /// ============================================================================
@@ -22,12 +23,13 @@ Future<T?> showAppSheet<T>(
     ),
     builder: (sheetContext) {
       // نمط مقبض السحب الموحّد أعلى الورقة.
+      // ★ لون المقبض من اللوحة الديناميكية (يتبع الوضع والتخصيص).
       final handle = Container(
         width: 40,
         height: 4,
         margin: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.sm),
         decoration: BoxDecoration(
-          color: AppColors.textTertiary.withValues(alpha: 0.35),
+          color: sheetContext.textColors.tertiary.withValues(alpha: 0.35),
           borderRadius: BorderRadius.circular(AppRadii.full),
         ),
       );

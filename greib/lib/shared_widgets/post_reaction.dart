@@ -39,6 +39,10 @@ class PostReaction {
 
   /// ★ كل التفاعلات المعروضة (مثل فيسبوك): إعجاب، حب، اهتمام، دهشة، حزن.
   ///   (تم حذف «ضحك» و«غضب» من المجموعة.)
+  ///
+  ///   ✓ ألوان المشاعر (حب/اهتمام/دهشة/عدم إعجاب) هوية بصرية لكل تفاعل —
+  ///     لا تقابلها حقول في اللوحة المركزية، فتبقى ثوابت لونية مقصودة.
+  ///   ✓ اللون الرسمي (حزن) يُقرأ من المصدر المركزي بلا قيمة صلبة.
   static const List<PostReaction> all = [
     PostReaction(value: 1, emoji: '👍', label: 'إعجاب', color: AppColors.info),
     PostReaction(value: 2, emoji: '❤️', label: 'حب', color: Color(0xFFE5484D)),
@@ -54,7 +58,7 @@ class PostReaction {
       label: 'دهشة',
       color: Color(0xFF8B5CF6),
     ),
-    PostReaction(value: 5, emoji: '😔', label: 'حزن', color: Color(0xFF3B82F6)),
+    PostReaction(value: 5, emoji: '😔', label: 'حزن', color: AppColors.accentPrimary),
     PostReaction(
       value: 6,
       emoji: '👎',

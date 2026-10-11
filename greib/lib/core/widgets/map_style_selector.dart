@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../extensions/context_extensions.dart';
 import '../location/map_config.dart';
 import '../storage/app_prefs.dart';
 import '../theme/app_colors.dart';
@@ -30,7 +31,8 @@ class MapStyleSelector extends StatelessWidget {
   /// يعرض Bottom Sheet ويعيد الاختيار.
   static Future<MapProviderKind?> show(BuildContext context) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? AppColors.surface : Colors.white;
+    // ★ خلفية الورقة من اللوحة المركزية (Color Palette).
+    final bg = context.backgroundColors.surface;
 
     return showModalBottomSheet<MapProviderKind>(
       context: context,
@@ -52,7 +54,7 @@ class MapStyleSelector extends StatelessWidget {
                   child: Container(
                     width: 40, height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.3),
+                      color: ctx.backgroundColors.outline,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -64,9 +66,7 @@ class MapStyleSelector extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: isDark
-                        ? AppColors.textPrimary
-                        : AppColors.lightText,
+                    color: ctx.textColors.primary,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -78,7 +78,7 @@ class MapStyleSelector extends StatelessWidget {
                       kind: MapProviderKind.osm,
                       selected: picked == MapProviderKind.osm,
                       isDark: isDark,
-                      color: const Color(0xFF3B82F6),
+                      color: ctx.accentColor,
                       onTap: () => setSt(() => picked = MapProviderKind.osm),
                     ),
                     const SizedBox(width: 10),
@@ -88,7 +88,7 @@ class MapStyleSelector extends StatelessWidget {
                       kind: MapProviderKind.osmDark,
                       selected: picked == MapProviderKind.osmDark,
                       isDark: isDark,
-                      color: const Color(0xFF8B5CF6),
+                      color: const Color(0xFF8B5CF6), // لون نمط الخريطة الداكنة (خارج اللوحة)
                       onTap: () =>
                           setSt(() => picked = MapProviderKind.osmDark),
                     ),
@@ -99,7 +99,7 @@ class MapStyleSelector extends StatelessWidget {
                       kind: MapProviderKind.satellite,
                       selected: picked == MapProviderKind.satellite,
                       isDark: isDark,
-                      color: const Color(0xFF10B981),
+                      color: AppColors.success,
                       onTap: () =>
                           setSt(() => picked = MapProviderKind.satellite),
                     ),
@@ -108,10 +108,8 @@ class MapStyleSelector extends StatelessWidget {
                 const SizedBox(height: 24),
                 FilledButton(
                   style: FilledButton.styleFrom(
-                    backgroundColor: isDark
-                        ? AppColors.neon
-                        : AppColors.accentPrimaryDark,
-                    foregroundColor: isDark ? Colors.black : Colors.white,
+                    backgroundColor: ctx.accentColor,
+                    foregroundColor: ctx.textColors.onAccent,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -145,7 +143,7 @@ class MapStyleSelector extends StatelessWidget {
           kind: MapProviderKind.osm,
           selected: current == MapProviderKind.osm,
           isDark: isDark,
-          color: const Color(0xFF3B82F6),
+          color: context.accentColor,
           onTap: () => onChanged(MapProviderKind.osm),
         ),
         const SizedBox(width: 8),
@@ -155,7 +153,7 @@ class MapStyleSelector extends StatelessWidget {
           kind: MapProviderKind.osmDark,
           selected: current == MapProviderKind.osmDark,
           isDark: isDark,
-          color: const Color(0xFF8B5CF6),
+          color: const Color(0xFF8B5CF6), // لون نمط الخريطة الداكنة (خارج اللوحة)
           onTap: () => onChanged(MapProviderKind.osmDark),
         ),
         const SizedBox(width: 8),
@@ -165,7 +163,7 @@ class MapStyleSelector extends StatelessWidget {
           kind: MapProviderKind.satellite,
           selected: current == MapProviderKind.satellite,
           isDark: isDark,
-          color: const Color(0xFF10B981),
+          color: AppColors.success,
           onTap: () => onChanged(MapProviderKind.satellite),
         ),
       ],
@@ -195,8 +193,9 @@ class _StyleTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg   = isDark ? AppColors.surface : const Color(0xFFF5F5F5);
-    final text = isDark ? AppColors.textPrimary : AppColors.lightText;
+    // ★ ألوان البلاطة من اللوحة المركزية (Color Palette) عبر السياق.
+    final bg   = context.backgroundColors.surfaceElevated;
+    final text = context.textColors.primary;
 
     return Expanded(
       child: GestureDetector(

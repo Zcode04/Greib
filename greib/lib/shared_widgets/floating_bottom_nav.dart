@@ -23,6 +23,7 @@
 
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/theme/design_tokens.dart';
 
 class FloatingNavItem {
@@ -58,6 +59,10 @@ class FloatingBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    // ★ الأسطح والحدود واللون الرسمي من اللوحة الديناميكية.
+    final surface = context.backgroundColors.surface;
+    final outline = context.backgroundColors.outline;
+    final accent = context.accentColor;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -68,14 +73,10 @@ class FloatingBottomNav extends StatelessWidget {
           child: Container(
             height: 68,
             decoration: BoxDecoration(
-              color: isDark
-                  ? AppColors.surfaceCard.withValues(alpha: 0.85)
-                  : AppColors.lightSurface.withValues(alpha: 0.92),
+              color: surface.withValues(alpha: 0.85),
               borderRadius: BorderRadius.circular(36),
               border: Border.all(
-                color: isDark
-                    ? AppColors.outline.withValues(alpha: 0.6)
-                    : AppColors.lightOutline,
+                color: isDark ? outline.withValues(alpha: 0.6) : outline,
                 width: 1,
               ),
               boxShadow: [
@@ -86,7 +87,7 @@ class FloatingBottomNav extends StatelessWidget {
                 ),
                 if (isDark)
                   BoxShadow(
-                    color: AppColors.accentPrimary.withValues(alpha: 0.08),
+                    color: accent.withValues(alpha: 0.08),
                     blurRadius: 32,
                     offset: const Offset(0, 4),
                   ),
@@ -129,12 +130,10 @@ class _NavTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = isDark
-        ? AppColors.accentPrimary
-        : AppColors.accentPrimaryDark;
-    final inactiveColor = isDark
-        ? AppColors.textTertiary
-        : AppColors.lightTextSecondary;
+    // ★ ألوان الأيقونة النشِطة/غير النشِطة من اللوحة الديناميكية.
+    final activeColor = context.iconColors.active;
+    final inactiveColor = context.iconColors.inactive;
+    final accent = context.accentColor;
     final iconColor = selected ? activeColor : inactiveColor;
 
     return Semantics(
@@ -155,7 +154,7 @@ class _NavTile extends StatelessWidget {
               height: selected ? 32 : 28,
               decoration: BoxDecoration(
                 color: selected
-                    ? AppColors.accentPrimary.withValues(
+                    ? accent.withValues(
                         alpha: isDark ? 0.2 : 0.12,
                       )
                     : Colors.transparent,
@@ -170,7 +169,7 @@ class _NavTile extends StatelessWidget {
                     clipBehavior: Clip.none,
                     children: [
                       Icon(item.icon, color: iconColor, size: 20),
-                      _buildBadge(),
+                      _buildBadge(context),
                     ],
                   ),
                 ),
@@ -198,7 +197,7 @@ class _NavTile extends StatelessWidget {
   }
 
   /// شارة العدد (رسائل/إشعارات غير مقروءة) أعلى أيقونة التبويب.
-  Widget _buildBadge() {
+  Widget _buildBadge(BuildContext context) {
     final count = item.badgeCount ?? 0;
     if (count <= 0) return const SizedBox.shrink();
 
@@ -211,7 +210,10 @@ class _NavTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.error,
           borderRadius: BorderRadius.circular(AppRadii.full),
-          border: Border.all(color: AppColors.surfaceCard, width: 1.5),
+          border: Border.all(
+            color: context.backgroundColors.surface,
+            width: 1.5,
+          ),
         ),
         child: Text(
           count > 9 ? '+9' : '$count',

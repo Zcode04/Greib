@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/theme/theme_controller.dart';
 import 'quick_settings_sheet.dart';
@@ -49,6 +50,11 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // ★ الألوان تُقرأ من اللوحة الديناميكية (تتبع الوضع والتخصيص فوراً).
+    final accent = context.accentColor;
+    final surface = context.backgroundColors.surface;
+    final outline = context.backgroundColors.outline;
+    // ما زلنا نحتاج isDark لأيقونة وضع الشمس/القمر فقط.
     final isDark = theme.brightness == Brightness.dark;
 
     // ★ تجاوب: نحسب عرض الشاشة لتصغير الأيقونات/الهوامش على الشاشات الضيقة
@@ -71,16 +77,16 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: AppColors.accentFor(isDark).withValues(alpha: 0.15),
+              color: accent.withValues(alpha: 0.15),
               shape: BoxShape.circle,
               border: Border.all(
-                color: AppColors.accentFor(isDark).withValues(alpha: 0.3),
+                color: accent.withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
             child: Icon(
               LucideIcons.rocket,
-              color: AppColors.accentFor(isDark),
+              color: accent,
               size: 18,
             ),
           ),
@@ -102,13 +108,9 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
           ? Container(
               margin: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
-                color: isDark
-                    ? AppColors.surfaceCard
-                    : AppColors.lightSurfaceVariant,
+                color: surface,
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: isDark ? AppColors.outline : AppColors.lightOutline,
-                ),
+                border: Border.all(color: outline),
               ),
               child: IconButton(
                 icon: Icon(
@@ -142,12 +144,10 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: isDark
-                    ? AppColors.surfaceCard
-                    : AppColors.lightSurfaceVariant,
+                color: surface,
                 borderRadius: BorderRadius.circular(AppRadii.full),
                 border: Border.all(
-                  color: isDark ? AppColors.outline : AppColors.lightOutline,
+                  color: outline,
                   width: 1,
                 ),
               ),
@@ -221,7 +221,7 @@ class DashboardHeader extends StatelessWidget implements PreferredSizeWidget {
     final roleEnum = PermissionService.roleFromString(role);
     final roleColor = roleEnum != null
         ? PermissionService.roleColor(roleEnum)
-        : AppColors.accentPrimary;
+        : context.accentColor;
 
     return AppBar(
       title: Text(

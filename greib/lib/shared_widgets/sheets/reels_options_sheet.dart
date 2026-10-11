@@ -14,7 +14,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import '../../core/theme/design_tokens.dart';
+import '../../core/extensions/context_extensions.dart';
 
 /// ============================================================================
 ///  ReelsOptionsSheet — ورقة خيارات الريل (زر ⋯).
@@ -94,10 +94,10 @@ class ReelsOptionsSheet extends StatelessWidget {
                   // ★ سطر تعريف: يفرّق الورقة عن ورقة المنشور ويوضّح أي ريل.
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         LucideIcons.clapperboard,
                         size: 13,
-                        color: AppColors.textTertiary,
+                        color: context.textColors.tertiary,
                       ),
                       const SizedBox(width: 6),
                       Expanded(

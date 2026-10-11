@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/permissions/permissions.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/storage/app_prefs.dart';
-import '../core/theme/app_colors.dart';
 import '../features/auth/auth_service.dart';
 import '../features/communication_and_support/chat_screen.dart';
 import '../features/home_and_services/home_screen.dart';
@@ -169,11 +169,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
   @override
   Widget build(BuildContext context) {
     final activeTab = _tabs[_currentIndex];
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final scaffoldBg = isDark
-        ? AppColors.background
-        : AppColors.lightBackground;
+    // ★ خلفية الـ Scaffold من اللوحة الديناميكية (تتبع الوضع والتخصيص).
+    final scaffoldBg = context.backgroundColors.primary;
 
     // ★ نُخفي العنوان في تبويب «الرئيسية» فقط (حيث يظهر شعار التطبيق بدله).
     final isHomeTab = _currentIndex == _homeTabIndex;

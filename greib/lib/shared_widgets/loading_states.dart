@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/theme/design_tokens.dart';
 import 'app_button.dart';
 
@@ -46,11 +47,9 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor = isDark ? AppColors.surfaceOverlay : AppColors.neutral200;
-    final highlightColor = isDark
-        ? AppColors.outlineLight
-        : AppColors.neutral100;
+    // ★ ألوان الهيكل العظمي من اللوحة الديناميكية.
+    final baseColor = context.backgroundColors.surfaceElevated;
+    final highlightColor = context.backgroundColors.outline;
 
     return AnimatedBuilder(
       animation: _animation,
@@ -85,16 +84,18 @@ class SkeletonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // ★ الأسطح والحدود من اللوحة الديناميكية.
+    final surface = context.backgroundColors.surface;
+    final outline = context.backgroundColors.outline;
 
     return Container(
       height: height,
       margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceCard : AppColors.lightSurfaceVariant,
+        color: surface,
         borderRadius: BorderRadius.circular(AppRadii.xl),
         border: Border.all(
-          color: isDark ? AppColors.outline : AppColors.lightOutline,
+          color: outline,
           width: 0.5,
         ),
       ),
@@ -152,6 +153,8 @@ class EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // ★ اللون الرسمي من اللوحة الديناميكية.
+    final accent = context.accentColor;
 
     return Center(
       child: Padding(
@@ -162,17 +165,17 @@ class EmptyState extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.accentPrimary.withValues(alpha: 0.08),
+                color: accent.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppRadii.xl),
                 border: Border.all(
-                  color: AppColors.accentPrimary.withValues(alpha: 0.2),
+                  color: accent.withValues(alpha: 0.2),
                   width: 1,
                 ),
               ),
               child: Icon(
                 icon,
                 size: 40,
-                color: AppColors.accentPrimary.withValues(alpha: 0.6),
+                color: accent.withValues(alpha: 0.6),
               ),
             ),
             const SizedBox(height: AppSpacing.xl),

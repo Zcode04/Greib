@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../notifications/notification_manager.dart';
+import '../extensions/context_extensions.dart';
 import '../theme/design_tokens.dart';
 import '../../shared_widgets/quick_settings_sheet.dart';
 import 'header_collapse_state.dart';
@@ -35,7 +36,6 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     final unreadNotifications = context.select<NotificationManager, int>(
       (manager) => manager.unreadCount,
@@ -73,7 +73,7 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                     style: theme.textTheme.titleLarge!.copyWith(
                       fontWeight: FontWeight.w900,
                       fontSize: logoSize,
-                      color: isDark ? AppColors.textPrimary : AppColors.lightText,
+                      color: context.textColors.primary,
                     ),
                     child: const Text('گريب منك'),
                   ),
@@ -84,14 +84,10 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                           vertical: collapsed ? 10 : 14),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: isDark
-                              ? AppColors.surfaceCard
-                              : AppColors.lightSurfaceVariant,
+                          color: context.backgroundColors.surface,
                           borderRadius: BorderRadius.circular(AppRadii.full),
                           border: Border.all(
-                            color: isDark
-                                ? AppColors.outline
-                                : AppColors.lightOutline,
+                            color: context.backgroundColors.outline,
                             width: 1,
                           ),
                         ),

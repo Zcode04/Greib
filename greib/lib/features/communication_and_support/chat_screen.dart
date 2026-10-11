@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/permissions/permissions.dart';
+import '../../core/extensions/context_extensions.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../features/auth/mock_auth.dart';
 
@@ -174,18 +175,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     // ★ حشوة رأسية صريحة: جسم تبويب الدردشة داخل MainShellScreen يمتد
-    //   خلف الهيدر (extendBodyBehindAppBar: true) لأن SuperHeader شفاف،
-    //   فبدونها تمرّ بطاقات المحادثات تحت الهيدر وتتداخل معه.
-    //   نجمع شريط الحالة العلوي + ارتفاع الهيدر (toolbarHeight = 64).
+    // خلف الهيدر (extendBodyBehindAppBar: true) لأن SuperHeader شفاف،
+    // فبدونها تمرّ بطاقات المحادثات تحت الهيدر وتتداخل معه.
+    // نجمع شريط الحالة العلوي + ارتفاع الهيدر (toolbarHeight = 64).
     final topInset = MediaQuery.paddingOf(context).top + 64;
 
     return Scaffold(
-      backgroundColor: isDark
-          ? AppColors.background
-          : AppColors.lightBackground,
+      // ★ لون الخلفية من اللوحة المركزية (Color Palette).
+      backgroundColor: context.backgroundColors.primary,
       body: Column(
         children: [
           Expanded(
@@ -196,9 +195,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 height: 1,
                 thickness: 1,
                 indent: 76,
-                color: isDark
-                    ? AppColors.outline.withValues(alpha: 0.35)
-                    : AppColors.lightOutline,
+                color: context.backgroundColors.outline,
               ),
               itemBuilder: (context, index) {
                 final conv = _conversations[index];
@@ -209,8 +206,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.accentPrimary,
-        foregroundColor: AppColors.onAccentPrimary,
+        backgroundColor: context.accentColor,
+        foregroundColor: context.textColors.onAccent,
         elevation: 4,
         onPressed: () {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -324,7 +321,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: unread > 0
-                                ? AppColors.accentPrimary
+                                ? context.accentColor
                                 : theme.colorScheme.onSurfaceVariant,
                             fontWeight: unread > 0
                                 ? FontWeight.w700
@@ -361,7 +358,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                             minHeight: 20,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.accentPrimary,
+                            color: context.accentColor,
                             borderRadius: BorderRadius.circular(AppRadii.full),
                           ),
                           child: Center(
@@ -370,8 +367,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 '$unread',
-                                style: const TextStyle(
-                                  color: AppColors.onAccentPrimary,
+                                style: TextStyle(
+                                  color: context.textColors.onAccent,
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -380,10 +377,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           ),
                         )
                       else
-                        const Icon(
+                        Icon(
                           LucideIcons.checkCheck,
                           size: 16,
-                          color: AppColors.accentPrimary,
+                          color: context.accentColor,
                         ),
                     ],
                   ),
@@ -912,9 +909,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
           child: Wrap(
             children: [
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   LucideIcons.camera,
-                  color: AppColors.accentPrimary,
+                  color: sheetContext.accentColor,
                 ),
                 title: const Text('التقاط صورة'),
                 onTap: () {
@@ -923,9 +920,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                 },
               ),
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   LucideIcons.image,
-                  color: AppColors.accentPrimary,
+                  color: sheetContext.accentColor,
                 ),
                 title: const Text('اختيار من المعرض'),
                 onTap: () {
@@ -1209,9 +1206,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                 ),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: theme.brightness == Brightness.dark
-                        ? AppColors.backgroundPrimary
-                        : const Color(0xFFECE5DD),
+                    // ★ لون خلفية المحادثة من اللوحة المركزية (Color Palette).
+                    color: context.backgroundColors.primary,
                   ),
                   child: ListView.builder(
                     controller: _scrollController,
@@ -1295,7 +1291,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                         width: 2.5,
                         height: h,
                         decoration: BoxDecoration(
-                          color: AppColors.accentPrimary,
+                          color: context.accentColor,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -1307,11 +1303,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
             const SizedBox(width: AppSpacing.sm),
             // Stops recording and moves to preview — NOT sent yet.
             CircleAvatar(
-              backgroundColor: AppColors.accentPrimary,
+              backgroundColor: context.accentColor,
               child: IconButton(
-                icon: const Icon(
+                icon: Icon(
                   LucideIcons.check,
-                  color: AppColors.onAccentPrimary,
+                  color: context.textColors.onAccent,
                   size: 20,
                 ),
                 onPressed: _finishRecordingToPreview,
@@ -1375,14 +1371,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.accentPrimary,
+              color: context.accentColor,
               shape: BoxShape.circle,
             ),
             child: IconButton(
               padding: EdgeInsets.zero,
-              icon: const Icon(
+              icon: Icon(
                 LucideIcons.camera,
-                color: AppColors.onAccentPrimary,
+                color: context.textColors.onAccent,
                 size: 20,
               ),
               onPressed: _showAttachmentOptions,
@@ -1418,14 +1414,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: hasText ? AppColors.accentPrimary : AppColors.success,
+              color: hasText ? context.accentColor : AppColors.success,
               shape: BoxShape.circle,
             ),
             child: IconButton(
               padding: EdgeInsets.zero,
               icon: Icon(
                 hasText ? LucideIcons.send : LucideIcons.mic,
-                color: hasText ? AppColors.onAccentPrimary : Colors.white,
+                color: hasText
+                    ? context.textColors.onAccent
+                    : AppColors.onAccentPrimary,
                 size: 22,
               ),
               onPressed: hasText ? _sendMessage : _startRecording,
@@ -1510,30 +1508,31 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                msg['postTitle'] as String,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: isMine
-                                      ? Colors.white
-                                      : theme.colorScheme.onSurface,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                msg['postSubtitle'] as String,
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: isMine
-                                      ? Colors.white70
-                                      : theme.colorScheme.onSurfaceVariant,
-                                  fontSize: 13,
-                                ),
-                              ),
+                               Text(
+                                 msg['postTitle'] as String,
+                                 maxLines: 1,
+                                 overflow: TextOverflow.ellipsis,
+                                 style: TextStyle(
+                                   color: isMine
+                                       ? context.textColors.onAccent
+                                       : theme.colorScheme.onSurface,
+                                   fontWeight: FontWeight.w700,
+                                   fontSize: 14,
+                                 ),
+                               ),
+                               const SizedBox(height: 2),
+                               Text(
+                                 msg['postSubtitle'] as String,
+                                 maxLines: 3,
+                                 overflow: TextOverflow.ellipsis,
+                                 style: TextStyle(
+                                   color: isMine
+                                       ? context.textColors.onAccent
+                                           .withValues(alpha: 0.7)
+                                       : theme.colorScheme.onSurfaceVariant,
+                                   fontSize: 13,
+                                 ),
+                               ),
                             ],
                           ),
                         ),
@@ -1559,7 +1558,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                           msg['content'] as String,
                           style: TextStyle(
                             color: isMine
-                                ? Colors.white
+                                ? context.textColors.onAccent
                                 : theme.colorScheme.onSurface,
                             fontSize: 14,
                           ),
@@ -1571,7 +1570,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                         msg['time'] as String,
                         style: TextStyle(
                           color: isMine
-                              ? Colors.white70
+                              ? context.textColors.onAccent
+                                  .withValues(alpha: 0.7)
                               : theme.colorScheme.onSurfaceVariant,
                           fontSize: 11,
                         ),
@@ -1650,7 +1650,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                           msg['content'] as String,
                           style: TextStyle(
                             color: isMine
-                                ? Colors.white
+                                ? context.textColors.onAccent
                                 : theme.colorScheme.onSurface,
                             fontSize: 14,
                           ),
@@ -1662,7 +1662,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                       msg['time'] as String,
                       style: TextStyle(
                         color: isMine
-                            ? Colors.white70
+                            ? context.textColors.onAccent.withValues(alpha: 0.7)
                             : theme.colorScheme.onSurfaceVariant,
                         fontSize: 11,
                       ),
@@ -1687,7 +1687,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                 ),
                 decoration: BoxDecoration(
                   color: isMine
-                      ? AppColors.accentPrimary
+                      ? context.accentColor
                       : theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.only(
                     topLeft: const Radius.circular(AppRadii.lg),
@@ -1709,7 +1709,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                         msg['content'] as String,
                         style: TextStyle(
                           color: isMine
-                              ? AppColors.onAccentPrimary
+                              ? context.textColors.onAccent
                               : theme.colorScheme.onSurface,
                           fontSize: 15,
                         ),
@@ -1723,7 +1723,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                         msg['time'] as String,
                         style: TextStyle(
                           color: isMine
-                              ? Colors.white70
+                              ? context.textColors.onAccent
+                                  .withValues(alpha: 0.7)
                               : theme.colorScheme.onSurfaceVariant,
                           fontSize: 11,
                         ),
@@ -1746,7 +1747,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       child: Center(
         child: Icon(
           LucideIcons.package,
-          color: isMine ? Colors.white : color,
+          color: isMine ? context.textColors.onAccent : color,
           size: 28,
         ),
       ),
@@ -2030,16 +2031,16 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
     final remainingSeconds = remaining.isNegative ? 0 : remaining.inSeconds;
 
     final bubbleColor = isMine
-        ? AppColors.accentPrimary
+        ? context.accentColor
         : theme.colorScheme.surfaceContainerHighest;
     final onBubble = isMine
-        ? AppColors.onAccentPrimary
+        ? context.textColors.onAccent
         : theme.colorScheme.onSurface;
     final playedColor = isMine
-        ? AppColors.onAccentPrimary
+        ? context.textColors.onAccent
         : theme.colorScheme.primary;
     final unplayedColor =
-        (isMine ? AppColors.onAccentPrimary : theme.colorScheme.primary)
+        (isMine ? context.textColors.onAccent : theme.colorScheme.primary)
             .withValues(alpha: 0.35);
 
     return Container(
@@ -2211,14 +2212,15 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
             height: 32,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
+              // ★ تدرّج الهوية من اللوحة المركزية (Color Palette).
               gradient: LinearGradient(
-                colors: [Colors.blue.shade300, Colors.indigo.shade600],
+                colors: [context.accentColor, AppColors.accentPrimaryLight],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
             ),
-            child: const Center(
-              child: Icon(LucideIcons.mic, color: Colors.white, size: 15),
+            child: Center(
+              child: Icon(LucideIcons.mic, color: context.textColors.onAccent, size: 15),
             ),
           ),
         ],
@@ -2378,19 +2380,19 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
             height: 36,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.accentPrimary.withValues(alpha: 0.15),
+              color: context.accentColor.withValues(alpha: 0.15),
             ),
             child: _isLoading
-                ? const Padding(
-                    padding: EdgeInsets.all(9),
+                ? Padding(
+                    padding: const EdgeInsets.all(9),
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: AppColors.accentPrimary,
+                      color: context.accentColor,
                     ),
                   )
                 : Icon(
                     _isPlaying ? LucideIcons.pause : LucideIcons.play,
-                    color: AppColors.accentPrimary,
+                    color: context.accentColor,
                     size: 18,
                   ),
           ),
@@ -2435,7 +2437,7 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
                                 height: widget.waveformBars[i],
                                 decoration: BoxDecoration(
                                   color: played
-                                      ? AppColors.accentPrimary
+                                      ? context.accentColor
                                       : theme.colorScheme.onSurfaceVariant
                                             .withValues(alpha: 0.35),
                                   borderRadius: BorderRadius.circular(2),
@@ -2451,7 +2453,7 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
                             child: Container(
                               width: 2.4,
                               decoration: BoxDecoration(
-                                color: AppColors.accentPrimary,
+                                color: context.accentColor,
                                 borderRadius: BorderRadius.circular(2),
                               ),
                             ),
@@ -2479,11 +2481,11 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
         const SizedBox(width: AppSpacing.sm),
 
         CircleAvatar(
-          backgroundColor: AppColors.accentPrimary,
+          backgroundColor: context.accentColor,
           child: IconButton(
-            icon: const Icon(
+            icon: Icon(
               LucideIcons.send,
-              color: AppColors.onAccentPrimary,
+              color: context.textColors.onAccent,
               size: 18,
             ),
             onPressed: widget.onSend,
@@ -2598,8 +2600,8 @@ class _ImagePreviewSheetState extends State<_ImagePreviewSheet> {
             width: double.infinity,
             child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accentPrimary,
-                foregroundColor: AppColors.onAccentPrimary,
+                backgroundColor: context.accentColor,
+                foregroundColor: context.textColors.onAccent,
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppRadii.full),

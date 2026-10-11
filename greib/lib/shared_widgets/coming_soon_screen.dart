@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../core/extensions/context_extensions.dart';
 import '../core/theme/design_tokens.dart';
 import 'app_button.dart';
 
@@ -22,8 +23,8 @@ class ComingSoonScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final accent = AppColors.accentFor(isDark);
+    // ★ اللون الرسمي من اللوحة الديناميكية (يتفاعل مع الوضع والتخصيص).
+    final accent = context.accentColor;
 
     return Scaffold(
       appBar: AppBar(title: Text(title), centerTitle: true),
