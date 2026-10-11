@@ -523,11 +523,10 @@ class _PostsTab extends StatelessWidget {
             onComment: () =>
                 sheets.showComments(context, postId: postId, service: service),
             onRequest: () => sheets.openServiceChat(context, service: service),
-            onShare: () => sheets.showAction(
+            onShare: () => sheets.showShare(
               context,
-              iconWidget: const ShareArrowIcon(size: 18),
-              title: 'إعادة النشر',
-              hint: 'نشر رابط «${service.title}» على صفحتك.',
+              postId: postId,
+              service: service,
             ),
             onImageTap: () => sheets.openImagePreview(
               context,

@@ -9,6 +9,7 @@ import 'post_reaction.dart';
 import 'smart_image.dart';
 import 'share_arrow_icon.dart';
 import 'sheets/post_options_sheet.dart';
+import 'sheets/post_share_sheet.dart';
 
 /// ============================================================================
 ///  ServicePostCard — بطاقة المنشور الموحّدة.
@@ -292,6 +293,23 @@ class _ServicePostCardState extends State<ServicePostCard> {
         content: Text('هذه الميزة ستتوفر قريباً بإذن الله'),
         behavior: SnackBarBehavior.floating,
         duration: Duration(milliseconds: 900),
+      ),
+    );
+  }
+
+  void _openShareSheet() {
+    if (widget.onShare != null) {
+      widget.onShare!();
+      return;
+    }
+    showAppSheet<void>(
+      context,
+      builder: (_) => PostShareSheet(
+        service: widget.service,
+        postId: widget.service.id,
+        isDark: widget.isDark,
+        isSaved: _isSaved,
+        onSaveToggle: _toggleSaved,
       ),
     );
   }
@@ -661,7 +679,7 @@ class _ServicePostCardState extends State<ServicePostCard> {
                     iconWidget: ShareArrowIcon(size: 20, color: _secondary),
                     color: _secondary,
                     count: widget.shareCount ?? _countFor(20, 1),
-                    onTap: () => (widget.onShare ?? _showLater)(),
+                    onTap: _openShareSheet,
                   ),
                 ),
               ],

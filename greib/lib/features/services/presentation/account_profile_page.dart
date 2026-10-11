@@ -706,11 +706,10 @@ class _AccountPostsTab extends StatelessWidget {
               service: service,
             ),
             onRequest: () => sheets.openServiceChat(context, service: service),
-            onShare: () => sheets.showAction(
+            onShare: () => sheets.showShare(
               context,
-              iconWidget: const ShareArrowIcon(size: 18),
-              title: 'إعادة النشر',
-              hint: 'نشر رابط منشور «${account.name}» على صفحتك.',
+              postId: postId,
+              service: service,
             ),
             onImageTap: () => sheets.openImagePreview(
               context,

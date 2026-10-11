@@ -589,11 +589,10 @@ class _SpotlightSectionState extends State<SpotlightSection> {
             onAuthorTap: () => _showPostImagesSheet(service, images),
             onComment: () =>
                 core.showComments(context, postId: postId, service: service),
-            onShare: () => core.showAction(
+            onShare: () => core.showShare(
               context,
-              iconWidget: const ShareArrowIcon(size: 18),
-              title: 'إعادة النشر',
-              hint: 'نشر رابط «${service.title}» على صفحتك.',
+              postId: postId,
+              service: service,
             ),
             // ★ نفس وضع الشرائح المستعمل في الشريط أسفل المنشور.
             onShowSlides: () => setState(() {

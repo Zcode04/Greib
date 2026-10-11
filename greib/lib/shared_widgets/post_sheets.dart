@@ -7,10 +7,12 @@ import '../core/widgets/image_preview_dialog.dart';
 import '../../features/communication_and_support/chat_screen.dart';
 import 'sheets/post_comments_sheet.dart';
 import 'sheets/post_reaction_sheet.dart';
+import 'sheets/post_share_sheet.dart';
 import 'post_reaction.dart';
 
 export 'sheets/post_comments_sheet.dart' show PostComment, PostCommentsSheet;
 export 'sheets/post_reaction_sheet.dart' show PostReactionSheet;
+export 'sheets/post_share_sheet.dart' show PostShareSheet;
 
 /// ============================================================================
 ///  PostSheetsController — النواة المشتركة لكل منشور في التطبيق.
@@ -144,6 +146,27 @@ class PostSheetsController extends ChangeNotifier {
           setReaction(postId, value);
           Navigator.of(sheetContext).maybePop();
         },
+      ),
+    );
+  }
+
+  /// ورقة مشاركة المنشور التفاعلية (على طريقة فيسبوك/ميتا).
+  void showShare(
+    BuildContext context, {
+    required String postId,
+    required ServiceCategory service,
+    VoidCallback? onRepost,
+  }) {
+    showAppSheet<void>(
+      context,
+      builder: (_) => PostShareSheet(
+        service: service,
+        postId: postId,
+        isDark: isDark,
+        isSaved: isFavorite(postId),
+        onSaveToggle: () => setFavorite(postId, !isFavorite(postId)),
+        onChatTap: () => openServiceChat(context, service: service),
+        onRepost: onRepost,
       ),
     );
   }
