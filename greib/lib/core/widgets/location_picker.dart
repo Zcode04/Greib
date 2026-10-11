@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' show FontFeature;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +6,7 @@ import 'package:latlong2/latlong.dart' hide Path;
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
+import '../../features/home_and_services/widgets/map_explore_section.dart';
 import '../location/location_controller.dart';
 import '../location/mauritania_regions.dart';
 import '../theme/design_tokens.dart';
@@ -829,6 +829,10 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                       ),
                     ),
             ),
+            const SizedBox(height: AppSpacing.md),
+            Divider(height: 1, thickness: 1, color: ink.withValues(alpha: 0.12)),
+            const SizedBox(height: AppSpacing.md),
+            NearbyServicesSection(isDark: theme.brightness == Brightness.dark),
           ],
         ),
       ),
