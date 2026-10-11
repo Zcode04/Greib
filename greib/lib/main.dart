@@ -5,12 +5,14 @@ import 'core/location/location_controller.dart';
 import 'core/notifications/notification_manager.dart';
 import 'core/storage/app_prefs.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/color_palette_controller.dart';
 import 'core/theme/theme_controller.dart';
 import 'core/router/app_router.dart';
 import 'core/widgets/location_gate.dart';
 import 'features/auth/auth_service.dart';
 import 'features/services/data/account_repository.dart';
 import 'features/services/data/services_repository.dart';
+
 
 Future<void> main() async {
   // نُهيّئ القنوات الأصلية + التخزين المحلي قبل بناء الواجهة،
@@ -32,6 +34,7 @@ Widget buildGreibMenkApp() {
   return MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => ThemeController()),
+      ChangeNotifierProvider(create: (_) => ColorPaletteController()),
       ChangeNotifierProvider<AuthService>.value(value: AuthService.instance),
       ChangeNotifierProvider<NotificationManager>.value(
         value: NotificationManager.instance,
@@ -50,12 +53,14 @@ class GreibMenkApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeController = context.watch<ThemeController>();
+    // ★ نستمع لمتحكم الألوان لسريان أي تغيير في اللوحة فوراً على كل التطبيق.
+    final paletteController = context.watch<ColorPaletteController>();
 
     return MaterialApp.router(
       title: 'گريب منك',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme(paletteController.lightPalette),
+      darkTheme: AppTheme.darkTheme(paletteController.darkPalette),
       themeMode: themeController.themeMode,
       locale: const Locale('ar', 'AE'),
       supportedLocales: const [Locale('ar', 'AE')],
