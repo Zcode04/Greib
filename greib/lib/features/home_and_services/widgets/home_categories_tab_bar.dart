@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/mock_data/mock_data.dart';
+import '../../../shared_widgets/store_category_tabs.dart';
 import 'sticky_location_button.dart';
 
 /// شريط تبويبات الـ 14 قسم، يظهر في الرئيسية بين "رائج" و"الأحدث".
@@ -25,11 +26,38 @@ class _HomeCategoriesTabBarState extends State<HomeCategoriesTabBar>
   @override
   void initState() {
     super.initState();
-    _controller = TabController(length: _categories.length, vsync: this);
+    final initialId = StoreSelectedCategory.notifier.value;
+    final initialIndex = _categories.indexWhere((c) => c['id'] == initialId);
+    _controller = TabController(
+      length: _categories.length,
+      initialIndex: initialIndex != -1 ? initialIndex : 0,
+      vsync: this,
+    );
+    _controller.addListener(_onTabControllerChanged);
+    StoreSelectedCategory.notifier.addListener(_onGlobalCategoryChanged);
+  }
+
+  void _onTabControllerChanged() {
+    if (!_controller.indexIsChanging) {
+      final catId = _categories[_controller.index]['id']!;
+      if (StoreSelectedCategory.notifier.value != catId) {
+        StoreSelectedCategory.notifier.value = catId;
+      }
+    }
+  }
+
+  void _onGlobalCategoryChanged() {
+    final catId = StoreSelectedCategory.notifier.value;
+    final idx = _categories.indexWhere((c) => c['id'] == catId);
+    if (idx != -1 && idx != _controller.index && mounted) {
+      _controller.animateTo(idx);
+    }
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_onTabControllerChanged);
+    StoreSelectedCategory.notifier.removeListener(_onGlobalCategoryChanged);
     _controller.dispose();
     super.dispose();
   }
@@ -124,6 +152,10 @@ class _HomeCategoriesTabBarState extends State<HomeCategoriesTabBar>
                       : AppColors.lightBackground,
                   child: TabBar(
                     controller: _controller,
+                    onTap: (index) {
+                      final catId = _categories[index]['id']!;
+                      StoreSelectedCategory.notifier.value = catId;
+                    },
                     isScrollable: true,
                     tabAlignment: TabAlignment.start,
                     indicatorColor: accent,

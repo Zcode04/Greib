@@ -326,7 +326,7 @@ class CommerceAggregatorService {
       description: 'حذاء رياضي خفيف ومبطن بنعل مانع للانزلاق لدعم حركة الطفل.',
     ),
 
-    // 3. الإلكترونيات والسماعات
+    // 3. الإلكترونيات والسماعات (هواتف، حواسيب، شاشات، سماعات)
     AggregatedProduct(
       id: 'agg_e1',
       name: 'سماعات لاسلكية عازلة للضوضاء Pro',
@@ -345,6 +345,54 @@ class CommerceAggregatorService {
     ),
     AggregatedProduct(
       id: 'agg_e2',
+      name: 'هاتف ذكي ألترا 5G بكاميرا 200 ميجابكسل',
+      category: 'electronics',
+      sourceStore: 'نون السعودية',
+      sourceCountry: 'SA',
+      originalPrice: 3899.0,
+      customPrice: 4150.0,
+      oldPrice: 4499.0,
+      currency: 'ر.س',
+      imageUrl: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&q=80',
+      rating: 4.9,
+      reviewsCount: 1420,
+      tags: ['هواتف', 'جوالات', 'إلكترونيات', '5G'],
+      description: 'هاتف ذكي فائق الأداء مع معالج متطور وشاشة Dynamic AMOLED وبطارية تدوم يومين.',
+    ),
+    AggregatedProduct(
+      id: 'agg_e3',
+      name: 'حاسوب محمول للأعمال والبرمجة معالج M3',
+      category: 'electronics',
+      sourceStore: 'أمازون الخليج',
+      sourceCountry: 'SA',
+      originalPrice: 4999.0,
+      customPrice: 5299.0,
+      oldPrice: 5699.0,
+      currency: 'ر.س',
+      imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&q=80',
+      rating: 4.9,
+      reviewsCount: 930,
+      tags: ['كمبيوتر', 'لابتوب', 'أجهزة', 'حواسيب'],
+      description: 'كمبيوتر محمول فائق النحافة والسرعة بذاكرة 16GB وشاشة Retina مذهلة للأعمال والتصميم.',
+    ),
+    AggregatedProduct(
+      id: 'agg_e4',
+      name: 'جهاز لوحي ذكي 11 بوصة مع قلم مغناطيسي',
+      category: 'electronics',
+      sourceStore: 'شرف دي جي',
+      sourceCountry: 'AE',
+      originalPrice: 2199.0,
+      customPrice: 2350.0,
+      oldPrice: 2600.0,
+      currency: 'ر.س',
+      imageUrl: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=600&q=80',
+      rating: 4.8,
+      reviewsCount: 512,
+      tags: ['تابلت', 'أجهزة لوحية', 'إلكترونيات'],
+      description: 'شاشة عالية التحديث 120Hz مثالية للرسم والدراسة وقراءة الكتب مع قلم ذكي فائق الدقة.',
+    ),
+    AggregatedProduct(
+      id: 'agg_e5',
       name: 'مكبر صوت بلوتوث محمول مقاوم للماء',
       category: 'electronics',
       sourceStore: 'شرف دي جي',
@@ -680,6 +728,84 @@ class CommerceAggregatorService {
         )).toList();
 
     return list.take(count).map((p) => p.toProduct()).toList();
+  }
+
+  /// جلب المنتجات بشكل متزامن بحسب الفئة المحددة لدعم التبديل الفوري للتبويبات
+  List<AggregatedProduct> getProductsForCategorySync(String categoryId) {
+    if (categoryId == 'hotels') {
+      return _cachedHotels.map((h) => AggregatedProduct(
+        id: h.id,
+        name: h.name,
+        category: 'hotels',
+        sourceStore: h.sourcePlatform,
+        sourceCountry: h.country.contains('السعودية') ? 'SA' : 'AE',
+        originalPrice: h.originalPricePerNight,
+        customPrice: h.customPricePerNight,
+        currency: 'ر.س',
+        imageUrl: h.imageUrl,
+        rating: h.rating,
+        reviewsCount: 150,
+        tags: [h.city, h.subscriptionType, 'عائلي'],
+        description: h.description,
+      )).toList();
+    }
+
+    if (categoryId == 'all') {
+      return _cachedProducts.where((p) => isContentCompliant(
+        title: p.name,
+        category: p.category,
+        description: p.description,
+        tags: p.tags,
+      )).toList();
+    }
+
+    if (categoryId == 'best') {
+      final list = _cachedProducts.where((p) => isContentCompliant(
+        title: p.name,
+        category: p.category,
+        description: p.description,
+        tags: p.tags,
+      )).toList();
+      list.sort((a, b) => b.rating.compareTo(a.rating));
+      return list;
+    }
+
+    return _cachedProducts.where((p) => p.category == categoryId && isContentCompliant(
+      title: p.name,
+      category: p.category,
+      description: p.description,
+      tags: p.tags,
+    )).toList();
+  }
+
+  /// عنوان القسم المناسب للتبويب المختار
+  String getCategoryTitle(String categoryId) {
+    switch (categoryId) {
+      case 'electronics':
+        return 'أحدث الإلكترونيات والهواتف والحواسيب';
+      case 'men_fashion':
+        return 'أحدث أزياء وملابس الرجال';
+      case 'boys_fashion':
+        return 'أزياء ومستلزمات الأولاد';
+      case 'watches':
+        return 'الساعات الذكية والإكسسوارات';
+      case 'health_nutrition':
+        return 'الأغذية والصحة الحلال';
+      case 'sports':
+        return 'مستلزمات الرياضة واللياقة';
+      case 'cars':
+        return 'عناية ومستلزمات السيارات';
+      case 'toys':
+        return 'ألعاب تنمية المهارات والذكاء';
+      case 'perfumes_care':
+        return 'العطور الملكية والعناية الراقية';
+      case 'hotels':
+        return 'الفنادق والإقامات العائلية المحافظة';
+      case 'best':
+        return 'أعلى المنتجات تقييماً وطلباً';
+      default:
+        return 'الأحدث في المتجر';
+    }
   }
 
   /// تحكم يدوي في سعر منتج معين
