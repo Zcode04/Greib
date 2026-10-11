@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'app_color_palette.dart';
+import 'chat_colors.dart';
 import 'design_tokens.dart';
 
 /// ============================================================================
@@ -23,7 +24,7 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       fontFamily: AppTypography.fontFamily,
-      extensions: [p],
+      extensions: [p, AppChatColors.fromPalette(p)],
 
       colorScheme: ColorScheme(
         brightness: Brightness.light,
@@ -198,7 +199,7 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       fontFamily: AppTypography.fontFamily,
-      extensions: [p],
+      extensions: [p, AppChatColors.fromPalette(p)],
 
       colorScheme: ColorScheme(
         brightness: Brightness.dark,

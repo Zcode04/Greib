@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
@@ -11,9 +12,15 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../core/permissions/permissions.dart';
-import '../../core/extensions/context_extensions.dart';
+import '../../core/theme/chat_colors.dart';
 import '../../core/theme/design_tokens.dart';
+import 'widgets/chat_whatsapp_ui.dart';
+import 'widgets/document_preview_sheet.dart';
+import 'widgets/whatsapp_attachment.dart';
+import 'widgets/whatsapp_bubble.dart';
+import 'widgets/whatsapp_input_bar.dart';
 import '../../features/auth/mock_auth.dart';
 
 // ---------------------------------------------------------------------------
@@ -182,9 +189,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
     // نجمع شريط الحالة العلوي + ارتفاع الهيدر (toolbarHeight = 64).
     final topInset = MediaQuery.paddingOf(context).top + 64;
 
+    final chat = context.chatColors;
     return Scaffold(
       // ★ لون الخلفية من اللوحة المركزية (Color Palette).
-      backgroundColor: context.backgroundColors.primary,
+      backgroundColor: chat.conversationBackground,
       body: Column(
         children: [
           Expanded(
@@ -195,7 +203,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 height: 1,
                 thickness: 1,
                 indent: 76,
-                color: context.backgroundColors.outline,
+                color: chat.composerBorder,
               ),
               itemBuilder: (context, index) {
                 final conv = _conversations[index];
@@ -206,8 +214,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: context.accentColor,
-        foregroundColor: context.textColors.onAccent,
+        backgroundColor: chat.sendButton,
+        foregroundColor: chat.sendIcon,
         elevation: 4,
         onPressed: () {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -227,6 +235,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     ThemeData theme,
     Map<String, dynamic> conv,
   ) {
+    final chat = context.chatColors;
     final unread = conv['unread'] as int;
     final online = conv['online'] as bool;
     final isGroup = conv['type'] == 'group';
@@ -260,7 +269,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   width: _responsiveAvatar(context),
                   height: _responsiveAvatar(context),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                    color: chat.sendButton.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -282,7 +291,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       width: _isTablet(context) ? 16 : 14,
                       height: _isTablet(context) ? 16 : 14,
                       decoration: BoxDecoration(
-                        color: AppColors.success,
+                        color: chat.onlineDot,
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: theme.scaffoldBackgroundColor,
@@ -321,8 +330,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: unread > 0
-                                ? context.accentColor
-                                : theme.colorScheme.onSurfaceVariant,
+                                ? context.chatColors.sendButton
+                                : context.chatColors.recordingWaveUnplayed,
                             fontWeight: unread > 0
                                 ? FontWeight.w700
                                 : FontWeight.normal,
@@ -341,8 +350,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: unread > 0
-                                ? theme.colorScheme.onSurface
-                                : theme.colorScheme.onSurfaceVariant,
+                                ? context.chatColors.inputText
+                                : context.chatColors.recordingWaveUnplayed,
                             fontWeight: unread > 0
                                 ? FontWeight.w600
                                 : FontWeight.normal,
@@ -358,7 +367,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                             minHeight: 20,
                           ),
                           decoration: BoxDecoration(
-                            color: context.accentColor,
+                            color: context.chatColors.sendButton,
                             borderRadius: BorderRadius.circular(AppRadii.full),
                           ),
                           child: Center(
@@ -368,7 +377,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                               child: Text(
                                 '$unread',
                                 style: TextStyle(
-                                  color: context.textColors.onAccent,
+                                  color: context.chatColors.sendIcon,
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -380,7 +389,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                         Icon(
                           LucideIcons.checkCheck,
                           size: 16,
-                          color: context.accentColor,
+                          color: context.chatColors.sendButton,
                         ),
                     ],
                   ),
@@ -445,6 +454,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   // يتتبّع ظهور لوحة المفاتيح لإعادة التمرير لأسفل الرسائل عند فتحها.
   double _lastKeyboardInset = 0;
 
+  // Focus node for the message input field.
+  final FocusNode _messageFocusNode = FocusNode();
+
   // ---- Real audio recording ----
   final AudioRecorder _audioRecorder = AudioRecorder();
   _ComposerMode _composerMode = _ComposerMode.idle;
@@ -469,6 +481,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   // معاينة المنشور القادمة من زر «طلب الآن»: تظهر كمرفق في صندوق الكتابة،
   // وتبقى حتى يضغط المستخدم الإرسال (نصاً أو تسجيلاً صوتياً) أو يحذفها.
   ChatPostPreview? _pendingPost;
+
+  // ★ الرد المقتبس بأسلوب WhatsApp (بصري فقط).
+  Map<String, dynamic>? _replyingTo;
 
   // Tracks which voice bubble is currently playing, so starting one
   // pauses any other that's playing — same behaviour as WhatsApp.
@@ -556,6 +571,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _messageController.dispose();
+    _messageFocusNode.dispose();
     _scrollController.dispose();
     _liveWaveController.dispose();
     _recordTimer?.cancel();
@@ -632,7 +648,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       SnackBar(
         content: Text(message),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.error,
+        backgroundColor: context.chatColors.recordingTrash,
       ),
     );
   }
@@ -870,6 +886,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
 
   void _sendVoiceMessage(String audioPath, int duration) {
     final post = _pendingPost;
+    final quoted = _replyingTo;
     setState(() {
       _messages.add({
         'id': 'm${DateTime.now().millisecondsSinceEpoch}',
@@ -888,9 +905,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
           'postImageUrl': post.imageUrl,
           'postColor': post.color.toARGB32(),
         },
+        if (quoted != null) 'quoted': Map<String, dynamic>.from(quoted),
       });
     });
     _pendingPost = null;
+    _replyingTo = null;
     _scrollToBottom();
     _simulateReply();
   }
@@ -900,40 +919,40 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   void _showAttachmentOptions() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.lg)),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) => WhatsAppAttachmentPanel(
+        onCamera: () {
+          Navigator.pop(sheetContext);
+          _pickImage(ImageSource.camera);
+        },
+        onGallery: () {
+          Navigator.pop(sheetContext);
+          _pickImage(ImageSource.gallery);
+        },
+        onVideo: () {
+          Navigator.pop(sheetContext);
+          _pickVideo();
+        },
+        onDocument: () {
+          Navigator.pop(sheetContext);
+          _pickDocument();
+        },
+        onAudio: () {
+          Navigator.pop(sheetContext);
+          _pickAudio();
+        },
+        onContact: () {
+          Navigator.pop(sheetContext);
+          _pickContact();
+        },
+        onLocation: () {
+          Navigator.pop(sheetContext);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('ميزة مشاركة الموقع قيد التطوير 📍')),
+          );
+        },
       ),
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: Icon(
-                  LucideIcons.camera,
-                  color: sheetContext.accentColor,
-                ),
-                title: const Text('التقاط صورة'),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _pickImage(ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: Icon(
-                  LucideIcons.image,
-                  color: sheetContext.accentColor,
-                ),
-                title: const Text('اختيار من المعرض'),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _pickImage(ImageSource.gallery);
-                },
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 
@@ -998,8 +1017,113 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
         'isImage': true,
         'time': 'الآن',
         'isMine': true,
+        if (_replyingTo != null) 'quoted': Map<String, dynamic>.from(_replyingTo!),
       });
     });
+    _replyingTo = null;
+    _scrollToBottom();
+    _simulateReply();
+  }
+
+  Future<void> _pickVideo() async {
+    final granted = await _requestPermission(
+      Permission.photos,
+      'يجب السماح بالوصول إلى الصور من إعدادات التطبيق لاختيار فيديو',
+    );
+    if (!granted) return;
+    try {
+      final XFile? picked = await _imagePicker.pickVideo(source: ImageSource.gallery);
+      if (picked == null) return;
+      if (mounted) _showImagePreviewSheet(picked.path);
+    } catch (e, st) {
+      debugPrint('Video pick failed: $e\n$st');
+      if (!mounted) return;
+      _showErrorMessage('تعذر اختيار الفيديو: ${e.toString()}');
+    }
+  }
+
+  Future<void> _pickDocument() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+        allowMultiple: false,
+      );
+      if (result == null || result.files.isEmpty) return;
+      final path = result.files.first.path;
+      if (path == null) {
+        if (mounted) _showErrorMessage('تعذر قراءة الملف المختار');
+        return;
+      }
+      if (mounted) _showDocumentPreviewSheet(path, result.files.first.name);
+    } catch (e, st) {
+      debugPrint('Document pick failed: $e\n$st');
+      if (!mounted) return;
+      _showErrorMessage('تعذر اختيار الملف: ${e.toString()}');
+    }
+  }
+
+  Future<void> _pickAudio() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.audio,
+        allowMultiple: false,
+      );
+      if (result == null || result.files.isEmpty) return;
+      final path = result.files.first.path;
+      if (path == null) {
+        if (mounted) _showErrorMessage('تعذر قراءة الملف الصوتي');
+        return;
+      }
+      _sendVoiceMessage(path, 0);
+    } catch (e, st) {
+      debugPrint('Audio pick failed: $e\n$st');
+      if (!mounted) return;
+      _showErrorMessage('تعذر اختيار الملف الصوتي: ${e.toString()}');
+    }
+  }
+
+  void _pickContact() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('ميزة مشاركة جهة الاتصال قيد التطوير')),
+    );
+  }
+
+  void _showDocumentPreviewSheet(String filePath, String fileName) {
+    final captionController = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return DocumentPreviewSheet(
+          filePath: filePath,
+          fileName: fileName,
+          captionController: captionController,
+          onCancel: () => Navigator.pop(sheetContext),
+          onSend: (caption) {
+            Navigator.pop(sheetContext);
+            _sendDocumentMessage(filePath, fileName, caption);
+          },
+        );
+      },
+    );
+  }
+
+  void _sendDocumentMessage(String filePath, String fileName, String caption) {
+    setState(() {
+      _messages.add({
+        'id': 'm${DateTime.now().millisecondsSinceEpoch}',
+        'sender': 'أنت',
+        'content': caption,
+        'filePath': filePath,
+        'fileName': fileName,
+        'isDocument': true,
+        'time': 'الآن',
+        'isMine': true,
+        if (_replyingTo != null) 'quoted': Map<String, dynamic>.from(_replyingTo!),
+      });
+    });
+    _replyingTo = null;
     _scrollToBottom();
     _simulateReply();
   }
@@ -1021,8 +1145,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   void _sendMessage() {
     final text = _messageController.text.trim();
     final post = _pendingPost;
-    // ★ المرفق يعمل كرسالة صالحة بذاته ⇒ الإرسال متاح حتى بلا كتابة نص.
-    if (text.isEmpty && post == null) return;
+    final quoted = _replyingTo;
+    // ★ المرفق/الرد يعمل كرسالة صالحة بذاته ⇒ الإرسال متاح حتى بلا كتابة نص.
+    if (text.isEmpty && post == null && quoted == null) return;
 
     setState(() {
       if (post != null) {
@@ -1037,6 +1162,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
           'postSubtitle': post.subtitle,
           'postImageUrl': post.imageUrl,
           'postColor': post.color.toARGB32(),
+          if (quoted != null) 'quoted': Map<String, dynamic>.from(quoted),
         });
       } else {
         _messages.add({
@@ -1045,11 +1171,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
           'content': text,
           'time': 'الآن',
           'isMine': true,
+          if (quoted != null) 'quoted': Map<String, dynamic>.from(quoted),
         });
       }
     });
 
     _pendingPost = null;
+    _replyingTo = null;
     _messageController.clear();
     _scrollToBottom();
     _simulateReply();
@@ -1087,6 +1215,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final chat = context.chatColors;
     final isLandscape = _isLandscape(context);
     // شاشات أفقية ضيقة الارتفاع: نقلّص الحشوات الرأسية للـ AppBar.
     final avatarSize = _isTablet(context) ? 48.0 : 40.0;
@@ -1095,14 +1224,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor:
-            theme.appBarTheme.backgroundColor ?? theme.colorScheme.surface,
+        scrolledUnderElevation: 0,
+        backgroundColor: chat.composerBackground,
         leadingWidth: 40,
         toolbarHeight: isLandscape ? 52 : kToolbarHeight,
         leading: Container(
           margin: const EdgeInsets.all(AppSpacing.xs),
           child: IconButton(
-            icon: const Icon(LucideIcons.chevronLeft, size: 22),
+            icon: Icon(LucideIcons.chevronLeft, size: 22, color: chat.inputText),
             onPressed: () {
               if (context.canPop()) context.pop();
             },
@@ -1124,7 +1253,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                 width: avatarSize,
                 height: avatarSize,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  color: context.chatColors.sendButton.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -1147,6 +1276,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
+                        color: chat.inputText,
                       ),
                     ),
                     const SizedBox(height: 1),
@@ -1157,8 +1287,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                             width: 8,
                             height: 8,
                             margin: const EdgeInsets.only(left: AppSpacing.xs),
-                            decoration: const BoxDecoration(
-                              color: AppColors.success,
+                            decoration: BoxDecoration(
+                              color: chat.onlineDot,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -1173,8 +1303,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: (!widget.isGroup && widget.online)
-                                  ? AppColors.success
-                                  : theme.colorScheme.onSurfaceVariant,
+                                  ? chat.onlineDot
+                                  : chat.recordingWaveUnplayed,
                             ),
                           ),
                         ),
@@ -1187,10 +1317,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
           ),
         ),
         actions: [
-          IconButton(icon: const Icon(LucideIcons.video), onPressed: () {}),
-          IconButton(icon: const Icon(LucideIcons.phone), onPressed: () {}),
           IconButton(
-            icon: const Icon(LucideIcons.moreVertical),
+            icon: Icon(LucideIcons.video, color: chat.composerIcon),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: Icon(LucideIcons.phone, color: chat.composerIcon),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: Icon(LucideIcons.moreVertical, color: chat.composerIcon),
             onPressed: () {},
           ),
         ],
@@ -1204,11 +1340,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                 constraints: BoxConstraints(
                   maxWidth: _chatAreaMaxWidth(context),
                 ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    // ★ لون خلفية المحادثة من اللوحة المركزية (Color Palette).
-                    color: context.backgroundColors.primary,
-                  ),
+                child: ChatDoodleBackground(
                   child: ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.all(AppSpacing.md),
@@ -1232,9 +1364,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
 
   Widget _buildComposer(ThemeData theme) {
     final pendingPost = _pendingPost;
-    // ★ المرفق يُعدّ محتوى قابلاً للإرسال ⇒ زر الإرسال يظهر حتى بلا نص.
-    final hasText =
-        _messageController.text.isNotEmpty || pendingPost != null;
+    final chat = context.chatColors;
+    final hasText = _messageController.text.isNotEmpty ||
+        pendingPost != null ||
+        _replyingTo != null;
     // شاشات أفقية ضيقة الارتفاع: نقلّص الحشوة الرأسية لتفادي طفح شريط التسجيل.
     final vPad = _isLandscape(context) ? AppSpacing.xs : AppSpacing.sm;
     final vPadMd = _isLandscape(context) ? AppSpacing.sm : AppSpacing.md;
@@ -1242,40 +1375,58 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     if (_composerMode == _ComposerMode.recording) {
       return Container(
         padding: EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
+          horizontal: AppSpacing.sm,
           vertical: vPadMd,
         ),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          border: Border(
-            top: BorderSide(
-              color: theme.colorScheme.outline.withValues(alpha: 0.2),
-            ),
-          ),
+          color: chat.recordingBackground,
+          border: Border(top: BorderSide(color: chat.composerBorder)),
         ),
         child: Row(
           children: [
-            IconButton(
-              icon: const Icon(LucideIcons.trash2, color: AppColors.error),
-              onPressed: _cancelRecording,
-              tooltip: 'إلغاء التسجيل',
+            // زر سلة المهملات لإلغاء وحذف التسجيل فوراً
+            Container(
+              decoration: BoxDecoration(
+                color: chat.recordingTrash.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: Icon(LucideIcons.trash2, color: chat.recordingTrash, size: 20),
+                onPressed: () {
+                  HapticFeedback.mediumImpact();
+                  _cancelRecording();
+                },
+                tooltip: 'إلغاء وحذف التسجيل',
+              ),
             ),
             const SizedBox(width: AppSpacing.xs),
+
+            // النقطة الحمراء النابضة
             const _RecordingPulseDot(),
-            const SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.xs + 2),
+
+            // عداد الوقت
             Text(
               _formatDuration(_recordSeconds),
               style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
+                color: chat.recordingTimer,
+                fontSize: 14.5,
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
+
+            // مؤشر اسحب للإلغاء المتحرك
+            const _SlideToCancel(),
+            const SizedBox(width: AppSpacing.xs),
+
+            // موجات الصوت الحية المتفاعلة مع الميكروفون
             Expanded(
               child: Container(
-                height: 34,
+                height: 36,
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
+                  color: chat.inputField,
                   borderRadius: BorderRadius.circular(AppRadii.full),
                 ),
                 child: ListView.builder(
@@ -1287,12 +1438,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                     final h = _liveWaveform[_liveWaveform.length - 1 - i];
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 1.2),
-                      child: Container(
-                        width: 2.5,
-                        height: h,
-                        decoration: BoxDecoration(
-                          color: context.accentColor,
-                          borderRadius: BorderRadius.circular(2),
+                      child: Center(
+                        child: Container(
+                          width: 2.6,
+                          height: h,
+                          decoration: BoxDecoration(
+                            color: chat.recordingWavePlayed,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
                         ),
                       ),
                     );
@@ -1301,16 +1454,32 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
-            // Stops recording and moves to preview — NOT sent yet.
-            CircleAvatar(
-              backgroundColor: context.accentColor,
+
+            // زر التوقف والانتقال للمعاينة بأسلوب واتساب
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: chat.sendButton,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: chat.sendButton.withValues(alpha: 0.3),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
               child: IconButton(
                 icon: Icon(
                   LucideIcons.check,
-                  color: context.textColors.onAccent,
-                  size: 20,
+                  color: chat.sendIcon,
+                  size: 21,
                 ),
-                onPressed: _finishRecordingToPreview,
+                onPressed: () {
+                  HapticFeedback.mediumImpact();
+                  _finishRecordingToPreview();
+                },
                 tooltip: 'إيقاف ومعاينة',
               ),
             ),
@@ -1326,12 +1495,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
           vertical: vPad,
         ),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          border: Border(
-            top: BorderSide(
-              color: theme.colorScheme.outline.withValues(alpha: 0.2),
-            ),
-          ),
+          color: chat.recordingBackground,
+          border: Border(top: BorderSide(color: chat.composerBorder)),
         ),
         child: _RecordingPreviewBar(
           audioPath: _pendingAudioPath!,
@@ -1346,17 +1511,19 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     return Container(
       padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: vPad),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: theme.colorScheme.outline.withValues(alpha: 0.2),
-          ),
-        ),
+        color: chat.composerBackground,
+        border: Border(top: BorderSide(color: chat.composerBorder)),
       ),
-      // ★ معاينة المنشور فوق صندوق الكتابة (أفقياً) وتبقى بانتظار الإرسال.
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (_replyingTo != null) ...[
+            ComposerReplyPreview(
+              quoted: _replyingTo!,
+              onCancel: () => setState(() => _replyingTo = null),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+          ],
           if (pendingPost != null) ...[
             _PostAttachmentBar(
               preview: pendingPost,
@@ -1364,73 +1531,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
             ),
             const SizedBox(height: AppSpacing.xs),
           ],
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: context.accentColor,
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              icon: Icon(
-                LucideIcons.camera,
-                color: context.textColors.onAccent,
-                size: 20,
-              ),
-              onPressed: _showAttachmentOptions,
-              tooltip: 'إرفاق صورة',
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-
-          Expanded(
-            child: TextField(
-              controller: _messageController,
-              maxLines: null,
-              textInputAction: TextInputAction.newline,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                hintText: 'اكتب رسالتك...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadii.full),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: theme.colorScheme.surfaceContainerHighest,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg,
-                  vertical: AppSpacing.sm + 2,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: hasText ? context.accentColor : AppColors.success,
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              icon: Icon(
-                hasText ? LucideIcons.send : LucideIcons.mic,
-                color: hasText
-                    ? context.textColors.onAccent
-                    : AppColors.onAccentPrimary,
-                size: 22,
-              ),
-              onPressed: hasText ? _sendMessage : _startRecording,
-              tooltip: hasText ? 'إرسال' : 'تسجيل صوتي',
-            ),
-          ),
-            ],
+          WhatsAppInputBar(
+            controller: _messageController,
+            hasText: hasText,
+            onSend: _sendMessage,
+            onVoice: _startRecording,
+            onAttach: _showAttachmentOptions,
+            onCamera: () => _pickImage(ImageSource.camera),
+            onChanged: (_) => setState(() {}),
           ),
         ],
       ),
@@ -1442,301 +1550,516 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     final isVoice = msg['isVoice'] as bool? ?? false;
     final isImage = msg['isImage'] as bool? ?? false;
     final isPost = msg['isPost'] as bool? ?? false;
+    final chat = context.chatColors;
 
-    return Align(
-      alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-        // حد أقصى مطلق بالبكسل + نسبة من الشاشة، لتفادي الفقاعات العريضة على التابلت.
-        constraints: BoxConstraints(
-          maxWidth: _bubbleMaxWidth(context, isVoice: isVoice),
+    return WhatsAppBubbleShell(
+      key: ValueKey(msg['id']),
+      isMine: isMine,
+      maxWidth: _bubbleMaxWidth(context, isVoice: isVoice),
+      onSwipeReply: () {
+        HapticFeedback.lightImpact();
+        _startReply(msg);
+      },
+      onLongPress: () => _showMessageOptions(msg),
+      child: _bubbleInner(theme, msg, isMine, isVoice, isImage, isPost, chat),
+    );
+  }
+
+  void _startReply(Map<String, dynamic> msg) {
+    setState(() => _replyingTo = Map<String, dynamic>.from(msg));
+  }
+
+  Widget _bubbleInner(
+    ThemeData theme,
+    Map<String, dynamic> msg,
+    bool isMine,
+    bool isVoice,
+    bool isImage,
+    bool isPost,
+    AppChatColors chat,
+  ) {
+    return Column(
+      crossAxisAlignment:
+          isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _quotedOrSender(theme, msg, isMine, isImage, chat),
+        _bubbleBody(theme, msg, isMine, isVoice, isImage, isPost, chat),
+      ],
+    );
+  }
+
+  Widget _quotedOrSender(
+    ThemeData theme,
+    Map<String, dynamic> msg,
+    bool isMine,
+    bool isImage,
+    AppChatColors chat,
+  ) {
+    final quoted = msg['quoted'] as Map<String, dynamic>?;
+    if (quoted != null) return _BubbleQuoted(quoted: quoted, isMine: isMine);
+    if (!isMine && !isImage) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+        child: Text(
+          msg['sender'] as String,
+          style: theme.textTheme.bodySmall?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: chat.senderName,
+          ),
         ),
-        child: Column(
-          crossAxisAlignment: isMine
-              ? CrossAxisAlignment.end
-              : CrossAxisAlignment.start,
-          children: [
-            if (!isMine && !isImage)
-              Padding(
-                padding: const EdgeInsets.only(
-                  bottom: AppSpacing.xs,
-                  left: AppSpacing.sm,
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+  Widget _bubbleBody(
+    ThemeData theme,
+    Map<String, dynamic> msg,
+    bool isMine,
+    bool isVoice,
+    bool isImage,
+    bool isPost,
+    AppChatColors chat,
+  ) {
+    final isDocument = msg['isDocument'] as bool? ?? false;
+
+    if (isPost) {
+      return _buildPostContent(context, msg, isMine, chat, isVoice);
+    } else if (isImage) {
+      return _buildImageContent(context, msg, isMine, chat);
+    } else if (isDocument) {
+      return _buildDocumentContent(context, msg, isMine, chat);
+    } else if (isVoice) {
+      return _VoiceMessageBubble(
+        id: msg['id'] as String,
+        audioPath: msg['audioPath'] as String?,
+        durationSeconds: msg['duration'] as int? ?? 0,
+        isMine: isMine,
+        time: msg['time'] as String,
+        currentlyPlayingId: _currentlyPlayingId,
+      );
+    } else {
+      return _buildTextContent(context, msg, isMine, chat);
+    }
+  }
+
+  Widget _buildTextContent(
+    BuildContext context,
+    Map<String, dynamic> msg,
+    bool isMine,
+    AppChatColors chat,
+  ) {
+    final content = msg['content'] as String? ?? '';
+    final time = msg['time'] as String? ?? '';
+    final isRead = msg['isRead'] as bool? ?? true;
+
+    return Wrap(
+      alignment: WrapAlignment.end,
+      crossAxisAlignment: WrapCrossAlignment.end,
+      spacing: AppSpacing.sm,
+      runSpacing: 2,
+      children: [
+        Text(
+          content,
+          style: TextStyle(
+            color: isMine ? chat.bubbleMineText : chat.bubbleTheirsText,
+            fontSize: 15,
+            height: 1.38,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 3),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                time,
+                style: TextStyle(
+                  color: isMine ? chat.bubbleMineTime : chat.bubbleTheirsTime,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400,
                 ),
-                child: Text(
-                  msg['sender'] as String,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.primary,
+              ),
+              if (isMine) ...[
+                const SizedBox(width: 3),
+                WhatsAppTicks(isRead: isRead, size: 14),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+
+  Widget _buildPostContent(
+    BuildContext context,
+    Map<String, dynamic> msg,
+    bool isMine,
+    AppChatColors chat,
+    bool isVoice,
+  ) {
+    final time = msg['time'] as String? ?? '';
+    final isRead = msg['isRead'] as bool? ?? true;
+
+    return Column(
+      crossAxisAlignment:
+          isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (msg['postImageUrl'] != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadii.sm),
+                child: SizedBox(
+                  width: 64,
+                  height: 64,
+                  child: Image.network(
+                    msg['postImageUrl'] as String,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => _postFallback(msg, isMine),
                   ),
                 ),
               ),
-            if (isPost)
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.sm),
-                decoration: BoxDecoration(
-                  color: isMine
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(AppRadii.md),
+            if (msg['postImageUrl'] != null)
+              const SizedBox(width: AppSpacing.sm),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    msg['postTitle'] as String,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: isMine ? chat.bubbleMineText : chat.bubbleTheirsText,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    msg['postSubtitle'] as String,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: isMine ? chat.bubbleMineTime : chat.bubbleTheirsTime,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        if (isVoice)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.xs),
+            child: _VoiceMessageBubble(
+              id: msg['id'] as String,
+              audioPath: msg['audioPath'] as String?,
+              durationSeconds: msg['duration'] as int? ?? 0,
+              isMine: isMine,
+              time: msg['time'] as String,
+              currentlyPlayingId: _currentlyPlayingId,
+            ),
+          )
+        else if ((msg['content'] as String? ?? '').isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.xs),
+            child: Text(
+              msg['content'] as String,
+              style: TextStyle(
+                color: isMine ? chat.bubbleMineText : chat.bubbleTheirsText,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        if (!isVoice)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  time,
+                  style: TextStyle(
+                    color: isMine ? chat.bubbleMineTime : chat.bubbleTheirsTime,
+                    fontSize: 11,
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // تفاصيل المنشور: صورته (إن وُجدت) + عنوانه ونصه.
-                    Row(
+                if (isMine) ...[
+                  const SizedBox(width: 3),
+                  WhatsAppTicks(isRead: isRead, size: 14),
+                ],
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildImageContent(
+    BuildContext context,
+    Map<String, dynamic> msg,
+    bool isMine,
+    AppChatColors chat,
+  ) {
+    final path = msg['imagePath'] as String?;
+    final caption = (msg['content'] as String? ?? '').trim();
+    final hasCaption = caption.isNotEmpty;
+    final time = msg['time'] as String? ?? '';
+    final isRead = msg['isRead'] as bool? ?? true;
+
+    return Column(
+      crossAxisAlignment:
+          isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: () {
+            if (path != null) _openImageViewer(path, 'img_${msg['id']}');
+          },
+          child: Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: _imageMaxWidth(context)),
+                  child: Builder(
+                    builder: (context) {
+                      final imageChild = path != null && File(path).existsSync()
+                          ? Hero(
+                              tag: 'img_${msg['id']}',
+                              child: Image.file(File(path), fit: BoxFit.cover),
+                            )
+                          : Container(
+                              color: isMine ? chat.bubbleMine : chat.bubbleTheirs,
+                              child: const Center(
+                                child: Text('📷', style: TextStyle(fontSize: 56)),
+                              ),
+                            );
+                      return AspectRatio(aspectRatio: 1.0, child: imageChild);
+                    },
+                  ),
+                ),
+              ),
+              if (!hasCaption)
+                Positioned(
+                  bottom: 6,
+                  right: isMine ? 6 : null,
+                  left: isMine ? null : 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (msg['postImageUrl'] != null)
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(AppRadii.sm),
-                            child: SizedBox(
-                              width: 64,
-                              height: 64,
-                              child: Image.network(
-                                msg['postImageUrl'] as String,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) =>
-                                    _postFallback(msg, isMine),
-                              ),
-                            ),
-                          ),
-                        if (msg['postImageUrl'] != null)
-                          const SizedBox(width: AppSpacing.sm),
-                        Flexible(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                               Text(
-                                 msg['postTitle'] as String,
-                                 maxLines: 1,
-                                 overflow: TextOverflow.ellipsis,
-                                 style: TextStyle(
-                                   color: isMine
-                                       ? context.textColors.onAccent
-                                       : theme.colorScheme.onSurface,
-                                   fontWeight: FontWeight.w700,
-                                   fontSize: 14,
-                                 ),
-                               ),
-                               const SizedBox(height: 2),
-                               Text(
-                                 msg['postSubtitle'] as String,
-                                 maxLines: 3,
-                                 overflow: TextOverflow.ellipsis,
-                                 style: TextStyle(
-                                   color: isMine
-                                       ? context.textColors.onAccent
-                                           .withValues(alpha: 0.7)
-                                       : theme.colorScheme.onSurfaceVariant,
-                                   fontSize: 13,
-                                 ),
-                               ),
-                            ],
+                        Text(
+                          time,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10.5,
                           ),
                         ),
+                        if (isMine) ...[
+                          const SizedBox(width: 3),
+                          WhatsAppTicks(isRead: isRead, size: 12),
+                        ],
                       ],
                     ),
-                    // نص الرسالة (إن كتبه المستخدم) أو الرسالة الصوتية المرفقة.
-                    if (isVoice)
-                      Padding(
-                        padding: const EdgeInsets.only(top: AppSpacing.xs),
-                        child: _VoiceMessageBubble(
-                          id: msg['id'] as String,
-                          audioPath: msg['audioPath'] as String?,
-                          durationSeconds: msg['duration'] as int? ?? 0,
-                          isMine: isMine,
-                          time: msg['time'] as String,
-                          currentlyPlayingId: _currentlyPlayingId,
-                        ),
-                      )
-                    else if ((msg['content'] as String? ?? '').isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: AppSpacing.xs),
-                        child: Text(
-                          msg['content'] as String,
-                          style: TextStyle(
-                            color: isMine
-                                ? context.textColors.onAccent
-                                : theme.colorScheme.onSurface,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    if (!isVoice) ...[
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        msg['time'] as String,
-                        style: TextStyle(
-                          color: isMine
-                              ? context.textColors.onAccent
-                                  .withValues(alpha: 0.7)
-                              : theme.colorScheme.onSurfaceVariant,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ],
+                  ),
                 ),
-              )
-            else if (isImage)
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.xs),
-                decoration: BoxDecoration(
-                  color: isMine
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(AppRadii.md),
+            ],
+          ),
+        ),
+        if (hasCaption) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Wrap(
+            alignment: WrapAlignment.end,
+            crossAxisAlignment: WrapCrossAlignment.end,
+            spacing: AppSpacing.sm,
+            runSpacing: 2,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                child: Text(
+                  caption,
+                  style: TextStyle(
+                    color: isMine ? chat.bubbleMineText : chat.bubbleTheirsText,
+                    fontSize: 14.5,
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    GestureDetector(
-                      onTap: () {
-                        final path = msg['imagePath'] as String?;
-                        if (path != null) {
-                          _openImageViewer(path, 'img_${msg['id']}');
-                        }
-                      },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(AppRadii.sm),
-                        // عرض يعتمد على نسبة الشاشة مع حد أقصى، وAspectRatio بدل ارتفاع ثابت.
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth: _imageMaxWidth(context),
-                          ),
-                          child: Builder(
-                            builder: (context) {
-                              final path = msg['imagePath'] as String?;
-                              final imageChild =
-                                  path != null && File(path).existsSync()
-                                  ? Hero(
-                                      tag: 'img_${msg['id']}',
-                                      child: Image.file(
-                                        File(path),
-                                        fit: BoxFit.cover,
-                                      ),
-                                    )
-                                  : Container(
-                                      color: isMine
-                                          ? theme.colorScheme.primary
-                                          : theme
-                                                .colorScheme
-                                                .surfaceContainerHighest,
-                                      child: const Center(
-                                        child: Text(
-                                          '📷',
-                                          style: TextStyle(fontSize: 56),
-                                        ),
-                                      ),
-                                    );
-                              return AspectRatio(
-                                aspectRatio: 1.0,
-                                child: imageChild,
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                    if ((msg['content'] as String? ?? '').isNotEmpty) ...[
-                      const SizedBox(height: AppSpacing.xs),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.xs,
-                        ),
-                        child: Text(
-                          msg['content'] as String,
-                          style: TextStyle(
-                            color: isMine
-                                ? context.textColors.onAccent
-                                : theme.colorScheme.onSurface,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: AppSpacing.xs),
                     Text(
-                      msg['time'] as String,
+                      time,
                       style: TextStyle(
-                        color: isMine
-                            ? context.textColors.onAccent.withValues(alpha: 0.7)
-                            : theme.colorScheme.onSurfaceVariant,
+                        color:
+                            isMine ? chat.bubbleMineTime : chat.bubbleTheirsTime,
                         fontSize: 11,
                       ),
                     ),
-                  ],
-                ),
-              )
-            else if (isVoice)
-              _VoiceMessageBubble(
-                id: msg['id'] as String,
-                audioPath: msg['audioPath'] as String?,
-                durationSeconds: msg['duration'] as int? ?? 0,
-                isMine: isMine,
-                time: msg['time'] as String,
-                currentlyPlayingId: _currentlyPlayingId,
-              )
-            else
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm,
-                ),
-                decoration: BoxDecoration(
-                  color: isMine
-                      ? context.accentColor
-                      : theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.only(
-                    topLeft: const Radius.circular(AppRadii.lg),
-                    topRight: const Radius.circular(AppRadii.lg),
-                    bottomLeft: isMine
-                        ? const Radius.circular(AppRadii.lg)
-                        : const Radius.circular(AppRadii.xs),
-                    bottomRight: isMine
-                        ? const Radius.circular(AppRadii.xs)
-                        : const Radius.circular(AppRadii.lg),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        msg['content'] as String,
-                        style: TextStyle(
-                          color: isMine
-                              ? context.textColors.onAccent
-                              : theme.colorScheme.onSurface,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    // FittedBox يمنع طفح/قص وقت الرسالة عند تكبير خط النظام.
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        msg['time'] as String,
-                        style: TextStyle(
-                          color: isMine
-                              ? context.textColors.onAccent
-                                  .withValues(alpha: 0.7)
-                              : theme.colorScheme.onSurfaceVariant,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
+                    if (isMine) ...[
+                      const SizedBox(width: 3),
+                      WhatsAppTicks(isRead: isRead, size: 14),
+                    ],
                   ],
                 ),
               ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildDocumentContent(
+    BuildContext context,
+    Map<String, dynamic> msg,
+    bool isMine,
+    AppChatColors chat,
+  ) {
+    final fileName = msg['fileName'] as String? ?? '';
+    final time = msg['time'] as String? ?? '';
+    final isRead = msg['isRead'] as bool? ?? true;
+    final extension = fileName.split('.').length > 1
+        ? fileName.split('.').last.toLowerCase()
+        : 'file';
+    final fileColor = _getDocumentColor(extension);
+    final fileIcon = _getDocumentIcon(extension);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: fileColor.withValues(alpha: isMine ? 0.25 : 0.15),
+                borderRadius: BorderRadius.circular(AppRadii.md),
+              ),
+              child: Icon(fileIcon, color: fileColor, size: 24),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    fileName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: isMine ? chat.bubbleMineText : chat.bubbleTheirsText,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    extension.toUpperCase(),
+                    style: TextStyle(
+                      color: isMine ? chat.bubbleMineTime : chat.bubbleTheirsTime,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
-      ),
+        const SizedBox(height: 4),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              time,
+              style: TextStyle(
+                color: isMine ? chat.bubbleMineTime : chat.bubbleTheirsTime,
+                fontSize: 11,
+              ),
+            ),
+            if (isMine) ...[
+              const SizedBox(width: 3),
+              WhatsAppTicks(isRead: isRead, size: 14),
+            ],
+          ],
+        ),
+      ],
     );
+  }
+
+
+  Color _getDocumentColor(String extension) {
+    switch (extension) {
+      case 'pdf':
+        return Colors.red;
+      case 'doc':
+      case 'docx':
+        return Colors.blue;
+      case 'xls':
+      case 'xlsx':
+        return Colors.green;
+      case 'ppt':
+      case 'pptx':
+        return Colors.orange;
+      case 'zip':
+      case 'rar':
+        return Colors.purple;
+      case 'mp3':
+      case 'wav':
+      case 'm4a':
+        return Colors.teal;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getDocumentIcon(String extension) {
+    switch (extension) {
+      case 'pdf':
+        return LucideIcons.fileText;
+      case 'doc':
+      case 'docx':
+        return LucideIcons.fileText;
+      case 'xls':
+      case 'xlsx':
+        return LucideIcons.fileSpreadsheet;
+      case 'ppt':
+      case 'pptx':
+        return LucideIcons.presentation;
+      case 'zip':
+      case 'rar':
+        return LucideIcons.archive;
+      case 'mp3':
+      case 'wav':
+      case 'm4a':
+        return LucideIcons.headphones;
+      default:
+        return LucideIcons.file;
+    }
   }
 
   /// بديل صورة المنشور داخل الفقاعة عند فشل التحميل (أيقونة بلون الخدمة).
@@ -1747,13 +2070,190 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       child: Center(
         child: Icon(
           LucideIcons.package,
-          color: isMine ? context.textColors.onAccent : color,
+          color: isMine ? context.chatColors.sendIcon : color,
           size: 28,
         ),
       ),
     );
   }
+
+  /// خيارات الرسالة بالضغط المطوّل — رد/تمييز/حذف بأسلوب WhatsApp.
+  void _showMessageOptions(Map<String, dynamic> msg) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.chatColors.attachmentSheet,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.xl)),
+      ),
+      builder: (sheetContext) {
+        final chat = sheetContext.chatColors;
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(top: AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: chat.attachmentSheetHandle,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _optTile(chat, LucideIcons.reply, 'رد', () {
+                Navigator.pop(sheetContext);
+                _startReply(msg);
+              }),
+              _optTile(chat, LucideIcons.star, 'تمييز', () {
+                Navigator.pop(sheetContext);
+              }),
+              _optTile(chat, LucideIcons.trash2, 'حذف', () {
+                Navigator.pop(sheetContext);
+                setState(() => _messages.remove(msg));
+              }, danger: true),
+              const SizedBox(height: AppSpacing.md),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _optTile(AppChatColors chat, IconData icon, String label, VoidCallback tap, {bool danger = false}) {
+    final color = danger ? chat.recordingTrash : chat.inputText;
+    return ListTile(
+      leading: Icon(icon, color: color),
+      title: Text(label, style: TextStyle(color: color)),
+      onTap: tap,
+    );
+  }
 }
+
+/// الرد المقتبس داخل فقاعة الرسالة بأسلوب WhatsApp الأصيل
+class _BubbleQuoted extends StatelessWidget {
+  final Map<String, dynamic> quoted;
+  final bool isMine;
+
+  const _BubbleQuoted({required this.quoted, required this.isMine});
+
+  @override
+  Widget build(BuildContext context) {
+    final chat = context.chatColors;
+    final content = (quoted['content'] as String? ?? '').trim();
+    final sender = (quoted['sender'] as String? ?? 'رسالة').trim();
+    final isVoice = quoted['isVoice'] as bool? ?? false;
+    final isImage = quoted['isImage'] as bool? ?? false;
+    final isDocument = quoted['isDocument'] as bool? ?? false;
+    final imagePath = quoted['imagePath'] as String?;
+
+    IconData? typeIcon;
+    String label = content;
+    if (isVoice) {
+      typeIcon = LucideIcons.mic;
+      label = 'رسالة صوتية';
+    } else if (isImage) {
+      typeIcon = LucideIcons.image;
+      label = content.isEmpty ? 'صورة' : content;
+    } else if (isDocument) {
+      typeIcon = LucideIcons.fileText;
+      label = quoted['fileName'] as String? ?? 'مستند';
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.xs + 2),
+      decoration: BoxDecoration(
+        color: isMine ? chat.quotedBackgroundMine : chat.quotedBackgroundTheirs,
+        borderRadius: BorderRadius.circular(AppRadii.sm + 2),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // الشريط الرأسي الملوّن
+            Container(
+              width: 4.0,
+              color: chat.quotedBar,
+            ),
+            const SizedBox(width: AppSpacing.xs + 2),
+
+            // العنوان ومقتطف الرسالة
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xs,
+                  vertical: AppSpacing.xs,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      sender,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: chat.quotedTitle,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (typeIcon != null) ...[
+                          Icon(
+                            typeIcon,
+                            size: 13,
+                            color: isMine
+                                ? chat.quotedBodyMine
+                                : chat.quotedBodyTheirs,
+                          ),
+                          const SizedBox(width: 3),
+                        ],
+                        Flexible(
+                          child: Text(
+                            label.isEmpty ? '...' : label,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: isMine
+                                  ? chat.quotedBodyMine
+                                  : chat.quotedBodyTheirs,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // مصغرة الصورة إن وجدت في الرسالة المقتبسة
+            if (isImage && imagePath != null && File(imagePath).existsSync())
+              Padding(
+                padding: const EdgeInsets.all(3),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadii.xs),
+                  child: Image.file(
+                    File(imagePath),
+                    width: 38,
+                    height: 38,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 
 /// معاينة منشور (مع صورته وتفاصيله) في صندوق الكتابة: تبقى بانتظار إرسال
 /// المستخدم، ويمكن حذفها قبل الإرسال.
@@ -1766,10 +2266,11 @@ class _PostAttachmentBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final chat = context.chatColors;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
+        color: chat.quotedBackgroundTheirs,
         borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Row(
@@ -1809,7 +2310,7 @@ class _PostAttachmentBar extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                    color: chat.quotedBodyTheirs,
                   ),
                 ),
               ],
@@ -1820,7 +2321,7 @@ class _PostAttachmentBar extends StatelessWidget {
             icon: const Icon(LucideIcons.x, size: 18),
             onPressed: onRemove,
             tooltip: 'إزالة المرفق',
-            color: theme.colorScheme.onSurfaceVariant,
+            color: chat.composerIcon,
           ),
         ],
       ),
@@ -1862,11 +2363,65 @@ class _RecordingPulseDotState extends State<_RecordingPulseDot>
       child: Container(
         width: 10,
         height: 10,
-        decoration: const BoxDecoration(
-          color: AppColors.error,
+        decoration: BoxDecoration(
+          color: context.chatColors.recordingTrash,
           shape: BoxShape.circle,
         ),
       ),
+    );
+  }
+}
+
+/// مؤشر حركة «اسحب للإلغاء» المطابق لتطبيق واتساب مع سهم نابض
+class _SlideToCancel extends StatefulWidget {
+  const _SlideToCancel();
+
+  @override
+  State<_SlideToCancel> createState() => _SlideToCancelState();
+}
+
+class _SlideToCancelState extends State<_SlideToCancel>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final chat = context.chatColors;
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, child) {
+        return Opacity(
+          opacity: 0.35 + (0.65 * _ctrl.value),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                LucideIcons.chevronRight,
+                size: 16,
+                color: chat.recordingWaveUnplayed,
+              ),
+              const SizedBox(width: 2),
+              Text(
+                'اسحب للإلغاء',
+                style: TextStyle(
+                  color: chat.recordingWaveUnplayed,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -2018,7 +2573,6 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final isMine = widget.isMine;
 
     final totalMs = _totalDuration.inMilliseconds;
@@ -2030,17 +2584,12 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
     final remaining = _totalDuration - _position;
     final remainingSeconds = remaining.isNegative ? 0 : remaining.inSeconds;
 
-    final bubbleColor = isMine
-        ? context.accentColor
-        : theme.colorScheme.surfaceContainerHighest;
-    final onBubble = isMine
-        ? context.textColors.onAccent
-        : theme.colorScheme.onSurface;
-    final playedColor = isMine
-        ? context.textColors.onAccent
-        : theme.colorScheme.primary;
+    final chat = context.chatColors;
+    final bubbleColor = isMine ? chat.bubbleMine : chat.bubbleTheirs;
+    final onBubble = isMine ? chat.bubbleMineText : chat.bubbleTheirsText;
+    final playedColor = isMine ? chat.bubbleMineText : chat.sendButton;
     final unplayedColor =
-        (isMine ? context.textColors.onAccent : theme.colorScheme.primary)
+        (isMine ? chat.bubbleMineText : chat.sendButton)
             .withValues(alpha: 0.35);
 
     return Container(
@@ -2214,13 +2763,13 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
               shape: BoxShape.circle,
               // ★ تدرّج الهوية من اللوحة المركزية (Color Palette).
               gradient: LinearGradient(
-                colors: [context.accentColor, AppColors.accentPrimaryLight],
+                colors: [context.chatColors.sendButton, context.chatColors.recordingWavePlayed],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
             ),
             child: Center(
-              child: Icon(LucideIcons.mic, color: context.textColors.onAccent, size: 15),
+              child: Icon(LucideIcons.mic, color: context.chatColors.sendIcon, size: 15),
             ),
           ),
         ],
@@ -2359,15 +2908,15 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
       children: [
         IconButton(
           icon: _isDeleting
-              ? const SizedBox(
+              ? SizedBox(
                   width: 18,
                   height: 18,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: AppColors.error,
+                    color: context.chatColors.recordingTrash,
                   ),
                 )
-              : const Icon(LucideIcons.trash2, color: AppColors.error),
+              : Icon(LucideIcons.trash2, color: context.chatColors.recordingTrash),
           onPressed: _isDeleting ? null : _handleDelete,
           tooltip: 'حذف',
         ),
@@ -2380,19 +2929,19 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
             height: 36,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: context.accentColor.withValues(alpha: 0.15),
+              color: context.chatColors.sendButton.withValues(alpha: 0.15),
             ),
             child: _isLoading
                 ? Padding(
                     padding: const EdgeInsets.all(9),
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: context.accentColor,
+                      color: context.chatColors.sendButton,
                     ),
                   )
                 : Icon(
                     _isPlaying ? LucideIcons.pause : LucideIcons.play,
-                    color: context.accentColor,
+                    color: context.chatColors.sendButton,
                     size: 18,
                   ),
           ),
@@ -2437,8 +2986,8 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
                                 height: widget.waveformBars[i],
                                 decoration: BoxDecoration(
                                   color: played
-                                      ? context.accentColor
-                                      : theme.colorScheme.onSurfaceVariant
+                                      ? context.chatColors.sendButton
+                                      : context.chatColors.recordingWaveUnplayed
                                             .withValues(alpha: 0.35),
                                   borderRadius: BorderRadius.circular(2),
                                 ),
@@ -2453,7 +3002,7 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
                             child: Container(
                               width: 2.4,
                               decoration: BoxDecoration(
-                                color: context.accentColor,
+                                color: context.chatColors.sendButton,
                                 borderRadius: BorderRadius.circular(2),
                               ),
                             ),
@@ -2472,7 +3021,7 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
                       : widget.durationSeconds,
                 ),
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: context.chatColors.recordingWaveUnplayed,
                 ),
               ),
             ],
@@ -2481,11 +3030,11 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
         const SizedBox(width: AppSpacing.sm),
 
         CircleAvatar(
-          backgroundColor: context.accentColor,
+          backgroundColor: context.chatColors.sendButton,
           child: IconButton(
             icon: Icon(
               LucideIcons.send,
-              color: context.textColors.onAccent,
+              color: context.chatColors.sendIcon,
               size: 18,
             ),
             onPressed: widget.onSend,
@@ -2541,7 +3090,7 @@ class _ImagePreviewSheetState extends State<_ImagePreviewSheet> {
         maxHeight: MediaQuery.of(context).size.height * 0.85,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: context.chatColors.attachmentSheet,
         borderRadius: BorderRadius.circular(AppRadii.lg),
       ),
       child: Column(
@@ -2550,7 +3099,7 @@ class _ImagePreviewSheetState extends State<_ImagePreviewSheet> {
           Row(
             children: [
               IconButton(
-                icon: const Icon(LucideIcons.x, color: AppColors.error),
+                icon: Icon(LucideIcons.x, color: context.chatColors.recordingTrash),
                 onPressed: widget.onCancel,
                 tooltip: 'إلغاء',
               ),
@@ -2588,7 +3137,7 @@ class _ImagePreviewSheetState extends State<_ImagePreviewSheet> {
                 borderSide: BorderSide.none,
               ),
               filled: true,
-              fillColor: theme.colorScheme.surfaceContainerHighest,
+              fillColor: context.chatColors.inputField,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.lg,
                 vertical: AppSpacing.sm,
@@ -2600,8 +3149,8 @@ class _ImagePreviewSheetState extends State<_ImagePreviewSheet> {
             width: double.infinity,
             child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: context.accentColor,
-                foregroundColor: context.textColors.onAccent,
+                backgroundColor: context.chatColors.sendButton,
+                foregroundColor: context.chatColors.sendIcon,
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppRadii.full),
