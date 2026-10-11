@@ -13,6 +13,7 @@ import '../../features/dashboards/agent_dashboard_screen.dart';
 import '../../features/communication_and_support/notifications_screen.dart';
 import '../../features/communication_and_support/support_tickets_screen.dart';
 import '../../features/communication_and_support/chat_screen.dart';
+import '../../features/communication_and_support/alhadheq_chat_screen.dart';
 import '../../features/location_and_tracking/tracking_screen.dart';
 import '../../features/location_and_tracking/maps_screen.dart';
 import '../../features/location_and_tracking/my_location_screen.dart';
@@ -56,6 +57,7 @@ class AppRouter {
     '/favorites',
     '/profile',
     '/chat',
+    '/alhadheq',
     '/shopping',
     // ★ صفحة «التحكم في الألوان» — تخصيص الخلفية/النصوص/الأيقونات.
     '/color-settings',
@@ -143,6 +145,11 @@ class AppRouter {
       GoRoute(
         path: '/chat',
         builder: (context, state) => const ChatListScreen(),
+      ),
+      // ★ صفحة المساعد الذكي «الحاذق» (AI Chat)
+      GoRoute(
+        path: '/alhadheq',
+        builder: (context, state) => const AlhadheqChatScreen(),
       ),
       GoRoute(
         path: '/my_location',

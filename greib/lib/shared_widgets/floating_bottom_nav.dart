@@ -51,8 +51,8 @@ class FloatingBottomNav extends StatelessWidget {
     required this.currentIndex,
     required this.onTap,
   }) : assert(
-         items.length >= 2 && items.length <= 5,
-         'استخدم بين 2 و5 عناصر ليبقى الشكل متوازناً',
+         items.length >= 2 && items.length <= 6,
+         'استخدم بين 2 و6 عناصر ليبقى الشكل متوازناً',
        );
 
   @override

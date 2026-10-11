@@ -22,6 +22,7 @@ class PermissionService {
   static const Set<String> commonRoutes = {
     '/home',
     '/chat',
+    '/alhadheq',
     '/notifications',
     '/tracking',
     '/orders',

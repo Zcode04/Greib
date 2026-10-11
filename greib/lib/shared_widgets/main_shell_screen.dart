@@ -8,6 +8,7 @@ import '../core/permissions/permissions.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/storage/app_prefs.dart';
 import '../features/auth/auth_service.dart';
+import '../features/communication_and_support/alhadheq_chat_screen.dart';
 import '../features/communication_and_support/chat_screen.dart';
 import '../features/home_and_services/home_screen.dart';
 import '../features/wallet_and_finance/wallet_screen.dart';
@@ -50,6 +51,12 @@ const List<_ShellTab> _tabs = [
     label: 'الرئيسية',
   ),
   _ShellTab(
+    route: '/alhadheq',
+    title: 'الحاذق',
+    icon: LucideIcons.sparkles,
+    label: 'الحاذق',
+  ),
+  _ShellTab(
     route: '/chat',
     title: 'الدردشة والرسائل',
     icon: LucideIcons.messageSquare,
@@ -81,11 +88,15 @@ class _MainShellScreenState extends State<MainShellScreen> {
   static int get _homeTabIndex => _tabs.indexWhere((t) => t.route == '/home');
 
   /// ★ التبويبات التي تبني محتوى الـ Shell: كل ما عداه صفحات مستقلة
-  ///   («الريلز» و«موقعي») تُفتح بـ push ولا تُحفظ كمؤشر نشط.
-  static const Set<String> _standaloneRoutes = {'/reels', '/my_location'};
+  ///   («الريلز»، «موقعي»، و«الحاذق») تُفتح بـ push ولا تُحفظ كمؤشر نشط.
+  static const Set<String> _standaloneRoutes = {
+    '/reels',
+    '/my_location',
+    '/alhadheq',
+  };
 
   /// ★ فهارس التبويبات التي تبني محتوى الـ Shell (فهارس داخل `_tabs`).
-  ///   صفحة مستقلة («موقعي»/«الريلز») ولا يحفظ مؤشراً نشطاً.
+  ///   صفحة مستقلة («موقعي»/«الريلز»/«الحاذق») ولا يحفظ مؤشراً نشطاً.
   static final List<int> _shellIndexes = [
     for (var i = 0; i < _tabs.length; i++)
       if (!_standaloneRoutes.contains(_tabs[i].route)) i,
@@ -119,7 +130,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
   void _onTabSelected(int index) {
     final tab = _tabs[index];
 
-    // ★ الصفحات المستقلة («الريلز» و«موقعي») تُفتح بـ push ولا تحفظ مؤشراً.
+    // ★ الصفحات المستقلة («الريلز»، «موقعي»، «الحاذق») تُفتح بـ push ولا تحفظ مؤشراً.
     if (_standaloneRoutes.contains(tab.route)) {
       context.push(tab.route);
       return;
@@ -140,6 +151,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
         return const HomeScreen();
       case '/chat':
         return const ChatListScreen();
+      case '/alhadheq':
+        return const AlhadheqChatScreen();
       default:
         return const HomeScreen();
     }
