@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../shared_widgets/share_arrow_icon.dart';
 import '../../communication_and_support/chat_screen.dart';
-import '../../communication_and_support/story_reply.dart';
 import 'user_request_story_card.dart';
 
 // ─────────────────────────────────────────────
@@ -476,35 +475,29 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
   bool get _hasPreviousPage => _pageIndex > 0;
   bool get _hasNextPage => _pageIndex < _pages.length - 1;
 
-  /// ★ إرسال الرد على الستوري (Story-to-Chat Bridge):
-  /// ① تأكيد فوري ② إغلاق العارض ③ فتح الدردشة مع StoryReply
-  /// فيُرسل تلقائياً مرفقاً ببطاقة الستوري (مثل إنستغرام).
-  void _sendStoryReply(BuildContext context, String text) {
+  /// ★ زر «اطلب» في الستوري: ينقل الصورة/الخدمة كما هي إلى الدردشة
+  /// كمرفق ChatPostPreview (نفس ميكانيزم «طلب الآن») — والمستخدم يكتب
+  /// أو يسجّل صوتياً هناك كما يريد. أبسط للتطوير لاحقاً: لا حقل هنا.
+  void _orderFromStory(BuildContext context) {
     final item = widget.items[_serviceIndex];
     final page = _pageIndex.clamp(0, item.storyPages.length - 1);
-    final reply = StoryReply(
-      storyId: '${item.title}_$page',
-      serviceTitle: item.title,
-      serviceCategory: item.category,
-      storyImageUrl: item.storyPages[page],
-      message: text,
-    );
-    // ① تأكيد فوري قبل المغادرة — مثل إنستغرام.
-    context.showSnackBar('تم إرسال الرد على الستوري ✅');
-    // ② إغلاق العارض.
     Navigator.of(context).maybePop();
-    // ③ فتح الدردشة مع الرد — تُرسل تلقائياً عند الوصول.
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
         builder: (_) => ChatDetailScreen(
           conversationTitle: item.title,
           conversationId: 'story_${item.title}_$page',
           avatar: '📸',
-          phone: 'رد على ستوري · ${item.category}',
+          phone: 'طلب من ستوري · ${item.category}',
           online: true,
           activity: 'متصل الآن',
           isGroup: false,
-          storyReply: reply,
+          postPreview: ChatPostPreview(
+            title: item.title,
+            subtitle: 'طلب من ستوري · ${item.category}',
+            imageUrl: item.storyPages[page],
+            color: const Color(0xFF3B82F6),
+          ),
         ),
       ),
     );
@@ -613,8 +606,9 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _StoryReplyBar(
-                      onSend: (text) => _sendStoryReply(context, text),
+                    _StoryOrderBar(
+                      title: widget.items[_serviceIndex].title,
+                      onOrder: () => _orderFromStory(context),
                       onShare: () => context.showSnackBar('المشاركة — قريباً'),
                     ),
                   ],
@@ -773,93 +767,62 @@ class _HeaderBtn extends StatelessWidget {
   }
 }
 
-/// شريط الرد السفلي: حقل رسالة حقيقي + زر إرسال (Story-to-Chat Bridge).
-/// ★ عند الإرسال: يُبنى StoryReply ويُسلَّم عبر onSend — المالك يقرر
-/// (فتح الدردشة بالمرفق + تأكيد "تم إرسال الرد ✅").
-class _StoryReplyBar extends StatefulWidget {
-  final void Function(String message) onSend;
+/// زر الطلب السفلي في الستوري: ينقل الخدمة/الصورة للدردشة كمرفق.
+/// ★ بدون حقل كتابة هنا — الكتابة والصوت في الدردشة (أسهل للتطوير).
+class _StoryOrderBar extends StatelessWidget {
+  final String title;
+  final VoidCallback onOrder;
   final VoidCallback onShare;
-  const _StoryReplyBar({required this.onSend, required this.onShare});
-
-  @override
-  State<_StoryReplyBar> createState() => _StoryReplyBarState();
-}
-
-class _StoryReplyBarState extends State<_StoryReplyBar> {
-  final _controller = TextEditingController();
-  bool _canSend = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller.addListener(
-      () => setState(() => _canSend = _controller.text.trim().isNotEmpty),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    final text = _controller.text.trim();
-    if (text.isEmpty) return;
-    widget.onSend(text);
-    _controller.clear();
-  }
+  const _StoryOrderBar({
+    required this.title,
+    required this.onOrder,
+    required this.onShare,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(
-          child: Container(
-            padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white24, width: 1),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    onSubmitted: (_) => _submit(),
-                    textInputAction: TextInputAction.send,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                    decoration: const InputDecoration(
-                      hintText: 'إرسال رسالة...',
-                      hintStyle: TextStyle(color: Colors.white60, fontSize: 13),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(vertical: 12),
-                    ),
+          child: GestureDetector(
+            onTap: onOrder,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 13),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.shopping_bag_rounded,
+                    color: Colors.black,
+                    size: 18,
                   ),
-                ),
-                // ★ زر إرسال يظهر عند الكتابة فقط — مثل إنستغرام.
-                if (_canSend)
-                  GestureDetector(
-                    onTap: _submit,
-                    behavior: HitTestBehavior.opaque,
-                    child: const Padding(
-                      padding: EdgeInsets.all(6),
-                      child: Icon(
-                        Icons.send_rounded,
-                        color: Colors.white,
-                        size: 20,
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      'اطلب $title الآن',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
         const SizedBox(width: 8),
         // ★ نفس أيقونة المشاركة في البوست (ShareArrowIcon) — توحيد التجربة
         GestureDetector(
-          onTap: widget.onShare,
+          onTap: onShare,
           behavior: HitTestBehavior.opaque,
           child: const Padding(
             padding: EdgeInsets.all(6),

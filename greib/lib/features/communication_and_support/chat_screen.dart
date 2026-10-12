@@ -17,7 +17,6 @@ import '../../core/permissions/permissions.dart';
 import '../../core/theme/chat_colors.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/loading_states.dart';
-import 'story_reply.dart';
 import 'widgets/call_log_tile.dart';
 import 'widgets/chat_whatsapp_ui.dart';
 import 'widgets/conversation_search_filter.dart';
@@ -482,10 +481,6 @@ class ChatDetailScreen extends StatefulWidget {
   /// مرفق «طلب الآن»: يُعرض في صندوق الكتابة ولا يُرسل إلا بضغط المستخدم.
   final ChatPostPreview? postPreview;
 
-  /// ★ رد قادم من ستوري (Story-to-Chat Bridge): يُرسل تلقائياً عند فتح
-  /// الدردشة مرفقاً ببطاقة الستوري — مثل رد إنستغرام على الستوري.
-  final StoryReply? storyReply;
-
   const ChatDetailScreen({
     super.key,
     required this.conversationTitle,
@@ -496,7 +491,6 @@ class ChatDetailScreen extends StatefulWidget {
     required this.activity,
     required this.isGroup,
     this.postPreview,
-    this.storyReply,
   });
 
   @override
@@ -610,29 +604,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     _pendingPost = widget.postPreview;
     // لاحظ ظهور/اختفاء لوحة المفاتيح لإعادة التمرير لأسفل تلقائياً.
     WidgetsBinding.instance.addObserver(this);
-    // ★ رد الستوري يُرسل تلقائياً بعد بناء الشاشة (مثل إنستغرام) —
-    // مرفقاً ببطاقة الستوري: صورة + خدمة + رسالة المستخدم.
-    final reply = widget.storyReply;
-    if (reply != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        setState(() {
-          _messages.add({
-            'id': 'story_${DateTime.now().millisecondsSinceEpoch}',
-            'sender': 'أنت',
-            'content': reply.message,
-            'time': 'الآن',
-            'isMine': true,
-            'isStoryReply': true,
-            'storyTitle': reply.serviceTitle,
-            'storyCategory': reply.serviceCategory,
-            'storyImageUrl': reply.storyImageUrl,
-          });
-        });
-        _scrollToBottom();
-        _simulateReply();
-      });
-    }
   }
 
   @override
@@ -1638,7 +1609,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     final isVoice = msg['isVoice'] as bool? ?? false;
     final isImage = msg['isImage'] as bool? ?? false;
     final isPost = msg['isPost'] as bool? ?? false;
-    final isStoryReply = msg['isStoryReply'] as bool? ?? false;
     final chat = context.chatColors;
 
     return WhatsAppBubbleShell(
@@ -1650,16 +1620,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
         _startReply(msg);
       },
       onLongPress: () => _showMessageOptions(msg),
-      child: _bubbleInner(
-        theme,
-        msg,
-        isMine,
-        isVoice,
-        isImage,
-        isPost,
-        isStoryReply,
-        chat,
-      ),
+      child: _bubbleInner(theme, msg, isMine, isVoice, isImage, isPost, chat),
     );
   }
 
@@ -1674,7 +1635,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     bool isVoice,
     bool isImage,
     bool isPost,
-    bool isStoryReply,
     AppChatColors chat,
   ) {
     return Column(
@@ -1683,8 +1643,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
           : CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // ★ بطاقة الستوري المرفقة فوق الرسالة — مثل رد إنستغرام.
-        if (isStoryReply) _StoryReplyCard(msg: msg, chat: chat),
         _quotedOrSender(theme, msg, isMine, isImage, chat),
         _bubbleBody(theme, msg, isMine, isVoice, isImage, isPost, chat),
       ],
@@ -2250,110 +2208,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       leading: Icon(icon, color: color),
       title: Text(label, style: TextStyle(color: color)),
       onTap: tap,
-    );
-  }
-}
-
-/// بطاقة الستوري المرفقة فوق رسالة الرد (Story Reply Card).
-/// مثل رد إنستغرام: صورة مصغرة + اسم الخدمة + شارة التصنيف.
-class _StoryReplyCard extends StatelessWidget {
-  final Map<String, dynamic> msg;
-  final AppChatColors chat;
-
-  const _StoryReplyCard({required this.msg, required this.chat});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final title = msg['storyTitle'] as String? ?? 'ستوري';
-    final category = msg['storyCategory'] as String? ?? '';
-    final imageUrl = msg['storyImageUrl'] as String?;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      decoration: BoxDecoration(
-        color: chat.quotedBackgroundMine,
-        borderRadius: BorderRadius.circular(AppRadii.sm + 2),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(width: 4.0, color: chat.quotedBar),
-            if (imageUrl != null)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(start: 6),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: Image.network(
-                    imageUrl,
-                    width: 44,
-                    height: 44,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => Container(
-                      width: 44,
-                      height: 44,
-                      color: chat.composerBorder,
-                      child: Icon(
-                        LucideIcons.image,
-                        size: 20,
-                        color: chat.composerIcon,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          LucideIcons.history,
-                          size: 12,
-                          color: chat.quotedTitle,
-                        ),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: chat.quotedTitle,
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (category.isNotEmpty) ...[
-                      const SizedBox(height: 1),
-                      Text(
-                        'رد على ستوري · $category',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontSize: 11,
-                          color: chat.bubbleMineTime,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
