@@ -577,7 +577,6 @@ class _StoryHeader extends StatelessWidget {
             ],
           ),
         ),
-        _HeaderBtn(icon: Icons.volume_up_rounded, onTap: () {}),
         _HeaderBtn(icon: Icons.more_horiz_rounded, onTap: () {}),
         _HeaderBtn(icon: Icons.close_rounded, onTap: onClose),
       ],
