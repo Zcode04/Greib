@@ -20,6 +20,7 @@ import '../../shared_widgets/loading_states.dart';
 import 'widgets/chat_whatsapp_ui.dart';
 import 'widgets/conversation_search_filter.dart';
 import 'widgets/conversation_tile.dart';
+import 'widgets/locked_archived_rows.dart';
 import 'widgets/document_preview_sheet.dart';
 import 'widgets/whatsapp_attachment.dart';
 import 'widgets/whatsapp_bubble.dart';
@@ -203,12 +204,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ★ حشوة رأسية مضغوطة مثل واتساب: جسم تبويب الدردشة داخل MainShellScreen
-    // يمتد خلف الهيدر (extendBodyBehindAppBar: true) لأن SuperHeader شفاف،
-    // فبدونها تمرّ المحادثات تحت الهيدر. نجمع شريط الحالة + ارتفاع الهيدر
-    // الفعلي (56 وسطي) + فجوة تنفس صغيرة 6 فقط — مثل واتساب تماماً.
-    final topInset = MediaQuery.paddingOf(context).top + 56;
-
+    // ★ الحل الصحيح للتحكم بالأبعاد دون تداخل أو فراغ مضاعف:
+    // الـ Shell الخارجي فيه extendBodyBehindAppBar:true فيمرر Scaffold
+    // (انظر _BodyBuilder في scaffold.dart) MediaQuery.padding.top جاهزة
+    // = max(شريط الحالة، ارتفاع الهيدر) أي أنها تتضمن الهيدر أصلاً
+    // وتتبع انكماشه (64 ↔ 48) تلقائياً. لذلك لا نجمع 64 يدوياً أبداً —
+    // أي +64 يضاعف الهيدر ويخلق الفراغ الكبير، وحذف كل شيء يسبب
+    // التداخل. الصحيح: padding.top الجاهزة + 8 تنفس فقط (مثل واتساب).
+    final topInset = MediaQuery.paddingOf(context).top + 8;
     final chat = context.chatColors;
     final visible = _visibleConversations;
     return Scaffold(
@@ -220,8 +223,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
         children: [
           Column(
             children: [
-              // ★ 6 فقط بعد الهيدر — واتساب: البحث ملاصق تقريباً للهيدر.
-              SizedBox(height: topInset + 6),
+              // ★ بعد الهيدر الشفاف مباشرة — حشوة محسوبة (حالة + 64 + 8).
+              SizedBox(height: topInset),
               // ── ① Persistent Search Bar — شريط بحث ثابت مثل واتساب ──
               Padding(
                 // ★ 8 أفقي (مثل واتساب) بدل 16 الواسعة.
@@ -243,7 +246,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 onSelected: (i) => setState(() => _selectedFilter = i),
               ),
               // ★ 2 فقط قبل القائمة — أول محادثة تبدأ فوراً بعد الفلاتر.
-              const SizedBox(height: 2),
+              // ── ③ Locked + Archived — مثل واتساب 100% ──
+              // ★ فوق القائمة مباشرة (بعد الفلاتر)، تُخفى أثناء البحث/الفلترة.
+              if (_query.isEmpty && _selectedFilter == 0) ...[
+                const LockedAndArchivedRows(lockedCount: 0, archivedCount: 19),
+                const SizedBox(height: 2),
+              ],
               Expanded(
                 child: visible.isEmpty
                     ? EmptyState(
