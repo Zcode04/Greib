@@ -143,13 +143,9 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
               vertical: 6,
             ),
             child: Container(
-              decoration: BoxDecoration(
-                color: surface,
-                borderRadius: BorderRadius.circular(AppRadii.full),
-                border: Border.all(
-                  color: outline,
-                  width: 1,
-                ),
+              decoration: const BoxDecoration(
+                // ★ نفس خلفية التطبيق: شفاف بدون إطار (stroke)
+                color: Colors.transparent,
               ),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,

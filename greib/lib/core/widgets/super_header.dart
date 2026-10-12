@@ -83,13 +83,9 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                           horizontal: AppSpacing.md,
                           vertical: collapsed ? 10 : 14),
                       child: Container(
-                        decoration: BoxDecoration(
-                          color: context.backgroundColors.surface,
-                          borderRadius: BorderRadius.circular(AppRadii.full),
-                          border: Border.all(
-                            color: context.backgroundColors.outline,
-                            width: 1,
-                          ),
+                        decoration: const BoxDecoration(
+                          // ★ نفس خلفية التطبيق: شفاف بدون إطار (stroke)
+                          color: Colors.transparent,
                         ),
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
