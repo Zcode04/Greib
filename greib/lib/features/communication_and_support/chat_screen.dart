@@ -481,6 +481,11 @@ class ChatDetailScreen extends StatefulWidget {
   /// مرفق «طلب الآن»: يُعرض في صندوق الكتابة ولا يُرسل إلا بضغط المستخدم.
   final ChatPostPreview? postPreview;
 
+  /// ★ تركيز تلقائي على حقل الكتابة + فتح الكيبورد عند الفتح.
+  /// يُستخدم عند القدوم من حقل ستوري وهمي: المستخدم لمس «اكتب…»
+  /// فيُوجَّه للدردشة ليكمل الكتابة فعلياً (هجين احترافي).
+  final bool autofocusMessage;
+
   const ChatDetailScreen({
     super.key,
     required this.conversationTitle,
@@ -491,6 +496,7 @@ class ChatDetailScreen extends StatefulWidget {
     required this.activity,
     required this.isGroup,
     this.postPreview,
+    this.autofocusMessage = false,
   });
 
   @override
@@ -604,6 +610,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     _pendingPost = widget.postPreview;
     // لاحظ ظهور/اختفاء لوحة المفاتيح لإعادة التمرير لأسفل تلقائياً.
     WidgetsBinding.instance.addObserver(this);
+    // ★ قدوم من حقل الستوري: ركّز حقل الكتابة وافتح الكيبورد تلقائياً.
+    if (widget.autofocusMessage) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _messageFocusNode.requestFocus();
+      });
+    }
   }
 
   @override

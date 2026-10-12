@@ -492,6 +492,7 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
           online: true,
           activity: 'متصل الآن',
           isGroup: false,
+          autofocusMessage: true,
           postPreview: ChatPostPreview(
             title: item.title,
             subtitle: 'طلب من ستوري · ${item.category}',
@@ -767,9 +768,12 @@ class _HeaderBtn extends StatelessWidget {
   }
 }
 
-/// زر الطلب السفلي في الستوري: ينقل الخدمة/الصورة للدردشة كمرفق.
-/// ★ بدون حقل كتابة هنا — الكتابة والصوت في الدردشة (أسهل للتطوير).
-class _StoryOrderBar extends StatelessWidget {
+/// شريط الستوري السفلي (هجين احترافي): حقل وهمي + زر طلب.
+/// ★ الحقل الوهمي «اكتب رسالتك…» عند لمسه يوجّه للدردشة بالمرفق
+/// مع تركيز تلقائي وكيبورد مفتوح ليكمل الكتابة هناك (إنستغرام).
+/// ★ مؤشر وامض (|) يوحي أنه حقل حقيقي — مثل حقول الكتابة الأصلية.
+/// ★ زر السلة ينقل مباشرة للدردشة بالمرفق دون تركيز.
+class _StoryOrderBar extends StatefulWidget {
   final String title;
   final VoidCallback onOrder;
   final VoidCallback onShare;
@@ -780,37 +784,63 @@ class _StoryOrderBar extends StatelessWidget {
   });
 
   @override
+  State<_StoryOrderBar> createState() => _StoryOrderBarState();
+}
+
+class _StoryOrderBarState extends State<_StoryOrderBar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _blink;
+
+  @override
+  void initState() {
+    super.initState();
+    // ★ وميض المؤشر: 530ms (معدل وميض حقول iOS/Android الأصلية).
+    _blink = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 530),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _blink.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(
           child: GestureDetector(
-            onTap: onOrder,
+            // ★ لمس الحقل = توجيه للدردشة لإكمال الكتابة هناك.
+            onTap: widget.onOrder,
+            behavior: HitTestBehavior.opaque,
             child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 13),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.white.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.white24, width: 1),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.end,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
-                    Icons.shopping_bag_rounded,
-                    color: Colors.black,
-                    size: 18,
+                  const Text(
+                    'اكتب رسالتك…',
+                    style: TextStyle(color: Colors.white60, fontSize: 13),
                   ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      'اطلب $title الآن',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
+                  const SizedBox(width: 2),
+                  // ★ مؤشر الكتابة الوامض (|) — يظهر كحقل حقيقي.
+                  FadeTransition(
+                    opacity: _blink,
+                    child: Container(
+                      width: 2,
+                      height: 15,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(1),
                       ),
                     ),
                   ),
@@ -822,7 +852,7 @@ class _StoryOrderBar extends StatelessWidget {
         const SizedBox(width: 8),
         // ★ نفس أيقونة المشاركة في البوست (ShareArrowIcon) — توحيد التجربة
         GestureDetector(
-          onTap: onShare,
+          onTap: widget.onShare,
           behavior: HitTestBehavior.opaque,
           child: const Padding(
             padding: EdgeInsets.all(6),
