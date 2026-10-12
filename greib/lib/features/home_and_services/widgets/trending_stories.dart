@@ -4,22 +4,58 @@ import '../../../../core/extensions/context_extensions.dart';
 import 'user_request_story_card.dart';
 
 // ─────────────────────────────────────────────
-//  بيانات العناصر الرائجة
+//  بيانات العناصر الرائجة — نموذج فيسبوك:
+//  كل خدمة = حساب له صفحات (stories) خاصة به
+//  المستخدم يقلّب صفحات الخدمة الواحدة، ثم ينتقل للخدمة التالية
 // ─────────────────────────────────────────────
 class TrendingItem {
   final String title;
   final String imageUrl;
   final String badge;
-  const TrendingItem({required this.title, required this.imageUrl, this.badge = 'رائج'});
+
+  /// صفحات الستوري الخاصة بهذه الخدمة (مثل الـ 20 صورة في ستوري فيسبوك)
+  /// ★ إن تُرك فارغاً تُستخدم [imageUrl] كصفحة وحيدة تلقائياً
+  final List<String> pages;
+
+  const TrendingItem({
+    required this.title,
+    required this.imageUrl,
+    this.badge = 'رائج',
+    this.pages = const [],
+  });
+
+  /// الصفحات الفعلية: المخصصة أو [imageUrl] كصفحة وحيدة
+  List<String> get storyPages => pages.isEmpty ? [imageUrl] : pages;
 }
 
 const _kItems = [
-  TrendingItem(title: 'توصيل سريع', imageUrl: 'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=400&q=80', badge: '🔥 رائج'),
-  TrendingItem(title: 'فنادق فاخرة', imageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=80', badge: '⭐ مميز'),
-  TrendingItem(title: 'رحلات جوية', imageUrl: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80', badge: '✈️ رائج'),
-  TrendingItem(title: 'طب وصيدلة', imageUrl: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=80', badge: '💊 جديد'),
-  TrendingItem(title: 'تسوق يومي', imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80', badge: '🛍 رائج'),
-  TrendingItem(title: 'مطاعم مميزة', imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80', badge: '🍽 رائج'),
+  TrendingItem(title: 'توصيل سريع', imageUrl: 'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=400&q=80', badge: '🔥 رائج', pages: [
+    'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=1080&q=80',
+    'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=1080&q=80',
+    'https://images.unsplash.com/photo-1600320254374-ce2d293c324e?w=1080&q=80',
+  ]),
+  TrendingItem(title: 'فنادق فاخرة', imageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=80', badge: '⭐ مميز', pages: [
+    'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1080&q=80',
+    'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1080&q=80',
+  ]),
+  TrendingItem(title: 'رحلات جوية', imageUrl: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80', badge: '✈️ رائج', pages: [
+    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1080&q=80',
+    'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=1080&q=80',
+    'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1080&q=80',
+  ]),
+  TrendingItem(title: 'طب وصيدلة', imageUrl: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=80', badge: '💊 جديد', pages: [
+    'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=1080&q=80',
+    'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1080&q=80',
+  ]),
+  TrendingItem(title: 'تسوق يومي', imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80', badge: '🛍 رائج', pages: [
+    'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1080&q=80',
+    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1080&q=80',
+    'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1080&q=80',
+  ]),
+  TrendingItem(title: 'مطاعم مميزة', imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80', badge: '🍽 رائج', pages: [
+    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1080&q=80',
+    'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1080&q=80',
+  ]),
 ];
 
 // ─────────────────────────────────────────────
@@ -223,21 +259,76 @@ class StoryViewerPage extends StatefulWidget {
 }
 
 class _StoryViewerPageState extends State<StoryViewerPage> {
-  late final PageController _controller;
-  late int _index;
+  // ★ نموذج فيسبوك: مستوى الخدمة (الحساب) + مستوى الصفحة (الستوري)
+  late final PageController _serviceController;
+  late final PageController _pageController;
+  late int _serviceIndex;
+  late int _pageIndex;
+
+  /// صفحات الخدمة الحالية
+  List<String> get _pages => widget.items[_serviceIndex].storyPages;
 
   @override
   void initState() {
     super.initState();
-    _index = widget.initialIndex;
-    _controller = PageController(initialPage: widget.initialIndex);
+    _serviceIndex = widget.initialIndex;
+    _pageIndex = 0;
+    _serviceController = PageController(initialPage: widget.initialIndex);
+    _pageController = PageController(initialPage: 0);
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _serviceController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
+
+  /// الانتقال لخدمة جديدة: يصفّر الصفحة ويقفز لكنترولر الصفحات للبداية
+  void _goToService(int i) {
+    setState(() {
+      _serviceIndex = i;
+      _pageIndex = 0;
+    });
+    _serviceController.jumpToPage(i);
+    _pageController.jumpToPage(0);
+  }
+
+  /// زر التالي الذكي: صفحة تالية داخل الخدمة، أو أول صفحة من الخدمة التالية
+  void _next() {
+    if (_pageIndex < _pages.length - 1) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    } else if (_serviceIndex < widget.items.length - 1) {
+      _goToService(_serviceIndex + 1);
+    }
+  }
+
+  /// زر السابق الذكي: صفحة سابقة داخل الخدمة، أو آخر صفحة من الخدمة السابقة
+  void _previous() {
+    if (_pageIndex > 0) {
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    } else if (_serviceIndex > 0) {
+      final prevPages = widget.items[_serviceIndex - 1].storyPages;
+      setState(() {
+        _serviceIndex -= 1;
+        _pageIndex = prevPages.length - 1;
+      });
+      _serviceController.jumpToPage(_serviceIndex);
+      _pageController.jumpToPage(_pageIndex);
+    }
+  }
+
+  /// هل يوجد سابق/تالي على مستوى (صفحات + خدمات)؟
+  bool get _hasPrevious => _serviceIndex > 0 || _pageIndex > 0;
+  bool get _hasNext =>
+      _serviceIndex < widget.items.length - 1 ||
+      _pageIndex < _pages.length - 1;
 
   @override
   Widget build(BuildContext context) {
@@ -250,13 +341,26 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
         fit: StackFit.expand,
         children: [
           PageView.builder(
-            controller: _controller,
+            // ★ كنترولر الخدمة مخفي (خلفية) — التنقل يتم عبر الأزرار
+            controller: _serviceController,
+            physics: const NeverScrollableScrollPhysics(),
             itemCount: widget.items.length,
-            onPageChanged: (i) => setState(() => _index = i),
-            itemBuilder: (_, i) => _StoryFullView(item: widget.items[i]),
+            itemBuilder: (_, s) => PageView.builder(
+              controller: s == _serviceIndex ? _pageController : null,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: widget.items[s].storyPages.length,
+              onPageChanged: (p) {
+                if (s == _serviceIndex) {
+                  setState(() => _pageIndex = p);
+                }
+              },
+              itemBuilder: (_, p) => _StoryFullView(
+                imageUrl: widget.items[s].storyPages[p],
+              ),
+            ),
           ),
-          // ── الهيدر: ProgressBar + بروفايل + اسم + وقت + أزرار ──
-          // ★ نفس ترتيب الصورة: البروفايل يمين (RTL) والأزرار يسار
+          // ── الهيدر: ProgressBar (صفحات الخدمة الحالية فقط) + بروفايل ──
+          // ★ المؤشر يعرض عدد صفحات هذه الخدمة فقط — مثل فيسبوك
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
             left: 0,
@@ -267,13 +371,13 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _ProgressBar(
-                    count: widget.items.length,
-                    currentIndex: _index,
+                    count: _pages.length,
+                    currentIndex: _pageIndex,
                   ),
                   const SizedBox(height: 10),
                   _StoryHeader(
-                    imageUrl: widget.items[_index].imageUrl,
-                    title: widget.items[_index].title,
+                    imageUrl: widget.items[_serviceIndex].imageUrl,
+                    title: widget.items[_serviceIndex].title,
                     onClose: () => Navigator.of(context).maybePop(),
                   ),
                 ],
@@ -283,7 +387,7 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
           // ── زرّا التنقل الجانبيان (تحكم مباشر بالستوري) ──
           // ★ chevron-left/right على الحافتين في منتصف الشاشة
           // ★ يتكيفان مع RTL: السابق/التالي حسب اتجاه اللغة
-          if (_index > 0)
+          if (_hasPrevious)
             PositionedDirectional(
               start: 8,
               top: 0,
@@ -293,14 +397,11 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                   icon: Directionality.of(context) == TextDirection.rtl
                       ? Icons.chevron_right_rounded
                       : Icons.chevron_left_rounded,
-                  onTap: () => _controller.previousPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOut,
-                  ),
+                  onTap: _previous,
                 ),
               ),
             ),
-          if (_index < widget.items.length - 1)
+          if (_hasNext)
             PositionedDirectional(
               end: 8,
               top: 0,
@@ -310,10 +411,7 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                   icon: Directionality.of(context) == TextDirection.rtl
                       ? Icons.chevron_left_rounded
                       : Icons.chevron_right_rounded,
-                  onTap: () => _controller.nextPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOut,
-                  ),
+                  onTap: _next,
                 ),
               ),
             ),
@@ -628,8 +726,8 @@ class _EmojiBtn extends StatelessWidget {
 }
 
 class _StoryFullView extends StatelessWidget {
-  final TrendingItem item;
-  const _StoryFullView({required this.item});
+  final String imageUrl;
+  const _StoryFullView({required this.imageUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -637,7 +735,7 @@ class _StoryFullView extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         Image.network(
-          item.imageUrl,
+          imageUrl,
           fit: BoxFit.cover,
           errorBuilder: (_, _, _) => Container(color: Colors.grey.shade900),
           loadingBuilder: (_, child, progress) {
