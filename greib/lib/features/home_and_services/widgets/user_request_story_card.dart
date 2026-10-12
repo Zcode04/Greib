@@ -99,7 +99,7 @@ class UserRequestStoryCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        padding: const EdgeInsets.only(top: 26, bottom: 6),
+                        padding: const EdgeInsets.only(top: 22, bottom: 6),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.start,
@@ -139,20 +139,20 @@ class UserRequestStoryCard extends StatelessWidget {
                 // ── الزر الدائري 🔥 في المنتصف على الخط الفاصل ──
                 // ★ نفس موضع زر (+) فيسبوك: متقاطع بين الصورة والشريط
                 Positioned(
-                  top: _imageHeight - 22,
+                  top: _imageHeight - 18,
                   left: 0,
                   right: 0,
                   child: Center(
                     child: Container(
-                      width: 44,
-                      height: 44,
+                      width: 36,
+                      height: 36,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: context.accentColor,
                         // ★ نفس ستايل زر (+) فيسبوك: حد بلون الشريط + ظل بارز
                         border: Border.all(
                           color: bottomColor,
-                          width: 3.5,
+                          width: 3,
                         ),
                         boxShadow: [
                           BoxShadow(
@@ -167,7 +167,7 @@ class UserRequestStoryCard extends StatelessWidget {
                       child: const Icon(
                         LucideIcons.flame,
                         color: Colors.white,
-                        size: 22,
+                        size: 18,
                       ),
                     ),
                   ),
