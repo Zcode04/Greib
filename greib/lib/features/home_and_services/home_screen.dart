@@ -12,6 +12,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 // Widgets
 import 'widgets/home_scroll_strip.dart';
+import 'widgets/home_action_bar.dart';
 // حفظ المنطق: الاستيراد محفوظ لإعادة زر «تصفح آلي» لاحقاً (مخفي مؤقتاً).
 // ignore: unused_import
 import 'widgets/sticky_location_button.dart';
@@ -109,6 +110,11 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                AnimatedListItem(
+                  index: 0,
+                  child: HomeActionBar(scrollController: _scrollController),
+                ),
+                const SizedBox(height: 14),
                 const AnimatedListItem(index: 0, child: HomeScrollStrip()),
                 const SizedBox(height: 14),
                 AnimatedListItem(
