@@ -229,11 +229,47 @@ class _StoryCard extends StatelessWidget {
                 Positioned(top: 0, left: 0, right: 0, child: Container(height: 80, decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xCC000000), Colors.transparent])))),
                 Positioned(bottom: 0, left: 0, right: 0, child: Container(height: 100, decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Color(0xEE000000), Colors.transparent])))),
                 Positioned(
-                  top: 10, left: 8,
+                  top: 10,
+                  left: 8,
+                  // ★ ستايل فيسبوك: دائرة بروفايل بحلقة زرقاء بدل شارة "رائج"
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.45), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white24, width: 0.8)),
-                    child: Text(item.badge, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                    width: 44,
+                    height: 44,
+                    padding: const EdgeInsets.all(2.5),
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xFF0866FF),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x66000000),
+                          blurRadius: 6,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                      ),
+                      child: ClipOval(
+                        child: Image.network(
+                          item.imageUrl,
+                          fit: BoxFit.cover,
+                          width: 34,
+                          height: 34,
+                          errorBuilder: (_, _, _) => Container(
+                            color: Colors.grey.shade300,
+                            child: const Icon(
+                              Icons.person_rounded,
+                              color: Colors.grey,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
                 Positioned(
