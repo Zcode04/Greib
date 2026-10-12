@@ -12,6 +12,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 // Widgets
 import 'widgets/home_scroll_strip.dart';
+// حفظ المنطق: الاستيراد محفوظ لإعادة زر «تصفح آلي» لاحقاً (مخفي مؤقتاً).
+// ignore: unused_import
 import 'widgets/sticky_location_button.dart';
 // ملاحظة: `widgets/sticky_tabs_bar.dart` غير مستخدم مؤقتاً (التبويبات مخفية) —
 // الملف محفوظ مع بياناته (MockData.productCategories) للاستخدام لاحقاً.
@@ -215,11 +217,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          // ★ زر الموقع: يظهر في مكانه الثابت دائماً (بدون نسخة ثانية
-          //   داخل شريط لاصق). فتح ورقة تغيير الموقع تتم منه.
-          //   ملاحظة: `StickyTabsBar` (شريط الـ 14 تبويب) لم يُعرض مؤقتاً،
-          //   وملفه وبياناته محفوظة للاستخدام لاحقاً.
-          StickyLocationButton(scrollController: _scrollController),
+          // ★ زر «تصفح آلي» مخفي مؤقتاً من الواجهة — المنطق محفوظ كاملاً في
+          //   `widgets/sticky_location_button.dart` (StickyLocationButton)
+          //   لإعادة استخدامه لاحقاً. للإعادة: أزل التعليق عن السطر التالي.
+          // StickyLocationButton(scrollController: _scrollController),
         ],
       ),
     );
