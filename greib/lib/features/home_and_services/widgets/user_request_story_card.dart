@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../../core/extensions/context_extensions.dart';
+import 'user_request_sheet.dart';
 
 // ─────────────────────────────────────────────
 //  بطاقة المستخدم — ستايل قصص فيسبوك (FB Create Story)
@@ -25,15 +26,15 @@ class UserRequestStoryCard extends StatelessWidget {
 
   static const double _cardWidth = 130;
   static const double _cardHeight = 240;
-  static const double _imageHeight = 175;
-  static const double _buttonSize = 44;
+  static const double _imageHeight = 170;
 
   @override
   Widget build(BuildContext context) {
     final bottomColor = context.backgroundColors.surface;
 
     return GestureDetector(
-      onTap: onTap,
+      // ★ الضغط على البطاقة يفتح شيت الخدمات
+      onTap: onTap ?? () => showUserRequestSheet(context),
       child: Container(
         width: _cardWidth,
         height: _cardHeight,
@@ -84,36 +85,48 @@ class UserRequestStoryCard extends StatelessWidget {
                         },
                       ),
                     ),
-                    // الشريط السفلي (مثل الشريط الأبيض في كرت فيسبوك)
+                    // ── الشريط السفلي: الرائج + اطلب الآن ──
+                    // الزر الدائري متقاطع في المنتصف على الخط الفاصل (مثل فيسبوك)
                     Expanded(
                       child: Container(
                         width: _cardWidth,
-                        color: bottomColor,
-                        padding: const EdgeInsets.only(top: 24, bottom: 8),
+                        decoration: BoxDecoration(
+                          color: bottomColor,
+                          border: Border(
+                            top: BorderSide(
+                              color: context.accentColor,
+                              width: 2.5,
+                            ),
+                          ),
+                        ),
+                        padding: const EdgeInsets.only(top: 26, bottom: 6),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             Text(
-                              'اطلب الآن',
+                              'الرائج',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: context.textColors.primary,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                                height: 1.2,
+                                color: context.textColors.secondary,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                height: 1.15,
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'خدمة شخصية',
+                              'اطلب الآن',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: context.textColors.secondary,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                height: 1.2,
+                                color: context.textColors.primary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                height: 1.15,
                               ),
                             ),
                           ],
@@ -123,27 +136,29 @@ class UserRequestStoryCard extends StatelessWidget {
                   ],
                 ),
 
-                // ── الزر الدائري المتقاطع في النص (مكان زر + في فيسبوك) ──
-                // فيسبوك: دائرة زرقاء بأيقونة (+) بيضاء
-                // نحن: دائرة بلون البراند بأيقونة الرائج (🔥 flame) بيضاء
+                // ── الزر الدائري 🔥 في المنتصف على الخط الفاصل ──
+                // ★ نفس موضع زر (+) فيسبوك: متقاطع بين الصورة والشريط
                 Positioned(
-                  top: _imageHeight - (_buttonSize / 2),
+                  top: _imageHeight - 22,
                   left: 0,
                   right: 0,
                   child: Center(
                     child: Container(
-                      width: _buttonSize,
-                      height: _buttonSize,
+                      width: 44,
+                      height: 44,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: context.accentColor,
+                        // ★ نفس ستايل زر (+) فيسبوك: حد بلون الشريط + ظل بارز
                         border: Border.all(
                           color: bottomColor,
                           width: 3.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.25),
+                            color: Colors.black.withValues(
+                              alpha: 0.3,
+                            ),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
                           ),
