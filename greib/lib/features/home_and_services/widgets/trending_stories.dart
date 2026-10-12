@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../shared_widgets/share_arrow_icon.dart';
+import '../../communication_and_support/chat_screen.dart';
+import '../../communication_and_support/story_reply.dart';
 import 'user_request_story_card.dart';
 
 // ─────────────────────────────────────────────
@@ -37,33 +39,75 @@ class TrendingItem {
 }
 
 const _kItems = [
-  TrendingItem(title: 'توصيل سريع', category: 'توصيل', imageUrl: 'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=400&q=80', badge: '🔥 رائج', pages: [
-    'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=1080&q=80',
-    'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=1080&q=80',
-    'https://images.unsplash.com/photo-1600320254374-ce2d293c324e?w=1080&q=80',
-  ]),
-  TrendingItem(title: 'فنادق فاخرة', category: 'سفر', imageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=80', badge: '⭐ مميز', pages: [
-    'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1080&q=80',
-    'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1080&q=80',
-  ]),
-  TrendingItem(title: 'رحلات جوية', category: 'سفر', imageUrl: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80', badge: '✈️ رائج', pages: [
-    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1080&q=80',
-    'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=1080&q=80',
-    'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1080&q=80',
-  ]),
-  TrendingItem(title: 'طب وصيدلة', category: 'صحة', imageUrl: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=80', badge: '💊 جديد', pages: [
-    'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=1080&q=80',
-    'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1080&q=80',
-  ]),
-  TrendingItem(title: 'تسوق يومي', category: 'إلكترونيات', imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80', badge: '🛍 رائج', pages: [
-    'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1080&q=80',
-    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1080&q=80',
-    'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1080&q=80',
-  ]),
-  TrendingItem(title: 'مطاعم مميزة', category: 'طعام', imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80', badge: '🍽 رائج', pages: [
-    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1080&q=80',
-    'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1080&q=80',
-  ]),
+  TrendingItem(
+    title: 'توصيل سريع',
+    category: 'توصيل',
+    imageUrl:
+        'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=400&q=80',
+    badge: '🔥 رائج',
+    pages: [
+      'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=1080&q=80',
+      'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=1080&q=80',
+      'https://images.unsplash.com/photo-1600320254374-ce2d293c324e?w=1080&q=80',
+    ],
+  ),
+  TrendingItem(
+    title: 'فنادق فاخرة',
+    category: 'سفر',
+    imageUrl:
+        'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=80',
+    badge: '⭐ مميز',
+    pages: [
+      'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1080&q=80',
+      'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1080&q=80',
+    ],
+  ),
+  TrendingItem(
+    title: 'رحلات جوية',
+    category: 'سفر',
+    imageUrl:
+        'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80',
+    badge: '✈️ رائج',
+    pages: [
+      'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1080&q=80',
+      'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=1080&q=80',
+      'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1080&q=80',
+    ],
+  ),
+  TrendingItem(
+    title: 'طب وصيدلة',
+    category: 'صحة',
+    imageUrl:
+        'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=80',
+    badge: '💊 جديد',
+    pages: [
+      'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=1080&q=80',
+      'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1080&q=80',
+    ],
+  ),
+  TrendingItem(
+    title: 'تسوق يومي',
+    category: 'إلكترونيات',
+    imageUrl:
+        'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',
+    badge: '🛍 رائج',
+    pages: [
+      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1080&q=80',
+      'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1080&q=80',
+      'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1080&q=80',
+    ],
+  ),
+  TrendingItem(
+    title: 'مطاعم مميزة',
+    category: 'طعام',
+    imageUrl:
+        'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80',
+    badge: '🍽 رائج',
+    pages: [
+      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1080&q=80',
+      'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1080&q=80',
+    ],
+  ),
 ];
 
 // ─────────────────────────────────────────────
@@ -84,11 +128,17 @@ class _TrendingStoriesSectionState extends State<TrendingStoriesSection>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 700))..forward();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
   }
 
   @override
-  void dispose() { _controller.dispose(); super.dispose(); }
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,13 +156,20 @@ class _TrendingStoriesSectionState extends State<TrendingStoriesSection>
           if (i == _kItems.length) {
             final anim = CurvedAnimation(
               parent: _controller,
-              curve: Interval((_kItems.length * 0.1).clamp(0.0, 0.9), 1.0, curve: Curves.easeOutBack),
+              curve: Interval(
+                (_kItems.length * 0.1).clamp(0.0, 0.9),
+                1.0,
+                curve: Curves.easeOutBack,
+              ),
             );
             return AnimatedBuilder(
               animation: anim,
               builder: (_, child) => Transform.translate(
                 offset: Offset(0, 28 * (1 - anim.value)),
-                child: Opacity(opacity: anim.value.clamp(0.0, 1.0), child: child),
+                child: Opacity(
+                  opacity: anim.value.clamp(0.0, 1.0),
+                  child: child,
+                ),
               ),
               child: const UserRequestStoryCard(),
             );
@@ -122,7 +179,11 @@ class _TrendingStoriesSectionState extends State<TrendingStoriesSection>
           final delay = i * 0.1;
           final anim = CurvedAnimation(
             parent: _controller,
-            curve: Interval(delay.clamp(0.0, 0.9), (delay + 0.5).clamp(0.1, 1.0), curve: Curves.easeOutBack),
+            curve: Interval(
+              delay.clamp(0.0, 0.9),
+              (delay + 0.5).clamp(0.1, 1.0),
+              curve: Curves.easeOutBack,
+            ),
           );
           return AnimatedBuilder(
             animation: anim,
@@ -140,7 +201,8 @@ class _TrendingStoriesSectionState extends State<TrendingStoriesSection>
                     opaque: false,
                     barrierColor: Colors.transparent,
                     transitionDuration: const Duration(milliseconds: 260),
-                    pageBuilder: (_, _, _) => StoryViewerPage(items: _kItems, initialIndex: i),
+                    pageBuilder: (_, _, _) =>
+                        StoryViewerPage(items: _kItems, initialIndex: i),
                     transitionsBuilder: (_, animation, _, child) =>
                         FadeTransition(opacity: animation, child: child),
                   ),
@@ -165,7 +227,13 @@ class _StoryCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onTapDown;
   final VoidCallback onTapUp;
-  const _StoryCard({required this.item, required this.isPressed, required this.onTap, required this.onTapDown, required this.onTapUp});
+  const _StoryCard({
+    required this.item,
+    required this.isPressed,
+    required this.onTap,
+    required this.onTapDown,
+    required this.onTapUp,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -189,14 +257,57 @@ class _StoryCard extends StatelessWidget {
                 Image.network(
                   item.imageUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => Container(color: Colors.grey.shade800, child: const Icon(Icons.image_not_supported, color: Colors.white54, size: 40)),
+                  errorBuilder: (_, _, _) => Container(
+                    color: Colors.grey.shade800,
+                    child: const Icon(
+                      Icons.image_not_supported,
+                      color: Colors.white54,
+                      size: 40,
+                    ),
+                  ),
                   loadingBuilder: (_, child, progress) {
                     if (progress == null) return child;
-                    return Container(color: Colors.grey.shade900, child: const Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2)));
+                    return Container(
+                      color: Colors.grey.shade900,
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.white54,
+                          strokeWidth: 2,
+                        ),
+                      ),
+                    );
                   },
                 ),
-                Positioned(top: 0, left: 0, right: 0, child: Container(height: 80, decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xCC000000), Colors.transparent])))),
-                Positioned(bottom: 0, left: 0, right: 0, child: Container(height: 100, decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Color(0xEE000000), Colors.transparent])))),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: 80,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xCC000000), Colors.transparent],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: 100,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [Color(0xEE000000), Colors.transparent],
+                      ),
+                    ),
+                  ),
+                ),
                 Positioned(
                   top: 10,
                   left: 8,
@@ -242,8 +353,21 @@ class _StoryCard extends StatelessWidget {
                   ),
                 ),
                 Positioned(
-                  bottom: 12, left: 8, right: 8,
-                  child: Text(item.title, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800, height: 1.2, shadows: [Shadow(color: Colors.black87, blurRadius: 6)]), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  bottom: 12,
+                  left: 8,
+                  right: 8,
+                  child: Text(
+                    item.title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      height: 1.2,
+                      shadows: [Shadow(color: Colors.black87, blurRadius: 6)],
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
@@ -260,7 +384,11 @@ class _StoryCard extends StatelessWidget {
 class StoryViewerPage extends StatefulWidget {
   final List<TrendingItem> items;
   final int initialIndex;
-  const StoryViewerPage({super.key, required this.items, required this.initialIndex});
+  const StoryViewerPage({
+    super.key,
+    required this.items,
+    required this.initialIndex,
+  });
 
   @override
   State<StoryViewerPage> createState() => _StoryViewerPageState();
@@ -348,6 +476,40 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
   bool get _hasPreviousPage => _pageIndex > 0;
   bool get _hasNextPage => _pageIndex < _pages.length - 1;
 
+  /// ★ إرسال الرد على الستوري (Story-to-Chat Bridge):
+  /// ① تأكيد فوري ② إغلاق العارض ③ فتح الدردشة مع StoryReply
+  /// فيُرسل تلقائياً مرفقاً ببطاقة الستوري (مثل إنستغرام).
+  void _sendStoryReply(BuildContext context, String text) {
+    final item = widget.items[_serviceIndex];
+    final page = _pageIndex.clamp(0, item.storyPages.length - 1);
+    final reply = StoryReply(
+      storyId: '${item.title}_$page',
+      serviceTitle: item.title,
+      serviceCategory: item.category,
+      storyImageUrl: item.storyPages[page],
+      message: text,
+    );
+    // ① تأكيد فوري قبل المغادرة — مثل إنستغرام.
+    context.showSnackBar('تم إرسال الرد على الستوري ✅');
+    // ② إغلاق العارض.
+    Navigator.of(context).maybePop();
+    // ③ فتح الدردشة مع الرد — تُرسل تلقائياً عند الوصول.
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (_) => ChatDetailScreen(
+          conversationTitle: item.title,
+          conversationId: 'story_${item.title}_$page',
+          avatar: '📸',
+          phone: 'رد على ستوري · ${item.category}',
+          online: true,
+          activity: 'متصل الآن',
+          isGroup: false,
+          storyReply: reply,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bottomPad = MediaQuery.of(context).padding.bottom;
@@ -386,10 +548,7 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _ProgressBar(
-                    count: _pages.length,
-                    currentIndex: _pageIndex,
-                  ),
+                  _ProgressBar(count: _pages.length, currentIndex: _pageIndex),
                   const SizedBox(height: 10),
                   _StoryHeader(
                     imageUrl: widget.items[_serviceIndex].imageUrl,
@@ -455,10 +614,8 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _StoryReplyBar(
-                      onMessageTap: () => context.showSnackBar(
-                          'الردود الخاصة — قريباً'),
-                      onShare: () => context.showSnackBar(
-                          'المشاركة — قريباً'),
+                      onSend: (text) => _sendStoryReply(context, text),
+                      onShare: () => context.showSnackBar('المشاركة — قريباً'),
                     ),
                   ],
                 ),
@@ -510,8 +667,11 @@ class _StoryHeader extends StatelessWidget {
                 height: 32,
                 errorBuilder: (_, _, _) => Container(
                   color: Colors.grey.shade700,
-                  child: const Icon(Icons.person_rounded,
-                      color: Colors.white70, size: 18),
+                  child: const Icon(
+                    Icons.person_rounded,
+                    color: Colors.white70,
+                    size: 18,
+                  ),
                 ),
               ),
             ),
@@ -544,9 +704,7 @@ class _StoryHeader extends StatelessWidget {
                   color: Colors.white70,
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  shadows: [
-                    Shadow(color: Colors.black87, blurRadius: 6)
-                  ],
+                  shadows: [Shadow(color: Colors.black87, blurRadius: 6)],
                 ),
               ),
             ],
@@ -615,43 +773,93 @@ class _HeaderBtn extends StatelessWidget {
   }
 }
 
-/// شريط الرد السفلي: حقل رسالة + مشاركة (نفس أيقونة البوست)
-/// ★ مبسّط: بدون إيموجي — فقط حقل الرسالة وزر المشاركة الموحد
-class _StoryReplyBar extends StatelessWidget {
-  final VoidCallback onMessageTap;
+/// شريط الرد السفلي: حقل رسالة حقيقي + زر إرسال (Story-to-Chat Bridge).
+/// ★ عند الإرسال: يُبنى StoryReply ويُسلَّم عبر onSend — المالك يقرر
+/// (فتح الدردشة بالمرفق + تأكيد "تم إرسال الرد ✅").
+class _StoryReplyBar extends StatefulWidget {
+  final void Function(String message) onSend;
   final VoidCallback onShare;
-  const _StoryReplyBar({
-    required this.onMessageTap,
-    required this.onShare,
-  });
+  const _StoryReplyBar({required this.onSend, required this.onShare});
+
+  @override
+  State<_StoryReplyBar> createState() => _StoryReplyBarState();
+}
+
+class _StoryReplyBarState extends State<_StoryReplyBar> {
+  final _controller = TextEditingController();
+  bool _canSend = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(
+      () => setState(() => _canSend = _controller.text.trim().isNotEmpty),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+    widget.onSend(text);
+    _controller.clear();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(
-          child: GestureDetector(
-            onTap: onMessageTap,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.white24, width: 1),
-              ),
-              child: const Text(
-                'إرسال رسالة...',
-                textAlign: TextAlign.end,
-                style: TextStyle(color: Colors.white60, fontSize: 13),
-              ),
+          child: Container(
+            padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white24, width: 1),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    onSubmitted: (_) => _submit(),
+                    textInputAction: TextInputAction.send,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: const InputDecoration(
+                      hintText: 'إرسال رسالة...',
+                      hintStyle: TextStyle(color: Colors.white60, fontSize: 13),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+                // ★ زر إرسال يظهر عند الكتابة فقط — مثل إنستغرام.
+                if (_canSend)
+                  GestureDetector(
+                    onTap: _submit,
+                    behavior: HitTestBehavior.opaque,
+                    child: const Padding(
+                      padding: EdgeInsets.all(6),
+                      child: Icon(
+                        Icons.send_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
         const SizedBox(width: 8),
         // ★ نفس أيقونة المشاركة في البوست (ShareArrowIcon) — توحيد التجربة
         GestureDetector(
-          onTap: onShare,
+          onTap: widget.onShare,
           behavior: HitTestBehavior.opaque,
           child: const Padding(
             padding: EdgeInsets.all(6),
@@ -678,11 +886,30 @@ class _StoryFullView extends StatelessWidget {
           errorBuilder: (_, _, _) => Container(color: Colors.grey.shade900),
           loadingBuilder: (_, child, progress) {
             if (progress == null) return child;
-            return Container(color: Colors.black, child: const Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2)));
+            return Container(
+              color: Colors.black,
+              child: const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.white54,
+                  strokeWidth: 2,
+                ),
+              ),
+            );
           },
         ),
         const DecoratedBox(
-          decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0x88000000), Colors.transparent, Color(0x99000000)], stops: [0, 0.45, 1])),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0x88000000),
+                Colors.transparent,
+                Color(0x99000000),
+              ],
+              stops: [0, 0.45, 1],
+            ),
+          ),
         ),
       ],
     );
@@ -703,7 +930,9 @@ class _ProgressBar extends StatelessWidget {
             margin: const EdgeInsetsDirectional.only(end: 4),
             height: 3,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: i <= currentIndex ? 0.95 : 0.35),
+              color: Colors.white.withValues(
+                alpha: i <= currentIndex ? 0.95 : 0.35,
+              ),
               borderRadius: BorderRadius.circular(3),
             ),
           ),
