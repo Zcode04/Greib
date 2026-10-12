@@ -393,6 +393,7 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                   _StoryHeader(
                     imageUrl: widget.items[_serviceIndex].imageUrl,
                     title: widget.items[_serviceIndex].title,
+                    category: widget.items[_serviceIndex].category,
                     onClose: () => Navigator.of(context).maybePop(),
                   ),
                 ],
@@ -495,14 +496,16 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
   }
 }
 
-/// هيدر الستوري: بروفايل + اسم + وقت + أزرار
+/// هيدر الستوري: بروفايل + اسم + وقت + شارة تصنيف + أزرار
 class _StoryHeader extends StatelessWidget {
   final String imageUrl;
   final String title;
+  final String category;
   final VoidCallback onClose;
   const _StoryHeader({
     required this.imageUrl,
     required this.title,
+    this.category = 'عام',
     required this.onClose,
   });
 
@@ -557,13 +560,18 @@ class _StoryHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 2),
-              const Text(
-                'الآن · 0:15',
-                style: TextStyle(
+              // ★ التوقيت + التصنيف كنص موحد بدون خلفية
+              Text(
+                'الآن · 0:15 · $category',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  shadows: [Shadow(color: Colors.black87, blurRadius: 6)],
+                  shadows: [
+                    Shadow(color: Colors.black87, blurRadius: 6)
+                  ],
                 ),
               ),
             ],
