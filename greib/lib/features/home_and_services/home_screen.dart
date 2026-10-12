@@ -11,6 +11,9 @@ import '../../shared_widgets/animated_list_item.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 // Widgets
+// ★ HomeScrollStrip مخفي مؤقتاً (شريط "رائج الآن" فوق القصص) — الملف محفوظ
+//   في `widgets/home_scroll_strip.dart` لإعادة استخدامه لاحقاً.
+// ignore: unused_import
 import 'widgets/home_scroll_strip.dart';
 import 'widgets/home_action_bar.dart';
 // حفظ المنطق: الاستيراد محفوظ لإعادة زر «تصفح آلي» لاحقاً (مخفي مؤقتاً).
@@ -114,8 +117,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   index: 0,
                   child: HomeActionBar(scrollController: _scrollController),
                 ),
-                const SizedBox(height: 14),
-                const AnimatedListItem(index: 0, child: HomeScrollStrip()),
                 const SizedBox(height: 14),
                 AnimatedListItem(
                   index: 0,
