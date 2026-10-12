@@ -16,7 +16,10 @@ import 'package:file_picker/file_picker.dart';
 import '../../core/permissions/permissions.dart';
 import '../../core/theme/chat_colors.dart';
 import '../../core/theme/design_tokens.dart';
+import '../../shared_widgets/loading_states.dart';
 import 'widgets/chat_whatsapp_ui.dart';
+import 'widgets/conversation_search_filter.dart';
+import 'widgets/conversation_tile.dart';
 import 'widgets/document_preview_sheet.dart';
 import 'widgets/whatsapp_attachment.dart';
 import 'widgets/whatsapp_bubble.dart';
@@ -54,13 +57,6 @@ double _bubbleMaxWidth(BuildContext context, {required bool isVoice}) => min(
 double _imageMaxWidth(BuildContext context) =>
     min(MediaQuery.of(context).size.width * 0.55, _kMaxImageWidth);
 
-/// ثوابت أحجام دائرية متجاوبة (صغير/متوسط/كبير) لتفادي الأرقام السحرية المتكررة.
-double _responsiveAvatar(
-  BuildContext context, {
-  double phone = 56,
-  double tablet = 72,
-}) => _isTablet(context) ? tablet : phone;
-
 // NOTE ON DEPENDENCIES
 // This screen records/plays *real* audio and attaches *real* photos,
 // like WhatsApp. The following are required in pubspec.yaml:
@@ -89,6 +85,10 @@ class ChatListScreen extends StatefulWidget {
 class _ChatListScreenState extends State<ChatListScreen> {
   late List<Map<String, dynamic>> _conversations;
   final _searchController = TextEditingController();
+  int _selectedFilter = 0;
+  String _query = '';
+
+  static const List<String> _filterLabels = ['الكل', 'غير مقروءة', 'المجموعات'];
 
   @override
   void initState() {
@@ -101,6 +101,28 @@ class _ChatListScreenState extends State<ChatListScreen> {
     _searchController.dispose();
     super.dispose();
   }
+
+  /// ★ قائمة مرئية بعد البحث + الفلتر — منطق خفيف محلي (Local Filtering).
+  List<Map<String, dynamic>> get _visibleConversations {
+    var list = _conversations;
+    if (_selectedFilter == 1) {
+      list = list.where((c) => (c['unread'] as int) > 0).toList();
+    } else if (_selectedFilter == 2) {
+      list = list.where((c) => c['type'] == 'group').toList();
+    }
+    if (_query.isNotEmpty) {
+      final q = _query.trim();
+      list = list.where((c) {
+        return (c['name'] as String).contains(q) ||
+            (c['lastMessage'] as String).contains(q);
+      }).toList();
+    }
+    return list;
+  }
+
+  /// عدد غير المقروءة لشارة فلتر «غير مقروءة» — مثل واتساب (غير مقروءة ١٥).
+  int get _unreadCount =>
+      _conversations.where((c) => (c['unread'] as int) > 0).length;
 
   void _loadConversations() {
     final role = AuthService.instance.currentRole;
@@ -181,8 +203,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     // ★ حشوة رأسية صريحة: جسم تبويب الدردشة داخل MainShellScreen يمتد
     // خلف الهيدر (extendBodyBehindAppBar: true) لأن SuperHeader شفاف،
     // فبدونها تمرّ بطاقات المحادثات تحت الهيدر وتتداخل معه.
@@ -190,26 +210,69 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final topInset = MediaQuery.paddingOf(context).top + 64;
 
     final chat = context.chatColors;
+    final visible = _visibleConversations;
     return Scaffold(
       // ★ لون الخلفية من اللوحة المركزية (Color Palette).
       backgroundColor: chat.conversationBackground,
       body: Column(
         children: [
-          Expanded(
-            child: ListView.separated(
-              padding: EdgeInsets.only(top: topInset, bottom: AppSpacing.lg),
-              itemCount: _conversations.length,
-              separatorBuilder: (_, _) => Divider(
-                height: 1,
-                thickness: 1,
-                indent: 76,
-                color: chat.composerBorder,
-              ),
-              itemBuilder: (context, index) {
-                final conv = _conversations[index];
-                return _buildConversationTile(context, theme, conv);
-              },
+          SizedBox(height: topInset + AppSpacing.sm),
+          // ── ① Persistent Search Bar — شريط بحث ثابت مثل واتساب ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: ConversationSearchBar(
+              controller: _searchController,
+              query: _query,
+              onChanged: (v) => setState(() => _query = v),
             ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          // ── ② Filter Chips Row — فلاتر أفقية (الكل / غير مقروءة / المجموعات) ──
+          // ★ 3 فلاتر فقط: حذفنا (المفضلة، الدردشات المقفلة، المؤرشفة، Meta AI).
+          ConversationFilterChips(
+            labels: _filterLabels,
+            selectedIndex: _selectedFilter,
+            unreadCount: _unreadCount,
+            onSelected: (i) => setState(() => _selectedFilter = i),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Expanded(
+            child: visible.isEmpty
+                ? EmptyState(
+                    icon: _query.isNotEmpty
+                        ? LucideIcons.searchX
+                        : LucideIcons.messagesSquare,
+                    title: _query.isNotEmpty
+                        ? 'لا توجد نتائج لـ "$_query"'
+                        : 'لا توجد محادثات هنا',
+                    description: _query.isNotEmpty
+                        ? 'جرّب كلمة أخرى أو امسح البحث'
+                        : 'ستظهر محادثاتك هنا عند وصولها',
+                  )
+                : ListView.separated(
+                    padding: EdgeInsets.only(bottom: AppSpacing.lg),
+                    itemCount: visible.length,
+                    separatorBuilder: (_, _) => Divider(
+                      height: 1,
+                      thickness: 1,
+                      indent: 76,
+                      color: chat.composerBorder,
+                    ),
+                    itemBuilder: (context, index) {
+                      final conv = visible[index];
+                      final online = conv['online'] as bool;
+                      final isGroup = conv['type'] == 'group';
+                      return ConversationTile(
+                        name: conv['name'] as String,
+                        lastMessage: conv['lastMessage'] as String,
+                        time: conv['time'] as String,
+                        avatar: conv['avatar'] as String,
+                        unread: conv['unread'] as int,
+                        online: online,
+                        onTap: () => _openConversation(conv, online, isGroup),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -230,173 +293,17 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
-  Widget _buildConversationTile(
-    BuildContext context,
-    ThemeData theme,
-    Map<String, dynamic> conv,
-  ) {
-    final chat = context.chatColors;
-    final unread = conv['unread'] as int;
-    final online = conv['online'] as bool;
-    final isGroup = conv['type'] == 'group';
-
-    return InkWell(
-      onTap: () {
-        Navigator.of(context, rootNavigator: true).push(
-          MaterialPageRoute(
-            builder: (context) => ChatDetailScreen(
-              conversationTitle: conv['name'] as String,
-              conversationId: conv['id'] as String,
-              avatar: conv['avatar'] as String,
-              phone: conv['phone'] as String,
-              online: online,
-              activity: conv['activity'] as String,
-              isGroup: isGroup,
-            ),
-          ),
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        child: Row(
-          children: [
-            Stack(
-              children: [
-                Container(
-                  width: _responsiveAvatar(context),
-                  height: _responsiveAvatar(context),
-                  decoration: BoxDecoration(
-                    color: chat.sendButton.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      conv['avatar'] as String,
-                      style: TextStyle(
-                        fontSize:
-                            (unread > 0 ? 26 : 22) *
-                            (_isTablet(context) ? 1.2 : 1.0),
-                      ),
-                    ),
-                  ),
-                ),
-                if (online)
-                  Positioned(
-                    bottom: 2,
-                    right: 2,
-                    child: Container(
-                      width: _isTablet(context) ? 16 : 14,
-                      height: _isTablet(context) ? 16 : 14,
-                      decoration: BoxDecoration(
-                        color: chat.onlineDot,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: theme.scaffoldBackgroundColor,
-                          width: 2.5,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-
-            const SizedBox(width: AppSpacing.md),
-
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          conv['name'] as String,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: unread > 0
-                                ? FontWeight.w700
-                                : FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      Flexible(
-                        child: Text(
-                          conv['time'] as String,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: unread > 0
-                                ? context.chatColors.sendButton
-                                : context.chatColors.recordingWaveUnplayed,
-                            fontWeight: unread > 0
-                                ? FontWeight.w700
-                                : FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          conv['lastMessage'] as String,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: unread > 0
-                                ? context.chatColors.inputText
-                                : context.chatColors.recordingWaveUnplayed,
-                            fontWeight: unread > 0
-                                ? FontWeight.w600
-                                : FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      if (unread > 0)
-                        Container(
-                          padding: const EdgeInsets.all(AppSpacing.xs),
-                          constraints: const BoxConstraints(
-                            minWidth: 20,
-                            minHeight: 20,
-                          ),
-                          decoration: BoxDecoration(
-                            color: context.chatColors.sendButton,
-                            borderRadius: BorderRadius.circular(AppRadii.full),
-                          ),
-                          child: Center(
-                            // FittedBox يمنع قص/طفح رقم "غير مقروء" عند تكبير الخط.
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                '$unread',
-                                style: TextStyle(
-                                  color: context.chatColors.sendIcon,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
-                      else
-                        Icon(
-                          LucideIcons.checkCheck,
-                          size: 16,
-                          color: context.chatColors.sendButton,
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
+  void _openConversation(Map<String, dynamic> conv, bool online, bool isGroup) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (context) => ChatDetailScreen(
+          conversationTitle: conv['name'] as String,
+          conversationId: conv['id'] as String,
+          avatar: conv['avatar'] as String,
+          phone: conv['phone'] as String,
+          online: online,
+          activity: conv['activity'] as String,
+          isGroup: isGroup,
         ),
       ),
     );
@@ -1017,7 +924,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
         'isImage': true,
         'time': 'الآن',
         'isMine': true,
-        if (_replyingTo != null) 'quoted': Map<String, dynamic>.from(_replyingTo!),
+        if (_replyingTo != null)
+          'quoted': Map<String, dynamic>.from(_replyingTo!),
       });
     });
     _replyingTo = null;
@@ -1032,7 +940,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     );
     if (!granted) return;
     try {
-      final XFile? picked = await _imagePicker.pickVideo(source: ImageSource.gallery);
+      final XFile? picked = await _imagePicker.pickVideo(
+        source: ImageSource.gallery,
+      );
       if (picked == null) return;
       if (mounted) _showImagePreviewSheet(picked.path);
     } catch (e, st) {
@@ -1120,7 +1030,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
         'isDocument': true,
         'time': 'الآن',
         'isMine': true,
-        if (_replyingTo != null) 'quoted': Map<String, dynamic>.from(_replyingTo!),
+        if (_replyingTo != null)
+          'quoted': Map<String, dynamic>.from(_replyingTo!),
       });
     });
     _replyingTo = null;
@@ -1231,7 +1142,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
         leading: Container(
           margin: const EdgeInsets.all(AppSpacing.xs),
           child: IconButton(
-            icon: Icon(LucideIcons.chevronLeft, size: 22, color: chat.inputText),
+            icon: Icon(
+              LucideIcons.chevronLeft,
+              size: 22,
+              color: chat.inputText,
+            ),
             onPressed: () {
               if (context.canPop()) context.pop();
             },
@@ -1365,7 +1280,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   Widget _buildComposer(ThemeData theme) {
     final pendingPost = _pendingPost;
     final chat = context.chatColors;
-    final hasText = _messageController.text.isNotEmpty ||
+    final hasText =
+        _messageController.text.isNotEmpty ||
         pendingPost != null ||
         _replyingTo != null;
     // شاشات أفقية ضيقة الارتفاع: نقلّص الحشوة الرأسية لتفادي طفح شريط التسجيل.
@@ -1391,7 +1307,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                icon: Icon(LucideIcons.trash2, color: chat.recordingTrash, size: 20),
+                icon: Icon(
+                  LucideIcons.trash2,
+                  color: chat.recordingTrash,
+                  size: 20,
+                ),
                 onPressed: () {
                   HapticFeedback.mediumImpact();
                   _cancelRecording();
@@ -1471,11 +1391,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                 ],
               ),
               child: IconButton(
-                icon: Icon(
-                  LucideIcons.check,
-                  color: chat.sendIcon,
-                  size: 21,
-                ),
+                icon: Icon(LucideIcons.check, color: chat.sendIcon, size: 21),
                 onPressed: () {
                   HapticFeedback.mediumImpact();
                   _finishRecordingToPreview();
@@ -1579,8 +1495,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     AppChatColors chat,
   ) {
     return Column(
-      crossAxisAlignment:
-          isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: isMine
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         _quotedOrSender(theme, msg, isMine, isImage, chat),
@@ -1693,7 +1610,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     );
   }
 
-
   Widget _buildPostContent(
     BuildContext context,
     Map<String, dynamic> msg,
@@ -1705,8 +1621,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     final isRead = msg['isRead'] as bool? ?? true;
 
     return Column(
-      crossAxisAlignment:
-          isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: isMine
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Row(
@@ -1737,7 +1654,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: isMine ? chat.bubbleMineText : chat.bubbleTheirsText,
+                      color: isMine
+                          ? chat.bubbleMineText
+                          : chat.bubbleTheirsText,
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
                     ),
@@ -1748,7 +1667,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: isMine ? chat.bubbleMineTime : chat.bubbleTheirsTime,
+                      color: isMine
+                          ? chat.bubbleMineTime
+                          : chat.bubbleTheirsTime,
                       fontSize: 13,
                     ),
                   ),
@@ -1817,8 +1738,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     final isRead = msg['isRead'] as bool? ?? true;
 
     return Column(
-      crossAxisAlignment:
-          isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: isMine
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         GestureDetector(
@@ -1830,7 +1752,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: _imageMaxWidth(context)),
+                  constraints: BoxConstraints(
+                    maxWidth: _imageMaxWidth(context),
+                  ),
                   child: Builder(
                     builder: (context) {
                       final imageChild = path != null && File(path).existsSync()
@@ -1839,9 +1763,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                               child: Image.file(File(path), fit: BoxFit.cover),
                             )
                           : Container(
-                              color: isMine ? chat.bubbleMine : chat.bubbleTheirs,
+                              color: isMine
+                                  ? chat.bubbleMine
+                                  : chat.bubbleTheirs,
                               child: const Center(
-                                child: Text('📷', style: TextStyle(fontSize: 56)),
+                                child: Text(
+                                  '📷',
+                                  style: TextStyle(fontSize: 56),
+                                ),
                               ),
                             );
                       return AspectRatio(aspectRatio: 1.0, child: imageChild);
@@ -1910,8 +1839,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                     Text(
                       time,
                       style: TextStyle(
-                        color:
-                            isMine ? chat.bubbleMineTime : chat.bubbleTheirsTime,
+                        color: isMine
+                            ? chat.bubbleMineTime
+                            : chat.bubbleTheirsTime,
                         fontSize: 11,
                       ),
                     ),
@@ -1971,7 +1901,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: isMine ? chat.bubbleMineText : chat.bubbleTheirsText,
+                      color: isMine
+                          ? chat.bubbleMineText
+                          : chat.bubbleTheirsText,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1980,7 +1912,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                   Text(
                     extension.toUpperCase(),
                     style: TextStyle(
-                      color: isMine ? chat.bubbleMineTime : chat.bubbleTheirsTime,
+                      color: isMine
+                          ? chat.bubbleMineTime
+                          : chat.bubbleTheirsTime,
                       fontSize: 11.5,
                       fontWeight: FontWeight.w500,
                     ),
@@ -2010,7 +1944,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       ],
     );
   }
-
 
   Color _getDocumentColor(String extension) {
     switch (extension) {
@@ -2120,7 +2053,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     );
   }
 
-  Widget _optTile(AppChatColors chat, IconData icon, String label, VoidCallback tap, {bool danger = false}) {
+  Widget _optTile(
+    AppChatColors chat,
+    IconData icon,
+    String label,
+    VoidCallback tap, {
+    bool danger = false,
+  }) {
     final color = danger ? chat.recordingTrash : chat.inputText;
     return ListTile(
       leading: Icon(icon, color: color),
@@ -2172,10 +2111,7 @@ class _BubbleQuoted extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             // الشريط الرأسي الملوّن
-            Container(
-              width: 4.0,
-              color: chat.quotedBar,
-            ),
+            Container(width: 4.0, color: chat.quotedBar),
             const SizedBox(width: AppSpacing.xs + 2),
 
             // العنوان ومقتطف الرسالة
@@ -2254,7 +2190,6 @@ class _BubbleQuoted extends StatelessWidget {
   }
 }
 
-
 /// معاينة منشور (مع صورته وتفاصيله) في صندوق الكتابة: تبقى بانتظار إرسال
 /// المستخدم، ويمكن حذفها قبل الإرسال.
 class _PostAttachmentBar extends StatelessWidget {
@@ -2330,9 +2265,7 @@ class _PostAttachmentBar extends StatelessWidget {
 
   Widget _postIcon(Color color) => Container(
     color: color.withValues(alpha: 0.15),
-    child: Center(
-      child: Icon(LucideIcons.package, color: color, size: 24),
-    ),
+    child: Center(child: Icon(LucideIcons.package, color: color, size: 24)),
   );
 }
 
@@ -2588,9 +2521,8 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
     final bubbleColor = isMine ? chat.bubbleMine : chat.bubbleTheirs;
     final onBubble = isMine ? chat.bubbleMineText : chat.bubbleTheirsText;
     final playedColor = isMine ? chat.bubbleMineText : chat.sendButton;
-    final unplayedColor =
-        (isMine ? chat.bubbleMineText : chat.sendButton)
-            .withValues(alpha: 0.35);
+    final unplayedColor = (isMine ? chat.bubbleMineText : chat.sendButton)
+        .withValues(alpha: 0.35);
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -2763,13 +2695,20 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
               shape: BoxShape.circle,
               // ★ تدرّج الهوية من اللوحة المركزية (Color Palette).
               gradient: LinearGradient(
-                colors: [context.chatColors.sendButton, context.chatColors.recordingWavePlayed],
+                colors: [
+                  context.chatColors.sendButton,
+                  context.chatColors.recordingWavePlayed,
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
             ),
             child: Center(
-              child: Icon(LucideIcons.mic, color: context.chatColors.sendIcon, size: 15),
+              child: Icon(
+                LucideIcons.mic,
+                color: context.chatColors.sendIcon,
+                size: 15,
+              ),
             ),
           ),
         ],
@@ -2916,7 +2855,10 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
                     color: context.chatColors.recordingTrash,
                   ),
                 )
-              : Icon(LucideIcons.trash2, color: context.chatColors.recordingTrash),
+              : Icon(
+                  LucideIcons.trash2,
+                  color: context.chatColors.recordingTrash,
+                ),
           onPressed: _isDeleting ? null : _handleDelete,
           tooltip: 'حذف',
         ),
@@ -3099,7 +3041,10 @@ class _ImagePreviewSheetState extends State<_ImagePreviewSheet> {
           Row(
             children: [
               IconButton(
-                icon: Icon(LucideIcons.x, color: context.chatColors.recordingTrash),
+                icon: Icon(
+                  LucideIcons.x,
+                  color: context.chatColors.recordingTrash,
+                ),
                 onPressed: widget.onCancel,
                 tooltip: 'إلغاء',
               ),
