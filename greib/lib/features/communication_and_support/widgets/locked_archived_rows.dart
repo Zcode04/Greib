@@ -50,34 +50,11 @@ class LockedAndArchivedRows extends StatelessWidget {
     ThemeData theme,
     dynamic chat,
   ) {
-    showModalBottomSheet(
+    _showBrowOnlySheet(
       context: context,
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(LucideIcons.lock, size: 40, color: theme.hintColor),
-              const SizedBox(height: 12),
-              Text(
-                'الدردشات المقفلة',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'اسحب أي محادثة لليسار لقفلها ببصمتك — لا توجد دردشات مقفلة بعد.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.hintColor,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      theme: theme,
+      icon: LucideIcons.lock,
+      title: 'الدردشات المقفلة',
     );
   }
 
@@ -86,29 +63,84 @@ class LockedAndArchivedRows extends StatelessWidget {
     ThemeData theme,
     dynamic chat,
   ) {
+    _showBrowOnlySheet(
+      context: context,
+      theme: theme,
+      icon: LucideIcons.archive,
+      title: 'الدردشات المؤرشفة',
+    );
+  }
+
+  /// ★ ورقة احترافية موحدة: هذه الميزة متوفرة في تطبيق براو الأصلي فقط —
+  ///   وليست في «گريب منك»، ولا يمكن أن تعمل هنا. مع زر تحميل من المتاجر.
+  static void _showBrowOnlySheet({
+    required BuildContext context,
+    required ThemeData theme,
+    required IconData icon,
+    required String title,
+  }) {
+    final chat = context.chatColors;
     showModalBottomSheet(
       context: context,
+      backgroundColor: theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (ctx) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(LucideIcons.archive, size: 40, color: theme.hintColor),
-              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.hintColor.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: chat.sendButton.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 32, color: chat.sendButton),
+              ),
+              const SizedBox(height: 16),
               Text(
-                'الدردشات المؤرشفة',
+                title,
                 style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 17,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'المحادثات المؤرشفة تبقى مخفية هنا — لا توجد عناصر مؤرشفة بعد.',
+                'هذه الميزة متوفرة في تطبيق براو الأصلي فقط، وليست في تطبيق گريب منك — ولا يمكن أن تعمل هنا.',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
+                  fontSize: 14,
+                  height: 1.6,
                   color: theme.hintColor,
                 ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  icon: const Icon(LucideIcons.download, size: 18),
+                  label: const Text('تحميل تطبيق براو من المتاجر'),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('يمكنك تنزيله من الموقع الرسمي'),
               ),
             ],
           ),
