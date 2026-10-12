@@ -223,20 +223,22 @@ class _ChatListScreenState extends State<ChatListScreen> {
         children: [
           Column(
             children: [
-              // ★ بعد الهيدر الشفاف مباشرة — حشوة محسوبة (حالة + 64 + 8).
+              // ★ إيقاع عمودي موحد على شبكة 8px مثل واتساب:
+              //   هيدر → 8 → بحث (48) → 8 → شيبس (36) → 4
+              //   → مقفلة/مؤرشفة → 4 → قائمة. كل فجوة مضبوطة رقمياً.
               SizedBox(height: topInset),
               // ── ① Persistent Search Bar — شريط بحث ثابت مثل واتساب ──
               Padding(
-                // ★ 8 أفقي (مثل واتساب) بدل 16 الواسعة.
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                // ★ 12 أفقي (مثل واتساب) بدل 8 الضيقة.
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: ConversationSearchBar(
                   controller: _searchController,
                   query: _query,
                   onChanged: (v) => setState(() => _query = v),
                 ),
               ),
-              // ★ 6 بين البحث والفلاتر — واتساب: شبه ملتصقين.
-              const SizedBox(height: 6),
+              // ★ 8 بين البحث والفلاتر — وحدة الشبكة الكاملة.
+              const SizedBox(height: 8),
               // ── ② Filter Chips Row — فلاتر أفقية (الكل / غير مقروءة / المجموعات) ──
               // ★ 3 فلاتر فقط: حذفنا (المفضلة، الدردشات المقفلة، المؤرشفة، Meta AI).
               ConversationFilterChips(
@@ -245,13 +247,15 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 unreadCount: _unreadCount,
                 onSelected: (i) => setState(() => _selectedFilter = i),
               ),
-              // ★ 2 فقط قبل القائمة — أول محادثة تبدأ فوراً بعد الفلاتر.
+              // ★ 4 قبل المقفلة/القائمة — فاصل تنفس صغير.
               // ── ③ Locked + Archived — مثل واتساب 100% ──
               // ★ فوق القائمة مباشرة (بعد الفلاتر)، تُخفى أثناء البحث/الفلترة.
               if (_query.isEmpty && _selectedFilter == 0) ...[
+                const SizedBox(height: 4),
                 const LockedAndArchivedRows(lockedCount: 0, archivedCount: 19),
-                const SizedBox(height: 2),
-              ],
+                const SizedBox(height: 4),
+              ] else
+                const SizedBox(height: 4),
               Expanded(
                 child: visible.isEmpty
                     ? EmptyState(
@@ -287,12 +291,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                 onTap: () =>
                                     _openConversation(conv, online, isGroup),
                               ),
-                              // ★ فاصل واتساب: رفيع + يبدأ بعد الأفاتار (56).
+                              // ★ فاصل واتساب: رفيع + يبدأ بعد الأفاتار (12+52+12=76).
                               Divider(
                                 height: 1,
                                 thickness: 0.5,
-                                indent: 64,
-                                endIndent: 8,
+                                indent: 76,
+                                endIndent: 12,
                                 color: chat.composerBorder,
                               ),
                             ],

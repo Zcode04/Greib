@@ -32,16 +32,16 @@ class ConversationTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        // ★ حشوة واتساب المضغوطة: 8 أفقي + 6 عمودي بدل 12+8.
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        // ★ 12 أفقي + 8 عمودي — نفس خط البحث/الشيبس/المقفلة، ارتفاع صف ~72.
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
           children: [
             Stack(
               children: [
                 Container(
-                  // ★ 48 أفاتار واتساب الفعلي بدل 56 الكبير.
-                  width: 48,
-                  height: 48,
+                  // ★ 52 أفاتار متوازن — بين 48 المضغوط و56 الكبير.
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
                     color: chat.sendButton.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
@@ -72,8 +72,8 @@ class ConversationTile extends StatelessWidget {
                   ),
               ],
             ),
-            // ★ 8 بين الأفاتار والنص (واتساب ضيق) بدل 12.
-            const SizedBox(width: 8),
+            // ★ 12 بين الأفاتار والنص — متناسق مع الشبكة.
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

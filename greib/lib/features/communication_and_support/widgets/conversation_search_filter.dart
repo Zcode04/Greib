@@ -23,8 +23,8 @@ class ConversationSearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final chat = context.chatColors;
     return SizedBox(
-      // ★ 44 ارتفاع واتساب الفعلي للبحث (مضغوط) بدل ~56 المريح.
-      height: 44,
+      // ★ 48 ارتفاع واتساب للبحث (مريح قليلاً) — يتوازن مع شبكة 8px.
+      height: 48,
       child: TextField(
         controller: controller,
         onChanged: onChanged,
@@ -88,12 +88,12 @@ class ConversationFilterChips extends StatelessWidget {
   Widget build(BuildContext context) {
     final chat = context.chatColors;
     return SizedBox(
-      // ★ 32 ارتفاع واتساب للشيبس (نحيفة) بدل 40.
-      height: 32,
+      // ★ 36 ارتفاع واتساب للشيبس — إيقاع 8/4 متناسق مع البحث 48.
+      height: 36,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        // ★ 8 أفقي مثل البحث — ملتصقة بالحافة مثل واتساب.
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        // ★ 12 أفقي مثل البحث — محاذاة عمودية واحدة.
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         itemCount: labels.length,
         separatorBuilder: (_, _) => const SizedBox(width: 6),
         itemBuilder: (context, i) {
