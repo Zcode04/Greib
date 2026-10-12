@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../shared_widgets/share_arrow_icon.dart';
 import 'user_request_story_card.dart';
 
 // ─────────────────────────────────────────────
@@ -479,7 +480,6 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                     ),
                     const SizedBox(height: 10),
                     _StoryReplyBar(
-                      onEmoji: (e) => context.showSnackBar(e),
                       onMessageTap: () => context.showSnackBar(
                           'الردود الخاصة — قريباً'),
                       onShare: () => context.showSnackBar(
@@ -673,13 +673,12 @@ class _QuickReply extends StatelessWidget {
   }
 }
 
-/// شريط الرد السفلي: إيموجي + حقل رسالة + مشاركة
+/// شريط الرد السفلي: حقل رسالة + مشاركة (نفس أيقونة البوست)
+/// ★ مبسّط: بدون إيموجي — فقط حقل الرسالة وزر المشاركة الموحد
 class _StoryReplyBar extends StatelessWidget {
-  final ValueChanged<String> onEmoji;
   final VoidCallback onMessageTap;
   final VoidCallback onShare;
   const _StoryReplyBar({
-    required this.onEmoji,
     required this.onMessageTap,
     required this.onShare,
   });
@@ -688,10 +687,6 @@ class _StoryReplyBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _EmojiBtn(emoji: '😂', onTap: () => onEmoji('😂')),
-        _EmojiBtn(emoji: '👍', onTap: () => onEmoji('👍')),
-        _EmojiBtn(emoji: '❤️', onTap: () => onEmoji('❤️')),
-        const SizedBox(width: 8),
         Expanded(
           child: GestureDetector(
             onTap: onMessageTap,
@@ -712,36 +707,16 @@ class _StoryReplyBar extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        _HeaderBtn(icon: Icons.share_rounded, onTap: onShare),
+        // ★ نفس أيقونة المشاركة في البوست (ShareArrowIcon) — توحيد التجربة
+        GestureDetector(
+          onTap: onShare,
+          behavior: HitTestBehavior.opaque,
+          child: const Padding(
+            padding: EdgeInsets.all(6),
+            child: ShareArrowIcon(size: 26, color: Colors.white),
+          ),
+        ),
       ],
-    );
-  }
-}
-
-/// زر إيموجي دائري سريع
-class _EmojiBtn extends StatelessWidget {
-  final String emoji;
-  final VoidCallback onTap;
-  const _EmojiBtn({required this.emoji, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        width: 42,
-        height: 42,
-        margin: const EdgeInsetsDirectional.only(end: 6),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.black.withValues(alpha: 0.5),
-          border: Border.all(color: Colors.white24, width: 0.8),
-        ),
-        child: Center(
-          child: Text(emoji, style: const TextStyle(fontSize: 22)),
-        ),
-      ),
     );
   }
 }
