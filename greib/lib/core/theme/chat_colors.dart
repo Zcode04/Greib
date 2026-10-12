@@ -99,7 +99,10 @@ class AppChatColors extends ThemeExtension<AppChatColors> {
     const Color readBlue = Color(0xFF38BDF8);
     const Color onlineGreen = Color(0xFF10B981);
     return AppChatColors(
-      conversationBackground: p.background.primary,
+      // ★ خلفية المحادثة بلون واتساب الأصلي:
+      //   ليلي  #0B141A (أسود مزرقّق مميز لواتساب)،
+      //   نهاري أبيض نقي مثل قائمة واتساب.
+      conversationBackground: isDark ? const Color(0xFF0B141A) : Colors.white,
       doodleColor: p.text.tertiary.withValues(alpha: isDark ? 0.06 : 0.08),
       bubbleMine: accent,
       bubbleTheirs: p.background.surface,
@@ -182,7 +185,8 @@ class AppChatColors extends ThemeExtension<AppChatColors> {
     Color? onlineDot,
   }) {
     return AppChatColors(
-      conversationBackground: conversationBackground ?? this.conversationBackground,
+      conversationBackground:
+          conversationBackground ?? this.conversationBackground,
       doodleColor: doodleColor ?? this.doodleColor,
       bubbleMine: bubbleMine ?? this.bubbleMine,
       bubbleTheirs: bubbleTheirs ?? this.bubbleTheirs,
@@ -192,7 +196,8 @@ class AppChatColors extends ThemeExtension<AppChatColors> {
       bubbleTheirsTime: bubbleTheirsTime ?? this.bubbleTheirsTime,
       senderName: senderName ?? this.senderName,
       quotedBackgroundMine: quotedBackgroundMine ?? this.quotedBackgroundMine,
-      quotedBackgroundTheirs: quotedBackgroundTheirs ?? this.quotedBackgroundTheirs,
+      quotedBackgroundTheirs:
+          quotedBackgroundTheirs ?? this.quotedBackgroundTheirs,
       quotedBar: quotedBar ?? this.quotedBar,
       quotedTitle: quotedTitle ?? this.quotedTitle,
       quotedBodyMine: quotedBodyMine ?? this.quotedBodyMine,
@@ -208,15 +213,19 @@ class AppChatColors extends ThemeExtension<AppChatColors> {
       sendButton: sendButton ?? this.sendButton,
       sendIcon: sendIcon ?? this.sendIcon,
       attachmentSheet: attachmentSheet ?? this.attachmentSheet,
-      attachmentSheetHandle: attachmentSheetHandle ?? this.attachmentSheetHandle,
-      attachmentIconBackground: attachmentIconBackground ?? this.attachmentIconBackground,
+      attachmentSheetHandle:
+          attachmentSheetHandle ?? this.attachmentSheetHandle,
+      attachmentIconBackground:
+          attachmentIconBackground ?? this.attachmentIconBackground,
       attachmentLabel: attachmentLabel ?? this.attachmentLabel,
       recordingBackground: recordingBackground ?? this.recordingBackground,
       recordingTimer: recordingTimer ?? this.recordingTimer,
       recordingWavePlayed: recordingWavePlayed ?? this.recordingWavePlayed,
-      recordingWaveUnplayed: recordingWaveUnplayed ?? this.recordingWaveUnplayed,
+      recordingWaveUnplayed:
+          recordingWaveUnplayed ?? this.recordingWaveUnplayed,
       recordingTrash: recordingTrash ?? this.recordingTrash,
-      recordingCancelBackground: recordingCancelBackground ?? this.recordingCancelBackground,
+      recordingCancelBackground:
+          recordingCancelBackground ?? this.recordingCancelBackground,
       tickRead: tickRead ?? this.tickRead,
       tickSent: tickSent ?? this.tickSent,
       onlineDot: onlineDot ?? this.onlineDot,
@@ -228,7 +237,10 @@ class AppChatColors extends ThemeExtension<AppChatColors> {
     if (other == null) return this;
     Color l(Color a, Color b) => Color.lerp(a, b, t)!;
     return AppChatColors(
-      conversationBackground: l(conversationBackground, other.conversationBackground),
+      conversationBackground: l(
+        conversationBackground,
+        other.conversationBackground,
+      ),
       doodleColor: l(doodleColor, other.doodleColor),
       bubbleMine: l(bubbleMine, other.bubbleMine),
       bubbleTheirs: l(bubbleTheirs, other.bubbleTheirs),
@@ -238,7 +250,10 @@ class AppChatColors extends ThemeExtension<AppChatColors> {
       bubbleTheirsTime: l(bubbleTheirsTime, other.bubbleTheirsTime),
       senderName: l(senderName, other.senderName),
       quotedBackgroundMine: l(quotedBackgroundMine, other.quotedBackgroundMine),
-      quotedBackgroundTheirs: l(quotedBackgroundTheirs, other.quotedBackgroundTheirs),
+      quotedBackgroundTheirs: l(
+        quotedBackgroundTheirs,
+        other.quotedBackgroundTheirs,
+      ),
       quotedBar: l(quotedBar, other.quotedBar),
       quotedTitle: l(quotedTitle, other.quotedTitle),
       quotedBodyMine: l(quotedBodyMine, other.quotedBodyMine),
@@ -254,15 +269,27 @@ class AppChatColors extends ThemeExtension<AppChatColors> {
       sendButton: l(sendButton, other.sendButton),
       sendIcon: l(sendIcon, other.sendIcon),
       attachmentSheet: l(attachmentSheet, other.attachmentSheet),
-      attachmentSheetHandle: l(attachmentSheetHandle, other.attachmentSheetHandle),
-      attachmentIconBackground: l(attachmentIconBackground, other.attachmentIconBackground),
+      attachmentSheetHandle: l(
+        attachmentSheetHandle,
+        other.attachmentSheetHandle,
+      ),
+      attachmentIconBackground: l(
+        attachmentIconBackground,
+        other.attachmentIconBackground,
+      ),
       attachmentLabel: l(attachmentLabel, other.attachmentLabel),
       recordingBackground: l(recordingBackground, other.recordingBackground),
       recordingTimer: l(recordingTimer, other.recordingTimer),
       recordingWavePlayed: l(recordingWavePlayed, other.recordingWavePlayed),
-      recordingWaveUnplayed: l(recordingWaveUnplayed, other.recordingWaveUnplayed),
+      recordingWaveUnplayed: l(
+        recordingWaveUnplayed,
+        other.recordingWaveUnplayed,
+      ),
       recordingTrash: l(recordingTrash, other.recordingTrash),
-      recordingCancelBackground: l(recordingCancelBackground, other.recordingCancelBackground),
+      recordingCancelBackground: l(
+        recordingCancelBackground,
+        other.recordingCancelBackground,
+      ),
       tickRead: l(tickRead, other.tickRead),
       tickSent: l(tickSent, other.tickSent),
       onlineDot: l(onlineDot, other.onlineDot),
@@ -327,4 +354,3 @@ extension ChatAttachmentContext on BuildContext {
     return ChatAttachmentPalette.fromPalette(palette);
   }
 }
-

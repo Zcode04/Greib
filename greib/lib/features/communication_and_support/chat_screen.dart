@@ -214,81 +214,99 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return Scaffold(
       // ★ لون الخلفية من اللوحة المركزية (Color Palette).
       backgroundColor: chat.conversationBackground,
-      body: Column(
+      // ★ بلا floatingActionButton هنا: الزر داخل الـ Stack فوق الشريط السفلي
+      //   (مثل واتساب: زر أخضر عائم فوق BottomNavigationBar وليس خلفه).
+      body: Stack(
         children: [
-          SizedBox(height: topInset + AppSpacing.sm),
-          // ── ① Persistent Search Bar — شريط بحث ثابت مثل واتساب ──
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-            child: ConversationSearchBar(
-              controller: _searchController,
-              query: _query,
-              onChanged: (v) => setState(() => _query = v),
-            ),
+          Column(
+            children: [
+              SizedBox(height: topInset + AppSpacing.sm),
+              // ── ① Persistent Search Bar — شريط بحث ثابت مثل واتساب ──
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                child: ConversationSearchBar(
+                  controller: _searchController,
+                  query: _query,
+                  onChanged: (v) => setState(() => _query = v),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              // ── ② Filter Chips Row — فلاتر أفقية (الكل / غير مقروءة / المجموعات) ──
+              // ★ 3 فلاتر فقط: حذفنا (المفضلة، الدردشات المقفلة، المؤرشفة، Meta AI).
+              ConversationFilterChips(
+                labels: _filterLabels,
+                selectedIndex: _selectedFilter,
+                unreadCount: _unreadCount,
+                onSelected: (i) => setState(() => _selectedFilter = i),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Expanded(
+                child: visible.isEmpty
+                    ? EmptyState(
+                        icon: _query.isNotEmpty
+                            ? LucideIcons.searchX
+                            : LucideIcons.messagesSquare,
+                        title: _query.isNotEmpty
+                            ? 'لا توجد نتائج لـ "$_query"'
+                            : 'لا توجد محادثات هنا',
+                        description: _query.isNotEmpty
+                            ? 'جرّب كلمة أخرى أو امسح البحث'
+                            : 'ستظهر محادثاتك هنا عند وصولها',
+                      )
+                    : ListView.separated(
+                        // ★ حشوة سفلية كبيرة: الشريط السفلي العائم (68+20)
+                        //   + الزر العائم فوقه ⇒ آخر محادثة لا تختبئ خلفهما.
+                        padding: const EdgeInsets.only(bottom: 190),
+                        itemCount: visible.length,
+                        separatorBuilder: (_, _) => Divider(
+                          height: 1,
+                          thickness: 1,
+                          indent: 76,
+                          color: chat.composerBorder,
+                        ),
+                        itemBuilder: (context, index) {
+                          final conv = visible[index];
+                          final online = conv['online'] as bool;
+                          final isGroup = conv['type'] == 'group';
+                          return ConversationTile(
+                            name: conv['name'] as String,
+                            lastMessage: conv['lastMessage'] as String,
+                            time: conv['time'] as String,
+                            avatar: conv['avatar'] as String,
+                            unread: conv['unread'] as int,
+                            online: online,
+                            onTap: () =>
+                                _openConversation(conv, online, isGroup),
+                          );
+                        },
+                      ),
+              ),
+            ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          // ── ② Filter Chips Row — فلاتر أفقية (الكل / غير مقروءة / المجموعات) ──
-          // ★ 3 فلاتر فقط: حذفنا (المفضلة، الدردشات المقفلة، المؤرشفة، Meta AI).
-          ConversationFilterChips(
-            labels: _filterLabels,
-            selectedIndex: _selectedFilter,
-            unreadCount: _unreadCount,
-            onSelected: (i) => setState(() => _selectedFilter = i),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Expanded(
-            child: visible.isEmpty
-                ? EmptyState(
-                    icon: _query.isNotEmpty
-                        ? LucideIcons.searchX
-                        : LucideIcons.messagesSquare,
-                    title: _query.isNotEmpty
-                        ? 'لا توجد نتائج لـ "$_query"'
-                        : 'لا توجد محادثات هنا',
-                    description: _query.isNotEmpty
-                        ? 'جرّب كلمة أخرى أو امسح البحث'
-                        : 'ستظهر محادثاتك هنا عند وصولها',
-                  )
-                : ListView.separated(
-                    padding: EdgeInsets.only(bottom: AppSpacing.lg),
-                    itemCount: visible.length,
-                    separatorBuilder: (_, _) => Divider(
-                      height: 1,
-                      thickness: 1,
-                      indent: 76,
-                      color: chat.composerBorder,
-                    ),
-                    itemBuilder: (context, index) {
-                      final conv = visible[index];
-                      final online = conv['online'] as bool;
-                      final isGroup = conv['type'] == 'group';
-                      return ConversationTile(
-                        name: conv['name'] as String,
-                        lastMessage: conv['lastMessage'] as String,
-                        time: conv['time'] as String,
-                        avatar: conv['avatar'] as String,
-                        unread: conv['unread'] as int,
-                        online: online,
-                        onTap: () => _openConversation(conv, online, isGroup),
-                      );
-                    },
+          // ── ③ FAB عائم فوق الشريط السفلي — مثل زر واتساب الأخضر ──
+          // ★ في RTL (العربية) الـ end = اليسار تلقائياً مثل واتساب.
+          PositionedDirectional(
+            end: AppSpacing.lg,
+            // ★ 108 = ارتفاع الشريط العائم (68) + هامشه السفلي (20)
+            //   + مسافة تنفس (20) ⇒ الزر يطفو فوقه ولا يتداخل معه.
+            bottom: 108,
+            child: FloatingActionButton(
+              heroTag: 'chat_list_fab',
+              backgroundColor: chat.sendButton,
+              foregroundColor: chat.sendIcon,
+              elevation: 4,
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('محادثة جديدة ✏️'),
+                    duration: Duration(seconds: 1),
                   ),
+                );
+              },
+              child: const Icon(LucideIcons.messageCircle),
+            ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: chat.sendButton,
-        foregroundColor: chat.sendIcon,
-        elevation: 4,
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('محادثة جديدة ✏️'),
-              duration: Duration(seconds: 1),
-            ),
-          );
-        },
-        child: const Icon(LucideIcons.messageCircle),
       ),
     );
   }
