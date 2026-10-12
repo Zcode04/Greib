@@ -241,8 +241,11 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomPad = MediaQuery.of(context).padding.bottom;
     return Scaffold(
       backgroundColor: Colors.black,
+      extendBodyBehindAppBar: true,
+      resizeToAvoidBottomInset: true,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -252,83 +255,304 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
             onPageChanged: (i) => setState(() => _index = i),
             itemBuilder: (_, i) => _StoryFullView(item: widget.items[i]),
           ),
+          // ── الهيدر: ProgressBar + بروفايل + اسم + وقت + أزرار ──
+          // ★ نفس ترتيب الصورة: البروفايل يمين (RTL) والأزرار يسار
           Positioned(
-            top: MediaQuery.of(context).padding.top + 12,
+            top: MediaQuery.of(context).padding.top + 8,
             left: 0,
             right: 0,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: _ProgressBar(
-                      count: widget.items.length,
-                      currentIndex: _index,
-                    ),
+                  _ProgressBar(
+                    count: widget.items.length,
+                    currentIndex: _index,
                   ),
-                  const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).maybePop(),
-                    behavior: HitTestBehavior.opaque,
-                    child: const Padding(
-                      padding: EdgeInsets.all(6),
-                      child: Icon(Icons.close_rounded, color: Colors.white, size: 26),
-                    ),
+                  const SizedBox(height: 10),
+                  _StoryHeader(
+                    imageUrl: widget.items[_index].imageUrl,
+                    title: widget.items[_index].title,
+                    onClose: () => Navigator.of(context).maybePop(),
                   ),
                 ],
               ),
             ),
           ),
+          // ── الأسفل: ردود جاهزة + شريط التفاعل ──
+          // ★ Gradient سفلي يحمي النص من ضياعه فوق الصورة
           Positioned(
-            bottom: MediaQuery.of(context).padding.bottom + 40,
-            left: 24,
-            right: 24,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.45),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white24),
-                  ),
-                  child: Text(
-                    widget.items[_index].badge,
-                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700),
-                  ),
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.55),
+                    Colors.black.withValues(alpha: 0.85),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  widget.items[_index].title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 26,
-                    fontWeight: FontWeight.w900,
-                    height: 1.3,
-                    shadows: [Shadow(color: Colors.black87, blurRadius: 10)],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    icon: const Icon(Icons.arrow_back_rounded, size: 18),
-                    label: const Text('استكشف الآن'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: context.accentColor,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(12, 28, 12, bottomPad + 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      reverse: Directionality.of(context) ==
+                          TextDirection.rtl,
+                      child: Row(
+                        children: [
+                          _QuickReply(
+                            label: 'مرتاح 😊',
+                            onTap: () => context.showSnackBar(
+                                'تم إرسال: مرتاح 😊'),
+                          ),
+                          _QuickReply(
+                            label: 'جيد جداً!',
+                            onTap: () => context.showSnackBar(
+                                'تم إرسال: جيد جداً!'),
+                          ),
+                          _QuickReply(
+                            label: 'رائع! 🥹😂',
+                            onTap: () => context.showSnackBar(
+                                'تم إرسال: رائع! 🥹😂'),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 10),
+                    _StoryReplyBar(
+                      onEmoji: (e) => context.showSnackBar(e),
+                      onMessageTap: () => context.showSnackBar(
+                          'الردود الخاصة — قريباً'),
+                      onShare: () => context.showSnackBar(
+                          'المشاركة — قريباً'),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// هيدر الستوري: بروفايل + اسم + وقت + أزرار
+class _StoryHeader extends StatelessWidget {
+  final String imageUrl;
+  final String title;
+  final VoidCallback onClose;
+  const _StoryHeader({
+    required this.imageUrl,
+    required this.title,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          padding: const EdgeInsets.all(2),
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: Color(0xFF0866FF),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(1.5),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.black,
+            ),
+            child: ClipOval(
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                width: 32,
+                height: 32,
+                errorBuilder: (_, _, _) => Container(
+                  color: Colors.grey.shade700,
+                  child: const Icon(Icons.person_rounded,
+                      color: Colors.white70, size: 18),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  shadows: [Shadow(color: Colors.black87, blurRadius: 6)],
+                ),
+              ),
+              const SizedBox(height: 2),
+              const Text(
+                'الآن · 0:15',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  shadows: [Shadow(color: Colors.black87, blurRadius: 6)],
+                ),
+              ),
+            ],
+          ),
+        ),
+        _HeaderBtn(icon: Icons.volume_up_rounded, onTap: () {}),
+        _HeaderBtn(icon: Icons.more_horiz_rounded, onTap: () {}),
+        _HeaderBtn(icon: Icons.close_rounded, onTap: onClose),
+      ],
+    );
+  }
+}
+
+/// زر دائري شفاف للهيدر (صوت / خيارات / إغلاق / مشاركة)
+class _HeaderBtn extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _HeaderBtn({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.all(6),
+        child: Icon(
+          icon,
+          color: Colors.white,
+          size: 24,
+          shadows: const [Shadow(color: Colors.black87, blurRadius: 6)],
+        ),
+      ),
+    );
+  }
+}
+
+/// زر رد جاهز — حبة داكنة شفافة مثل الصورة
+class _QuickReply extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _QuickReply({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(end: 8),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white24, width: 0.8),
+          ),
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// شريط الرد السفلي: إيموجي + حقل رسالة + مشاركة
+class _StoryReplyBar extends StatelessWidget {
+  final ValueChanged<String> onEmoji;
+  final VoidCallback onMessageTap;
+  final VoidCallback onShare;
+  const _StoryReplyBar({
+    required this.onEmoji,
+    required this.onMessageTap,
+    required this.onShare,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        _EmojiBtn(emoji: '😂', onTap: () => onEmoji('😂')),
+        _EmojiBtn(emoji: '👍', onTap: () => onEmoji('👍')),
+        _EmojiBtn(emoji: '❤️', onTap: () => onEmoji('❤️')),
+        const SizedBox(width: 8),
+        Expanded(
+          child: GestureDetector(
+            onTap: onMessageTap,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.white24, width: 1),
+              ),
+              child: const Text(
+                'إرسال رسالة...',
+                textAlign: TextAlign.end,
+                style: TextStyle(color: Colors.white60, fontSize: 13),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        _HeaderBtn(icon: Icons.share_rounded, onTap: onShare),
+      ],
+    );
+  }
+}
+
+/// زر إيموجي دائري سريع
+class _EmojiBtn extends StatelessWidget {
+  final String emoji;
+  final VoidCallback onTap;
+  const _EmojiBtn({required this.emoji, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: 42,
+        height: 42,
+        margin: const EdgeInsetsDirectional.only(end: 6),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.black.withValues(alpha: 0.5),
+          border: Border.all(color: Colors.white24, width: 0.8),
+        ),
+        child: Center(
+          child: Text(emoji, style: const TextStyle(fontSize: 22)),
+        ),
       ),
     );
   }
