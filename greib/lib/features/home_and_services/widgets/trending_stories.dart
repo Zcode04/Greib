@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/context_extensions.dart';
+import 'user_request_story_card.dart';
 
 // ─────────────────────────────────────────────
 //  بيانات العناصر الرائجة
@@ -69,7 +70,7 @@ class _TrendingStoriesSectionState extends State<TrendingStoriesSection>
                 offset: Offset(0, 28 * (1 - anim.value)),
                 child: Opacity(opacity: anim.value.clamp(0.0, 1.0), child: child),
               ),
-              child: const _UserRequestCard(),
+              child: const UserRequestStoryCard(),
             );
           }
 
@@ -106,82 +107,6 @@ class _TrendingStoriesSectionState extends State<TrendingStoriesSection>
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────
-//  بطاقة المستخدم (CTA — طلب الآن)
-// ─────────────────────────────────────────────
-class _UserRequestCard extends StatelessWidget {
-  const _UserRequestCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        width: 130,
-        height: 240,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: isDark
-                ? [context.backgroundColors.surface, context.backgroundColors.primary]
-                : [context.backgroundColors.surface, context.backgroundColors.secondary],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          border: Border.all(
-            color: context.backgroundColors.outline,
-            width: 1.2,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 62,
-              height: 62,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: context.accentColor.withValues(alpha: 0.15),
-                border: Border.all(color: context.accentColor, width: 2),
-              ),
-              child: Icon(Icons.person_rounded, color: context.accentColor, size: 34),
-            ),
-            const SizedBox(height: 14),
-            Text(
-              'خدمة\nشخصية',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: context.textColors.primary,
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                height: 1.3,
-              ),
-            ),
-            const SizedBox(height: 16),
-            GestureDetector(
-              onTap: () {},
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: context.accentColor,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [BoxShadow(color: context.accentColor.withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 3))],
-                ),
-                child: Text(
-                  'طلب الآن',
-                  style: TextStyle(color: context.textColors.onAccent, fontSize: 12, fontWeight: FontWeight.w700),
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
