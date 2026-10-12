@@ -17,6 +17,7 @@ import '../../core/permissions/permissions.dart';
 import '../../core/theme/chat_colors.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/loading_states.dart';
+import 'widgets/call_log_tile.dart';
 import 'widgets/chat_whatsapp_ui.dart';
 import 'widgets/conversation_search_filter.dart';
 import 'widgets/conversation_tile.dart';
@@ -89,7 +90,54 @@ class _ChatListScreenState extends State<ChatListScreen> {
   int _selectedFilter = 0;
   String _query = '';
 
-  static const List<String> _filterLabels = ['الكل', 'غير مقروءة', 'المجموعات'];
+  static const List<String> _filterLabels = [
+    'الكل',
+    'غير مقروءة',
+    'المكالمات',
+    'المجموعات',
+  ];
+
+  /// ★ سجل المكالمات — بيانات تجريبية بستايل واتساب
+  /// (صادرة/واردة/فائتة + صوتية/مرئية + المدة).
+  final List<Map<String, dynamic>> _callLogs = [
+    {
+      'id': 'call1',
+      'name': 'دعم گريب منك',
+      'avatar': '🤝',
+      'direction': 'incoming', // incoming | outgoing | missed
+      'callType': 'voice', // voice | video
+      'time': 'اليوم 10:20 ص',
+      'duration': '05:32',
+    },
+    {
+      'id': 'call2',
+      'name': 'فريق التوصيل - دبي',
+      'avatar': '🚚',
+      'direction': 'missed',
+      'callType': 'video',
+      'time': 'أمس 6:45 م',
+      'duration': null,
+    },
+    {
+      'id': 'call3',
+      'name': 'تنبيهات الطلبات',
+      'avatar': '📋',
+      'direction': 'outgoing',
+      'callType': 'voice',
+      'time': 'أمس 11:00 ص',
+      'duration': '02:15',
+    },
+  ];
+
+  /// هل تبويب المكالمات نشط؟ (index 2 بعد إضافة التبويب).
+  bool get _isCallsTab => _selectedFilter == 2;
+
+  /// سجل المكالمات بعد البحث النصي.
+  List<Map<String, dynamic>> get _visibleCalls {
+    if (_query.isEmpty) return _callLogs;
+    final q = _query.trim();
+    return _callLogs.where((c) => (c['name'] as String).contains(q)).toList();
+  }
 
   @override
   void initState() {
@@ -104,11 +152,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   /// ★ قائمة مرئية بعد البحث + الفلتر — منطق خفيف محلي (Local Filtering).
+  /// الفهارس: 0 الكل | 1 غير مقروءة | 2 المكالمات (قائمة مستقلة) | 3 المجموعات.
   List<Map<String, dynamic>> get _visibleConversations {
     var list = _conversations;
     if (_selectedFilter == 1) {
       list = list.where((c) => (c['unread'] as int) > 0).toList();
-    } else if (_selectedFilter == 2) {
+    } else if (_selectedFilter == 3) {
       list = list.where((c) => c['type'] == 'group').toList();
     }
     if (_query.isNotEmpty) {
@@ -239,8 +288,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
               ),
               // ★ 8 بين البحث والفلاتر — وحدة الشبكة الكاملة.
               const SizedBox(height: 8),
-              // ── ② Filter Chips Row — فلاتر أفقية (الكل / غير مقروءة / المجموعات) ──
-              // ★ 3 فلاتر فقط: حذفنا (المفضلة، الدردشات المقفلة، المؤرشفة، Meta AI).
+              // ── ② Filter Chips Row — فلاتر أفقية ──
+              // ★ 4 فلاتر: الكل | غير مقروءة | المكالمات | المجموعات.
               ConversationFilterChips(
                 labels: _filterLabels,
                 selectedIndex: _selectedFilter,
@@ -249,7 +298,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
               ),
               // ★ 4 قبل المقفلة/القائمة — فاصل تنفس صغير.
               // ── ③ Locked + Archived — مثل واتساب 100% ──
-              // ★ فوق القائمة مباشرة (بعد الفلاتر)، تُخفى أثناء البحث/الفلترة.
+              // ★ فوق القائمة مباشرة (بعد الفلاتر)، تُخفى في المكالمات
+              //   وأثناء البحث/الفلترة.
               if (_query.isEmpty && _selectedFilter == 0) ...[
                 const SizedBox(height: 4),
                 const LockedAndArchivedRows(lockedCount: 0, archivedCount: 19),
@@ -257,7 +307,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
               ] else
                 const SizedBox(height: 4),
               Expanded(
-                child: visible.isEmpty
+                // ★ تبويب المكالمات يعرض سجلاً مستقلاً بستايل واتساب،
+                //   وبقية التبويبات تعرض قائمة المحادثات.
+                child: _isCallsTab
+                    ? _buildCallsList(context, chat)
+                    : visible.isEmpty
                     ? EmptyState(
                         icon: _query.isNotEmpty
                             ? LucideIcons.searchX
@@ -306,8 +360,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
               ),
             ],
           ),
-          // ── ③ FAB عائم فوق الشريط السفلي — مثل زر واتساب الأخضر ──
+          // ── ④ FAB عائم فوق الشريط السفلي — مثل زر واتساب الأخضر ──
           // ★ في RTL (العربية) الـ end = اليسار تلقائياً مثل واتساب.
+          // ★ الأيقونة تتبع التبويب: هاتف في المكالمات، محادثة في البقية.
           PositionedDirectional(
             end: AppSpacing.lg,
             // ★ 108 = ارتفاع الشريط العائم (68) + هامشه السفلي (20)
@@ -320,17 +375,64 @@ class _ChatListScreenState extends State<ChatListScreen> {
               elevation: 4,
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('محادثة جديدة ✏️'),
-                    duration: Duration(seconds: 1),
+                  SnackBar(
+                    content: Text(
+                      _isCallsTab ? 'مكالمة جديدة 📞' : 'محادثة جديدة ✏️',
+                    ),
+                    duration: const Duration(seconds: 1),
                   ),
                 );
               },
-              child: const Icon(LucideIcons.messageCircle),
+              child: Icon(
+                _isCallsTab ? LucideIcons.phoneCall : LucideIcons.messageCircle,
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  /// ★ قائمة سجل المكالمات بستايل واتساب — نفس الشبكة والفواصل.
+  Widget _buildCallsList(BuildContext context, dynamic chat) {
+    final calls = _visibleCalls;
+    if (calls.isEmpty) {
+      return EmptyState(
+        icon: _query.isNotEmpty ? LucideIcons.searchX : LucideIcons.phoneMissed,
+        title: _query.isNotEmpty
+            ? 'لا توجد نتائج لـ "$_query"'
+            : 'لا توجد مكالمات',
+        description: _query.isNotEmpty
+            ? 'جرّب كلمة أخرى أو امسح البحث'
+            : 'ستظهر مكالماتك هنا عند وصولها',
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 190),
+      itemCount: calls.length,
+      itemBuilder: (context, index) {
+        final call = calls[index];
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CallLogTile(
+              name: call['name'] as String,
+              avatar: call['avatar'] as String,
+              direction: call['direction'] as String,
+              callType: call['callType'] as String,
+              time: call['time'] as String,
+              duration: call['duration'] as String?,
+            ),
+            Divider(
+              height: 1,
+              thickness: 0.5,
+              indent: 76,
+              endIndent: 12,
+              color: chat.composerBorder,
+            ),
+          ],
+        );
+      },
     );
   }
 
