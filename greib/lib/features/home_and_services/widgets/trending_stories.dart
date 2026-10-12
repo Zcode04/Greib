@@ -454,31 +454,6 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      reverse: Directionality.of(context) ==
-                          TextDirection.rtl,
-                      child: Row(
-                        children: [
-                          _QuickReply(
-                            label: 'مرتاح 😊',
-                            onTap: () => context.showSnackBar(
-                                'تم إرسال: مرتاح 😊'),
-                          ),
-                          _QuickReply(
-                            label: 'جيد جداً!',
-                            onTap: () => context.showSnackBar(
-                                'تم إرسال: جيد جداً!'),
-                          ),
-                          _QuickReply(
-                            label: 'رائع! 🥹😂',
-                            onTap: () => context.showSnackBar(
-                                'تم إرسال: رائع! 🥹😂'),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
                     _StoryReplyBar(
                       onMessageTap: () => context.showSnackBar(
                           'الردود الخاصة — قريباً'),
@@ -634,39 +609,6 @@ class _HeaderBtn extends StatelessWidget {
           color: Colors.white,
           size: 24,
           shadows: const [Shadow(color: Colors.black87, blurRadius: 6)],
-        ),
-      ),
-    );
-  }
-}
-
-/// زر رد جاهز — حبة داكنة شفافة مثل الصورة
-class _QuickReply extends StatelessWidget {
-  final String label;
-  final VoidCallback onTap;
-  const _QuickReply({required this.label, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(end: 8),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white24, width: 0.8),
-          ),
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
         ),
       ),
     );
