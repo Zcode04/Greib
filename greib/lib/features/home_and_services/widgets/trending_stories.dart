@@ -280,6 +280,43 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
               ),
             ),
           ),
+          // ── زرّا التنقل الجانبيان (تحكم مباشر بالستوري) ──
+          // ★ chevron-left/right على الحافتين في منتصف الشاشة
+          // ★ يتكيفان مع RTL: السابق/التالي حسب اتجاه اللغة
+          if (_index > 0)
+            PositionedDirectional(
+              start: 8,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: _StoryNavArrow(
+                  icon: Directionality.of(context) == TextDirection.rtl
+                      ? Icons.chevron_right_rounded
+                      : Icons.chevron_left_rounded,
+                  onTap: () => _controller.previousPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                  ),
+                ),
+              ),
+            ),
+          if (_index < widget.items.length - 1)
+            PositionedDirectional(
+              end: 8,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: _StoryNavArrow(
+                  icon: Directionality.of(context) == TextDirection.rtl
+                      ? Icons.chevron_left_rounded
+                      : Icons.chevron_right_rounded,
+                  onTap: () => _controller.nextPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                  ),
+                ),
+              ),
+            ),
           // ── الأسفل: ردود جاهزة + شريط التفاعل ──
           // ★ Gradient سفلي يحمي النص من ضياعه فوق الصورة
           Positioned(
@@ -424,6 +461,38 @@ class _StoryHeader extends StatelessWidget {
         _HeaderBtn(icon: Icons.more_horiz_rounded, onTap: () {}),
         _HeaderBtn(icon: Icons.close_rounded, onTap: onClose),
       ],
+    );
+  }
+}
+
+/// زر سهم التنقل الجانبي — دائرة شفافة بحد أبيض
+class _StoryNavArrow extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _StoryNavArrow({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.black.withValues(alpha: 0.45),
+          border: Border.all(color: Colors.white30, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.4),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Icon(icon, color: Colors.white, size: 30),
+      ),
     );
   }
 }
