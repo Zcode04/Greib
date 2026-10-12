@@ -32,17 +32,16 @@ class ConversationTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
+        // ★ حشوة واتساب المضغوطة: 8 أفقي + 6 عمودي بدل 12+8.
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         child: Row(
           children: [
             Stack(
               children: [
                 Container(
-                  width: 56,
-                  height: 56,
+                  // ★ 48 أفاتار واتساب الفعلي بدل 56 الكبير.
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     color: chat.sendButton.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
@@ -73,10 +72,13 @@ class ConversationTile extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(width: AppSpacing.md),
+            // ★ 8 بين الأفاتار والنص (واتساب ضيق) بدل 12.
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                // ★ ضغط عمودي: الاسم والرسالة ملتصقان مثل واتساب.
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
                     children: [
@@ -86,6 +88,8 @@ class ConversationTile extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.titleMedium?.copyWith(
+                            // ★ 15 حجم اسم واتساب بدل 16 الافتراضي.
+                            fontSize: 15,
                             fontWeight: unread > 0
                                 ? FontWeight.w700
                                 : FontWeight.w500,
@@ -95,6 +99,8 @@ class ConversationTile extends StatelessWidget {
                       Text(
                         time,
                         style: theme.textTheme.bodySmall?.copyWith(
+                          // ★ 11 حجم وقت واتساب الصغير.
+                          fontSize: 11,
                           color: unread > 0
                               ? chat.sendButton
                               : chat.recordingWaveUnplayed,
@@ -105,7 +111,7 @@ class ConversationTile extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 2),
+                  // ★ بدون SizedBox هنا — الاسم فوق الرسالة مباشرة.
                   Row(
                     children: [
                       Expanded(
@@ -114,6 +120,8 @@ class ConversationTile extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodyMedium?.copyWith(
+                            // ★ 13 حجم رسالة واتساب بدل 14.
+                            fontSize: 13,
                             color: unread > 0
                                 ? chat.inputText
                                 : chat.recordingWaveUnplayed,
@@ -123,13 +131,14 @@ class ConversationTile extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.sm),
+                      // ★ 6 فجوة واتساب بدل 8.
+                      const SizedBox(width: 6),
                       if (unread > 0)
                         Container(
-                          padding: const EdgeInsets.all(AppSpacing.xs),
+                          padding: const EdgeInsets.all(4),
                           constraints: const BoxConstraints(
-                            minWidth: 20,
-                            minHeight: 20,
+                            minWidth: 18,
+                            minHeight: 18,
                           ),
                           decoration: BoxDecoration(
                             color: chat.sendButton,

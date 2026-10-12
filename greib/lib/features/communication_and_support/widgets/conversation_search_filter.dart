@@ -22,37 +22,47 @@ class ConversationSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chat = context.chatColors;
-    return TextField(
-      controller: controller,
-      onChanged: onChanged,
-      textInputAction: TextInputAction.search,
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: TextStyle(color: chat.inputHint),
-        prefixIcon: Icon(
-          LucideIcons.search,
-          size: 20,
-          color: chat.composerIcon,
-        ),
-        suffixIcon: query.isEmpty
-            ? null
-            : IconButton(
-                icon: Icon(LucideIcons.x, size: 18, color: chat.composerIcon),
-                onPressed: () {
-                  controller.clear();
-                  onChanged('');
-                },
-                tooltip: 'مسح البحث',
-              ),
-        filled: true,
-        fillColor: chat.inputField,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.md,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.full),
-          borderSide: BorderSide.none,
+    return SizedBox(
+      // ★ 44 ارتفاع واتساب الفعلي للبحث (مضغوط) بدل ~56 المريح.
+      height: 44,
+      child: TextField(
+        controller: controller,
+        onChanged: onChanged,
+        textInputAction: TextInputAction.search,
+        style: const TextStyle(fontSize: 14),
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: TextStyle(color: chat.inputHint, fontSize: 14),
+          prefixIcon: Icon(
+            LucideIcons.search,
+            size: 18,
+            color: chat.composerIcon,
+          ),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 40,
+            minHeight: 40,
+          ),
+          suffixIcon: query.isEmpty
+              ? null
+              : IconButton(
+                  icon: Icon(LucideIcons.x, size: 16, color: chat.composerIcon),
+                  onPressed: () {
+                    controller.clear();
+                    onChanged('');
+                  },
+                  tooltip: 'مسح البحث',
+                ),
+          filled: true,
+          fillColor: chat.inputField,
+          // ★ حشوة داخلية مضغوطة: واتساب البحث نحيف.
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 8,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppRadii.full),
+            borderSide: BorderSide.none,
+          ),
         ),
       ),
     );
@@ -78,12 +88,14 @@ class ConversationFilterChips extends StatelessWidget {
   Widget build(BuildContext context) {
     final chat = context.chatColors;
     return SizedBox(
-      height: 40,
+      // ★ 32 ارتفاع واتساب للشيبس (نحيفة) بدل 40.
+      height: 32,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+        // ★ 8 أفقي مثل البحث — ملتصقة بالحافة مثل واتساب.
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         itemCount: labels.length,
-        separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
+        separatorBuilder: (_, _) => const SizedBox(width: 6),
         itemBuilder: (context, i) {
           final selected = selectedIndex == i;
           final isUnreadChip = labels[i].contains('غير مقروء');
@@ -95,8 +107,9 @@ class ConversationFilterChips extends StatelessWidget {
             selected: selected,
             onSelected: (_) => onSelected(i),
             showCheckmark: false,
+            // ★ خط 12 مضغوط مثل واتساب بدل 13.
             labelStyle: TextStyle(
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
               color: selected ? chat.sendIcon : chat.inputText,
             ),
@@ -106,10 +119,9 @@ class ConversationFilterChips extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadii.full),
             ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.xs,
-            ),
+            // ★ حشوة الشيبس مضغوطة: واتساب الشيبس صغيرة ومتلاصقة.
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+            labelPadding: const EdgeInsets.symmetric(horizontal: 4),
           );
         },
       ),

@@ -203,11 +203,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ★ حشوة رأسية صريحة: جسم تبويب الدردشة داخل MainShellScreen يمتد
-    // خلف الهيدر (extendBodyBehindAppBar: true) لأن SuperHeader شفاف،
-    // فبدونها تمرّ بطاقات المحادثات تحت الهيدر وتتداخل معه.
-    // نجمع شريط الحالة العلوي + ارتفاع الهيدر (toolbarHeight = 64).
-    final topInset = MediaQuery.paddingOf(context).top + 64;
+    // ★ حشوة رأسية مضغوطة مثل واتساب: جسم تبويب الدردشة داخل MainShellScreen
+    // يمتد خلف الهيدر (extendBodyBehindAppBar: true) لأن SuperHeader شفاف،
+    // فبدونها تمرّ المحادثات تحت الهيدر. نجمع شريط الحالة + ارتفاع الهيدر
+    // الفعلي (56 وسطي) + فجوة تنفس صغيرة 6 فقط — مثل واتساب تماماً.
+    final topInset = MediaQuery.paddingOf(context).top + 56;
 
     final chat = context.chatColors;
     final visible = _visibleConversations;
@@ -220,17 +220,20 @@ class _ChatListScreenState extends State<ChatListScreen> {
         children: [
           Column(
             children: [
-              SizedBox(height: topInset + AppSpacing.sm),
+              // ★ 6 فقط بعد الهيدر — واتساب: البحث ملاصق تقريباً للهيدر.
+              SizedBox(height: topInset + 6),
               // ── ① Persistent Search Bar — شريط بحث ثابت مثل واتساب ──
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                // ★ 8 أفقي (مثل واتساب) بدل 16 الواسعة.
+                padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: ConversationSearchBar(
                   controller: _searchController,
                   query: _query,
                   onChanged: (v) => setState(() => _query = v),
                 ),
               ),
-              const SizedBox(height: AppSpacing.sm),
+              // ★ 6 بين البحث والفلاتر — واتساب: شبه ملتصقين.
+              const SizedBox(height: 6),
               // ── ② Filter Chips Row — فلاتر أفقية (الكل / غير مقروءة / المجموعات) ──
               // ★ 3 فلاتر فقط: حذفنا (المفضلة، الدردشات المقفلة، المؤرشفة، Meta AI).
               ConversationFilterChips(
@@ -239,7 +242,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 unreadCount: _unreadCount,
                 onSelected: (i) => setState(() => _selectedFilter = i),
               ),
-              const SizedBox(height: AppSpacing.xs),
+              // ★ 2 فقط قبل القائمة — أول محادثة تبدأ فوراً بعد الفلاتر.
+              const SizedBox(height: 2),
               Expanded(
                 child: visible.isEmpty
                     ? EmptyState(
@@ -253,30 +257,37 @@ class _ChatListScreenState extends State<ChatListScreen> {
                             ? 'جرّب كلمة أخرى أو امسح البحث'
                             : 'ستظهر محادثاتك هنا عند وصولها',
                       )
-                    : ListView.separated(
+                    : ListView.builder(
                         // ★ حشوة سفلية كبيرة: الشريط السفلي العائم (68+20)
                         //   + الزر العائم فوقه ⇒ آخر محادثة لا تختبئ خلفهما.
                         padding: const EdgeInsets.only(bottom: 190),
                         itemCount: visible.length,
-                        separatorBuilder: (_, _) => Divider(
-                          height: 1,
-                          thickness: 1,
-                          indent: 76,
-                          color: chat.composerBorder,
-                        ),
                         itemBuilder: (context, index) {
                           final conv = visible[index];
                           final online = conv['online'] as bool;
                           final isGroup = conv['type'] == 'group';
-                          return ConversationTile(
-                            name: conv['name'] as String,
-                            lastMessage: conv['lastMessage'] as String,
-                            time: conv['time'] as String,
-                            avatar: conv['avatar'] as String,
-                            unread: conv['unread'] as int,
-                            online: online,
-                            onTap: () =>
-                                _openConversation(conv, online, isGroup),
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ConversationTile(
+                                name: conv['name'] as String,
+                                lastMessage: conv['lastMessage'] as String,
+                                time: conv['time'] as String,
+                                avatar: conv['avatar'] as String,
+                                unread: conv['unread'] as int,
+                                online: online,
+                                onTap: () =>
+                                    _openConversation(conv, online, isGroup),
+                              ),
+                              // ★ فاصل واتساب: رفيع + يبدأ بعد الأفاتار (56).
+                              Divider(
+                                height: 1,
+                                thickness: 0.5,
+                                indent: 64,
+                                endIndent: 8,
+                                color: chat.composerBorder,
+                              ),
+                            ],
                           );
                         },
                       ),
