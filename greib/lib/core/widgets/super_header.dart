@@ -7,6 +7,7 @@ import '../notifications/notification_manager.dart';
 import '../extensions/context_extensions.dart';
 import '../theme/design_tokens.dart';
 import '../../shared_widgets/quick_settings_sheet.dart';
+import '../../shared_widgets/sheets/upcoming_services_sheet.dart';
 import 'header_collapse_state.dart';
 
 /// ============================================================================
@@ -20,9 +21,8 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget>? extraActions;
   final bool showBackButton;
 
-  /// نقر أيقونة «حسابي» في الهيدر.
-  /// null = السلوك الافتراضي (فتح /profile). الـ Shell يمرّر هنا تبديل التبويب
-  /// حتى تصل الأيقونة إلى نفس صفحة الشريط السفلي.
+  /// نقر أيقونة «+» في الهيدر.
+  /// null = السلوك الافتراضي (فتح ورقة «خدمات قادمة»).
   final VoidCallback? onAccount;
 
   /// الأدوات المعروضة داخل الورقة (فارغة = الافتراضي).
@@ -95,15 +95,19 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                             // ★ عرض ثابت لكل زر => مسافات أفقية متساوية بين الأيقونات
                             //   زر البحث نُقل إلى ورقة «⋯» (QuickSettingsSheet) مثل الوضع الليلي.
                             //   نسخة من أيقونة «حسابي» (نفس أيقونة الشريط السفلي) في الهيدر.
+                            // ★ زر (+) بدل أيقونة «حسابي» — يفتح ورقة «خدمات قادمة»
+                            //   (عرض فقط حالياً، تُطوَّر لاحقاً). صفحة الحساب
+                            //   ما زالت متاحة من /profile.
                             SizedBox(
                               width: btnBox,
                               child: _HeaderIconBtn(
                                 box: btnBox,
                                 iconSize: iconSize,
-                                icon: LucideIcons.user,
+                                icon: LucideIcons.circlePlus,
                                 color: theme.colorScheme.onSurface,
-                                onPressed: onAccount ?? () => context.push('/profile'),
-                                tooltip: 'حسابي',
+                                onPressed: onAccount ??
+                                    () => UpcomingServicesSheet.show(context),
+                                tooltip: 'إضافة',
                               ),
                             ),
                             SizedBox(

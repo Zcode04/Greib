@@ -170,8 +170,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       extendBodyBehindAppBar: true,
       appBar: SuperHeader(
         title: isHomeTab ? null : activeTab.title,
-        // ★ أيقونة الحساب تفتح صفحة الحساب (المستقلة) — لم تعد تبويباً.
-        onAccount: () => context.push('/profile'),
+        // ★ زر (+) يفتح ورقة «خدمات قادمة» (السلوك الافتراضي — بدون onAccount).
         extraActions: _buildHeaderActions(context).map((a) {
           return IconButton(
             icon: Badge(
