@@ -26,6 +26,8 @@ import 'widgets/home_categories_tab_bar.dart';
 import 'widgets/spotlight_carousel.dart';
 import 'widgets/doctors_row.dart';
 import 'widgets/quick_actions.dart';
+import '../../features/services/data/services_repository.dart';
+import '../../core/models/service_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -96,6 +98,24 @@ class _HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    // ★ منشورات التدفّق: نُدرج منشوراً احترافياً قبل قسم «الأحدث» وآخر بعده
+    //   لجعل تدفّق الواجهة أكثر احترافية (نفس تصميم «المميز عندنا»).
+    //   نختار منشورين مختلفين (يفضّل من خدمتين مختلفتين) لتنويع المحتوى،
+    //   ونتخطّى الإدراج بأمان إن لم تتوفّر منشورات كافية.
+    final allPosts = ServicesRepository.instance.allPosts;
+    ServicePostEntry? preLatestPost;
+    ServicePostEntry? postLatestPost;
+    if (allPosts.isNotEmpty) {
+      preLatestPost = allPosts.first;
+      if (allPosts.length > 1) {
+        // منشور مختلف عن الأول (يفضّل خدمة أخرى) ⇒ تنويع في التدفّق.
+        postLatestPost = allPosts.firstWhere(
+          (e) => e.service.id != preLatestPost!.service.id,
+          orElse: () => allPosts[1],
+        );
+      }
+    }
+
     return Scaffold(
       backgroundColor: (isDark ? AppColors.background : AppColors.lightBackground),
       // القائمة الجانبية (Drawer) انتقلت إلى MainShellScreen — مصدر واحد للتنقل.
@@ -131,6 +151,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 28),
 
+                // ★ منشور واحد قبل قسم «الأحدث» (تدفّق أكثر احترافية).
+                //   نستخدم نفس SpotlightSection بوضع «منشور واحد» ⇒ نفس
+                //   التصميم والأبعاد (تمديد لحواف الشاشة) مطابقة 100%.
+                if (preLatestPost != null) ...[
+                  AnimatedListItem(
+                    index: 2,
+                    child: SpotlightSection(
+                      isDark: isDark,
+                      horizontalBleed: 20,
+                      singleEntry: preLatestPost,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                ],
+
                 AnimatedListItem(
                   index: 1,
                   child: SectionHeader(
@@ -146,6 +181,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: const LatestProductsCarousel(),
                 ),
                 const SizedBox(height: 28),
+
+                // ★ منشور آخر بعد قسم «الأحدث» (منشور مختلف ⇒ تنويع).
+                if (postLatestPost != null) ...[
+                  AnimatedListItem(
+                    index: 2,
+                    child: SpotlightSection(
+                      isDark: isDark,
+                      horizontalBleed: 20,
+                      singleEntry: postLatestPost,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                ],
 
                 AnimatedListItem(
                   index: 1,

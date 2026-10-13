@@ -14,7 +14,6 @@ import '../../../../shared_widgets/post_sheets.dart';
 import '../../../../shared_widgets/service_post_card.dart';
 import '../../../../shared_widgets/store_category_tabs.dart';
 import '../../../../core/widgets/app_sheet.dart';
-import '../../../../shared_widgets/share_arrow_icon.dart';
 
 class SpotlightSection extends StatefulWidget {
   final bool isDark;
@@ -24,10 +23,17 @@ class SpotlightSection extends StatefulWidget {
   /// MediaQuery (يتجاهل أي حاوية بعرض مختلف ويكسر عند تغيّر الحشو).
   final double horizontalBleed;
 
+  /// ★ وضع «منشور واحد»: عند تمريره تعرض الودجت هذا المنشور وحده فقط
+  ///   بنفس التصميم والغلاف (تمديد لحواف الشاشة) المستخدَم في تغذية
+  ///   «المميز عندنا» ⇒ يُدرج ضمن تدفّق الصفحة الرئيسية (قبل/بعد «الأحدث»)
+  ///   بمطابقة بصرية تامة 100% بلا أي كود تصميم موازٍ.
+  final ServicePostEntry? singleEntry;
+
   const SpotlightSection({
     super.key,
     required this.isDark,
     this.horizontalBleed = 20,
+    this.singleEntry,
   });
 
   @override
@@ -101,6 +107,13 @@ class _SpotlightSectionState extends State<SpotlightSection> {
 
   @override
   Widget build(BuildContext context) {
+    // ★ وضع «منشور واحد»: نستخدم حرفياً نفس غلاف المنشور المفرد
+    // (`_buildSinglePost`) المستخدَم في تغذية «المميز عندنا» ⇒ تصميم
+    // وأبعاد مطابقة 100%، ومصدر واحد للتطوير لاحقاً.
+    if (widget.singleEntry != null) {
+      return _buildSinglePost(widget.singleEntry!);
+    }
+
     final services = ServicesRepository.instance.all;
     if (services.isEmpty) return const SizedBox.shrink();
 
@@ -247,37 +260,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
             );
           }
         } else {
-          feedWidgets.add(
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final available = constraints.maxWidth.isFinite
-                    ? constraints.maxWidth
-                    : MediaQuery.sizeOf(context).width - widget.horizontalBleed * 2;
-                final bleed = widget.horizontalBleed.clamp(0.0, available / 2);
-                final screenWidth = available + bleed * 2;
-                final postWidth = screenWidth > _kMaxPostWidth ? _kMaxPostWidth : screenWidth;
-
-                return OverflowBox(
-                  alignment: Alignment.center,
-                  fit: OverflowBoxFit.deferToChild,
-                  minWidth: screenWidth,
-                  maxWidth: screenWidth,
-                  child: SizedBox(
-                    width: screenWidth,
-                    child: Center(
-                      child: SizedBox(
-                        width: postWidth,
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: _spotlightPostItem(entry),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          );
+          feedWidgets.add(_buildSinglePost(entry));
         }
       }
     }
@@ -532,6 +515,45 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     _spotlightController = PageController(
       viewportFraction: fraction,
       initialPage: _spotlightIndex,
+    );
+  }
+
+  /// ★ غلاف المنشور المفرد الوحيد في التطبيق — يُستخدم حرفياً في:
+  ///   1) تغذية «المميز عندنا» (المنشورات غير المحمّلة في كاروسيل)، و
+  ///   2) وضع «منشور واحد» المُدرج في تدفّق الصفحة الرئيسية (قبل/بعد «الأحدث»).
+  /// ⇒ مصدر تصميم واحد ⇒ تطابق بصري 100% وإدارة أبعاد موحّدة.
+  ///
+  /// التمديد لحواف الشاشة عبر `OverflowBox` + `LayoutBuilder` (بلا تغيير في
+  /// تخطيط الأب)، مع توسيط العمود بسقف `_kMaxPostWidth` على الشاشات العريضة.
+  Widget _buildSinglePost(ServicePostEntry entry) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final available = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width - widget.horizontalBleed * 2;
+        final bleed = widget.horizontalBleed.clamp(0.0, available / 2);
+        final screenWidth = available + bleed * 2;
+        final postWidth = screenWidth > _kMaxPostWidth ? _kMaxPostWidth : screenWidth;
+
+        return OverflowBox(
+          alignment: Alignment.center,
+          fit: OverflowBoxFit.deferToChild,
+          minWidth: screenWidth,
+          maxWidth: screenWidth,
+          child: SizedBox(
+            width: screenWidth,
+            child: Center(
+              child: SizedBox(
+                width: postWidth,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: _spotlightPostItem(entry),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
