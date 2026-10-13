@@ -1,4 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/mock_data/mock_data.dart';
@@ -6,6 +10,7 @@ import '../../core/models/service_model.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/super_header.dart';
 import '../services/data/services_repository.dart';
+import '../visual_search/visual_search_analysis_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -79,6 +84,40 @@ class _SearchScreenState extends State<SearchScreen> {
     _searchController.clear();
     setState(() {});
     _focusNode.requestFocus();
+  }
+
+  bool _busy = false;
+
+  /// ★ البحث بإرفاق صورة: يختار صورة من المعرض ثم يفتح شاشة البحث البصري
+  ///   مع تمرير نص الحقل (إن وُجد) كسياق إضافي للتحليل.
+  Future<void> _pickImageAndSearch() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      final f = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (!mounted) return;
+      setState(() => _busy = false);
+      if (f == null) return;
+      final q = _searchController.text.trim();
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => VisualSearchAnalysisScreen(
+            imageFile: File(f.path),
+            sourceLabel: 'المعرض',
+            textQuery: q.isEmpty ? null : q,
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تعذّر فتح المعرض — حاول مجدداً'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   List<ServiceCategory> get _results {
@@ -184,6 +223,36 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
+  /// ★ ثلاث طرق للبحث: إرفاق صورة، البحث في الحقل، أو إرسال رسالة للوكيل.
+  Widget _buildSearchMethods(ThemeData theme, bool isDark) {
+    return Column(
+      children: [
+        _SearchMethodCard(
+          icon: LucideIcons.imagePlus,
+          title: 'إرفاق صورة والبحث',
+          subtitle: 'اختر صورة من المعرض لتحليلها وإيجاد ما يطابقها',
+          highlight: true,
+          busy: _busy,
+          onTap: _pickImageAndSearch,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        _SearchMethodCard(
+          icon: LucideIcons.textSearch,
+          title: 'البحث في الحقل',
+          subtitle: 'اكتب اسم الخدمة أو المنتج في الأعلى للبحث فوراً',
+          onTap: () => _focusNode.requestFocus(),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        _SearchMethodCard(
+          icon: LucideIcons.bot,
+          title: 'رسالة للوكيل',
+          subtitle: 'اطلب من المساعد الذكي «الحاذق» أن يبحث عنك',
+          onTap: () => context.push('/alhadheq'),
+        ),
+      ],
+    );
+  }
+
   Widget _buildWelcome(BuildContext context, ThemeData theme, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,6 +262,8 @@ class _SearchScreenState extends State<SearchScreen> {
           title: 'مرحباً بك في البحث',
           subtitle: 'اكتشف كل خدماتك بسرعة وسهولة',
         ),
+        const SizedBox(height: AppSpacing.lg),
+        _buildSearchMethods(theme, isDark),
         const SizedBox(height: AppSpacing.xl),
         _buildSectionTitle(
           icon: LucideIcons.clock3,
@@ -413,6 +484,102 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SearchMethodCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  final bool highlight;
+  final bool busy;
+
+  const _SearchMethodCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.highlight = false,
+    this.busy = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Material(
+      color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
+      borderRadius: BorderRadius.circular(AppRadii.lg),
+      child: InkWell(
+        onTap: busy ? null : onTap,
+        borderRadius: BorderRadius.circular(AppRadii.lg),
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadii.lg),
+            border: Border.all(
+              color: highlight
+                  ? AppColors.accentPrimary.withValues(alpha: 0.45)
+                  : (isDark ? AppColors.outline : AppColors.lightOutline),
+              width: highlight ? 1.5 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: highlight
+                      ? AppColors.accentPrimary.withValues(alpha: 0.14)
+                      : AppColors.accentPrimary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(AppRadii.md),
+                ),
+                child: busy
+                    ? const Padding(
+                        padding: EdgeInsets.all(13),
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(
+                        icon,
+                        color: AppColors.accentPrimaryDark,
+                        size: 22,
+                      ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Icon(
+                LucideIcons.chevronLeft,
+                size: 18,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

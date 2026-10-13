@@ -14,7 +14,6 @@ import '../features/home_and_services/home_screen.dart';
 import '../features/wallet_and_finance/wallet_screen.dart';
 import '../core/widgets/super_header.dart'; // تمت الإضافة
 import 'floating_bottom_nav.dart';
-import 'sheets/camera_action_sheet.dart';
 
 class _ShellTab {
   final String route;
@@ -49,8 +48,8 @@ const List<_ShellTab> _tabs = [
     icon: LucideIcons.messageSquare,
     label: 'الدردشة',
   ),
-  // ★ زر الكاميرا: نفس هوية بقية الأيقونات — يفتح ورقة خيارات
-  //   (التقاط/تسجيل/معرض)، وقابل للتوسعة لاحقاً لشاشة نشر كاملة.
+  // ★ زر الكاميرا: نفس هوية بقية الأيقونات — يفتح صفحة البحث المستقلة
+  //   (بحث بإرفاغ صورة / في الحقل / رسالة للوكيل) بدل ورقة الخيارات.
   _ShellTab(
     route: '__camera_action__',
     title: 'الكاميرا',
@@ -121,10 +120,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
   void _onTabSelected(int index) {
     final tab = _tabs[index];
 
-    // ★ زر الإجراء (الكاميرا): يفتح ورقة الخيارات ولا يغيّر الصفحة
-    //   ولا يحفظ مؤشراً — جاهز للتوسعة لاحقاً (شاشة نشر كاملة).
+    // ★ زر الكاميرا (إجراء): يفتح صفحة البحث المستقلة بدل ورقة الخيارات،
+    //   ولا يحفظ مؤشراً نشطاً.
     if (tab.isAction) {
-      showCameraActionSheet(context);
+      context.push('/search');
       return;
     }
 
