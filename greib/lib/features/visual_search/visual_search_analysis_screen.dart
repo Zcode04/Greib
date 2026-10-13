@@ -132,7 +132,8 @@ class _Preview extends StatelessWidget {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.black54,
+                  // ★ نفس لون خلفية الصفحة: النص فقط يبقى ظاهراً
+                  color: context.backgroundColors.primary,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -153,12 +154,12 @@ class _Analyzing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = context.accentColor;
+    // ★ نفس لون خلفية الصفحة — بلا طبقة عكسية: النص والأيقونات فقط.
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
-        color: context.backgroundColors.surface,
+        color: context.backgroundColors.primary,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: context.backgroundColors.outline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,12 +215,12 @@ class _Detected extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = context.accentColor;
     const objs = ['حذاء رياضي', 'لون أبيض', 'خامة جلدية', 'رباط كلاسيكي'];
+    // ★ نفس لون خلفية الصفحة — بلا طبقة عكسية: النص والشارات فقط.
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
-        color: context.backgroundColors.surface,
+        color: context.backgroundColors.primary,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: context.backgroundColors.outline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,13 +298,13 @@ class _Matches extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         for (var i = 0; i < names.length; i++)
+          // ★ نفس لون خلفية الصفحة + بلا بوردر — صفوف نصية نظيفة.
           Container(
             margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(vertical: 10),
             decoration: BoxDecoration(
-              color: context.backgroundColors.surface,
+              color: context.backgroundColors.primary,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: context.backgroundColors.outline),
             ),
             child: Row(
               children: [
