@@ -346,6 +346,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 _ActionCircle(
                   canSend: canSend,
                   isDark: isDark,
+                  iconColor: muted,
                   onSend: _submit,
                   onVoice: _startVoiceSearch,
                 ),
@@ -570,21 +571,24 @@ class _BarIconButton extends StatelessWidget {
 class _ActionCircle extends StatelessWidget {
   final bool canSend;
   final bool isDark;
+  final Color iconColor;
   final VoidCallback onSend;
   final VoidCallback onVoice;
 
   const _ActionCircle({
     required this.canSend,
     required this.isDark,
+    required this.iconColor,
     required this.onSend,
     required this.onVoice,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bg = canSend
-        ? (isDark ? Colors.white : Colors.black)
-        : (isDark ? const Color(0xFF0F0F0F) : const Color(0xFFE9E9E9));
+    // دائرة الإرسال فقط تُملأ بلون؛ أما وضع الصوت (موجة الصوت) فيظهر بلا خلفية
+    // ليطابق أيقونات الشريط الأخرى (الكاميرا/الصور/المايك) ويوحّد تجربة المستخدم.
+    final bg =
+        canSend ? (isDark ? Colors.white : Colors.black) : Colors.transparent;
     return Tooltip(
       message: canSend ? 'إرسال' : 'وضع الصوت',
       child: Material(
@@ -605,7 +609,10 @@ class _ActionCircle extends StatelessWidget {
                       size: 20,
                       color: isDark ? Colors.black : Colors.white,
                     )
-                  : const Center(key: ValueKey('wave'), child: _WaveformIcon()),
+                  : Center(
+                      key: const ValueKey('wave'),
+                      child: _WaveformIcon(color: iconColor),
+                    ),
             ),
           ),
         ),
@@ -614,22 +621,30 @@ class _ActionCircle extends StatelessWidget {
   }
 }
 
-/// أيقونة موجة صوتية زرقاء مرسومة يدوياً.
+/// أيقونة موجة صوتية (audio-lines) مرسومة يدوياً، تأخذ لون بقية أيقونات الشريط.
 class _WaveformIcon extends StatelessWidget {
-  const _WaveformIcon();
+  final Color color;
+
+  const _WaveformIcon({this.color = const Color(0xFF2F9BFF)});
 
   @override
-  Widget build(BuildContext context) =>
-      CustomPaint(size: const Size(22, 18), painter: _WaveformPainter());
+  Widget build(BuildContext context) => CustomPaint(
+    size: const Size(22, 18),
+    painter: _WaveformPainter(color),
+  );
 }
 
 class _WaveformPainter extends CustomPainter {
+  final Color color;
+
+  _WaveformPainter(this.color);
+
   static const _bars = [0.35, 0.6, 0.95, 0.7, 1.0, 0.55, 0.4];
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF2F9BFF)
+      ..color = color
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
     final step = size.width / (_bars.length - 1);
@@ -642,7 +657,8 @@ class _WaveformPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _WaveformPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 /// اقتراح سريع فوق الحقل (بحث بالصوت / صور).
