@@ -128,15 +128,6 @@ class _HomeActionBarState extends State<HomeActionBar>
                     border: Border.all(
                       color: accent.withValues(alpha: _running ? 0.9 : 0.25),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(
-                          alpha: _running ? 0.2 : 0.12,
-                        ),
-                        blurRadius: _running ? 16 : 10,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -202,13 +193,6 @@ class _CircleIconButton extends StatelessWidget {
               color: theme.colorScheme.surface.withValues(alpha: 0.92),
               shape: BoxShape.circle,
               border: Border.all(color: accent.withValues(alpha: 0.25)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.12),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ],
             ),
             child: Icon(icon, size: 18, color: accent),
           ),
