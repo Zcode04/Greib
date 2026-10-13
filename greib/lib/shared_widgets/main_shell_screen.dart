@@ -36,28 +36,7 @@ class _ShellTab {
 
 const List<_ShellTab> _tabs = [
   // ★ الترتيب الجديد (من اليمين لليسار في RTL):
-  //   موقعي، المحفظة، الكاميرا، الرئيسية، الدردشة، الريلز
-  _ShellTab(
-    route: '/my_location',
-    title: 'موقعي',
-    icon: LucideIcons.mapPinned,
-    label: 'موقعي',
-  ),
-  _ShellTab(
-    route: '/wallet',
-    title: 'المحفظة الرقمية',
-    icon: LucideIcons.wallet,
-    label: 'المحفظة',
-  ),
-  // ★ زر الكاميرا: نفس هوية بقية الأيقونات — يفتح ورقة خيارات
-  //   (التقاط/تسجيل/معرض)، وقابل للتوسعة لاحقاً لشاشة نشر كاملة.
-  _ShellTab(
-    route: '__camera_action__',
-    title: 'الكاميرا',
-    icon: LucideIcons.camera,
-    label: 'الكاميرا',
-    isAction: true,
-  ),
+  //   الرئيسية، الدردشة، الكاميرا، المحفظة، الريلز، موقعي
   _ShellTab(
     route: '/home',
     title: 'الرئيسية',
@@ -70,11 +49,32 @@ const List<_ShellTab> _tabs = [
     icon: LucideIcons.messageSquare,
     label: 'الدردشة',
   ),
+  // ★ زر الكاميرا: نفس هوية بقية الأيقونات — يفتح ورقة خيارات
+  //   (التقاط/تسجيل/معرض)، وقابل للتوسعة لاحقاً لشاشة نشر كاملة.
+  _ShellTab(
+    route: '__camera_action__',
+    title: 'الكاميرا',
+    icon: LucideIcons.camera,
+    label: 'الكاميرا',
+    isAction: true,
+  ),
+  _ShellTab(
+    route: '/wallet',
+    title: 'المحفظة الرقمية',
+    icon: LucideIcons.wallet,
+    label: 'المحفظة',
+  ),
   _ShellTab(
     route: '/reels',
     title: 'الريلز',
     icon: LucideIcons.clapperboard,
     label: 'Reels',
+  ),
+  _ShellTab(
+    route: '/my_location',
+    title: 'موقعي',
+    icon: LucideIcons.mapPinned,
+    label: 'موقعي',
   ),
 ];
 
