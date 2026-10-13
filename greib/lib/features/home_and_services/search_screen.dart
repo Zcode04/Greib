@@ -318,8 +318,9 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-            child: Row(
+             child: Row(
               children: [
+                const Spacer(),
                 _BarIconButton(
                   icon: LucideIcons.camera,
                   tooltip: 'التقاط صورة',
@@ -327,7 +328,6 @@ class _SearchScreenState extends State<SearchScreen> {
                   size: 20,
                   onTap: () => _pickMedia(ImageSource.camera),
                 ),
-                const Spacer(),
                 _BarIconButton(
                   icon: LucideIcons.image,
                   tooltip: 'صور',
