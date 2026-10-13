@@ -174,6 +174,7 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
+  /// ★ حقل بحث دائري (pill): حواف دائرية بالكامل + أيقونات بيضاء بلا خلفية.
   Widget _buildSearchField(ThemeData theme, bool isDark) {
     return TextField(
       controller: _searchController,
@@ -181,18 +182,21 @@ class _SearchScreenState extends State<SearchScreen> {
       textInputAction: TextInputAction.search,
       onChanged: (_) => setState(() {}),
       onSubmitted: (_) => _focusNode.unfocus(),
+      cursorColor: AppColors.accentPrimary,
+      style: theme.textTheme.bodyMedium,
       decoration: InputDecoration(
         hintText: 'ابحث عن خدمة أو نشاط...',
         hintStyle: theme.textTheme.bodyMedium?.copyWith(
           color: theme.colorScheme.onSurfaceVariant,
         ),
-        prefixIcon: const Icon(LucideIcons.search, size: 22),
+        prefixIcon:
+            const Icon(LucideIcons.search, size: 20, color: Colors.white),
         suffixIcon: _searchController.text.isEmpty
-            ? const Icon(LucideIcons.mic, size: 20)
+            ? const Icon(LucideIcons.mic, size: 18, color: Colors.white)
             : IconButton(
                 onPressed: _clearQuery,
                 tooltip: 'مسح البحث',
-                icon: const Icon(LucideIcons.x, size: 19),
+                icon: const Icon(LucideIcons.x, size: 18, color: Colors.white),
               ),
         filled: true,
         fillColor: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
@@ -201,21 +205,19 @@ class _SearchScreenState extends State<SearchScreen> {
           vertical: AppSpacing.lg,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.lg),
-          borderSide: BorderSide(
-            color: isDark ? AppColors.outline : AppColors.lightOutline,
-          ),
+          borderRadius: BorderRadius.circular(AppRadii.full),
+          borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.lg),
+          borderRadius: BorderRadius.circular(AppRadii.full),
           borderSide: BorderSide(
             color: isDark ? AppColors.outline : AppColors.lightOutline,
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.lg),
+          borderRadius: BorderRadius.circular(AppRadii.full),
           borderSide: const BorderSide(
-            color: AppColors.accentPrimaryDark,
+            color: AppColors.accentPrimary,
             width: 1.5,
           ),
         ),
@@ -313,50 +315,6 @@ class _SearchScreenState extends State<SearchScreen> {
             );
           },
         ),
-        const SizedBox(height: AppSpacing.xxl),
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: isDark
-                  ? [
-                      AppColors.accentPrimaryDark.withValues(alpha: 0.22),
-                      AppColors.accentPrimary.withValues(alpha: 0.08),
-                    ]
-                  : [AppColors.accentPrimaryLight, AppColors.lightSurface],
-            ),
-            borderRadius: BorderRadius.circular(AppRadii.xl),
-            border: Border.all(
-              color: AppColors.accentPrimary.withValues(alpha: 0.28),
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: const BoxDecoration(
-                  color: AppColors.accentPrimary,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  LucideIcons.lightbulb,
-                  color: AppColors.onAccentPrimary,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Text(
-                  'نصيحة: استخدم كلمات مثل «توصيل» أو «صيدلية» للوصول إلى النتيجة بشكل أسرع.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: isDark ? AppColors.textPrimary : AppColors.lightText,
-                    height: 1.6,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }
@@ -392,6 +350,7 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
+  /// ★ عنوان قسم مبسّط: أيقونة بيضاء بلا خلفية + عنوان + وصف فرعي.
   Widget _buildSectionTitle({
     required IconData icon,
     required String title,
@@ -402,16 +361,8 @@ class _SearchScreenState extends State<SearchScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: AppColors.accentPrimary.withValues(alpha: 0.14),
-            borderRadius: BorderRadius.circular(AppRadii.sm),
-          ),
-          child: Icon(icon, size: 19, color: AppColors.accentPrimaryDark),
-        ),
-        const SizedBox(width: AppSpacing.md),
+        Icon(icon, size: 20, color: Colors.white),
+        const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -453,19 +404,7 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
       child: Column(
         children: [
-          Container(
-            width: 68,
-            height: 68,
-            decoration: BoxDecoration(
-              color: AppColors.accentPrimary.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              LucideIcons.searchX,
-              size: 30,
-              color: AppColors.accentPrimaryDark,
-            ),
-          ),
+          const Icon(LucideIcons.searchX, size: 40, color: Colors.white),
           const SizedBox(height: AppSpacing.lg),
           Text(
             'لم نجد خدمة مطابقة لـ «$query»',
@@ -529,26 +468,13 @@ class _SearchMethodCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: highlight
-                      ? AppColors.accentPrimary.withValues(alpha: 0.14)
-                      : AppColors.accentPrimary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(AppRadii.md),
-                ),
-                child: busy
-                    ? const Padding(
-                        padding: EdgeInsets.all(13),
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Icon(
-                        icon,
-                        color: AppColors.accentPrimaryDark,
-                        size: 22,
-                      ),
-              ),
+              busy
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Icon(icon, color: Colors.white, size: 24),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
@@ -575,7 +501,7 @@ class _SearchMethodCard extends StatelessWidget {
               Icon(
                 LucideIcons.chevronLeft,
                 size: 18,
-                color: theme.colorScheme.onSurfaceVariant,
+                color: Colors.white,
               ),
             ],
           ),
@@ -614,7 +540,7 @@ class _SearchChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(LucideIcons.history, size: 15),
+              const Icon(LucideIcons.history, size: 15, color: Colors.white),
               const SizedBox(width: AppSpacing.xs),
               Text(label),
             ],
@@ -649,15 +575,7 @@ class _CategoryCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: category.color.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(AppRadii.md),
-                ),
-                child: Icon(category.icon, color: category.color, size: 20),
-              ),
+              Icon(category.icon, color: Colors.white, size: 22),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
@@ -697,17 +615,10 @@ class _ServiceResultTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: service.color.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(AppRadii.md),
-            ),
-            child: Icon(
-              MockData.getIconByName(service.iconName),
-              color: service.color,
-            ),
+          Icon(
+            MockData.getIconByName(service.iconName),
+            color: Colors.white,
+            size: 24,
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -730,11 +641,8 @@ class _ServiceResultTile extends StatelessWidget {
               ],
             ),
           ),
-          Icon(
-            LucideIcons.chevronLeft,
-            size: 18,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
+          const SizedBox(width: AppSpacing.sm),
+          const Icon(LucideIcons.chevronLeft, size: 18, color: Colors.white),
         ],
       ),
     );
