@@ -182,21 +182,6 @@ class _NavTile extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 3),
-            // --- النص ---
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
-              style: TextStyle(
-                color: iconColor,
-                fontSize: 10,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-              ),
-              child: Text(
-                item.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
           ],
         ),
       ),
