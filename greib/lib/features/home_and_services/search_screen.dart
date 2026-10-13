@@ -34,12 +34,6 @@ class _SearchScreenState extends State<SearchScreen> {
   String _attachmentSource = 'المعرض';
   bool _busy = false;
 
-  /// هل قائمة الوسائط (كاميرا / معرض) المنبثقة من زر «+» مفتوحة؟
-  bool _plusOpen = false;
-
-  /// وضع «البحث اللحظي» (زر الصاعقة) — نقطة ربط جاهزة.
-  bool _instantMode = false;
-
   @override
   void initState() {
     super.initState();
@@ -68,10 +62,7 @@ class _SearchScreenState extends State<SearchScreen> {
   /// يختار صورة (من المعرض أو الكاميرا) ويرفقها بالحقل كمعاينة.
   Future<void> _pickMedia(ImageSource source) async {
     if (_busy) return;
-    setState(() {
-      _busy = true;
-      _plusOpen = false;
-    });
+    setState(() => _busy = true);
     try {
       final f = await ImagePicker().pickImage(source: source, imageQuality: 90);
       if (!mounted) return;
@@ -98,8 +89,6 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _removeAttachment() => setState(() => _attachment = null);
-
-  void _togglePlus() => setState(() => _plusOpen = !_plusOpen);
 
   /// ★ البحث الصوتي — نقطة ربط جاهزة.
   ///   لتفعيله أضف حزمة speech_to_text وضع النص الناتج عبر _setQuery(...).
@@ -204,19 +193,10 @@ class _SearchScreenState extends State<SearchScreen> {
     final focused = _focusNode.hasFocus;
     final hasText = _searchController.text.trim().isNotEmpty;
     // اقتراحات سريعة فوق الحقل في الحالة الابتدائية فقط.
-    final showSuggestions =
-        !focused && !hasText && _attachment == null && !_plusOpen;
+    final showSuggestions = !focused && !hasText && _attachment == null;
 
     Widget above = const SizedBox(width: double.infinity);
-    if (_plusOpen) {
-      above = Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-        child: _MediaPopover(
-          onCamera: () => _pickMedia(ImageSource.camera),
-          onGallery: () => _pickMedia(ImageSource.gallery),
-        ),
-      );
-    } else if (showSuggestions) {
+    if (showSuggestions) {
       above = Padding(
         padding: const EdgeInsets.only(bottom: AppSpacing.sm),
         child: Wrap(
@@ -259,11 +239,7 @@ class _SearchScreenState extends State<SearchScreen> {
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 160),
                 child: KeyedSubtree(
-                  key: ValueKey(
-                    _plusOpen
-                        ? 'popover'
-                        : (showSuggestions ? 'chips' : 'none'),
-                  ),
+                  key: ValueKey(showSuggestions ? 'chips' : 'none'),
                   child: above,
                 ),
               ),
@@ -276,8 +252,8 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   /// ★ حقل مطابق لتصميم منصات الدردشة بالذكاء الاصطناعي (صفّان):
-  ///   الصف العلوي: النص. الصف السفلي: «+» في البداية، وفي النهاية
-  ///   صاعقة + مايك + دائرة (موجة صوتية زرقاء، أو سهم إرسال عند وجود محتوى).
+  ///   الصف العلوي: النص. الصف السفلي: كاميرا + صور في البداية، وفي النهاية
+  ///   مايك + دائرة (موجة صوتية زرقاء، أو سهم إرسال عند وجود محتوى).
   Widget _buildSearchField(ThemeData theme, bool isDark) {
     final focused = _focusNode.hasFocus;
     final canSend =
@@ -345,20 +321,19 @@ class _SearchScreenState extends State<SearchScreen> {
             child: Row(
               children: [
                 _BarIconButton(
-                  icon: LucideIcons.plus,
-                  tooltip: 'إرفاق وسائط',
+                  icon: LucideIcons.camera,
+                  tooltip: 'التقاط صورة',
                   color: muted,
-                  size: 24,
-                  turns: _plusOpen ? 0.125 : 0,
-                  onTap: _togglePlus,
+                  size: 20,
+                  onTap: () => _pickMedia(ImageSource.camera),
                 ),
                 const Spacer(),
                 _BarIconButton(
-                  icon: LucideIcons.zap,
-                  tooltip: 'بحث لحظي',
-                  color: _instantMode ? AppColors.accentPrimary : muted,
+                  icon: LucideIcons.image,
+                  tooltip: 'صور',
+                  color: muted,
                   size: 20,
-                  onTap: () => setState(() => _instantMode = !_instantMode),
+                  onTap: () => _pickMedia(ImageSource.gallery),
                 ),
                 _BarIconButton(
                   icon: LucideIcons.mic,
@@ -560,7 +535,6 @@ class _BarIconButton extends StatelessWidget {
   final VoidCallback onTap;
   final Color color;
   final double size;
-  final double turns;
   final String? tooltip;
 
   const _BarIconButton({
@@ -568,7 +542,6 @@ class _BarIconButton extends StatelessWidget {
     required this.onTap,
     required this.color,
     this.size = 20,
-    this.turns = 0,
     this.tooltip,
   });
 
@@ -584,12 +557,7 @@ class _BarIconButton extends StatelessWidget {
           customBorder: const CircleBorder(),
           onTap: onTap,
           child: Center(
-            child: AnimatedRotation(
-              turns: turns,
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOutCubic,
-              child: Icon(icon, size: size, color: color),
-            ),
+            child: Icon(icon, size: size, color: color),
           ),
         ),
       ),
@@ -675,66 +643,6 @@ class _WaveformPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// ★ القائمة المنبثقة من زر «+»: أيقونة لالتقاط صورة وأخرى للرفع من المعرض.
-class _MediaPopover extends StatelessWidget {
-  final VoidCallback onCamera;
-  final VoidCallback onGallery;
-
-  const _MediaPopover({required this.onCamera, required this.onGallery});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final fg = isDark ? Colors.white : theme.colorScheme.onSurface;
-
-    Widget item(IconData icon, String tooltip, VoidCallback onTap) {
-      return Tooltip(
-        message: tooltip,
-        child: Material(
-          color: AppColors.accentPrimary.withValues(alpha: 0.14),
-          shape: const CircleBorder(),
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: onTap,
-            child: SizedBox(
-              width: 46,
-              height: 46,
-              child: Icon(icon, size: 21, color: fg),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
-        borderRadius: BorderRadius.circular(AppRadii.full),
-        border: Border.all(
-          color: isDark ? AppColors.outline : AppColors.lightOutline,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          item(LucideIcons.camera, 'التقاط صورة', onCamera),
-          const SizedBox(width: AppSpacing.sm),
-          item(LucideIcons.image, 'رفع من المعرض', onGallery),
-        ],
-      ),
-    );
-  }
 }
 
 /// اقتراح سريع فوق الحقل (بحث بالصوت / صور).
