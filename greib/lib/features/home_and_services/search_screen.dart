@@ -30,17 +30,18 @@ class _SearchScreenState extends State<SearchScreen> {
   String _attachmentSource = 'المعرض';
   bool _busy = false;
 
-  /// تُصبح true بعد انتهاء أنميشن الجملة، فتظهر الاقتراحات.
+  /// تُصبح true بعد انتهاء كشف الجملة الأولى، فتظهر الاقتراحات.
   bool _welcomeDone = false;
 
   /// اقتراحات البحث السريع (عدّلها حسب خدماتك).
-  static const _suggestions = [
-    'عروض اليوم',
-    'توصيل سريع',
-    'خدمات الصيانة',
-    'التنظيف المنزلي',
-    'الأجهزة الإلكترونية',
-    'الأكثر طلباً',
+  static const _suggestions = ['عروض اليوم', 'توصيل سريع', 'خدمات الصيانة'];
+
+  /// جمل الترحيب المتناوبة (اجعل كل جملة سطرين ليبقى الارتفاع ثابتاً).
+  static const _sentences = [
+    'ابحث لحظيًا عن كل ما في ذهنك،\nسواء على المستوى المحلي أو العالمي!',
+    'اعثر على الخدمة المناسبة\nفي ثوانٍ معدودة',
+    'ارفع صورة أي منتج\nوسنجد لك ما يشبهه',
+    'تحدّث بصوتك\nوسنبحث عنك فورًا',
   ];
 
   @override
@@ -389,20 +390,20 @@ class _SearchScreenState extends State<SearchScreen> {
 
   // ───────────────────────── المحتوى ─────────────────────────
 
-  /// ★ ترحيب: الجملة تُكشف كلمةً كلمة، ثم تظهر اقتراحات البحث السريع.
+  /// ★ ترحيب: جمل متناوبة تُكشف كلمةً كلمة، ويتوقف التكرار عند الضغط على الحقل.
   Widget _buildWelcome(BuildContext context, ThemeData theme, bool isDark) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _WordReveal(
-          text:
-              'ابحث لحظيًا عن كل ما في ذهنك،\nسواء على المستوى المحلي أو العالمي!',
+        _LoopingReveal(
+          texts: _sentences,
+          active: !_focusNode.hasFocus,
           style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.w800,
             height: 1.5,
           ),
-          onDone: () {
+          onFirstDone: () {
             if (mounted) setState(() => _welcomeDone = true);
           },
         ),
@@ -541,51 +542,109 @@ class _SearchScreenState extends State<SearchScreen> {
 
 // ═════════════════════════ مكوّنات مساعدة ═════════════════════════
 
-/// ★ كشف النص كلمةً كلمة: أول كلمتين معاً، ثم كل كلمة تصعد من الأسفل
-/// مع تلاشي وبلور يزول تدريجياً حتى تكتمل الجملة.
-class _WordReveal extends StatefulWidget {
-  final String text;
+/// ★ جمل متناوبة: كشف كلمةً كلمة ← ثبات ← اختفاء (صعود + بلور) ← الجملة التالية.
+/// يتوقف التكرار عندما تصبح active = false (المستخدم ضغط على الحقل).
+class _LoopingReveal extends StatefulWidget {
+  final List<String> texts;
+  final bool active;
   final TextStyle? style;
+  final VoidCallback? onFirstDone;
   final int firstChunk;
   final Duration step;
   final Duration itemDuration;
-  final VoidCallback? onDone;
+  final Duration hold;
+  final Duration exit;
 
-  const _WordReveal({
-    required this.text,
+  const _LoopingReveal({
+    required this.texts,
+    required this.active,
     this.style,
+    this.onFirstDone,
     this.firstChunk = 2,
-    this.step = const Duration(milliseconds: 170),
+    this.step = const Duration(milliseconds: 150),
     this.itemDuration = const Duration(milliseconds: 650),
-    this.onDone,
+    this.hold = const Duration(milliseconds: 2200),
+    this.exit = const Duration(milliseconds: 550),
   });
 
   @override
-  State<_WordReveal> createState() => _WordRevealState();
+  State<_LoopingReveal> createState() => _LoopingRevealState();
 }
 
-class _WordRevealState extends State<_WordReveal>
+class _LoopingRevealState extends State<_LoopingReveal>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c;
-  late final List<List<String>> _lines;
-  late final int _totalMs;
+  late final AnimationController _c = AnimationController(vsync: this);
+  int _index = 0;
+  List<List<String>> _lines = const [];
+  int _revealMs = 1;
+  int _totalMs = 1;
+  bool _fired = false;
+
+  double get _revealFrac => _revealMs / _totalMs;
+
+  void _prepare() {
+    _lines = widget.texts[_index]
+        .split('\n')
+        .map((l) => l.trim().split(RegExp(r'\s+')))
+        .toList();
+    final words = _lines.fold<int>(0, (s, l) => s + l.length);
+    final chunks = (words - widget.firstChunk + 1).clamp(1, words).toInt();
+    _revealMs =
+        widget.step.inMilliseconds * (chunks - 1) +
+        widget.itemDuration.inMilliseconds;
+    _totalMs =
+        _revealMs + widget.hold.inMilliseconds + widget.exit.inMilliseconds;
+    _c.duration = Duration(milliseconds: _totalMs);
+  }
 
   @override
   void initState() {
     super.initState();
-    _lines = widget.text
-        .split('\n')
-        .map((l) => l.trim().split(RegExp(r'\s+')))
-        .toList();
-    final total = _lines.fold<int>(0, (s, l) => s + l.length);
-    final chunks = (total - widget.firstChunk + 1).clamp(1, total);
-    _totalMs =
-        widget.step.inMilliseconds * (chunks - 1) +
-        widget.itemDuration.inMilliseconds;
-    _c = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: _totalMs),
-    )..forward().whenComplete(() => widget.onDone?.call());
+    _prepare();
+    if (!widget.active) _c.value = _revealFrac;
+    _c.addStatusListener(_onStatus);
+    _c.addListener(_checkFirst);
+    if (widget.active) {
+      _c.forward(from: 0);
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _fireFirst());
+    }
+  }
+
+  void _fireFirst() {
+    if (_fired || !mounted) return;
+    _fired = true;
+    widget.onFirstDone?.call();
+  }
+
+  void _checkFirst() {
+    if (!_fired && _c.value >= _revealFrac) _fireFirst();
+  }
+
+  void _onStatus(AnimationStatus s) {
+    if (s != AnimationStatus.completed || !widget.active || !mounted) return;
+    setState(() {
+      _index = (_index + 1) % widget.texts.length;
+      _prepare();
+    });
+    _c.forward(from: 0);
+  }
+
+  @override
+  void didUpdateWidget(covariant _LoopingReveal old) {
+    super.didUpdateWidget(old);
+    if (old.active == widget.active) return;
+    if (widget.active) {
+      // استئناف من حيث توقفت (ثبات ← اختفاء ← الجملة التالية).
+      _c.forward();
+    } else {
+      // إيقاف: أكمل الجملة الحالية حتى تظهر كاملة ثم اثبت.
+      _c.animateTo(
+        _revealFrac,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.linear,
+      );
+    }
   }
 
   @override
@@ -594,56 +653,77 @@ class _WordRevealState extends State<_WordReveal>
     super.dispose();
   }
 
-  Widget _word(String w, int index) {
-    final chunk = (index - (widget.firstChunk - 1)).clamp(0, 1 << 20);
-    final start = chunk * widget.step.inMilliseconds / _totalMs;
-    final end = start + widget.itemDuration.inMilliseconds / _totalMs;
-    final curve = Interval(
-      start.clamp(0.0, 1.0),
-      end.clamp(0.0, 1.0),
-      curve: Curves.easeOutCubic,
+  Widget _word(String w, int index, double ms) {
+    final chunk = (index - (widget.firstChunk - 1)).clamp(0, 1 << 20).toInt();
+    final startMs = chunk * widget.step.inMilliseconds;
+    final t = Curves.easeOutCubic.transform(
+      ((ms - startMs) / widget.itemDuration.inMilliseconds)
+          .clamp(0.0, 1.0)
+          .toDouble(),
     );
 
-    return AnimatedBuilder(
-      animation: _c,
-      builder: (_, __) {
-        final t = curve.transform(_c.value);
-        Widget child = Text(w, style: widget.style);
-        if (t < 1) {
-          final sigma = 6 * (1 - t);
-          child = ImageFiltered(
-            imageFilter: ImageFilter.blur(
-              sigmaX: sigma,
-              sigmaY: sigma,
-              tileMode: TileMode.decal,
-            ),
-            child: child,
-          );
-        }
-        return Opacity(
-          opacity: t,
-          child: Transform.translate(
-            offset: Offset(0, 18 * (1 - t)),
-            child: child,
-          ),
-        );
-      },
+    Widget child = Text(w, style: widget.style);
+    if (t < 1) {
+      final sigma = 6 * (1 - t);
+      child = ImageFiltered(
+        imageFilter: ImageFilter.blur(
+          sigmaX: sigma,
+          sigmaY: sigma,
+          tileMode: TileMode.decal,
+        ),
+        child: child,
+      );
+    }
+    return Opacity(
+      opacity: t,
+      child: Transform.translate(offset: Offset(0, 18 * (1 - t)), child: child),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    var i = 0;
-    return Column(
-      children: [
-        for (final line in _lines)
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 7,
-            runSpacing: 2,
-            children: [for (final w in line) _word(w, i++)],
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, __) {
+        final ms = _c.value * _totalMs;
+        final exitStart = _revealMs + widget.hold.inMilliseconds;
+        final e = Curves.easeInCubic.transform(
+          ((ms - exitStart) / widget.exit.inMilliseconds)
+              .clamp(0.0, 1.0)
+              .toDouble(),
+        );
+
+        var i = 0;
+        Widget content = Column(
+          children: [
+            for (final line in _lines)
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 7,
+                runSpacing: 2,
+                children: [for (final w in line) _word(w, i++, ms)],
+              ),
+          ],
+        );
+
+        if (e > 0) {
+          content = ImageFiltered(
+            imageFilter: ImageFilter.blur(
+              sigmaX: 8 * e,
+              sigmaY: 8 * e,
+              tileMode: TileMode.decal,
+            ),
+            child: content,
+          );
+        }
+        return Opacity(
+          opacity: 1 - e,
+          child: Transform.translate(
+            offset: Offset(0, -12 * e),
+            child: content,
           ),
-      ],
+        );
+      },
     );
   }
 }
