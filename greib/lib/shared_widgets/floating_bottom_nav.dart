@@ -158,8 +158,8 @@ class _NavTile extends StatelessWidget {
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOut,
-              width: selected ? 40 : 34,
-              height: selected ? 40 : 34,
+              width: selected ? 54 : 46,
+              height: selected ? 54 : 46,
               decoration: BoxDecoration(
                 // ★ خلفية دائرية كاملة (العرض = الارتفاع + shape = circle).
                 shape: BoxShape.circle,
@@ -175,7 +175,7 @@ class _NavTile extends StatelessWidget {
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      Icon(item.icon, color: iconColor, size: 20),
+                      Icon(item.icon, color: iconColor, size: 28),
                       _buildBadge(context),
                     ],
                   ),
