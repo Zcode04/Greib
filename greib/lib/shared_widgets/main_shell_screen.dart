@@ -14,6 +14,7 @@ import '../features/home_and_services/home_screen.dart';
 import '../features/wallet_and_finance/wallet_screen.dart';
 import '../core/widgets/super_header.dart'; // تمت الإضافة
 import 'floating_bottom_nav.dart';
+import 'sheets/camera_action_sheet.dart';
 
 class _ShellTab {
   final String route;
@@ -21,17 +22,21 @@ class _ShellTab {
   final IconData icon;
   final String label;
 
+  /// ★ زر إجراء (لا يغيّر الصفحة): مثل الكاميرا — يفتح ورقة خيارات.
+  final bool isAction;
+
   const _ShellTab({
     required this.route,
     required this.title,
     required this.icon,
     required this.label,
+    this.isAction = false,
   });
 }
 
 const List<_ShellTab> _tabs = [
-  // ★ «موقعي» بدل «حسابي»: تبويب مستقل يفتح صفحة «موقعي» (العالم + الأقرب
-  //   إليك). صفحة الحساب ما زالت متاحة من أيقونة الحساب في الهيدر و /profile.
+  // ★ الترتيب الجديد (من اليمين لليسار في RTL):
+  //   موقعي، المحفظة، الكاميرا، الرئيسية، الدردشة، الريلز
   _ShellTab(
     route: '/my_location',
     title: 'موقعي',
@@ -43,6 +48,15 @@ const List<_ShellTab> _tabs = [
     title: 'المحفظة الرقمية',
     icon: LucideIcons.wallet,
     label: 'المحفظة',
+  ),
+  // ★ زر الكاميرا: نفس هوية بقية الأيقونات — يفتح ورقة خيارات
+  //   (التقاط/تسجيل/معرض)، وقابل للتوسعة لاحقاً لشاشة نشر كاملة.
+  _ShellTab(
+    route: '__camera_action__',
+    title: 'الكاميرا',
+    icon: LucideIcons.camera,
+    label: 'الكاميرا',
+    isAction: true,
   ),
   _ShellTab(
     route: '/home',
@@ -79,13 +93,15 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
   /// ★ التبويبات التي تبني محتوى الـ Shell: كل ما عداه صفحات مستقلة
   ///   («الريلز» و«موقعي») تُفتح بـ push ولا تُحفظ كمؤشر نشط.
+  ///   زر الإجراء (الكاميرا) لا يُحفظ أبداً كمؤشر ولا يبني محتوى.
   static const Set<String> _standaloneRoutes = {'/reels', '/my_location'};
 
   /// ★ فهارس التبويبات التي تبني محتوى الـ Shell (فهارس داخل `_tabs`).
   ///   صفحة مستقلة («موقعي»/«الريلز»/«الحاذق») ولا يحفظ مؤشراً نشطاً.
+  ///   أزرار الإجراء (الكاميرا) مستثناة أيضاً.
   static final List<int> _shellIndexes = [
     for (var i = 0; i < _tabs.length; i++)
-      if (!_standaloneRoutes.contains(_tabs[i].route)) i,
+      if (!_standaloneRoutes.contains(_tabs[i].route) && !_tabs[i].isAction) i,
   ];
 
   @override
@@ -104,6 +120,13 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
   void _onTabSelected(int index) {
     final tab = _tabs[index];
+
+    // ★ زر الإجراء (الكاميرا): يفتح ورقة الخيارات ولا يغيّر الصفحة
+    //   ولا يحفظ مؤشراً — جاهز للتوسعة لاحقاً (شاشة نشر كاملة).
+    if (tab.isAction) {
+      showCameraActionSheet(context);
+      return;
+    }
 
     // ★ الصفحات المستقلة («الريلز»، «موقعي»، «الحاذق») تُفتح بـ push ولا تحفظ مؤشراً.
     if (_standaloneRoutes.contains(tab.route)) {
@@ -201,7 +224,13 @@ class _MainShellScreenState extends State<MainShellScreen> {
         currentIndex: _currentIndex,
         onTap: _onTabSelected,
         items: _tabs
-            .map((tab) => FloatingNavItem(icon: tab.icon, label: tab.label))
+            .map(
+              (tab) => FloatingNavItem(
+                icon: tab.icon,
+                label: tab.label,
+                isAction: tab.isAction,
+              ),
+            )
             .toList(),
       ),
     );

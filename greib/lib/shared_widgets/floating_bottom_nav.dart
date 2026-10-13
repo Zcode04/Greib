@@ -33,10 +33,16 @@ class FloatingNavItem {
   /// عدد الشارات (رسائل/إشعارات غير مقروءة). صفر أو null = بلا شارة.
   final int? badgeCount;
 
+  /// ★ زر إجراء (مثل الكاميرا): نفس تصميم بقية الأيقونات تماماً
+  /// للحفاظ على هوية موحدة — الفرق فقط في السلوك (يفتح ورقة/إجراء)
+  /// بدل التنقل لصفحة وتحديد التبويب.
+  final bool isAction;
+
   const FloatingNavItem({
     required this.icon,
     required this.label,
     this.badgeCount,
+    this.isAction = false,
   });
 }
 
@@ -96,7 +102,9 @@ class FloatingBottomNav extends StatelessWidget {
             child: Row(
               children: List.generate(items.length, (index) {
                 final item = items[index];
-                final selected = index == currentIndex;
+                // ★ زر الإجراء (الكاميرا): نفس تصميم _NavTile تماماً
+                // لهوية موحدة — لكنه لا يأخذ حالة «محدد» أبداً.
+                final selected = !item.isAction && index == currentIndex;
 
                 return Expanded(
                   child: _NavTile(
@@ -154,9 +162,7 @@ class _NavTile extends StatelessWidget {
               height: selected ? 32 : 28,
               decoration: BoxDecoration(
                 color: selected
-                    ? accent.withValues(
-                        alpha: isDark ? 0.2 : 0.12,
-                      )
+                    ? accent.withValues(alpha: isDark ? 0.2 : 0.12)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
