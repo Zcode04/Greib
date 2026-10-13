@@ -16,6 +16,8 @@ import '../visual_search/visual_search_analysis_screen.dart';
 import 'search_history_screen.dart';
 import 'search_history_store.dart';
 
+enum _SearchPhase { idle, thinking, done }
+
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
 
@@ -34,6 +36,11 @@ class _SearchScreenState extends State<SearchScreen> {
 
   /// تُصبح true بعد انتهاء كشف الجملة الأولى، فتظهر الاقتراحات.
   bool _welcomeDone = false;
+
+  _SearchPhase _phase = _SearchPhase.idle;
+  String _submittedQuery = '';
+  List<ServiceCategory> _found = const [];
+  int _runId = 0;
 
   /// اقتراحات البحث السريع (عدّلها حسب خدماتك).
   static const _suggestions = ['عروض اليوم', 'توصيل سريع', 'خدمات الصيانة'];
@@ -114,16 +121,16 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  /// إرسال: إن وُجدت صورة تُفتح شاشة البحث البصري، وإلا نُنهي الكتابة.
+  /// إرسال: صورة ← شاشة البحث البصري، نص ← تفكير ذكي ثم النتائج.
   Future<void> _submit() async {
     final file = _attachment;
+    final q = _searchController.text.trim();
+
     if (file == null) {
-      final q = _searchController.text.trim();
-      if (q.isNotEmpty) SearchHistoryStore.instance.add(q);
-      _focusNode.unfocus();
+      if (q.isNotEmpty) _runTextSearch(q);
       return;
     }
-    final q = _searchController.text.trim();
+
     if (q.isNotEmpty) SearchHistoryStore.instance.add(q);
     _focusNode.unfocus();
     await Navigator.of(context).push(
@@ -136,6 +143,51 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
     );
     if (mounted) setState(() => _attachment = null);
+  }
+
+  Future<void> _runTextSearch(String q) async {
+    final id = ++_runId;
+    SearchHistoryStore.instance.add(q);
+    _focusNode.unfocus();
+    _searchController.clear();
+    setState(() {
+      _submittedQuery = q;
+      _found = const [];
+      _welcomeDone = false;
+      _phase = _SearchPhase.thinking;
+    });
+
+    // مدة "التفكير" (أطول قليلاً من خطوات الأنميشن الأربع = 3000ms).
+    await Future.delayed(const Duration(milliseconds: 3300));
+    if (!mounted || id != _runId) return;
+    setState(() {
+      _found = _searchServices(q);
+      _phase = _SearchPhase.done;
+    });
+  }
+
+  void _resetSearch() {
+    _runId++;
+    setState(() {
+      _phase = _SearchPhase.idle;
+      _submittedQuery = '';
+      _found = const [];
+    });
+  }
+
+  List<ServiceCategory> _searchServices(String q) {
+    final words = q
+        .trim()
+        .toLowerCase()
+        .split(RegExp(r'\s+'))
+        .where((w) => w.length >= 2)
+        .toList();
+    if (words.isEmpty) return const [];
+
+    return ServicesRepository.instance.all.where((s) {
+      final hay = '${s.title} ${s.subtitle} ${s.description}'.toLowerCase();
+      return words.any(hay.contains);
+    }).take(8).toList();
   }
 
   /// يفتح صفحة «سجل البحث»، ويعيد الاستعلام المختار لحقل البحث.
@@ -152,29 +204,10 @@ class _SearchScreenState extends State<SearchScreen> {
 
   // ───────────────────────── النتائج ─────────────────────────
 
-  List<ServiceCategory> get _results {
-    final query = _searchController.text.trim().toLowerCase();
-    if (query.isEmpty) return const [];
-
-    return ServicesRepository.instance.all
-        .where(
-          (service) =>
-              '${service.title} ${service.subtitle} ${service.description}'
-                  .toLowerCase()
-                  .contains(query),
-        )
-        .take(8)
-        .toList();
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final query = _searchController.text.trim();
-
-    // عند الخروج من الترحيب يُعاد تشغيل الأنميشن في المرة القادمة.
-    if (query.isNotEmpty) _welcomeDone = false;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -201,9 +234,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       constraints: BoxConstraints(
                         minHeight: constraints.maxHeight - AppSpacing.md * 2,
                       ),
-                      child: query.isEmpty
-                          ? Center(child: _buildWelcome(context, theme, isDark))
-                          : _buildResults(context, theme, isDark, query),
+                      child: _buildBody(context, theme, isDark),
                     ),
                   ),
                 ),
@@ -425,33 +456,65 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildResults(
-    BuildContext context,
-    ThemeData theme,
-    bool isDark,
-    String query,
-  ) {
-    final results = _results;
+  Widget _buildBody(BuildContext context, ThemeData theme, bool isDark) {
+    if (_phase == _SearchPhase.idle) {
+      return Center(child: _buildWelcome(context, theme, isDark));
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _UserBubble(key: ValueKey('q$_runId'), text: _submittedQuery),
+        const SizedBox(height: AppSpacing.xl),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 350),
+          child: KeyedSubtree(
+            key: ValueKey('$_phase$_runId'),
+            child: _phase == _SearchPhase.thinking
+                ? _AiThinking(query: _submittedQuery)
+                : _buildResults(theme, isDark),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildResults(ThemeData theme, bool isDark) {
+    final results = _found;
+    final muted = theme.colorScheme.onSurfaceVariant;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionTitle(
-          icon: LucideIcons.listFilter,
-          title: 'نتائج البحث',
-          subtitle: results.isEmpty
-              ? 'لم نعثر على نتائج مطابقة'
-              : '${results.length} خدمة متاحة لك',
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        if (results.isEmpty)
-          _buildEmptyResults(theme, isDark, query)
-        else
-          ...results.map(
-            (service) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
-              child: _ServiceResultTile(service: service),
-            ),
+          icon: LucideIcons.sparkles,
+          title: results.isEmpty
+              ? 'لم أجد نتائج مطابقة'
+              : 'وجدت لك ${results.length} نتائج',
+          subtitle: 'حسب بحثك عن «$_submittedQuery»',
+          trailing: _BarIconButton(
+            icon: LucideIcons.rotateCcw,
+            tooltip: 'بحث جديد',
+            color: muted,
+            onTap: _resetSearch,
           ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        if (results.isEmpty)
+          _buildEmptyResults(theme, isDark, _submittedQuery)
+        else
+          for (var i = 0; i < results.length; i++)
+            _FadeInUp(
+              delay: Duration(milliseconds: 80 * i),
+              child: Column(
+                children: [
+                  _ServiceResultTile(service: results[i]),
+                  if (i < results.length - 1)
+                    Divider(
+                      height: 1,
+                      color: isDark ? AppColors.outline : AppColors.lightOutline,
+                    ),
+                ],
+              ),
+            ),
       ],
     );
   }
@@ -499,44 +562,36 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildEmptyResults(ThemeData theme, bool isDark, String query) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xl,
-        vertical: AppSpacing.xxxl,
-      ),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
-        borderRadius: BorderRadius.circular(AppRadii.xl),
-        border: Border.all(
-          color: isDark ? AppColors.outline : AppColors.lightOutline,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
+      child: SizedBox(
+        width: double.infinity,
+        child: Column(
+          children: [
+            Icon(
+              LucideIcons.searchX,
+              size: 40,
+              color: isDark ? Colors.white : theme.colorScheme.onSurface,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              'لم نجد خدمة مطابقة لـ «$query»',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'جرّب كلمة أخرى أو أرفق صورة للبحث بها.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                height: 1.6,
+              ),
+            ),
+          ],
         ),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            LucideIcons.searchX,
-            size: 40,
-            color: isDark ? Colors.white : theme.colorScheme.onSurface,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            'لم نجد خدمة مطابقة لـ «$query»',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'جرّب كلمة أخرى أو أرفق صورة للبحث بها.',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              height: 1.6,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1027,15 +1082,8 @@ class _ServiceResultTile extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final fg = isDark ? Colors.white : theme.colorScheme.onSurface;
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
-        borderRadius: BorderRadius.circular(AppRadii.lg),
-        border: Border.all(
-          color: isDark ? AppColors.outline : AppColors.lightOutline,
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: Row(
         children: [
           Icon(MockData.getIconByName(service.iconName), color: fg, size: 24),
@@ -1067,3 +1115,264 @@ class _ServiceResultTile extends StatelessWidget {
     );
   }
 }
+
+/// ★ تظهر النتائج بصعود وتلاشي متتابع.
+class _FadeInUp extends StatelessWidget {
+  final Widget child;
+  final Duration delay;
+
+  const _FadeInUp({required this.child, this.delay = Duration.zero});
+
+  @override
+  Widget build(BuildContext context) {
+    final total = delay.inMilliseconds + 450;
+    final begin = delay.inMilliseconds / total;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: Duration(milliseconds: total),
+      child: child,
+      builder: (_, v, child) {
+        final t = Interval(begin, 1, curve: Curves.easeOutCubic).transform(v);
+        return Opacity(
+          opacity: t,
+          child: Transform.translate(offset: Offset(0, 16 * (1 - t)), child: child),
+        );
+      },
+    );
+  }
+}
+
+/// فقاعة رسالة المستخدم (كما في تطبيقات الدردشة).
+class _UserBubble extends StatelessWidget {
+  final String text;
+
+  const _UserBubble({super.key, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: _FadeInUp(
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.8,
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(text, style: theme.textTheme.bodyLarge),
+        ),
+      ),
+    );
+  }
+}
+
+
+/// ★ رد الذكاء الاصطناعي أثناء التفكير: كرة نابضة، نص لامع متبدّل،
+/// وخطوات تظهر تباعاً (سبينر ← علامة صح).
+class _AiThinking extends StatefulWidget {
+  final String query;
+
+  const _AiThinking({required this.query});
+
+  @override
+  State<_AiThinking> createState() => _AiThinkingState();
+}
+
+class _AiThinkingState extends State<_AiThinking>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1800),
+  )..repeat();
+  Timer? _timer;
+  int _step = 0;
+
+  List<String> get _steps => [
+        'أحلّل طلبك «${widget.query}»',
+        'أبحث في الخدمات المتاحة',
+        'أقارن العروض والخيارات القريبة',
+        'أرتّب أفضل النتائج لك',
+      ];
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(milliseconds: 750), (_) {
+      if (!mounted) return;
+      if (_step < _steps.length) setState(() => _step++);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _c.dispose();
+    super.dispose();
+  }
+
+  Widget _orb(Color bg, Color fg) {
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, __) {
+        final a = _c.value * 2 * math.pi;
+        return Transform.scale(
+          scale: 1 + 0.08 * math.sin(a),
+          child: SizedBox(
+            width: 36,
+            height: 36,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Transform.rotate(
+                  angle: a,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: SweepGradient(
+                        colors: [
+                          AppColors.accentPrimary,
+                          const Color(0xFF8E7BFF),
+                          const Color(0xFF2FD1FF),
+                          AppColors.accentPrimary,
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.accentPrimary.withValues(alpha: 0.35),
+                          blurRadius: 18,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 29,
+                  height: 29,
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: bg),
+                ),
+                Icon(LucideIcons.sparkles, size: 15, color: fg),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final bg = isDark ? AppColors.background : AppColors.lightBackground;
+    final fg = isDark ? Colors.white : theme.colorScheme.onSurface;
+    final muted = theme.colorScheme.onSurfaceVariant;
+    final steps = _steps;
+    final title = _step == 0
+        ? 'أفكر… انتظر قليلاً'
+        : steps[(_step - 1).clamp(0, steps.length - 1)];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            _orb(bg, fg),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 350),
+                layoutBuilder: (current, previous) => Stack(
+                  alignment: AlignmentDirectional.centerStart,
+                  children: [...previous, if (current != null) current],
+                ),
+                transitionBuilder: (child, anim) => FadeTransition(
+                  opacity: anim,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 0.5),
+                      end: Offset.zero,
+                    ).animate(anim),
+                    child: child,
+                  ),
+                ),
+                child: AnimatedBuilder(
+                  key: ValueKey(title),
+                  animation: _c,
+                  builder: (_, __) {
+                    final x = _c.value * 3 - 1;
+                    return ShaderMask(
+                      blendMode: BlendMode.srcIn,
+                      shaderCallback: (r) => LinearGradient(
+                        begin: Alignment(x - 0.6, 0),
+                        end: Alignment(x + 0.6, 0),
+                        colors: [muted, fg, muted],
+                      ).createShader(r),
+                      child: Text(
+                        title,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        for (var i = 0; i < steps.length; i++)
+          AnimatedOpacity(
+            duration: const Duration(milliseconds: 300),
+            opacity: i <= _step ? 1 : 0,
+            child: AnimatedSlide(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+              offset: i <= _step ? Offset.zero : const Offset(0, 0.4),
+              child: Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.sm),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: i < _step
+                          ? Icon(
+                              LucideIcons.check,
+                              size: 16,
+                              color: AppColors.accentPrimary,
+                            )
+                          : i == _step
+                              ? CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: muted,
+                                )
+                              : const SizedBox.shrink(),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        steps[i],
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: i < _step ? muted : fg,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
