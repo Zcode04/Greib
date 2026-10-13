@@ -405,6 +405,13 @@ class _SearchScreenState extends State<SearchScreen> {
                   size: 20,
                   onTap: _startVoiceSearch,
                 ),
+                _BarIconButton(
+                  icon: LucideIcons.squarePen,
+                  tooltip: 'محادثة جديدة',
+                  color: muted,
+                  size: 20,
+                  onTap: _resetSearch,
+                ),
                 const SizedBox(width: 4),
                 _ActionCircle(
                   canSend: canSend,
