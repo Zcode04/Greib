@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -28,6 +29,19 @@ class _SearchScreenState extends State<SearchScreen> {
   File? _attachment;
   String _attachmentSource = 'المعرض';
   bool _busy = false;
+
+  /// تُصبح true بعد انتهاء أنميشن الجملة، فتظهر الاقتراحات.
+  bool _welcomeDone = false;
+
+  /// اقتراحات البحث السريع (عدّلها حسب خدماتك).
+  static const _suggestions = [
+    'عروض اليوم',
+    'توصيل سريع',
+    'خدمات الصيانة',
+    'التنظيف المنزلي',
+    'الأجهزة الإلكترونية',
+    'الأكثر طلباً',
+  ];
 
   @override
   void initState() {
@@ -101,7 +115,6 @@ class _SearchScreenState extends State<SearchScreen> {
   Future<void> _submit() async {
     final file = _attachment;
     if (file == null) {
-      // بحث نصي: نُسجّل العملية في السجل ثم نُنهي الكتابة.
       final q = _searchController.text.trim();
       if (q.isNotEmpty) SearchHistoryStore.instance.add(q);
       _focusNode.unfocus();
@@ -126,12 +139,12 @@ class _SearchScreenState extends State<SearchScreen> {
   void _openHistory() {
     Navigator.of(context)
         .push<String>(
-      MaterialPageRoute(builder: (_) => const SearchHistoryScreen()),
-    )
+          MaterialPageRoute(builder: (_) => const SearchHistoryScreen()),
+        )
         .then((query) {
-      if (!mounted || query == null || query.isEmpty) return;
-      _setQuery(query);
-    });
+          if (!mounted || query == null || query.isEmpty) return;
+          _setQuery(query);
+        });
   }
 
   // ───────────────────────── النتائج ─────────────────────────
@@ -157,6 +170,9 @@ class _SearchScreenState extends State<SearchScreen> {
     final isDark = theme.brightness == Brightness.dark;
     final query = _searchController.text.trim();
 
+    // عند الخروج من الترحيب يُعاد تشغيل الأنميشن في المرة القادمة.
+    if (query.isNotEmpty) _welcomeDone = false;
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -180,7 +196,6 @@ class _SearchScreenState extends State<SearchScreen> {
                         ScrollViewKeyboardDismissBehavior.onDrag,
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        // يسمح بتوسيط الترحيب عمودياً كما في تطبيقات الدردشة.
                         minHeight: constraints.maxHeight - AppSpacing.md * 2,
                       ),
                       child: query.isEmpty
@@ -203,7 +218,6 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _buildBottomInputBar(ThemeData theme, bool isDark) {
     final focused = _focusNode.hasFocus;
     final hasText = _searchController.text.trim().isNotEmpty;
-    // اقتراحات سريعة فوق الحقل في الحالة الابتدائية فقط.
     final showSuggestions = !focused && !hasText && _attachment == null;
 
     Widget above = const SizedBox(width: double.infinity);
@@ -262,9 +276,6 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  /// ★ حقل مطابق لتصميم منصات الدردشة بالذكاء الاصطناعي (صفّان):
-  ///   الصف العلوي: النص. الصف السفلي: كاميرا + صور في البداية، وفي النهاية
-  ///   مايك + دائرة (موجة صوتية زرقاء، أو سهم إرسال عند وجود محتوى).
   Widget _buildSearchField(ThemeData theme, bool isDark) {
     final focused = _focusNode.hasFocus;
     final canSend =
@@ -329,7 +340,7 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-             child: Row(
+            child: Row(
               children: [
                 const Spacer(),
                 _BarIconButton(
@@ -378,28 +389,35 @@ class _SearchScreenState extends State<SearchScreen> {
 
   // ───────────────────────── المحتوى ─────────────────────────
 
-  /// ★ ترحيب مركزي بأسلوب تطبيقات الدردشة.
+  /// ★ ترحيب: الجملة تُكشف كلمةً كلمة، ثم تظهر اقتراحات البحث السريع.
   Widget _buildWelcome(BuildContext context, ThemeData theme, bool isDark) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'ابحث لحظيًا عن كل ما في ذهنك،\nسواء على المستوى المحلي أو العالمي!',
-          textAlign: TextAlign.center,
+        _WordReveal(
+          text:
+              'ابحث لحظيًا عن كل ما في ذهنك،\nسواء على المستوى المحلي أو العالمي!',
           style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.w800,
             height: 1.5,
           ),
+          onDone: () {
+            if (mounted) setState(() => _welcomeDone = true);
+          },
         ),
-        const SizedBox(height: AppSpacing.md),
-        Text(
-          'في مختلف المجالات',
-          textAlign: TextAlign.center,
-          style: theme.textTheme.bodyLarge?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
+        const SizedBox(height: AppSpacing.lg),
+        if (_welcomeDone)
+          _StaggeredChips(
+            labels: _suggestions,
+            onTap: (s) {
+              _setQuery(s);
+              _focusNode.requestFocus();
+            },
+          )
+        else
+          // يحجز المساحة كي لا يقفز التصميم عند ظهور الاقتراحات.
+          const SizedBox(height: 90),
       ],
     );
   }
@@ -523,6 +541,175 @@ class _SearchScreenState extends State<SearchScreen> {
 
 // ═════════════════════════ مكوّنات مساعدة ═════════════════════════
 
+/// ★ كشف النص كلمةً كلمة: أول كلمتين معاً، ثم كل كلمة تصعد من الأسفل
+/// مع تلاشي وبلور يزول تدريجياً حتى تكتمل الجملة.
+class _WordReveal extends StatefulWidget {
+  final String text;
+  final TextStyle? style;
+  final int firstChunk;
+  final Duration step;
+  final Duration itemDuration;
+  final VoidCallback? onDone;
+
+  const _WordReveal({
+    required this.text,
+    this.style,
+    this.firstChunk = 2,
+    this.step = const Duration(milliseconds: 170),
+    this.itemDuration = const Duration(milliseconds: 650),
+    this.onDone,
+  });
+
+  @override
+  State<_WordReveal> createState() => _WordRevealState();
+}
+
+class _WordRevealState extends State<_WordReveal>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c;
+  late final List<List<String>> _lines;
+  late final int _totalMs;
+
+  @override
+  void initState() {
+    super.initState();
+    _lines = widget.text
+        .split('\n')
+        .map((l) => l.trim().split(RegExp(r'\s+')))
+        .toList();
+    final total = _lines.fold<int>(0, (s, l) => s + l.length);
+    final chunks = (total - widget.firstChunk + 1).clamp(1, total);
+    _totalMs =
+        widget.step.inMilliseconds * (chunks - 1) +
+        widget.itemDuration.inMilliseconds;
+    _c = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: _totalMs),
+    )..forward().whenComplete(() => widget.onDone?.call());
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  Widget _word(String w, int index) {
+    final chunk = (index - (widget.firstChunk - 1)).clamp(0, 1 << 20);
+    final start = chunk * widget.step.inMilliseconds / _totalMs;
+    final end = start + widget.itemDuration.inMilliseconds / _totalMs;
+    final curve = Interval(
+      start.clamp(0.0, 1.0),
+      end.clamp(0.0, 1.0),
+      curve: Curves.easeOutCubic,
+    );
+
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, __) {
+        final t = curve.transform(_c.value);
+        Widget child = Text(w, style: widget.style);
+        if (t < 1) {
+          final sigma = 6 * (1 - t);
+          child = ImageFiltered(
+            imageFilter: ImageFilter.blur(
+              sigmaX: sigma,
+              sigmaY: sigma,
+              tileMode: TileMode.decal,
+            ),
+            child: child,
+          );
+        }
+        return Opacity(
+          opacity: t,
+          child: Transform.translate(
+            offset: Offset(0, 18 * (1 - t)),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var i = 0;
+    return Column(
+      children: [
+        for (final line in _lines)
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 7,
+            runSpacing: 2,
+            children: [for (final w in line) _word(w, i++)],
+          ),
+      ],
+    );
+  }
+}
+
+/// ★ اقتراحات بحث سريعة تظهر بتتابع (صعود + تلاشي + تكبير خفيف).
+class _StaggeredChips extends StatefulWidget {
+  final List<String> labels;
+  final ValueChanged<String> onTap;
+
+  const _StaggeredChips({required this.labels, required this.onTap});
+
+  @override
+  State<_StaggeredChips> createState() => _StaggeredChipsState();
+}
+
+class _StaggeredChipsState extends State<_StaggeredChips>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: Duration(milliseconds: 400 + 90 * widget.labels.length),
+  )..forward();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final n = widget.labels.length;
+    final total = 400 + 90 * n;
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: AppSpacing.sm,
+      runSpacing: AppSpacing.sm,
+      children: [
+        for (var i = 0; i < n; i++)
+          AnimatedBuilder(
+            animation: _c,
+            builder: (_, child) {
+              final s = i * 90 / total;
+              final t = Interval(
+                s,
+                (s + 400 / total).clamp(0.0, 1.0),
+                curve: Curves.easeOutBack,
+              ).transform(_c.value);
+              return Opacity(
+                opacity: t.clamp(0.0, 1.0),
+                child: Transform.translate(
+                  offset: Offset(0, 14 * (1 - t)),
+                  child: Transform.scale(scale: 0.92 + 0.08 * t, child: child),
+                ),
+              );
+            },
+            child: _QuickChip(
+              icon: LucideIcons.search,
+              label: widget.labels[i],
+              onTap: () => widget.onTap(widget.labels[i]),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 /// زر أيقونة دائري 44×44 داخل شريط الإدخال.
 class _BarIconButton extends StatelessWidget {
   final IconData icon;
@@ -560,7 +747,7 @@ class _BarIconButton extends StatelessWidget {
   }
 }
 
-/// ★ الدائرة الأخيرة في الصف السفلي: موجة صوتية زرقاء، أو سهم إرسال.
+/// ★ الدائرة الأخيرة في الصف السفلي: موجة صوتية، أو سهم إرسال.
 class _ActionCircle extends StatelessWidget {
   final bool canSend;
   final bool isDark;
@@ -578,10 +765,9 @@ class _ActionCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // دائرة الإرسال فقط تُملأ بلون؛ أما وضع الصوت (موجة الصوت) فيظهر بلا خلفية
-    // ليطابق أيقونات الشريط الأخرى (الكاميرا/الصور/المايك) ويوحّد تجربة المستخدم.
-    final bg =
-        canSend ? (isDark ? Colors.white : Colors.black) : Colors.transparent;
+    final bg = canSend
+        ? (isDark ? Colors.white : Colors.black)
+        : Colors.transparent;
     return Tooltip(
       message: canSend ? 'إرسال' : 'وضع الصوت',
       child: Material(
@@ -614,17 +800,15 @@ class _ActionCircle extends StatelessWidget {
   }
 }
 
-/// أيقونة موجة صوتية (audio-lines) مرسومة يدوياً، تأخذ لون بقية أيقونات الشريط.
+/// أيقونة موجة صوتية (audio-lines) مرسومة يدوياً.
 class _WaveformIcon extends StatelessWidget {
   final Color color;
 
   const _WaveformIcon({this.color = const Color(0xFF2F9BFF)});
 
   @override
-  Widget build(BuildContext context) => CustomPaint(
-    size: const Size(22, 18),
-    painter: _WaveformPainter(color),
-  );
+  Widget build(BuildContext context) =>
+      CustomPaint(size: const Size(22, 18), painter: _WaveformPainter(color));
 }
 
 class _WaveformPainter extends CustomPainter {
@@ -654,7 +838,7 @@ class _WaveformPainter extends CustomPainter {
       oldDelegate.color != color;
 }
 
-/// اقتراح سريع فوق الحقل (بحث بالصوت / صور).
+/// اقتراح سريع (شريحة).
 class _QuickChip extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -707,7 +891,7 @@ class _QuickChip extends StatelessWidget {
   }
 }
 
-/// معاينة الصورة المرفقة مع زر إزالة (كما في تطبيقات الدردشة).
+/// معاينة الصورة المرفقة مع زر إزالة.
 class _AttachmentPreview extends StatelessWidget {
   final File file;
   final VoidCallback onRemove;
