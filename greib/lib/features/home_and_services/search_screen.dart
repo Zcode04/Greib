@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -30,11 +29,22 @@ class _SearchScreenState extends State<SearchScreen> {
     'سيارة إيجار',
   ];
 
+  /// الوسائط المرفقة (صورة) بانتظار الإرسال.
+  File? _attachment;
+  String _attachmentSource = 'المعرض';
+  bool _busy = false;
+
+  /// هل قائمة الوسائط (كاميرا / معرض) المنبثقة من زر «+» مفتوحة؟
+  bool _plusOpen = false;
+
+  /// وضع «البحث اللحظي» (زر الصاعقة) — نقطة ربط جاهزة.
+  bool _instantMode = false;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _focusNode.requestFocus();
+    _focusNode.addListener(() {
+      if (mounted) setState(() {});
     });
   }
 
@@ -53,45 +63,78 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() {});
   }
 
-  void _clearQuery() {
-    _searchController.clear();
-    setState(() {});
-    _focusNode.requestFocus();
-  }
+  // ───────────────────────── الوسائط ─────────────────────────
 
-  bool _busy = false;
-
-  /// ★ البحث بإرفاق صورة: يختار صورة من المعرض ثم يفتح شاشة البحث البصري
-  ///   مع تمرير نص الحقل (إن وُجد) كسياق إضافي للتحليل.
-  Future<void> _pickImageAndSearch() async {
+  /// يختار صورة (من المعرض أو الكاميرا) ويرفقها بالحقل كمعاينة.
+  Future<void> _pickMedia(ImageSource source) async {
     if (_busy) return;
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _plusOpen = false;
+    });
     try {
-      final f = await ImagePicker().pickImage(source: ImageSource.gallery);
+      final f = await ImagePicker().pickImage(source: source, imageQuality: 90);
       if (!mounted) return;
-      setState(() => _busy = false);
-      if (f == null) return;
-      final q = _searchController.text.trim();
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => VisualSearchAnalysisScreen(
-            imageFile: File(f.path),
-            sourceLabel: 'المعرض',
-            textQuery: q.isEmpty ? null : q,
-          ),
-        ),
-      );
+      setState(() {
+        _busy = false;
+        if (f != null) {
+          _attachment = File(f.path);
+          _attachmentSource = source == ImageSource.camera
+              ? 'الكاميرا'
+              : 'المعرض';
+        }
+      });
+      if (f != null) _focusNode.requestFocus();
     } catch (_) {
       if (!mounted) return;
       setState(() => _busy = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('تعذّر فتح المعرض — حاول مجدداً'),
+          content: Text('تعذّر الوصول إلى الوسائط — حاول مجدداً'),
           behavior: SnackBarBehavior.floating,
         ),
       );
     }
   }
+
+  void _removeAttachment() => setState(() => _attachment = null);
+
+  void _togglePlus() => setState(() => _plusOpen = !_plusOpen);
+
+  /// ★ البحث الصوتي — نقطة ربط جاهزة.
+  ///   لتفعيله أضف حزمة speech_to_text وضع النص الناتج عبر _setQuery(...).
+  void _startVoiceSearch() {
+    _focusNode.requestFocus();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('البحث الصوتي قيد التفعيل'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  /// إرسال: إن وُجدت صورة تُفتح شاشة البحث البصري، وإلا نُنهي الكتابة.
+  Future<void> _submit() async {
+    final file = _attachment;
+    if (file == null) {
+      _focusNode.unfocus();
+      return;
+    }
+    final q = _searchController.text.trim();
+    _focusNode.unfocus();
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => VisualSearchAnalysisScreen(
+          imageFile: file,
+          sourceLabel: _attachmentSource,
+          textQuery: q.isEmpty ? null : q,
+        ),
+      ),
+    );
+    if (mounted) setState(() => _attachment = null);
+  }
+
+  // ───────────────────────── النتائج ─────────────────────────
 
   List<ServiceCategory> get _results {
     final query = _searchController.text.trim().toLowerCase();
@@ -122,144 +165,272 @@ class _SearchScreenState extends State<SearchScreen> {
             : AppColors.lightBackground,
         appBar: const SuperHeader(title: 'البحث', showBackButton: true),
         body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.md,
-              AppSpacing.lg,
-              AppSpacing.xxxl,
+          child: Column(
+            children: [
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) => SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.md,
+                      AppSpacing.lg,
+                      AppSpacing.md,
+                    ),
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        // يسمح بتوسيط الترحيب عمودياً كما في تطبيقات الدردشة.
+                        minHeight: constraints.maxHeight - AppSpacing.md * 2,
+                      ),
+                      child: query.isEmpty
+                          ? Center(child: _buildWelcome(context, theme, isDark))
+                          : _buildResults(context, theme, isDark, query),
+                    ),
+                  ),
+                ),
+              ),
+              _buildBottomInputBar(theme, isDark),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ───────────────────────── شريط الإدخال ─────────────────────────
+
+  Widget _buildBottomInputBar(ThemeData theme, bool isDark) {
+    final focused = _focusNode.hasFocus;
+    final hasText = _searchController.text.trim().isNotEmpty;
+    // اقتراحات سريعة فوق الحقل في الحالة الابتدائية فقط.
+    final showSuggestions =
+        !focused && !hasText && _attachment == null && !_plusOpen;
+
+    Widget above = const SizedBox(width: double.infinity);
+    if (_plusOpen) {
+      above = Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+        child: _MediaPopover(
+          onCamera: () => _pickMedia(ImageSource.camera),
+          onGallery: () => _pickMedia(ImageSource.gallery),
+        ),
+      );
+    } else if (showSuggestions) {
+      above = Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+        child: Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: [
+            _QuickChip(
+              icon: LucideIcons.mic,
+              label: 'بحث بالصوت',
+              onTap: _startVoiceSearch,
             ),
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            _QuickChip(
+              icon: LucideIcons.image,
+              label: 'صور',
+              onTap: _busy ? null : () => _pickMedia(ImageSource.gallery),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.sm,
+        AppSpacing.lg,
+        AppSpacing.md,
+      ),
+      color: isDark ? AppColors.background : AppColors.lightBackground,
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topCenter,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 160),
+                child: KeyedSubtree(
+                  key: ValueKey(
+                    _plusOpen
+                        ? 'popover'
+                        : (showSuggestions ? 'chips' : 'none'),
+                  ),
+                  child: above,
+                ),
+              ),
+            ),
+            _buildSearchField(theme, isDark),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// ★ حقل مطابق لتصميم منصات الدردشة بالذكاء الاصطناعي (صفّان):
+  ///   الصف العلوي: النص. الصف السفلي: «+» في البداية، وفي النهاية
+  ///   صاعقة + مايك + دائرة (موجة صوتية زرقاء، أو سهم إرسال عند وجود محتوى).
+  Widget _buildSearchField(ThemeData theme, bool isDark) {
+    final focused = _focusNode.hasFocus;
+    final canSend =
+        _searchController.text.trim().isNotEmpty || _attachment != null;
+    final muted = theme.colorScheme.onSurfaceVariant;
+    final textStyle = theme.textTheme.bodyLarge ?? const TextStyle();
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOutCubic,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: focused
+              ? (isDark ? Colors.white24 : Colors.black26)
+              : (isDark ? AppColors.outline : AppColors.lightOutline),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_attachment != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              child: _AttachmentPreview(
+                file: _attachment!,
+                onRemove: _removeAttachment,
+              ),
+            ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              20,
+              _attachment != null ? 12 : 18,
+              20,
+              6,
+            ),
+            child: TextField(
+              controller: _searchController,
+              focusNode: _focusNode,
+              minLines: 1,
+              maxLines: 6,
+              keyboardType: TextInputType.multiline,
+              textInputAction: TextInputAction.newline,
+              onChanged: (_) => setState(() {}),
+              cursorColor: AppColors.accentPrimary,
+              style: textStyle,
+              decoration: InputDecoration(
+                hintText: _attachment != null
+                    ? 'أضف وصفاً للصورة (اختياري)...'
+                    : 'ابحث عن أي شيء...',
+                hintStyle: textStyle.copyWith(color: muted),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                filled: false,
+                isCollapsed: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+            child: Row(
               children: [
-                _buildSearchField(theme, isDark),
-                const SizedBox(height: AppSpacing.xl),
-                if (query.isEmpty)
-                  _buildWelcome(context, theme, isDark)
-                else
-                  _buildResults(context, theme, isDark, query),
+                _BarIconButton(
+                  icon: LucideIcons.plus,
+                  tooltip: 'إرفاق وسائط',
+                  color: muted,
+                  size: 24,
+                  turns: _plusOpen ? 0.125 : 0,
+                  onTap: _togglePlus,
+                ),
+                const Spacer(),
+                _BarIconButton(
+                  icon: LucideIcons.zap,
+                  tooltip: 'بحث لحظي',
+                  color: _instantMode ? AppColors.accentPrimary : muted,
+                  size: 20,
+                  onTap: () => setState(() => _instantMode = !_instantMode),
+                ),
+                _BarIconButton(
+                  icon: LucideIcons.mic,
+                  tooltip: 'بحث بالصوت',
+                  color: muted,
+                  size: 20,
+                  onTap: _startVoiceSearch,
+                ),
+                const SizedBox(width: 4),
+                _ActionCircle(
+                  canSend: canSend,
+                  isDark: isDark,
+                  onSend: _submit,
+                  onVoice: _startVoiceSearch,
+                ),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  /// ★ حقل بحث دائري (pill): حواف دائرية بالكامل + أيقونات بيضاء بلا خلفية.
-  Widget _buildSearchField(ThemeData theme, bool isDark) {
-    return TextField(
-      controller: _searchController,
-      focusNode: _focusNode,
-      textInputAction: TextInputAction.search,
-      onChanged: (_) => setState(() {}),
-      onSubmitted: (_) => _focusNode.unfocus(),
-      cursorColor: AppColors.accentPrimary,
-      style: theme.textTheme.bodyMedium,
-      decoration: InputDecoration(
-        hintText: 'ابحث عن خدمة أو نشاط...',
-        hintStyle: theme.textTheme.bodyMedium?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-        prefixIcon:
-            const Icon(LucideIcons.search, size: 20, color: Colors.white),
-        suffixIcon: _searchController.text.isEmpty
-            ? const Icon(LucideIcons.mic, size: 18, color: Colors.white)
-            : IconButton(
-                onPressed: _clearQuery,
-                tooltip: 'مسح البحث',
-                icon: const Icon(LucideIcons.x, size: 18, color: Colors.white),
-              ),
-        filled: true,
-        fillColor: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.lg,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.full),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.full),
-          borderSide: BorderSide(
-            color: isDark ? AppColors.outline : AppColors.lightOutline,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.full),
-          borderSide: const BorderSide(
-            color: AppColors.accentPrimary,
-            width: 1.5,
-          ),
-        ),
-      ),
-    );
-  }
+  // ───────────────────────── المحتوى ─────────────────────────
 
-  /// ★ ثلاث طرق للبحث: إرفاق صورة، البحث في الحقل، أو إرسال رسالة للوكيل.
-  Widget _buildSearchMethods(ThemeData theme, bool isDark) {
-    return Column(
-      children: [
-        _SearchMethodCard(
-          icon: LucideIcons.imagePlus,
-          title: 'إرفاق صورة والبحث',
-          subtitle: 'اختر صورة من المعرض لتحليلها وإيجاد ما يطابقها',
-          highlight: true,
-          busy: _busy,
-          onTap: _pickImageAndSearch,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        _SearchMethodCard(
-          icon: LucideIcons.textSearch,
-          title: 'البحث في الحقل',
-          subtitle: 'اكتب اسم الخدمة أو المنتج في الأعلى للبحث فوراً',
-          onTap: () => _focusNode.requestFocus(),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        _SearchMethodCard(
-          icon: LucideIcons.bot,
-          title: 'رسالة للوكيل',
-          subtitle: 'اطلب من المساعد الذكي «الحاذق» أن يبحث عنك',
-          onTap: () => context.push('/alhadheq'),
-        ),
-      ],
-    );
-  }
-
+  /// ★ ترحيب مركزي بأسلوب تطبيقات الدردشة.
   Widget _buildWelcome(BuildContext context, ThemeData theme, bool isDark) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildSectionTitle(
-          icon: LucideIcons.sparkles,
-          title: 'مرحباً بك في البحث',
-          subtitle: 'اكتشف كل خدماتك بسرعة وسهولة',
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        _buildSearchMethods(theme, isDark),
-        const SizedBox(height: AppSpacing.xl),
-        _buildSectionTitle(
-          icon: LucideIcons.clock3,
-          title: 'عمليات البحث الأخيرة',
-          subtitle: 'تابع من حيث توقفت',
-          trailing: TextButton(
-            onPressed: () => setState(_recentSearches.clear),
-            child: const Text('مسح الكل'),
+        Text(
+          'ابحث لحظيًا عن كل ما في ذهنك،\nسواء على المستوى المحلي أو العالمي!',
+          textAlign: TextAlign.center,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w800,
+            height: 1.5,
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
-          children: _recentSearches
-              .map(
-                (search) =>
-                    _SearchChip(label: search, onTap: () => _setQuery(search)),
-              )
-              .toList(),
+        Text(
+          'في مختلف المجالات',
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
+        if (_recentSearches.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.xxxl),
+          _buildSectionTitle(
+            icon: LucideIcons.clock3,
+            title: 'عمليات البحث الأخيرة',
+            subtitle: 'تابع من حيث توقفت',
+            trailing: TextButton(
+              onPressed: () => setState(_recentSearches.clear),
+              child: const Text('مسح الكل'),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: _recentSearches
+                .map(
+                  (search) => _SearchChip(
+                    label: search,
+                    onTap: () => _setQuery(search),
+                  ),
+                )
+                .toList(),
+          ),
+        ],
       ],
     );
   }
@@ -295,7 +466,6 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  /// ★ عنوان قسم مبسّط: أيقونة بيضاء بلا خلفية + عنوان + وصف فرعي.
   Widget _buildSectionTitle({
     required IconData icon,
     required String title,
@@ -303,10 +473,15 @@ class _SearchScreenState extends State<SearchScreen> {
     Widget? trailing,
   }) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: Colors.white),
+        Icon(
+          icon,
+          size: 20,
+          color: isDark ? Colors.white : theme.colorScheme.onSurface,
+        ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Column(
@@ -349,7 +524,11 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
       child: Column(
         children: [
-          const Icon(LucideIcons.searchX, size: 40, color: Colors.white),
+          Icon(
+            LucideIcons.searchX,
+            size: 40,
+            color: isDark ? Colors.white : theme.colorScheme.onSurface,
+          ),
           const SizedBox(height: AppSpacing.lg),
           Text(
             'لم نجد خدمة مطابقة لـ «$query»',
@@ -360,7 +539,7 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'جرّب كلمة أخرى أو اختر خدمة من التصنيفات أعلاه.',
+            'جرّب كلمة أخرى أو أرفق صورة للبحث بها.',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
@@ -373,82 +552,93 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 }
 
-class _SearchMethodCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-  final bool highlight;
-  final bool busy;
+// ═════════════════════════ مكوّنات مساعدة ═════════════════════════
 
-  const _SearchMethodCard({
+/// زر أيقونة دائري 44×44 داخل شريط الإدخال.
+class _BarIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final Color color;
+  final double size;
+  final double turns;
+  final String? tooltip;
+
+  const _BarIconButton({
     required this.icon,
-    required this.title,
-    required this.subtitle,
     required this.onTap,
-    this.highlight = false,
-    this.busy = false,
+    required this.color,
+    this.size = 20,
+    this.turns = 0,
+    this.tooltip,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    return Material(
-      color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
-      borderRadius: BorderRadius.circular(AppRadii.lg),
-      child: InkWell(
-        onTap: busy ? null : onTap,
-        borderRadius: BorderRadius.circular(AppRadii.lg),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadii.lg),
-            border: Border.all(
-              color: highlight
-                  ? AppColors.accentPrimary.withValues(alpha: 0.45)
-                  : (isDark ? AppColors.outline : AppColors.lightOutline),
-              width: highlight ? 1.5 : 1,
+    final button = SizedBox(
+      width: 44,
+      height: 44,
+      child: Material(
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: Center(
+            child: AnimatedRotation(
+              turns: turns,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOutCubic,
+              child: Icon(icon, size: size, color: color),
             ),
           ),
-          child: Row(
-            children: [
-              busy
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
+    );
+    return tooltip == null ? button : Tooltip(message: tooltip!, child: button);
+  }
+}
+
+/// ★ الدائرة الأخيرة في الصف السفلي: موجة صوتية زرقاء، أو سهم إرسال.
+class _ActionCircle extends StatelessWidget {
+  final bool canSend;
+  final bool isDark;
+  final VoidCallback onSend;
+  final VoidCallback onVoice;
+
+  const _ActionCircle({
+    required this.canSend,
+    required this.isDark,
+    required this.onSend,
+    required this.onVoice,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = canSend
+        ? (isDark ? Colors.white : Colors.black)
+        : (isDark ? const Color(0xFF0F0F0F) : const Color(0xFFE9E9E9));
+    return Tooltip(
+      message: canSend ? 'إرسال' : 'وضع الصوت',
+      child: Material(
+        color: bg,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: canSend ? onSend : onVoice,
+          child: SizedBox(
+            width: 42,
+            height: 42,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 160),
+              child: canSend
+                  ? Icon(
+                      LucideIcons.arrowUp,
+                      key: const ValueKey('send'),
+                      size: 20,
+                      color: isDark ? Colors.black : Colors.white,
                     )
-                  : Icon(icon, color: Colors.white, size: 24),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Icon(
-                LucideIcons.chevronLeft,
-                size: 18,
-                color: Colors.white,
-              ),
-            ],
+                  : const Center(key: ValueKey('wave'), child: _WaveformIcon()),
+            ),
           ),
         ),
       ),
@@ -456,15 +646,114 @@ class _SearchMethodCard extends StatelessWidget {
   }
 }
 
-class _SearchChip extends StatelessWidget {
-  final String label;
-  final VoidCallback onTap;
+/// أيقونة موجة صوتية زرقاء مرسومة يدوياً.
+class _WaveformIcon extends StatelessWidget {
+  const _WaveformIcon();
 
-  const _SearchChip({required this.label, required this.onTap});
+  @override
+  Widget build(BuildContext context) =>
+      CustomPaint(size: const Size(22, 18), painter: _WaveformPainter());
+}
+
+class _WaveformPainter extends CustomPainter {
+  static const _bars = [0.35, 0.6, 0.95, 0.7, 1.0, 0.55, 0.4];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF2F9BFF)
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
+    final step = size.width / (_bars.length - 1);
+    for (var i = 0; i < _bars.length; i++) {
+      final x = i * step;
+      final h = size.height * _bars[i];
+      final top = (size.height - h) / 2;
+      canvas.drawLine(Offset(x, top + 1), Offset(x, top + h - 1), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// ★ القائمة المنبثقة من زر «+»: أيقونة لالتقاط صورة وأخرى للرفع من المعرض.
+class _MediaPopover extends StatelessWidget {
+  final VoidCallback onCamera;
+  final VoidCallback onGallery;
+
+  const _MediaPopover({required this.onCamera, required this.onGallery});
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final fg = isDark ? Colors.white : theme.colorScheme.onSurface;
+
+    Widget item(IconData icon, String tooltip, VoidCallback onTap) {
+      return Tooltip(
+        message: tooltip,
+        child: Material(
+          color: AppColors.accentPrimary.withValues(alpha: 0.14),
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onTap,
+            child: SizedBox(
+              width: 46,
+              height: 46,
+              child: Icon(icon, size: 21, color: fg),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
+        borderRadius: BorderRadius.circular(AppRadii.full),
+        border: Border.all(
+          color: isDark ? AppColors.outline : AppColors.lightOutline,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          item(LucideIcons.camera, 'التقاط صورة', onCamera),
+          const SizedBox(width: AppSpacing.sm),
+          item(LucideIcons.image, 'رفع من المعرض', onGallery),
+        ],
+      ),
+    );
+  }
+}
+
+/// اقتراح سريع فوق الحقل (بحث بالصوت / صور).
+class _QuickChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+
+  const _QuickChip({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final fg = isDark ? Colors.white : theme.colorScheme.onSurface;
     return Material(
       color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
       borderRadius: BorderRadius.circular(AppRadii.full),
@@ -485,7 +774,101 @@ class _SearchChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(LucideIcons.history, size: 15, color: Colors.white),
+              Icon(icon, size: 16, color: fg),
+              const SizedBox(width: AppSpacing.xs),
+              Text(
+                label,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// معاينة الصورة المرفقة مع زر إزالة (كما في تطبيقات الدردشة).
+class _AttachmentPreview extends StatelessWidget {
+  final File file;
+  final VoidCallback onRemove;
+
+  const _AttachmentPreview({required this.file, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: Image.file(
+            file,
+            width: 72,
+            height: 72,
+            fit: BoxFit.cover,
+            cacheWidth: 216,
+          ),
+        ),
+        PositionedDirectional(
+          top: -6,
+          end: -6,
+          child: GestureDetector(
+            onTap: onRemove,
+            child: Container(
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white24),
+              ),
+              child: const Icon(LucideIcons.x, size: 13, color: Colors.white),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SearchChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _SearchChip({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Material(
+      color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
+      borderRadius: BorderRadius.circular(AppRadii.full),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadii.full),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadii.full),
+            border: Border.all(
+              color: isDark ? AppColors.outline : AppColors.lightOutline,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                LucideIcons.history,
+                size: 15,
+                color: isDark ? Colors.white : theme.colorScheme.onSurface,
+              ),
               const SizedBox(width: AppSpacing.xs),
               Text(label),
             ],
@@ -505,6 +888,7 @@ class _ServiceResultTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final fg = isDark ? Colors.white : theme.colorScheme.onSurface;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -516,11 +900,7 @@ class _ServiceResultTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            MockData.getIconByName(service.iconName),
-            color: Colors.white,
-            size: 24,
-          ),
+          Icon(MockData.getIconByName(service.iconName), color: fg, size: 24),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
@@ -543,7 +923,7 @@ class _ServiceResultTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
-          const Icon(LucideIcons.chevronLeft, size: 18, color: Colors.white),
+          Icon(LucideIcons.chevronLeft, size: 18, color: fg),
         ],
       ),
     );
