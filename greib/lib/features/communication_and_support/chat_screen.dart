@@ -546,59 +546,113 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   final ValueNotifier<String?> _currentlyPlayingId = ValueNotifier(null);
 
   final List<Map<String, dynamic>> _messages = [
+    // ★ تسلسل يحاكي نفس فكرة الصورة: فويسات متبادلة + سجل مكالمة + رد + فاصل يوم.
     {
       'id': 'm1',
-      'sender': 'أحمد محمد',
-      'content': 'مرحباً، متى يوصل طلب الطعام؟',
-      'time': '10:30 صباحاً',
-      'isMine': false,
-    },
-    {
-      'id': 'm2',
-      'sender': 'دعم گريب منك',
-      'content': 'أهلاً بك، طلبك في الطريق الآن 🚀',
-      'time': '10:32 صباحاً',
-      'isMine': true,
-    },
-    {
-      'id': 'm3',
-      'sender': 'أحمد محمد',
-      'content': 'شكراً جزيلاً!',
-      'time': '10:33 صباحاً',
-      'isMine': false,
-    },
-    {
-      'id': 'm4',
-      'sender': 'دعم گريب منك',
-      'content': 'العفو، نحن في الخدمة 🤝',
-      'time': '10:35 صباحاً',
-      'isMine': true,
-    },
-    {
-      'id': 'm5',
-      'sender': 'أحمد محمد',
-      'content': 'كم باقي على التوصيل',
-      'time': '10:40 صباحاً',
-      'isMine': false,
-    },
-    {
-      'id': 'm6',
-      'sender': 'دعم گريب منك',
-      'content': 'طلبك في الطريق، سيصل خلال ١٠ دقائق إن شاء الله ⏱️',
-      'time': '10:42 صباحاً',
-      'isMine': true,
-    },
-    // Demo voice message with no real audio file — tapping it explains
-    // that only messages recorded in-app have real playback.
-    {
-      'id': 'm7',
-      'sender': 'أحمد محمد',
+      'sender': 'أنت',
       'content': '',
       'isVoice': true,
       'audioPath': null,
-      'duration': 17,
-      'time': '10:44 صباحاً',
+      'duration': 6,
+      'time': '2:20 م',
+      'isMine': true,
+      'isListened': true,
+      'avatarText': '🌙',
+    },
+    {
+      'id': 'm2',
+      'sender': 'Di',
+      'content': '',
+      'isVoice': true,
+      'audioPath': null,
+      'duration': 3,
+      'time': '7:31 م',
       'isMine': false,
+      'isListened': false,
+      'avatarText': '👤',
+    },
+    {
+      'id': 'call1',
+      'isCallLog': true,
+      'callTitle': 'مكالمة صوتية',
+      'callDuration': '23 ث',
+      'time': '7:31 م',
+      'isMine': false,
+    },
+    {
+      'id': 'm3',
+      'sender': 'أنت',
+      'content': '',
+      'isVoice': true,
+      'audioPath': null,
+      'duration': 44,
+      'time': '7:59 م',
+      'isMine': true,
+      'isListened': true,
+      'avatarText': '🌙',
+    },
+    {
+      'id': 'm4',
+      'sender': 'Di',
+      'content': '',
+      'isVoice': true,
+      'audioPath': null,
+      'duration': 3,
+      'time': '8:02 م',
+      'isMine': false,
+      'isListened': false,
+      'avatarText': '👤',
+    },
+    {
+      'id': 'm5',
+      'sender': 'أنت',
+      'content': '',
+      'isVoice': true,
+      'audioPath': null,
+      'duration': 15,
+      'time': '8:03 م',
+      'isMine': true,
+      'isListened': true,
+      'avatarText': '🌙',
+      'quoted': {
+        'sender': 'Di',
+        'content': '',
+        'isVoice': true,
+        'duration': 3,
+        'time': '8:02 م',
+      },
+    },
+    {
+      'id': 'm6',
+      'sender': 'أنت',
+      'content': '',
+      'isVoice': true,
+      'audioPath': null,
+      'duration': 15,
+      'time': '8:23 م',
+      'isMine': true,
+      'isListened': true,
+      'avatarText': '🌙',
+    },
+    {
+      'id': 'm7',
+      'sender': 'أنت',
+      'content': '',
+      'isVoice': true,
+      'audioPath': null,
+      'duration': 16,
+      'time': '8:23 م',
+      'isMine': true,
+      'isListened': false,
+      'avatarText': '🌙',
+    },
+    {'id': 'day1', 'isDateDivider': true, 'label': 'السبت'},
+    {
+      'id': 'm8',
+      'sender': 'أنت',
+      'content': '26129374',
+      'time': '8:08 م',
+      'isMine': true,
     },
   ];
 
@@ -960,6 +1014,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
         'duration': duration,
         'time': 'الآن',
         'isMine': true,
+        'isListened': true,
+        'avatarText': '🌙',
         // ★ إن بقي مرفق المنشور ⇒ يُرسَلان معاً (صورة + تفاصيل + تسجيل صوتي).
         if (post != null) ...{
           'isPost': true,
@@ -1256,10 +1312,15 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
         setState(() {
           _messages.add({
             'id': 'm${DateTime.now().millisecondsSinceEpoch}',
-            'sender': 'دعم گريب منك',
-            'content': 'شكراً لتواصلك، سيتم الرد عليك قريباً 🙏',
+            'sender': 'Di',
+            'content': '',
+            'isVoice': true,
+            'audioPath': null,
+            'duration': 3,
             'time': 'الآن',
             'isMine': false,
+            'isListened': false,
+            'avatarText': '👤',
           });
         });
         _scrollToBottom();
@@ -1618,6 +1679,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   }
 
   Widget _buildMessageBubble(ThemeData theme, Map<String, dynamic> msg) {
+    // ★ فواصل الأيام وسجلات المكالمات تُرسم بدون فقاعة واتساب المعتادة.
+    if (msg['isDateDivider'] as bool? ?? false) {
+      return _DateDividerPill(label: (msg['label'] as String?) ?? '');
+    }
+    if (msg['isCallLog'] as bool? ?? false) {
+      return _InlineCallLogTile(
+        title: (msg['callTitle'] as String?) ?? 'مكالمة صوتية',
+        duration: msg['callDuration'] as String?,
+        time: (msg['time'] as String?) ?? '',
+        isMine: msg['isMine'] as bool? ?? false,
+      );
+    }
     final isMine = msg['isMine'] as bool;
     final isVoice = msg['isVoice'] as bool? ?? false;
     final isImage = msg['isImage'] as bool? ?? false;
@@ -1638,6 +1711,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   }
 
   void _startReply(Map<String, dynamic> msg) {
+    if (msg['isDateDivider'] as bool? ?? false) return;
+    if (msg['isCallLog'] as bool? ?? false) return;
     setState(() => _replyingTo = Map<String, dynamic>.from(msg));
   }
 
@@ -1710,6 +1785,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
         durationSeconds: msg['duration'] as int? ?? 0,
         isMine: isMine,
         time: msg['time'] as String,
+        isListened: msg['isListened'] as bool? ?? true,
+        avatarText: msg['avatarText'] as String?,
         currentlyPlayingId: _currentlyPlayingId,
       );
     } else {
@@ -1843,6 +1920,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
               durationSeconds: msg['duration'] as int? ?? 0,
               isMine: isMine,
               time: msg['time'] as String,
+              isListened: msg['isListened'] as bool? ?? true,
+              avatarText: msg['avatarText'] as String?,
               currentlyPlayingId: _currentlyPlayingId,
             ),
           )
@@ -2246,7 +2325,8 @@ class _BubbleQuoted extends StatelessWidget {
     String label = content;
     if (isVoice) {
       typeIcon = LucideIcons.mic;
-      label = 'رسالة صوتية';
+      final duration = quoted['duration'] as int?;
+      label = duration != null ? 'رسالة صوتية (0:${duration.toString().padLeft(2, '0')})' : 'رسالة صوتية';
     } else if (isImage) {
       typeIcon = LucideIcons.image;
       label = content.isEmpty ? 'صورة' : content;
@@ -2519,12 +2599,17 @@ class _SlideToCancelState extends State<_SlideToCancel>
 /// play/pause, live progress against the actual audio position, tap on
 /// the waveform to seek, and automatic pause when another bubble starts
 /// playing.
+///
+/// ★ يطابق فكرة الصورة المرسلة: أفاتار دائري بطرف الفقاعة مع شارة مايك،
+/// نقطة زرقاء للرسائل غير المستمعة، وموجات صوتية رفيعة بأسلوب واتساب.
 class _VoiceMessageBubble extends StatefulWidget {
   final String id;
   final String? audioPath;
   final int durationSeconds;
   final bool isMine;
   final String time;
+  final bool isListened;
+  final String? avatarText;
   final ValueNotifier<String?> currentlyPlayingId;
 
   const _VoiceMessageBubble({
@@ -2533,6 +2618,8 @@ class _VoiceMessageBubble extends StatefulWidget {
     required this.durationSeconds,
     required this.isMine,
     required this.time,
+    this.isListened = true,
+    this.avatarText,
     required this.currentlyPlayingId,
   });
 
@@ -2674,59 +2761,48 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
     final remainingSeconds = remaining.isNegative ? 0 : remaining.inSeconds;
 
     final chat = context.chatColors;
-    final bubbleColor = isMine ? chat.bubbleMine : chat.bubbleTheirs;
     final onBubble = isMine ? chat.bubbleMineText : chat.bubbleTheirsText;
-    final playedColor = isMine ? chat.bubbleMineText : chat.sendButton;
-    final unplayedColor = (isMine ? chat.bubbleMineText : chat.sendButton)
-        .withValues(alpha: 0.35);
+    final playedColor = isMine ? onBubble : chat.tickRead;
+    final unplayedColor = onBubble.withValues(alpha: 0.35);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: bubbleColor,
-        borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(AppRadii.lg),
-          topRight: const Radius.circular(AppRadii.lg),
-          bottomLeft: isMine
-              ? const Radius.circular(AppRadii.lg)
-              : const Radius.circular(AppRadii.xs),
-          bottomRight: isMine
-              ? const Radius.circular(AppRadii.xs)
-              : const Radius.circular(AppRadii.lg),
-        ),
-      ),
+    return Directionality(
+      textDirection: TextDirection.ltr,
       child: Row(
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          GestureDetector(
-            onTap: _togglePlay,
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: onBubble.withValues(alpha: 0.15),
-              ),
-              child: _isLoading
-                  ? Padding(
-                      padding: const EdgeInsets.all(9),
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: onBubble,
-                      ),
-                    )
-                  : Icon(
-                      _isPlaying ? LucideIcons.pause : LucideIcons.play,
-                      color: onBubble,
-                      size: 18,
-                    ),
+          SizedBox(
+            width: 38,
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                GestureDetector(
+                  onTap: _togglePlay,
+                  child: _isLoading
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: onBubble,
+                          ),
+                        )
+                      : Icon(
+                          _isPlaying ? LucideIcons.pause : LucideIcons.play,
+                          color: onBubble.withValues(alpha: 0.92),
+                          size: 30,
+                        ),
+                ),
+                if (!widget.isListened && !_isPlaying)
+                  const Positioned(
+                    left: -2,
+                    top: 6,
+                    child: _UnreadDot(),
+                  ),
+              ],
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
 
           // الموجة تتمدّد تلقائياً حسب المساحة المتاحة داخل الفقاعة، مع حد
           // أقصى معقول على الشاشات العريضة (تابلت) لتفادي التمدد المبالغ.
@@ -2756,42 +2832,28 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
                           _seekToFraction(fraction);
                         },
                         child: SizedBox(
-                          height: 26,
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: List.generate(_barCount, (i) {
-                                  final played = i <= playedBars;
-                                  return Container(
-                                    width: 2.4,
-                                    height: _bars[i],
-                                    decoration: BoxDecoration(
-                                      color: played
-                                          ? playedColor
-                                          : unplayedColor,
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  );
-                                }),
-                              ),
-                              // Visible playhead that reflects the current position.
-                              Positioned(
-                                left: playedFraction * (width - 2.4),
-                                top: -2,
-                                bottom: -2,
-                                child: Container(
-                                  width: 2.4,
-                                  decoration: BoxDecoration(
-                                    color: playedColor,
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
+                          height: 30,
+                          child: Row(
+                            mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: List.generate(_barCount, (i) {
+                              final played = i <= playedBars;
+                              final waveScale =
+                                  0.45 + 0.55 * (0.5 + 0.5 * (i % 7) / 6);
+                              final h = (_bars[i] * waveScale)
+                                  .clamp(3.0, 26.0);
+                              return Container(
+                                width: 2.2,
+                                height: h,
+                                decoration: BoxDecoration(
+                                  color: played
+                                      ? playedColor
+                                      : unplayedColor,
+                                  borderRadius: BorderRadius.circular(2),
                                 ),
-                              ),
-                            ],
+                              );
+                            }),
                           ),
                         ),
                       ),
@@ -2808,8 +2870,8 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: onBubble.withValues(alpha: 0.8),
-                                fontSize: 11,
+                                color: onBubble.withValues(alpha: 0.72),
+                                fontSize: 11.5,
                               ),
                             ),
                           ),
@@ -2828,10 +2890,9 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
                           ),
                           if (isMine) ...[
                             const SizedBox(width: 3),
-                            Icon(
-                              LucideIcons.checkCheck,
-                              size: 12,
-                              color: onBubble.withValues(alpha: 0.85),
+                            WhatsAppTicks(
+                              isRead: widget.isListened,
+                              size: 14,
                             ),
                           ],
                         ],
@@ -2842,30 +2903,11 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
               ),
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: 8),
 
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              // ★ تدرّج الهوية من اللوحة المركزية (Color Palette).
-              gradient: LinearGradient(
-                colors: [
-                  context.chatColors.sendButton,
-                  context.chatColors.recordingWavePlayed,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Center(
-              child: Icon(
-                LucideIcons.mic,
-                color: context.chatColors.sendIcon,
-                size: 15,
-              ),
-            ),
+          _VoiceAvatarBadge(
+            avatarText: widget.avatarText,
+            isMine: isMine,
           ),
         ],
       ),
@@ -2877,6 +2919,192 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
     final m = (s ~/ 60).toString().padLeft(2, '0');
     final r = (s % 60).toString().padLeft(2, '0');
     return '$m:$r';
+  }
+}
+
+/// ★ نقطة زرقاء صغيرة لغير المستمع مثل واتساب في الصورة.
+class _UnreadDot extends StatelessWidget {
+  const _UnreadDot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 9,
+      height: 9,
+      decoration: const BoxDecoration(
+        color: Color(0xFF38BDF8),
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+}
+
+/// ★ أفاتار دائري بطرف الفقاعة الصوتية مع شارة مايك زرقاء سفلية.
+class _VoiceAvatarBadge extends StatelessWidget {
+  final String? avatarText;
+  final bool isMine;
+
+  const _VoiceAvatarBadge({this.avatarText, required this.isMine});
+
+  @override
+  Widget build(BuildContext context) {
+    final chat = context.chatColors;
+    return SizedBox(
+      width: 38,
+      height: 46,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isMine
+                  ? chat.bubbleMineText.withValues(alpha: 0.16)
+                  : chat.bubbleTheirsText.withValues(alpha: 0.14),
+              image: null,
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              avatarText ?? (isMine ? '🌙' : '👤'),
+              style: const TextStyle(fontSize: 18),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: chat.tickRead,
+                border: Border.all(
+                  color: isMine ? chat.bubbleMine : chat.bubbleTheirs,
+                  width: 2,
+                ),
+              ),
+              child: const Icon(
+                LucideIcons.mic,
+                size: 9,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// ★ فاصل يوم دائري صغير مثل "السبت" في الصورة.
+class _DateDividerPill extends StatelessWidget {
+  final String label;
+
+  const _DateDividerPill({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final chat = context.chatColors;
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        decoration: BoxDecoration(
+          color: chat.bubbleTheirs.withValues(alpha: 0.85),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: chat.bubbleTheirsText.withValues(alpha: 0.75),
+            fontSize: 11.5,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// ★ سجل مكالمة داخل المحادثة مثل "مكالمة صوتية 23 ث" في الصورة.
+class _InlineCallLogTile extends StatelessWidget {
+  final String title;
+  final String? duration;
+  final String time;
+  final bool isMine;
+
+  const _InlineCallLogTile({
+    required this.title,
+    this.duration,
+    required this.time,
+    required this.isMine,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final chat = context.chatColors;
+    final onBubble = isMine ? chat.bubbleMineText : chat.bubbleTheirsText;
+    return Align(
+      alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 220),
+        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2.5),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isMine ? chat.bubbleMine : chat.bubbleTheirs,
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(16),
+            topRight: Radius.circular(isMine ? 3 : 16),
+            bottomLeft: Radius.circular(isMine ? 16 : 3),
+            bottomRight: const Radius.circular(16),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: onBubble,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    duration != null ? '$duration · $time' : time,
+                    style: TextStyle(
+                      color: onBubble.withValues(alpha: 0.65),
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: onBubble.withValues(alpha: 0.14),
+              ),
+              child: Icon(
+                LucideIcons.phone,
+                size: 16,
+                color: onBubble.withValues(alpha: 0.9),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
