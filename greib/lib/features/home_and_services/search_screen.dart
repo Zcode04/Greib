@@ -250,33 +250,6 @@ class _SearchScreenState extends State<SearchScreen> {
   // ───────────────────────── شريط الإدخال ─────────────────────────
 
   Widget _buildBottomInputBar(ThemeData theme, bool isDark) {
-    final focused = _focusNode.hasFocus;
-    final hasText = _searchController.text.trim().isNotEmpty;
-    final showSuggestions = !focused && !hasText && _attachment == null;
-
-    Widget above = const SizedBox(width: double.infinity);
-    if (showSuggestions) {
-      above = Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-        child: Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
-          children: [
-            _QuickChip(
-              icon: LucideIcons.mic,
-              label: 'بحث بالصوت',
-              onTap: _startVoiceSearch,
-            ),
-            _QuickChip(
-              icon: LucideIcons.image,
-              label: 'صور',
-              onTap: _busy ? null : () => _pickMedia(ImageSource.gallery),
-            ),
-          ],
-        ),
-      );
-    }
-
     return Container(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.lg,
@@ -291,19 +264,61 @@ class _SearchScreenState extends State<SearchScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AnimatedSize(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOutCubic,
-              alignment: Alignment.topCenter,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 160),
-                child: KeyedSubtree(
-                  key: ValueKey(showSuggestions ? 'chips' : 'none'),
-                  child: above,
-                ),
-              ),
-            ),
+            _buildToolbar(theme),
+            const SizedBox(height: AppSpacing.sm),
             _buildSearchField(theme, isDark),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// ★ شريط الأدوات فوق الحقل: رقائق سريعة + أيقونات الإجراءات،
+  /// فيبقى الحقل نفسه خفيفاً (نص + زر إرسال فقط) وأكثر احترافية.
+  Widget _buildToolbar(ThemeData theme) {
+    final muted = theme.colorScheme.onSurfaceVariant;
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      clipBehavior: Clip.none,
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Row(
+          children: [
+            _BarIconButton(
+              icon: LucideIcons.squarePen,
+              tooltip: 'محادثة جديدة',
+              color: muted,
+              size: 20,
+              buttonSize: 34,
+              onTap: _resetSearch,
+            ),
+            const SizedBox(width: 2),
+            _BarIconButton(
+              icon: LucideIcons.folderClock,
+              tooltip: 'سجل البحث',
+              color: muted,
+              size: 20,
+              buttonSize: 34,
+              onTap: _openHistory,
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            _QuickChip(
+              icon: LucideIcons.camera,
+              label: 'الكاميرا',
+              onTap: () => _pickMedia(ImageSource.camera),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            _QuickChip(
+              icon: LucideIcons.image,
+              label: 'صور',
+              onTap: _busy ? null : () => _pickMedia(ImageSource.gallery),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            _QuickChip(
+              icon: LucideIcons.mic,
+              label: 'بحث بالصوت',
+              onTap: _startVoiceSearch,
+            ),
           ],
         ),
       ),
@@ -377,42 +392,6 @@ class _SearchScreenState extends State<SearchScreen> {
             child: Row(
               children: [
                 const Spacer(),
-                _BarIconButton(
-                  icon: LucideIcons.history,
-                  tooltip: 'سجل البحث',
-                  color: muted,
-                  size: 20,
-                  onTap: _openHistory,
-                ),
-                _BarIconButton(
-                  icon: LucideIcons.camera,
-                  tooltip: 'التقاط صورة',
-                  color: muted,
-                  size: 20,
-                  onTap: () => _pickMedia(ImageSource.camera),
-                ),
-                _BarIconButton(
-                  icon: LucideIcons.image,
-                  tooltip: 'صور',
-                  color: muted,
-                  size: 20,
-                  onTap: () => _pickMedia(ImageSource.gallery),
-                ),
-                _BarIconButton(
-                  icon: LucideIcons.mic,
-                  tooltip: 'بحث بالصوت',
-                  color: muted,
-                  size: 20,
-                  onTap: _startVoiceSearch,
-                ),
-                _BarIconButton(
-                  icon: LucideIcons.squarePen,
-                  tooltip: 'محادثة جديدة',
-                  color: muted,
-                  size: 20,
-                  onTap: _resetSearch,
-                ),
-                const SizedBox(width: 4),
                 _ActionCircle(
                   canSend: canSend,
                   isDark: isDark,
@@ -860,6 +839,7 @@ class _BarIconButton extends StatelessWidget {
   final VoidCallback onTap;
   final Color color;
   final double size;
+  final double buttonSize;
   final String? tooltip;
 
   const _BarIconButton({
@@ -867,14 +847,15 @@ class _BarIconButton extends StatelessWidget {
     required this.onTap,
     required this.color,
     this.size = 20,
+    this.buttonSize = 44,
     this.tooltip,
   });
 
   @override
   Widget build(BuildContext context) {
     final button = SizedBox(
-      width: 44,
-      height: 44,
+      width: buttonSize,
+      height: buttonSize,
       child: Material(
         color: Colors.transparent,
         shape: const CircleBorder(),
