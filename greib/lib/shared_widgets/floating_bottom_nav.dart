@@ -158,13 +158,14 @@ class _NavTile extends StatelessWidget {
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOut,
-              width: selected ? 44 : 40,
-              height: selected ? 32 : 28,
+              width: selected ? 40 : 34,
+              height: selected ? 40 : 34,
               decoration: BoxDecoration(
+                // ★ خلفية دائرية كاملة (العرض = الارتفاع + shape = circle).
+                shape: BoxShape.circle,
                 color: selected
                     ? accent.withValues(alpha: isDark ? 0.2 : 0.12)
                     : Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
                 child: AnimatedScale(
