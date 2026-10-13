@@ -30,33 +30,6 @@ class _SearchScreenState extends State<SearchScreen> {
     'سيارة إيجار',
   ];
 
-  final List<_SearchCategory> _categories = const [
-    _SearchCategory(
-      label: 'المطاعم',
-      query: 'طعام',
-      icon: LucideIcons.utensils,
-      color: AppColors.serviceFood,
-    ),
-    _SearchCategory(
-      label: 'التوصيل',
-      query: 'توصيل',
-      icon: LucideIcons.package,
-      color: AppColors.serviceCourier,
-    ),
-    _SearchCategory(
-      label: 'الصيدلية',
-      query: 'صيدلية',
-      icon: LucideIcons.stethoscope,
-      color: AppColors.servicePharmacy,
-    ),
-    _SearchCategory(
-      label: 'التسوق',
-      query: 'تسوق',
-      icon: LucideIcons.shoppingBag,
-      color: AppColors.serviceShopping,
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -286,34 +259,6 @@ class _SearchScreenState extends State<SearchScreen> {
                     _SearchChip(label: search, onTap: () => _setQuery(search)),
               )
               .toList(),
-        ),
-        const SizedBox(height: AppSpacing.xxl),
-        _buildSectionTitle(
-          icon: LucideIcons.layoutGrid,
-          title: 'تصفح حسب الفئة',
-          subtitle: 'اختصارات سريعة للخدمات الأكثر استخداماً',
-        ),
-        const SizedBox(height: AppSpacing.md),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final spacing = AppSpacing.md;
-            final cardWidth = (constraints.maxWidth - spacing) / 2;
-            return Wrap(
-              spacing: spacing,
-              runSpacing: spacing,
-              children: _categories
-                  .map(
-                    (category) => SizedBox(
-                      width: cardWidth,
-                      child: _CategoryCard(
-                        category: category,
-                        onTap: () => _setQuery(category.query),
-                      ),
-                    ),
-                  )
-                  .toList(),
-            );
-          },
         ),
       ],
     );
@@ -551,50 +496,6 @@ class _SearchChip extends StatelessWidget {
   }
 }
 
-class _CategoryCard extends StatelessWidget {
-  final _SearchCategory category;
-  final VoidCallback onTap;
-
-  const _CategoryCard({required this.category, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    return Material(
-      color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
-      borderRadius: BorderRadius.circular(AppRadii.lg),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadii.lg),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadii.lg),
-            border: Border.all(color: category.color.withValues(alpha: 0.28)),
-          ),
-          child: Row(
-            children: [
-              Icon(category.icon, color: Colors.white, size: 22),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  category.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _ServiceResultTile extends StatelessWidget {
   final ServiceCategory service;
 
@@ -647,18 +548,4 @@ class _ServiceResultTile extends StatelessWidget {
       ),
     );
   }
-}
-
-class _SearchCategory {
-  final String label;
-  final String query;
-  final IconData icon;
-  final Color color;
-
-  const _SearchCategory({
-    required this.label,
-    required this.query,
-    required this.icon,
-    required this.color,
-  });
 }
