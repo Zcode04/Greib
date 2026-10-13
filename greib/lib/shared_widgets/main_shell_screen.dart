@@ -34,13 +34,20 @@ class _ShellTab {
 }
 
 const List<_ShellTab> _tabs = [
-  // ★ الترتيب الجديد (من اليمين لليسار في RTL):
-  //   الرئيسية، الدردشة، الكاميرا، المحفظة، الريلز، موقعي
+  // ★ الترتيب (من اليمين لليسار في RTL):
+  //   الرئيسية، البث المباشر، الدردشة، الكاميرا، المحفظة، الريلز، موقعي
   _ShellTab(
     route: '/home',
     title: 'الرئيسية',
     icon: LucideIcons.house,
     label: 'الرئيسية',
+  ),
+  // ★ البث المباشر (Live Server): صفحة مستقلة تُفتح بـ push.
+  _ShellTab(
+    route: '/liveserver',
+    title: 'البث المباشر',
+    icon: LucideIcons.tvMinimal,
+    label: 'البث المباشر',
   ),
   _ShellTab(
     route: '/chat',
@@ -93,7 +100,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
   /// ★ التبويبات التي تبني محتوى الـ Shell: كل ما عداه صفحات مستقلة
   ///   («الريلز» و«موقعي») تُفتح بـ push ولا تُحفظ كمؤشر نشط.
   ///   زر الإجراء (الكاميرا) لا يُحفظ أبداً كمؤشر ولا يبني محتوى.
-  static const Set<String> _standaloneRoutes = {'/reels', '/my_location'};
+  static const Set<String> _standaloneRoutes = {'/reels', '/my_location', '/liveserver'};
 
   /// ★ فهارس التبويبات التي تبني محتوى الـ Shell (فهارس داخل `_tabs`).
   ///   صفحة مستقلة («موقعي»/«الريلز»/«الحاذق») ولا يحفظ مؤشراً نشطاً.

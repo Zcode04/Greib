@@ -19,6 +19,7 @@ import '../../features/location_and_tracking/maps_screen.dart';
 import '../../features/location_and_tracking/my_location_screen.dart';
 import '../../features/home_and_services/search_screen.dart';
 import '../../features/home_and_services/reels_screen.dart';
+import '../../features/liveserver/liveserver_screen.dart';
 import '../../features/services/presentation/account_connections_page.dart';
 import '../../features/services/presentation/account_profile_page.dart';
 import '../../features/services/presentation/service_details_page.dart';
@@ -47,6 +48,8 @@ class AppRouter {
     '/orders',
     '/search',
     '/reels',
+    // ★ صفحة «البث المباشر» (Live Server) — تُفتح من تبويب الشريط السفلي.
+    '/liveserver',
     '/settings',
     '/doctors',
     '/support',
@@ -127,6 +130,11 @@ class AppRouter {
         builder: (context, state) => const SearchScreen(),
       ),
       GoRoute(path: '/reels', builder: (context, state) => const ReelsScreen()),
+      // ★ صفحة «البث المباشر» (Live Server) — تُفتح من تبويب الشريط السفلي.
+      GoRoute(
+        path: '/liveserver',
+        builder: (context, state) => const LiveserverScreen(),
+      ),
       GoRoute(
         path: '/notifications',
         builder: (context, state) => const NotificationsScreen(),
