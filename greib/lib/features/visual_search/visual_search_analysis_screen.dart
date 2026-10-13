@@ -227,7 +227,8 @@ class _Detected extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(LucideIcons.sparkles, size: 18, color: accent),
+              // ★ أيقونة حرة بلا خلفية — مظهر احترافي نظيف.
+              Icon(LucideIcons.sparkles, size: 18, color: Colors.white),
               const SizedBox(width: 6),
               const Text(
                 'الصورة تحتوي على:',
@@ -308,15 +309,8 @@ class _Matches extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(LucideIcons.store, size: 22, color: accent),
-                ),
+                // ★ أيقونة حرة بلا خلفية — مظهر احترافي نظيف.
+                Icon(LucideIcons.store, size: 22, color: Colors.white),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
