@@ -10,6 +10,8 @@ import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/super_header.dart';
 import '../services/data/services_repository.dart';
 import '../visual_search/visual_search_analysis_screen.dart';
+import 'search_history_screen.dart';
+import 'search_history_store.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -21,13 +23,6 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-
-  final List<String> _recentSearches = [
-    'توصيل طلبات',
-    'عيادة أسنان',
-    'فندق 5 نجوم',
-    'سيارة إيجار',
-  ];
 
   /// الوسائط المرفقة (صورة) بانتظار الإرسال.
   File? _attachment;
@@ -106,10 +101,14 @@ class _SearchScreenState extends State<SearchScreen> {
   Future<void> _submit() async {
     final file = _attachment;
     if (file == null) {
+      // بحث نصي: نُسجّل العملية في السجل ثم نُنهي الكتابة.
+      final q = _searchController.text.trim();
+      if (q.isNotEmpty) SearchHistoryStore.instance.add(q);
       _focusNode.unfocus();
       return;
     }
     final q = _searchController.text.trim();
+    if (q.isNotEmpty) SearchHistoryStore.instance.add(q);
     _focusNode.unfocus();
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -121,6 +120,18 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
     );
     if (mounted) setState(() => _attachment = null);
+  }
+
+  /// يفتح صفحة «سجل البحث»، ويعيد الاستعلام المختار لحقل البحث.
+  void _openHistory() {
+    Navigator.of(context)
+        .push<String>(
+      MaterialPageRoute(builder: (_) => const SearchHistoryScreen()),
+    )
+        .then((query) {
+      if (!mounted || query == null || query.isEmpty) return;
+      _setQuery(query);
+    });
   }
 
   // ───────────────────────── النتائج ─────────────────────────
@@ -322,6 +333,13 @@ class _SearchScreenState extends State<SearchScreen> {
               children: [
                 const Spacer(),
                 _BarIconButton(
+                  icon: LucideIcons.history,
+                  tooltip: 'سجل البحث',
+                  color: muted,
+                  size: 20,
+                  onTap: _openHistory,
+                ),
+                _BarIconButton(
                   icon: LucideIcons.camera,
                   tooltip: 'التقاط صورة',
                   color: muted,
@@ -382,31 +400,6 @@ class _SearchScreenState extends State<SearchScreen> {
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
-        if (_recentSearches.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.xxxl),
-          _buildSectionTitle(
-            icon: LucideIcons.clock3,
-            title: 'عمليات البحث الأخيرة',
-            subtitle: 'تابع من حيث توقفت',
-            trailing: TextButton(
-              onPressed: () => setState(_recentSearches.clear),
-              child: const Text('مسح الكل'),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: _recentSearches
-                .map(
-                  (search) => _SearchChip(
-                    label: search,
-                    onTap: () => _setQuery(search),
-                  ),
-                )
-                .toList(),
-          ),
-        ],
       ],
     );
   }
@@ -754,51 +747,6 @@ class _AttachmentPreview extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _SearchChip extends StatelessWidget {
-  final String label;
-  final VoidCallback onTap;
-
-  const _SearchChip({required this.label, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    return Material(
-      color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
-      borderRadius: BorderRadius.circular(AppRadii.full),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadii.full),
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadii.full),
-            border: Border.all(
-              color: isDark ? AppColors.outline : AppColors.lightOutline,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                LucideIcons.history,
-                size: 15,
-                color: isDark ? Colors.white : theme.colorScheme.onSurface,
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              Text(label),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
