@@ -34,7 +34,7 @@ class _ShellTab {
 
 const List<_ShellTab> _tabs = [
   // ★ الترتيب (من اليمين لليسار في RTL):
-  //   الرئيسية، البث المباشر، الدردشة، الكاميرا، الريلز، موقعي
+  //   الرئيسية، الدردشة، البث المباشر، الكاميرا، الريلز، موقعي
   //   (تبويب «المحفظة» حُذف: المحفظة تُفتح من تبويبها داخل صفحة الحساب /profile).
   _ShellTab(
     route: '/home',
@@ -42,18 +42,18 @@ const List<_ShellTab> _tabs = [
     icon: LucideIcons.house,
     label: 'الرئيسية',
   ),
+  _ShellTab(
+    route: '/chat',
+    title: 'الدردشة والرسائل',
+    icon: LucideIcons.messageSquare,
+    label: 'الدردشة',
+  ),
   // ★ البث المباشر (Live Server): صفحة مستقلة تُفتح بـ push.
   _ShellTab(
     route: '/liveserver',
     title: 'البث المباشر',
     icon: LucideIcons.tvMinimal,
     label: 'البث المباشر',
-  ),
-  _ShellTab(
-    route: '/chat',
-    title: 'الدردشة والرسائل',
-    icon: LucideIcons.messageSquare,
-    label: 'الدردشة',
   ),
   // ★ زر الكاميرا: نفس هوية بقية الأيقونات — يفتح صفحة البحث المستقلة
   //   (بحث بإرفاغ صورة / في الحقل / رسالة للوكيل) بدل ورقة الخيارات.
