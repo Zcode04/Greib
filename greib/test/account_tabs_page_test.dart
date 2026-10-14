@@ -25,4 +25,17 @@ void main() {
     expect(find.text('محفظتي'), findsOneWidget);
     expect(find.text('إدارة رصيدك ونقاطك'), findsOneWidget);
   });
+
+  testWidgets('فتح الصفحة على تبويب المحفظة مباشرة (initialTab)', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: Directionality(
+        textDirection: TextDirection.rtl,
+        child: AccountTabsPage(initialTab: 1),
+      )),
+    );
+    await tester.pumpAndSettle();
+
+    // المحفظة ظاهرة مباشرة دون الحاجة للضغط على التبويب.
+    expect(find.text('محفظتي'), findsOneWidget);
+  });
 }

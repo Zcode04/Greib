@@ -63,25 +63,22 @@ void main() {
     expect(find.byTooltip('المزيد'), findsOneWidget);
     expect(find.byIcon(LucideIcons.ellipsisVertical), findsOneWidget);
 
-    // الضغط على تبويب «البحث» في الشريط السفلي ينقل إلى شاشة البحث.
-    await tester.tap(find.text('البحث').last);
+    // ★ الشريط السفلي أيقونات بلا نصوص (التسمية في Semantics فقط) ⇒
+    //   النقر بالأيقونة. زر «الكاميرا» يفتح شاشة البحث المستقلة.
+    await tester.tap(find.byIcon(LucideIcons.camera));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
 
     expect(router.state.matchedLocation, '/search');
-    expect(find.text('مرحباً بك في البحث'), findsOneWidget);
 
-    // العودة للرئيسية قبل اختبار تبويب المحفظة.
+    // العودة للرئيسية قبل التحقق من إزالة تبويب المحفظة.
     router.go('/home');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
-    // ★ الانتقال إلى تبويب المحفظة: لا يظهر جرس إشعارات ثانٍ داخل الصفحة
-    // (كان محفظة الشاشة تحتوي جرساً مكرراً غير تفاعلي).
-    await tester.tap(find.text('المحفظة'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
+    // ★ تبويب «المحفظة» حُذف من الشريط السفلي: المحفظة تعيش داخل
+    //   صفحة الحساب (/profile) فقط — والجرس الوحيد هو جرس الهيدر.
+    expect(find.text('المحفظة'), findsNothing);
     expect(find.byIcon(LucideIcons.bell), findsOneWidget);
     expect(find.byTooltip('الإشعارات'), findsOneWidget);
   });

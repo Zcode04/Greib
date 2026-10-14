@@ -69,7 +69,7 @@ class SuperAppGrid extends StatelessWidget {
       label: 'المحفظة',
       icon: LucideIcons.wallet,
       color: AppColors.accentPrimary,
-      route: '/wallet',
+      route: '/profile?tab=wallet',
     ),
     _QuickTile(
       label: 'كل الخدمات',

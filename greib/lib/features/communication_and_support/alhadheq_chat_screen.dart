@@ -108,7 +108,7 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
           AlhadheqAction(
             label: 'فتح المحفظة',
             icon: LucideIcons.wallet,
-            route: '/wallet',
+            route: '/profile?tab=wallet',
           ),
         ],
       ),
@@ -233,7 +233,7 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
           AlhadheqAction(
             label: 'الانتقال للمحفظة الرقمية',
             icon: LucideIcons.wallet,
-            route: '/wallet',
+            route: '/profile?tab=wallet',
           ),
         ],
       );

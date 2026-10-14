@@ -112,7 +112,7 @@ class HeroBento extends StatelessWidget {
                   label: 'المحفظة',
                   value: '850 ر.ع',
                   caption: '1,250 نقطة ولاء',
-                  onTap: () => context.push('/wallet'),
+                  onTap: () => context.push('/profile?tab=wallet'),
                 ),
               ),
               const SizedBox(width: AppSpacing.md),

@@ -24,9 +24,14 @@ import 'profile_widget.dart';
 ///    - زر «تسجيل الخروج» داخل تبويب الملف الشخصي فقط.
 ///    - المحفظة تُبنى عند أول فتح لتبويبها (TabBarView يبني كسولاً) ⇒ لا تكلفة
 ///      عند فتح الصفحة على التبويب الأول.
+///    - `initialTab`: لفتح الصفحة مباشرة على تبويب المحفظة (مثلاً من زر
+///      «المحفظة» في الصفحة الرئيسية): AccountTabsPage(initialTab: 1).
 /// ============================================================================
 class AccountTabsPage extends StatelessWidget {
-  const AccountTabsPage({super.key});
+  /// التبويب المفتوح افتراضياً: 0 = الملف الشخصي، 1 = المحفظة.
+  final int initialTab;
+
+  const AccountTabsPage({super.key, this.initialTab = 0});
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +48,7 @@ class AccountTabsPage extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: DefaultTabController(
         length: 2,
+        initialIndex: initialTab.clamp(0, 1),
         child: Scaffold(
           backgroundColor: Theme.of(context).brightness == Brightness.dark
               ? AppColors.background

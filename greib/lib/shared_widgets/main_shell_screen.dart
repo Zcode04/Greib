@@ -11,7 +11,6 @@ import '../features/auth/auth_service.dart';
 import '../features/communication_and_support/alhadheq_chat_screen.dart';
 import '../features/communication_and_support/chat_screen.dart';
 import '../features/home_and_services/home_screen.dart';
-import '../features/wallet_and_finance/wallet_screen.dart';
 import '../core/widgets/super_header.dart'; // تمت الإضافة
 import 'floating_bottom_nav.dart';
 
@@ -21,7 +20,7 @@ class _ShellTab {
   final IconData icon;
   final String label;
 
-  /// ★ زر إجراء (لا يغيّر الصفحة): مثل الكاميرا — يفتح ورقة خيارات.
+  // ★ زر إجراء (لا يغيّر الصفحة): مثل الكاميرا — يفتح ورقة خيارات.
   final bool isAction;
 
   const _ShellTab({
@@ -35,7 +34,8 @@ class _ShellTab {
 
 const List<_ShellTab> _tabs = [
   // ★ الترتيب (من اليمين لليسار في RTL):
-  //   الرئيسية، البث المباشر، الدردشة، الكاميرا، المحفظة، الريلز، موقعي
+  //   الرئيسية، البث المباشر، الدردشة، الكاميرا، الريلز، موقعي
+  //   (تبويب «المحفظة» حُذف: المحفظة تُفتح من تبويبها داخل صفحة الحساب /profile).
   _ShellTab(
     route: '/home',
     title: 'الرئيسية',
@@ -63,12 +63,6 @@ const List<_ShellTab> _tabs = [
     icon: LucideIcons.camera,
     label: 'الكاميرا',
     isAction: true,
-  ),
-  _ShellTab(
-    route: '/wallet',
-    title: 'المحفظة الرقمية',
-    icon: LucideIcons.wallet,
-    label: 'المحفظة',
   ),
   _ShellTab(
     route: '/reels',
@@ -149,8 +143,6 @@ class _MainShellScreenState extends State<MainShellScreen> {
   ///   أو إضافتها لا تكسر أي حالة محفوظة.
   Widget _buildBody(int index) {
     switch (_tabs[index].route) {
-      case '/wallet':
-        return const WalletScreen();
       case '/home':
         return const HomeScreen();
       case '/chat':
