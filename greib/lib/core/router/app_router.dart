@@ -173,22 +173,22 @@ class AppRouter {
       ),
       // ★ صفحة الحساب: كانت تبويباً في الشريط السفلي، والآن تُفتح من أيقونة
       //   الحساب في الهيدر (تبويب «موقعي» حلّ مكانها في الشريط).
-      //   ★ الصفحة تحوي تبويبين: «الملف الشخصي» و«المحفظة» (AccountTabsPage).
-      //   ★ تبويب «المحفظة» في الشريط السفلي حُذف — المحفظة تعيش هنا فقط.
-      //   ★ الأزرار القديمة التي كانت تنتقل إلى /wallet (غير موجود في الراوتر
-      //     أصلاً) تُوجَّه إلى /profile?tab=wallet لفتح تبويب المحفظة مباشرة.
+      //   ★ الصفحة تُعرض الآن بتبويب واحد: «الملف الشخصي» فقط (AccountTabsPage).
+      //   ★ تبويب «المحفظة» معطّل مؤقتاً (غير ضروري حالياً) — راجع أعلى
+      //     account_tabs_page.dart لإعادة تفعيله لاحقاً بسهولة.
+      //   ★ initialTab محفوظ للتوافق: يفتح تبويب المحفظة مستقبلاً عند عودتها.
       GoRoute(
         path: '/profile',
         builder: (context, state) {
           final openWallet =
               state.uri.queryParameters['tab']?.toLowerCase() == 'wallet';
+          // ★ الهيدر عادي (غير شفاف) — المحتوى يبدأ تحته مباشرة بلا
+          //   فراغ احتياطي، وشريط التبويب جزء من نفس الصفحة لا طبقاً عائماً.
           return Scaffold(
             backgroundColor: Theme.of(context).brightness == Brightness.dark
                 ? AppColors.background
                 : AppColors.lightBackground,
             appBar: SuperHeader(showBackButton: true),
-            extendBody: true,
-            extendBodyBehindAppBar: true,
             body: AccountTabsPage(initialTab: openWallet ? 1 : 0),
           );
         },

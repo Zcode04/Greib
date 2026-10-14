@@ -65,7 +65,16 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                   scrolledUnderElevation: 0,
                   titleSpacing: showBackButton ? 0 : AppSpacing.md,
                   automaticallyImplyLeading: showBackButton,
-                  leading: showBackButton ? const BackButton() : null,
+                  // ★ زر الرجوع يعيد دائماً إلى «الرئيسية» (/home) بدل الخروج العشوائي
+                  //   من مكدّس التنقل — تجربة Super-App متوقّعة وثابتة.
+                  leading: showBackButton
+                      ? IconButton(
+                          icon: const Icon(LucideIcons.chevronRight),
+                          color: theme.colorScheme.onSurface,
+                          tooltip: 'رجوع',
+                          onPressed: () => context.go('/home'),
+                        )
+                      : null,
                   centerTitle: false,
                   title: AnimatedDefaultTextStyle(
                     duration: const Duration(milliseconds: 280),

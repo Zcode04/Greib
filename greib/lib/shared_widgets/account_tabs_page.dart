@@ -11,24 +11,27 @@ import '../features/wallet_and_finance/wallet_screen.dart';
 import '../shared_widgets/app_button.dart';
 import 'profile_widget.dart';
 
+// ============================================================================
+//  ★ المحفظة مفعّلة: تُستدعى صفحة المحفظة الأصلية (WalletScreen) كما هي.
+//    لتعطيلها لاحقاً: احذف الاستيراد + Tab + WalletScreen، واجعل length = 1.
+// ============================================================================
+
 /// ============================================================================
-///  AccountTabsPage — صفحة الحساب (الملف الشخصي + المحفظة).
+///  AccountTabsPage — صفحة الحساب (صفحة واحدة متماسكة بروح Super-App).
 ///
-///  تُفتح من أيقونة المستخدم في شريط الصفحة الرئيسية (المسار /profile).
-///  تحتوي على تبويبين ثابتين أسفل الهيدر:
-///    1) «الملف الشخصي» — بطاقة البيانات (ProfileWidget) + طلباتك الحالية.
-///    2) «المحفظة»       — نفس صفحة المحفظة الأصلية (WalletScreen) بلا أي تعديل.
+///  تُفتح من أيقونة الحساب (المسار /profile) وتُعرض كـ body داخل Scaffold
+///  فيه SuperHeader (في الراوتر) ⇒ لا Scaffold داخلي هنا، فقط عمود واحد:
+///    [شريط تبويبات underline ملاصق للهيدر] + [محتوى التبويب].
 ///
-///  ★ الملاحظات:
-///    - الـ RTL: اتجاه التبويبات من اليمين (الملف الشخصي أولاً).
-///    - زر «تسجيل الخروج» داخل تبويب الملف الشخصي فقط.
-///    - المحفظة تُبنى عند أول فتح لتبويبها (TabBarView يبني كسولاً) ⇒ لا تكلفة
-///      عند فتح الصفحة على التبويب الأول.
-///    - `initialTab`: لفتح الصفحة مباشرة على تبويب المحفظة (مثلاً من زر
-///      «المحفظة» في الصفحة الرئيسية): AccountTabsPage(initialTab: 1).
+///  ★ التصميم: تبويبات «underline» أنحف وأكثر احترافية — شفافة تندمج مع
+///    خلفية الصفحة، حدّ سفلي شعري يفصلها عن المحتوى، ومؤشر رقيق بلون الـ
+///    accent. التبديل سلس عبر TabBarView.
+///
+///  ★ التبويبان: «الملف الشخصي» (بطاقة البيانات) و«المحفظة» (WalletScreen).
+///    `initialTab` يفتح تبويب المحفظة مباشرة (مثلاً من /profile?tab=wallet).
 /// ============================================================================
 class AccountTabsPage extends StatelessWidget {
-  /// التبويب المفتوح افتراضياً: 0 = الملف الشخصي، 1 = المحفظة.
+  /// التبويب المفتوح افتراضياً: 0 = الملف الشخصي، 1 = المحفظة (معطّلة حالياً).
   final int initialTab;
 
   const AccountTabsPage({super.key, this.initialTab = 0});
@@ -41,71 +44,62 @@ class AccountTabsPage extends StatelessWidget {
       orElse: () => MockData.demoProfiles.first,
     );
 
-    // ★ مسافة علوية = شريط الحالة + ارتفاع الهيدر (نفس منطق ProfileWidget).
-    final topInset = MediaQuery.paddingOf(context).top + 64;
-
+    // ★ صفحة واحدة متماسكة: بلا Scaffold داخلي (نحن أصلاً داخل body)، وبلا
+    //   فراغات علوية/سفلية حول شريط التبويب — ملاصق للهيدر وفاصل شعري عن المحتوى.
     return Directionality(
       textDirection: TextDirection.rtl,
       child: DefaultTabController(
+        // ★ تبويبان: «الملف الشخصي» و«المحفظة» (WalletScreen).
         length: 2,
         initialIndex: initialTab.clamp(0, 1),
-        child: Scaffold(
-          backgroundColor: Theme.of(context).brightness == Brightness.dark
-              ? AppColors.background
-              : AppColors.lightBackground,
-          body: Column(
-            children: [
-              SizedBox(height: topInset),
-              _AccountTabBar(),
-              Expanded(
-                child: TabBarView(
-                  children: [
-                    _ProfileTab(profile: profile),
-                    const WalletScreen(),
-                  ],
-                ),
+        child: Column(
+          children: [
+            const _AccountTabBar(),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  _ProfileTab(profile: profile),
+                  const WalletScreen(),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-/// شريط التبويبين (الملف الشخصي | المحفظة) بنفس هوية التطبيق.
+/// شريط التبويبات بنمط «underline» الأنيق: شفاف، حدّ سفلي شعري، مؤشر رقيق.
 class _AccountTabBar extends StatelessWidget {
+  const _AccountTabBar();
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accent = context.accentColor;
+    final onSurface = theme.colorScheme.onSurface;
+    final muted = onSurface.withValues(alpha: 0.55);
+    final hairline = onSurface.withValues(alpha: 0.10);
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.sm,
-        AppSpacing.lg,
-        0,
-      ),
+      // ★ شفاف (يندمج مع خلفية الصفحة) + حدّ شعري سفلي يفصل التبويب عن المحتوى.
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(AppRadii.full),
-        border: Border.all(color: accent.withValues(alpha: 0.25)),
+        border: Border(bottom: BorderSide(color: hairline)),
       ),
       child: TabBar(
+        isScrollable: true,
+        tabAlignment: TabAlignment.start,
         dividerColor: Colors.transparent,
         indicatorSize: TabBarIndicatorSize.tab,
-        indicator: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [accent, accent.withValues(alpha: 0.7)],
-          ),
-          borderRadius: BorderRadius.circular(AppRadii.full),
+        // ★ مؤشر رقيق (underline) بلون الـ accent بدل الحبة الملوّنة الكاملة.
+        indicator: UnderlineTabIndicator(
+          borderSide: BorderSide(color: accent, width: 2.5),
+          insets: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         ),
-        indicatorPadding: const EdgeInsets.all(4),
-        labelColor: Colors.white,
-        unselectedLabelColor: theme.colorScheme.onSurface.withValues(
-          alpha: 0.7,
-        ),
+        labelPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+        labelColor: accent,
+        unselectedLabelColor: muted,
         labelStyle: theme.textTheme.titleSmall?.copyWith(
           fontWeight: FontWeight.w800,
         ),
@@ -113,8 +107,8 @@ class _AccountTabBar extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
         tabs: const [
-          Tab(icon: Icon(LucideIcons.user, size: 18), text: 'الملف الشخصي'),
-          Tab(icon: Icon(LucideIcons.wallet, size: 18), text: 'المحفظة'),
+          Tab(text: 'الملف الشخصي'),
+          Tab(text: 'المحفظة'),
         ],
       ),
     );
@@ -148,3 +142,4 @@ class _ProfileTab extends StatelessWidget {
     );
   }
 }
+

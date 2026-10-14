@@ -114,13 +114,13 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
               ),
               child: IconButton(
                 icon: Icon(
-                  LucideIcons.chevronLeft,
+                  LucideIcons.chevronRight,
                   size: 18,
                   color: theme.colorScheme.onSurface,
                 ),
-                onPressed: () {
-                  if (context.canPop()) context.pop();
-                },
+                tooltip: 'رجوع',
+                // ★ الرجوع يعود دائماً إلى «الرئيسية» (/home) بدل الخروج العشوائي.
+                onPressed: () => context.go('/home'),
               ),
             )
           : showMenuButton
