@@ -47,3 +47,5 @@ flutter:
     - assets/images/
     - assets/data/
     - assets/geo/
+    # ── أيقونات Filled Lucide (النسخة الممتلئة لشريط التنقل) ──
+    - assets/icons/filled/

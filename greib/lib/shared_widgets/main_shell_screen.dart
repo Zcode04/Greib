@@ -18,6 +18,10 @@ class _ShellTab {
   final String route;
   final String title;
   final IconData icon;
+
+  /// ★ اسم ملف SVG الممتلئ (Filled Lucide) للحالة المحددة — بلا لاحقة.
+  ///   null (زر الكاميرا) = تبقى المفرّغة دائماً لأنه زر إجراء لا يُحدَّد.
+  final String? filledAsset;
   final String label;
 
   // ★ زر إجراء (لا يغيّر الصفحة): مثل الكاميرا — يفتح ورقة خيارات.
@@ -27,6 +31,7 @@ class _ShellTab {
     required this.route,
     required this.title,
     required this.icon,
+    this.filledAsset,
     required this.label,
     this.isAction = false,
   });
@@ -36,14 +41,18 @@ const List<_ShellTab> _tabs = [
   // ★ الترتيب (من اليمين لليسار في RTL):
   //   الرئيسية، البث المباشر، الدردشة، الكاميرا، الريلز، موقعي
   //   (تبويب «المحفظة» حُذف: المحفظة تُفتح من تبويبها داخل صفحة الحساب /profile).
+  // ★ الأيقونات Lucide الأصلية + النسخة الممتلئة Filled Lucide (SVG محلي):
+  //   المفرّغة عند عدم التحديد، والممتلئة عند التحديد (بأسلوب فيسبوك).
   _ShellTab(
     route: '/home',
     title: 'الرئيسية',
     icon: LucideIcons.house,
+    filledAsset: 'house',
     label: 'الرئيسية',
   ),
   // ★ البث المباشر: الأيقونة تفتح بوابة «Publiveedit» التعريفية أولاً،
   //   وهي تحوّل تلقائياً إلى صفحة البث (/liveserver) بعد 5 ثوانٍ أو بالتخطي.
+  //   بلا نسخة ممتلئة — يبقى Lucide مفرّغاً دائماً (الامتلاء للرئيسية والدردشة فقط).
   _ShellTab(
     route: '/publiveedit',
     title: 'البث المباشر',
@@ -54,10 +63,12 @@ const List<_ShellTab> _tabs = [
     route: '/chat',
     title: 'الدردشة والرسائل',
     icon: LucideIcons.messageSquare,
+    filledAsset: 'message-square',
     label: 'الدردشة',
   ),
   // ★ زر الكاميرا: نفس هوية بقية الأيقونات — يفتح صفحة البحث المستقلة
   //   (بحث بإرفاغ صورة / في الحقل / رسالة للوكيل) بدل ورقة الخيارات.
+  //   زر إجراء ⇒ بلا نسخة ممتلئة (يبقى مفرّغاً دائماً).
   _ShellTab(
     route: '__camera_action__',
     title: 'الكاميرا',
@@ -65,6 +76,7 @@ const List<_ShellTab> _tabs = [
     label: 'الكاميرا',
     isAction: true,
   ),
+  // ★ الريلز وموقعي: بلا نسخة ممتلئة — تبقى Lucide مفرّغة دائماً.
   _ShellTab(
     route: '/reels',
     title: 'الريلز',
@@ -231,6 +243,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
             .map(
               (tab) => FloatingNavItem(
                 icon: tab.icon,
+                filledAsset: tab.filledAsset,
                 label: tab.label,
                 isAction: tab.isAction,
               ),

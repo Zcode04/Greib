@@ -25,6 +25,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/theme/design_tokens.dart';
+import 'nav_icon.dart';
 
 class FloatingNavItem {
   final IconData icon;
@@ -38,11 +39,17 @@ class FloatingNavItem {
   /// بدل التنقل لصفحة وتحديد التبويب.
   final bool isAction;
 
+  /// ★ اسم ملف SVG الممتلئ (Filled Lucide) للحالة المحددة — بلا لاحقة.
+  ///   null = بلا نسخة ممتلئة (زر إجراء كالكاميرا) ⇒ تبقى المفرّغة دائماً.
+  ///   الملفات في: assets/icons/filled/
+  final String? filledAsset;
+
   const FloatingNavItem({
     required this.icon,
     required this.label,
     this.badgeCount,
     this.isAction = false,
+    this.filledAsset,
   });
 }
 
@@ -142,7 +149,13 @@ class _NavTile extends StatelessWidget {
     final activeColor = context.iconColors.active;
     final inactiveColor = context.iconColors.inactive;
     final accent = context.accentColor;
-    final iconColor = selected ? activeColor : inactiveColor;
+    // ★ مع النسخة الممتلئة (SVG) نعود للألوان الأصلية الهادئة:
+    //   المحدد بلون نشط (لا أبيض) لأن الامتلاء نفسه يميّزه — بأسلوب فيسبوك.
+    //   ★ استثناء: في الوضع الليلي الأيقونة المحددة (house/message) بيضاء
+    //   لتباين أوضح على الخلفية الداكنة.
+    final iconColor = selected
+        ? (isDark ? Colors.white : activeColor)
+        : inactiveColor;
 
     return Semantics(
       label: item.label,
@@ -175,7 +188,13 @@ class _NavTile extends StatelessWidget {
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      Icon(item.icon, color: iconColor, size: 28),
+                      // ★ النسختان: Lucide مفرّغة / Filled Lucide ممتلئة (SVG).
+                      NavIcon(
+                        outlined: item.icon,
+                        filledAsset: item.filledAsset,
+                        selected: selected,
+                        color: iconColor,
+                      ),
                       _buildBadge(context),
                     ],
                   ),
