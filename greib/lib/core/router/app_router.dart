@@ -19,6 +19,7 @@ import '../../features/location_and_tracking/my_location_screen.dart';
 import '../../features/home_and_services/search_screen.dart';
 import '../../features/home_and_services/reels_screen.dart';
 import '../../features/liveserver/liveserver_screen.dart';
+import '../../features/liveserver/publiveedit_screen.dart';
 import '../../features/services/presentation/account_connections_page.dart';
 import '../../features/services/presentation/account_profile_page.dart';
 import '../../features/services/presentation/service_details_page.dart';
@@ -49,6 +50,8 @@ class AppRouter {
     '/reels',
     // ★ صفحة «البث المباشر» (Live Server) — تُفتح من تبويب الشريط السفلي.
     '/liveserver',
+    // ★ صفحة «Publiveedit» — البوابة التعريفية قبل البث (تُفتح من الأيقونة).
+    '/publiveedit',
     '/settings',
     '/doctors',
     '/support',
@@ -129,6 +132,12 @@ class AppRouter {
         builder: (context, state) => const SearchScreen(),
       ),
       GoRoute(path: '/reels', builder: (context, state) => const ReelsScreen()),
+      // ★ بوابة «Publiveedit» — تُفتح من أيقونة البث ثم تحوّل تلقائياً
+      //   إلى /liveserver بعد 5 ثوانٍ (أو بالضغط على «تخطي»).
+      GoRoute(
+        path: '/publiveedit',
+        builder: (context, state) => const PubliveeditScreen(),
+      ),
       // ★ صفحة «البث المباشر» (Live Server) — تُفتح من تبويب الشريط السفلي.
       GoRoute(
         path: '/liveserver',

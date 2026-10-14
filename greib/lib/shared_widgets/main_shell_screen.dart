@@ -48,9 +48,10 @@ const List<_ShellTab> _tabs = [
     icon: LucideIcons.messageSquare,
     label: 'الدردشة',
   ),
-  // ★ البث المباشر (Live Server): صفحة مستقلة تُفتح بـ push.
+  // ★ البث المباشر: الأيقونة تفتح بوابة «Publiveedit» التعريفية أولاً،
+  //   وهي تحوّل تلقائياً إلى صفحة البث (/liveserver) بعد 5 ثوانٍ أو بالتخطي.
   _ShellTab(
-    route: '/liveserver',
+    route: '/publiveedit',
     title: 'البث المباشر',
     icon: LucideIcons.tvMinimal,
     label: 'البث المباشر',
@@ -94,7 +95,12 @@ class _MainShellScreenState extends State<MainShellScreen> {
   /// ★ التبويبات التي تبني محتوى الـ Shell: كل ما عداه صفحات مستقلة
   ///   («الريلز» و«موقعي») تُفتح بـ push ولا تُحفظ كمؤشر نشط.
   ///   زر الإجراء (الكاميرا) لا يُحفظ أبداً كمؤشر ولا يبني محتوى.
-  static const Set<String> _standaloneRoutes = {'/reels', '/my_location', '/liveserver'};
+  static const Set<String> _standaloneRoutes = {
+    '/reels',
+    '/my_location',
+    '/liveserver',
+    '/publiveedit',
+  };
 
   /// ★ فهارس التبويبات التي تبني محتوى الـ Shell (فهارس داخل `_tabs`).
   ///   صفحة مستقلة («موقعي»/«الريلز»/«الحاذق») ولا يحفظ مؤشراً نشطاً.
