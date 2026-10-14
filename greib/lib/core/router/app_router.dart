@@ -4,8 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../permissions/permissions.dart';
 import '../theme/app_colors.dart';
 import '../widgets/super_header.dart';
-import '../../core/mock_data/mock_data.dart';
-import '../../shared_widgets/profile_widget.dart';
+import '../../shared_widgets/account_tabs_page.dart';
 import '../../features/auth/auth_service.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/dashboards/admin_dashboard_screen.dart';
@@ -165,14 +164,10 @@ class AppRouter {
       ),
       // ★ صفحة الحساب: كانت تبويباً في الشريط السفلي، والآن تُفتح من أيقونة
       //   الحساب في الهيدر (تبويب «موقعي» حلّ مكانها في الشريط).
+      //   ★ الصفحة تحوي تبويبين: «الملف الشخصي» و«المحفظة» (AccountTabsPage).
       GoRoute(
         path: '/profile',
         builder: (context, state) {
-          final user = AuthService.instance.currentUser;
-          final profile = MockData.demoProfiles.firstWhere(
-            (p) => p.email == user?.email || p.phone == user?.phone,
-            orElse: () => MockData.demoProfiles.first,
-          );
           return Scaffold(
             backgroundColor: Theme.of(context).brightness == Brightness.dark
                 ? AppColors.background
@@ -180,7 +175,7 @@ class AppRouter {
             appBar: SuperHeader(showBackButton: true),
             extendBody: true,
             extendBodyBehindAppBar: true,
-            body: ProfileWidget(profile: profile),
+            body: const AccountTabsPage(),
           );
         },
       ),

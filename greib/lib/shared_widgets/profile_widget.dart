@@ -14,10 +14,15 @@ class ProfileWidget extends StatefulWidget {
   final AppUserProfile profile;
   final bool isEditable;
 
+  /// ★ يُطفأ عند تضمين البطاقة داخل صفحة فيها تبويبات علوية
+  ///   (مثل AccountTabsPage) لأن المسافة العلوية تُدار هناك.
+  final bool includeTopInset;
+
   const ProfileWidget({
     super.key,
     required this.profile,
     this.isEditable = true,
+    this.includeTopInset = true,
   });
 
   @override
@@ -62,7 +67,9 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     //   خلف الهيدر (extendBodyBehindAppBar: true) لأن SuperHeader شفاف،
     //   فبدون هذه المسافة تتداخل بطاقة الملف الشخصي مع الهيدر.
     //   نجمع شريط الحالة العلوي + ارتفاع الهيدر (toolbarHeight = 64).
-    final topInset = MediaQuery.paddingOf(context).top + 64;
+    final topInset = widget.includeTopInset
+        ? MediaQuery.paddingOf(context).top + 64
+        : 0.0;
 
     return SingleChildScrollView(
       // حشوة سفلية تمنع البطاقة من الاختفاء خلف الشريط السفلي العائم.
