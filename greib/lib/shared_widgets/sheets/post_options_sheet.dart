@@ -4,10 +4,16 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/models/service_model.dart';
 
+import '../../core/widgets/draggable_sheet_body.dart';
+
 /// ============================================================================
 ///  PostOptionsSheet — ورقة خيارات المنشور (زر ⋯):
 ///  حفظ، عرض المزيد، عرض الشرائح، اهتمام، إخفاء، إبلاغ.
 ///
+///  ★ نفس تصميم ورقة صور المنشور (_showPostImagesSheet):
+///    بلا عنوان علوي، فقط الأزرار — InkWell + padding vertical 16،
+///    أيقونة 24 + مسافة 16 + نص 16 w600 بلون onSurface،
+///    داخل DraggableSheetBody قابل للسحب.
 ///  الاستخدام:
 ///    await showAppSheet(context, builder: (_) => PostOptionsSheet(...));
 /// ============================================================================
@@ -27,166 +33,156 @@ class PostOptionsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sheetText = Theme.of(context).colorScheme.onSurface;
-
-    return SafeArea(
-      top: false,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    return DraggableSheetBody(
+      initialExtent: 0.45,
+      snapSizes: const [0.35, 0.45, 0.6, 0.92],
+      builder: (context, scrollController) => Column(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-            child: Row(
+          Expanded(
+            child: ListView(
+              controller: scrollController,
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
               children: [
-                Text(
-                  'خيارات المنشور',
-                  style: TextStyle(
-                    color: sheetText,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
+                // ★ عرض المزيد: فتح صفحة الخدمة.
+                _tile(
+                  context,
+                  icon: LucideIcons.arrowUpDown,
+                  label: 'عرض المزيد',
+                  onTap: () {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    context.push('/service/${service.id}');
+                  },
+                ),
+                // ★ عرض الشرائح.
+                _tile(
+                  context,
+                  icon: LucideIcons.galleryHorizontal,
+                  label: 'عرض الشرائح',
+                  onTap: () {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    (onShowSlides ?? () => _showLater(context))();
+                  },
+                ),
+                _tile(
+                  context,
+                  icon: LucideIcons.image,
+                  label: 'عرض الصورة',
+                  onTap: () {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    _showLater(context);
+                  },
+                ),
+                _tile(
+                  context,
+                  icon: LucideIcons.shoppingBag,
+                  label: 'طلب الآن',
+                  onTap: () {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    _showLater(context);
+                  },
+                ),
+                _tile(
+                  context,
+                  icon: LucideIcons.user,
+                  label: 'عرض الملف الشخصي',
+                  onTap: () {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    _showLater(context);
+                  },
+                ),
+                _tile(
+                  context,
+                  icon: isSaved
+                      ? LucideIcons.bookmarkCheck
+                      : LucideIcons.bookmark,
+                  label: isSaved ? 'إلغاء حفظ المنشور' : 'حفظ المنشور',
+                  onTap: () {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    onSaveToggle();
+                  },
+                ),
+                _tile(
+                  context,
+                  icon: LucideIcons.thumbsUp,
+                  label: 'مهتم',
+                  onTap: () {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    _showLater(context);
+                  },
+                ),
+                _tile(
+                  context,
+                  icon: LucideIcons.thumbsDown,
+                  label: 'غير مهتم',
+                  onTap: () {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    _showLater(context);
+                  },
+                ),
+                _tile(
+                  context,
+                  icon: LucideIcons.eyeOff,
+                  label: 'إخفاء المنشور',
+                  onTap: () {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    _showLater(context);
+                  },
+                ),
+                _tile(
+                  context,
+                  icon: LucideIcons.eyeOff,
+                  label: 'إخفاء جميع منشورات نشاط هذا التاجر',
+                  onTap: () {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    _showLater(context);
+                  },
+                ),
+                _tile(
+                  context,
+                  icon: LucideIcons.flag,
+                  label: 'الإبلاغ عن المنشور',
+                  onTap: () {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    _showLater(context);
+                  },
                 ),
               ],
             ),
           ),
-          // ★ عرض المزيد: فتح صفحة الخدمة.
-          _tile(
-            context,
-            icon: LucideIcons.arrowUpDown,
-            label: 'عرض المزيد',
-            trailingChevron: true,
-            onTap: () {
-              Navigator.of(context, rootNavigator: true).pop();
-              context.push('/service/${service.id}');
-            },
-          ),
-          // ★ عرض الشرائح.
-          _tile(
-            context,
-            icon: LucideIcons.galleryHorizontal,
-            label: 'عرض الشرائح',
-            trailingChevron: true,
-            onTap: () {
-              Navigator.of(context, rootNavigator: true).pop();
-              (onShowSlides ?? () => _showLater(context))();
-            },
-          ),
-          _tile(
-            context,
-            icon: LucideIcons.image,
-            label: 'عرض الصورة',
-            onTap: () {
-              Navigator.of(context, rootNavigator: true).pop();
-              _showLater(context);
-            },
-          ),
-          _tile(
-            context,
-            icon: LucideIcons.shoppingBag,
-            label: 'طلب الآن',
-            onTap: () {
-              Navigator.of(context, rootNavigator: true).pop();
-              _showLater(context);
-            },
-          ),
-          _tile(
-            context,
-            icon: LucideIcons.user,
-            label: 'عرض الملف الشخصي',
-            onTap: () {
-              Navigator.of(context, rootNavigator: true).pop();
-              _showLater(context);
-            },
-          ),
-          _tile(
-            context,
-            icon: isSaved ? LucideIcons.bookmarkCheck : LucideIcons.bookmark,
-            label: isSaved ? 'إلغاء حفظ المنشور' : 'حفظ المنشور',
-            onTap: () {
-              Navigator.of(context, rootNavigator: true).pop();
-              onSaveToggle();
-            },
-          ),
-          _tile(
-            context,
-            icon: LucideIcons.thumbsUp,
-            label: 'مهتم',
-            onTap: () {
-              Navigator.of(context, rootNavigator: true).pop();
-              _showLater(context);
-            },
-          ),
-          _tile(
-            context,
-            icon: LucideIcons.thumbsDown,
-            label: 'غير مهتم',
-            onTap: () {
-              Navigator.of(context, rootNavigator: true).pop();
-              _showLater(context);
-            },
-          ),
-          _tile(
-            context,
-            icon: LucideIcons.eyeOff,
-            label: 'إخفاء المنشور',
-            onTap: () {
-              Navigator.of(context, rootNavigator: true).pop();
-              _showLater(context);
-            },
-          ),
-          _tile(
-            context,
-            icon: LucideIcons.eyeOff,
-            label: 'إخفاء جميع منشورات نشاط هذا التاجر',
-            onTap: () {
-              Navigator.of(context, rootNavigator: true).pop();
-              _showLater(context);
-            },
-          ),
-          _tile(
-            context,
-            icon: LucideIcons.flag,
-            label: 'الإبلاغ عن المنشور',
-            onTap: () {
-              Navigator.of(context, rootNavigator: true).pop();
-              _showLater(context);
-            },
-          ),
-          const SizedBox(height: 8),
         ],
       ),
     );
   }
 
-  /// عنصر قائمة: أيقونة + نص + سهم اختياري.
+  /// عنصر قائمة — نفس ستايل ورقة صور المنشور:
+  /// InkWell + padding vertical 16، أيقونة 24 + مسافة 16 + نص 16 w600.
   Widget _tile(
     BuildContext context, {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
-    bool trailingChevron = false,
   }) {
     final sheetText = Theme.of(context).colorScheme.onSurface;
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         child: Row(
           children: [
-            Icon(icon, size: 22, color: sheetText),
-            const SizedBox(width: 14),
+            Icon(icon, size: 24, color: sheetText),
+            const SizedBox(width: 16),
             Expanded(
               child: Text(
                 label,
-                style: TextStyle(color: sheetText, fontSize: 15),
+                style: TextStyle(
+                  color: sheetText,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
-            if (trailingChevron)
-              Icon(
-                LucideIcons.chevronDown,
-                size: 20,
-                color: sheetText.withValues(alpha: 0.6),
-              ),
           ],
         ),
       ),
