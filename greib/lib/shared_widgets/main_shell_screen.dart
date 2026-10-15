@@ -198,6 +198,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
     final activeTab = _tabs[_currentIndex];
     // ★ خلفية الـ Scaffold من اللوحة الديناميكية (تتبع الوضع والتخصيص).
     final scaffoldBg = context.backgroundColors.primary;
+    // ★ ارتفاع منطقة النظام العلوية (البطارية + الوقت + النتوء) — طبقة
+    //   الحماية العلوية تُغطيها ب mesh صلب فيمر المحتوى تحتها بلا تشابك.
+
+    final topPad = MediaQuery.paddingOf(context).top;
 
     // ★ نُخفي العنوان في تبويب «الرئيسية» فقط (حيث يظهر شعار التطبيق بدله).
     final isHomeTab = _currentIndex == _homeTabIndex;
@@ -222,16 +226,26 @@ class _MainShellScreenState extends State<MainShellScreen> {
           );
         }).toList(),
       ),
-      // ★ شريط تلاشي واحد فوق الشريط السفلي فقط — العلوي حُذف لأن
-      // المحتوى لم يعد يمر خلف الهيدر (مسافة عمودية نظيفة بدل التداخل).
+      // ★ شريط تلاشي مخفف لأقصى درجة فوق الشريط السفلي فقط — طبقة رقيقة
+      // شفافة جداً (مجرد دمج ناعم — بلا أي إحساس بالشادو).
       body: Stack(
         children: [
           _buildBody(_currentIndex),
+          // ★ طبقة الحماية العلوية (Status-Bar Scrim): شريط صلب بلون خلفية
+          //   التطبيق يغطي منطقة (البطارية + الوقت + النتوء) في الأعلى —
+          //   المحتوى المسحوب يدخل تحتها بدل أن يتشابك مع رموز النظام.
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: topPad,
+            child: IgnorePointer(child: Container(color: scaffoldBg)),
+          ),
           const Positioned(
             bottom: 0,
             left: 0,
             right: 0,
-            height: 28,
+            height: 12, // ★ كان 28 — رقيق جداً الآن
             child: IgnorePointer(child: _EdgeFadeStrip(fromTop: false)),
           ),
         ],
@@ -254,8 +268,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
   }
 }
 
-/// ★ شريط تلاشي زجاجي رفيع (Liquid Glass): لون خلفية الثيم الحالي + blur
-/// + تدرج شفافية في طرفه، يوضع على حافة المحتوى فقط.
+/// ★ شريط تلاشي مخفف لأقصى درجة (Liquid Glass خفيف): لون خلفية الثيم
+/// + blur خفيف + تدرج شفافية — طبقة رقيقة للدمج الناعم فقط.
 class _EdgeFadeStrip extends StatelessWidget {
   final bool fromTop;
 
@@ -275,8 +289,8 @@ class _EdgeFadeStrip extends StatelessWidget {
       },
       blendMode: BlendMode.dstIn,
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: Container(color: baseColor.withValues(alpha: 0.7)),
+        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4), // ★ كان 14 — خفيف الآن
+        child: Container(color: baseColor.withValues(alpha: 0.25)), // ★ كان 0.7
       ),
     );
   }

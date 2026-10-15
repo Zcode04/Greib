@@ -237,13 +237,13 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          // تأثير التدرج (Gradient Fade) أعلى المحتوى لدمجه مع الخلفية
+          // ★ تدرج علوي مخفف لأقصى درجة: طبقة رقيقة شفافة جداً (مجرد
+          //   دمج ناعم مع الهيدر الشفاف — بلا أي إحساس بالشادو).
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            height:
-                180, // ارتفاع ثابت وكبير نسبياً لضمان ظهوره تحت الهيدر الشفاف
+            height: 48, // ★ كان 180 — رقيق جداً الآن
             child: IgnorePointer(
               child: Container(
                 decoration: BoxDecoration(
@@ -251,20 +251,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      isDark ? AppColors.background : AppColors.lightBackground,
-                      isDark
-                          ? AppColors.background
-                          : AppColors.lightBackground, // لون صلب في البداية
+                      (isDark
+                              ? AppColors.background
+                              : AppColors.lightBackground)
+                          .withValues(alpha: 0.35), // ★ كان صلباً (1.0)
                       (isDark
                               ? AppColors.background
                               : AppColors.lightBackground)
                           .withValues(alpha: 0.0), // شفاف في النهاية
                     ],
-                    stops: const [
-                      0.0,
-                      0.4,
-                      1.0,
-                    ], // يبدأ صلباً ثم يتلاشى للشفافية
+                    stops: const [0.0, 1.0], // ★ تلاشي مباشر بلا منطقة صلبة
                   ),
                 ),
               ),
