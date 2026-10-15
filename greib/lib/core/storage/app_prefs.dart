@@ -106,6 +106,19 @@ class AppPrefs {
     await _prefs?.setString(_paletteKeyFor(isDark), jsonEncode(map));
   }
 
+  // -------------------- صورة البروفايل (مسار ملف محلي) --------------------
+  /// مسار صورة البروفايل المختارة (null = لا توجد ⇒ الأفاتار الافتراضي).
+  /// تُحفظ بعد الاختيار فتبقى بعد الخروج والعودة وإعادة التشغيل.
+  static String? get avatarPath => _prefs?.getString(AppConstants.keyAvatarPath);
+
+  static Future<void> setAvatarPath(String path) async {
+    await _prefs?.setString(AppConstants.keyAvatarPath, path);
+  }
+
+  static Future<void> clearAvatarPath() async {
+    await _prefs?.remove(AppConstants.keyAvatarPath);
+  }
+
   /// حذف كل تخصيصات الوضع (العودة للوحة الافتراضية).
   static Future<void> clearPaletteOverrides({required bool isDark}) async {
     await _prefs?.remove(_paletteKeyFor(isDark));

@@ -25,9 +25,10 @@ void main() {
     await tester.pumpAndSettle();
 
     final phoneFinder = find.text('+971501234567');
-    expect(phoneFinder, findsOneWidget);
+    expect(phoneFinder, findsWidgets);
 
-    final textWidget = tester.widget<Text>(phoneFinder);
+    // ★ يظهر مرتين: صفّ الهاتف وصفّ الواتساب — كلاهما LTR.
+    final textWidget = tester.widget<Text>(phoneFinder.first);
     expect(textWidget.textDirection, TextDirection.ltr);
 
     // الأحرف الأولى «أ م» تظهر كبديل الأفاتار (لا أيقونة عامة).

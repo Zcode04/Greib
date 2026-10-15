@@ -29,8 +29,9 @@ void main() {
       findsOneWidget,
     );
 
-    // محتوى الملف الشخصي ظاهر افتراضياً (زر تعديل البيانات).
-    expect(find.text('تعديل البيانات'), findsOneWidget);
+    // محتوى الملف الشخصي ظاهر افتراضياً (الاسم + معلومات التواصل).
+    expect(find.text('أحمد محمد'), findsOneWidget);
+    expect(find.text('+971501234567'), findsWidgets);
 
     // الضغط على تبويب المحفظة يعرض صفحة المحفظة الأصلية.
     await tester.tap(

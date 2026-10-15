@@ -26,4 +26,7 @@ class AppConstants {
   // ★ لوحة الألوان المخصّصة (صفحة «التحكم في الألوان») — خريطة حقل ← ARGB.
   static const String keyColorPaletteDark  = 'color_palette_dark';
   static const String keyColorPaletteLight = 'color_palette_light';
+
+  // ★ صورة البروفايل (مسار ملف محلي) — تُعرض في الحساب وهيدر الصفحات.
+  static const String keyAvatarPath = 'avatar_path';
 }

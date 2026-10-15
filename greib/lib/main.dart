@@ -7,6 +7,7 @@ import 'core/storage/app_prefs.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/color_palette_controller.dart';
 import 'core/theme/theme_controller.dart';
+import 'core/user/user_data.dart';
 import 'core/router/app_router.dart';
 import 'core/widgets/location_gate.dart';
 import 'features/auth/auth_service.dart';
@@ -19,6 +20,9 @@ Future<void> main() async {
   // حتى يبدأ التطبيق بالوضع الليلي/التبويب اللذين اختارهما المستخدم سابقاً.
   WidgetsFlutterBinding.ensureInitialized();
   await AppPrefs.init();
+
+  // ★ تحميل صورة البروفايل المحفوظة (تبقى بعد الخروج والعودة).
+  UserData.instance.load();
 
   // ★ ميزة «التحكم في الألوان» معطّلة حالياً (زر «غير متاح في منطقتك»)
   //   ⇒ نضمن اعتماد التطبيق على اللوحة الافتراضية وحده: نحذف أي تخصيص
@@ -43,6 +47,8 @@ Widget buildGreibMenkApp() {
       // ★ اللوحة الافتراضية فقط (ميزة تخصيص الألوان معطّلة حالياً).
       ChangeNotifierProvider(create: (_) => ColorPaletteController()),
       ChangeNotifierProvider<AuthService>.value(value: AuthService.instance),
+      // ★ ملف بيانات المستخدم المركزي (صورة البروفايل).
+      ChangeNotifierProvider<UserData>.value(value: UserData.instance),
       ChangeNotifierProvider<NotificationManager>.value(
         value: NotificationManager.instance,
       ),
