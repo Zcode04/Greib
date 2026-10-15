@@ -47,8 +47,10 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
       builder: (context, collapsed, _) {
         final toolbarH = collapsed ? 48.0 : 64.0;
         final logoSize = collapsed ? 18.0 : 24.0;
-        final iconSize = collapsed ? 15.0 : 18.0;
-        final btnBox = collapsed ? 28.0 : 32.0;
+        // ★ أيقونات أكبر وأوضح: 18→21 (كامل) و 15→17 (مصغّر)،
+        //   مع صندوق أكبر ليبقى التباعد مريحاً.
+        final iconSize = collapsed ? 17.0 : 21.0;
+        final btnBox = collapsed ? 32.0 : 38.0;
 
 
         // ★ تأثير زجاجي (Glassmorphism):
