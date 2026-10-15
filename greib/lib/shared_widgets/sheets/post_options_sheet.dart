@@ -201,8 +201,13 @@ class PostOptionsSheet extends StatelessWidget {
 }
 
 /// ============================================================================
-///  PostReadSheet — ورقة خيارات القراءة (زر 📢):
+///  PostReadSheet — ورقة خيارات القراءة (زر 🔊 volume2):
 ///  قراءة المنشور، تلخيص، توضيح.
+///
+///  ★ نفس تصميم ورقة صور المنشور (_showPostImagesSheet):
+///    بلا عنوان علوي، فقط الأزرار — InkWell + padding vertical 16،
+///    أيقونة 24 + مسافة 16 + نص 16 w600 بلون onSurface،
+///    داخل DraggableSheetBody قابل للسحب.
 /// ============================================================================
 class PostReadSheet extends StatelessWidget {
   const PostReadSheet({super.key, required this.service});
@@ -211,55 +216,43 @@ class PostReadSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sheetText = Theme.of(context).colorScheme.onSurface;
-
-    return SafeArea(
-      top: false,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    return DraggableSheetBody(
+      initialExtent: 0.45,
+      snapSizes: const [0.35, 0.45, 0.6, 0.92],
+      builder: (context, scrollController) => Column(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-            child: Row(
+          Expanded(
+            child: ListView(
+              controller: scrollController,
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
               children: [
-                Icon(
-                  LucideIcons.volume2,
-                  size: 18,
-                  color: sheetText.withValues(alpha: 0.6),
+                _tile(
+                  context,
+                  icon: LucideIcons.bookOpen,
+                  label: 'قراءة المنشور',
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'قراءة المنشور',
-                  style: TextStyle(
-                    color: sheetText,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
+                _tile(
+                  context,
+                  icon: LucideIcons.textQuote,
+                  label: 'تلخيص',
+                ),
+                _tile(
+                  context,
+                  icon: LucideIcons.lightbulb,
+                  label: 'توضيح',
                 ),
               ],
             ),
           ),
-          _tile(
-            context,
-            icon: LucideIcons.bookOpen,
-            label: 'قراءة المنشور',
-          ),
-          _tile(
-            context,
-            icon: LucideIcons.textQuote,
-            label: 'تلخيص',
-          ),
-          _tile(
-            context,
-            icon: LucideIcons.lightbulb,
-            label: 'توضيح',
-          ),
-          const SizedBox(height: 8),
         ],
       ),
     );
   }
 
+  /// عنصر قائمة — نفس ستايل ورقة صور المنشور:
+  /// InkWell + padding vertical 16، أيقونة 24 + مسافة 16 + نص 16 w600.
   Widget _tile(
     BuildContext context, {
     required IconData icon,
@@ -278,15 +271,19 @@ class PostReadSheet extends StatelessWidget {
         );
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         child: Row(
           children: [
-            Icon(icon, size: 22, color: sheetText),
-            const SizedBox(width: 14),
+            Icon(icon, size: 24, color: sheetText),
+            const SizedBox(width: 16),
             Expanded(
               child: Text(
                 label,
-                style: TextStyle(color: sheetText, fontSize: 15),
+                style: TextStyle(
+                  color: sheetText,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],
