@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/theme/design_tokens.dart';
+import '../../../core/widgets/user_avatar.dart';
 
 /// شريط إجراءات أعلى قسم «رائج» — بالترتيب البصري المطلوب:
 /// (search) (تصفح آلي + clock-11) (user)
@@ -102,9 +103,8 @@ class _HomeActionBarState extends State<HomeActionBar>
       textDirection: TextDirection.rtl,
       child: Row(
         children: [
-          _CircleIconButton(
-            icon: LucideIcons.user,
-            tooltip: 'الحساب',
+          // ★ زر البروفايل (نفس صورة الهيدر عبر UserAvatar) — يفتح /profile.
+          _CircleAvatarButton(
             onTap: () => context.push('/profile'),
           ),
           const SizedBox(width: 10),
@@ -158,6 +158,41 @@ class _HomeActionBarState extends State<HomeActionBar>
             onTap: () => context.push('/search'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// زر بروفايل دائري بنفس هوية أزرار التطبيق (سطح + حد).
+/// يعرض صورة المستخدم من UserData ويفتح صفحة الحساب — متسق مع الهيدر.
+class _CircleAvatarButton extends StatelessWidget {
+  const _CircleAvatarButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final accent = theme.colorScheme.primary;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadii.full),
+        onTap: onTap,
+        child: Tooltip(
+          message: 'الحساب',
+          child: Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface.withValues(alpha: 0.92),
+              shape: BoxShape.circle,
+              border: Border.all(color: accent.withValues(alpha: 0.25)),
+            ),
+            padding: const EdgeInsets.all(3),
+            child: const UserAvatar(size: 36, iconSize: 18),
+          ),
+        ),
       ),
     );
   }

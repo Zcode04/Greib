@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:greib_menk/core/user/user_data.dart';
 import 'package:greib_menk/shared_widgets/profile_widget.dart';
 import 'package:greib_menk/core/models/user_model.dart';
 
-Widget _wrap(Widget child) => Directionality(
-      textDirection: TextDirection.rtl,
-      child: MaterialApp(home: Scaffold(body: child)),
+// ★ تُغلّف البطاقة بـ UserData (ملف المستخدم المركزي) كما في main.dart.
+Widget _wrap(Widget child) => ChangeNotifierProvider<UserData>.value(
+      value: UserData.instance,
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: MaterialApp(home: Scaffold(body: child)),
+      ),
     );
 
 void main() {

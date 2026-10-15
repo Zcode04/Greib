@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:greib_menk/core/user/user_data.dart';
 import 'package:greib_menk/shared_widgets/account_tabs_page.dart';
+
+// ★ تُغلّف الصفحة بـ UserData (ملف المستخدم المركزي) كما في main.dart.
+Widget _wrap(Widget child) => ChangeNotifierProvider<UserData>.value(
+      value: UserData.instance,
+      child: MaterialApp(home: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(body: child),
+      )),
+    );
 
 void main() {
   // ★ AccountTabsPage يُعرض كـ body داخل Scaffold (كما في الراوتر).
   testWidgets('صفحة الحساب تعرض تبويبي الملف الشخصي والمحفظة', (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(home: Directionality(
-        textDirection: TextDirection.rtl,
-        child: Scaffold(body: AccountTabsPage()),
-      )),
-    );
+    await tester.pumpWidget(_wrap(const AccountTabsPage()));
     await tester.pumpAndSettle();
 
     // التبويبان ظاهران داخل شريط التبويبات.
@@ -45,12 +51,7 @@ void main() {
   });
 
   testWidgets('فتح الصفحة على تبويب المحفظة مباشرة (initialTab)', (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(home: Directionality(
-        textDirection: TextDirection.rtl,
-        child: Scaffold(body: AccountTabsPage(initialTab: 1)),
-      )),
-    );
+    await tester.pumpWidget(_wrap(const AccountTabsPage(initialTab: 1)));
     await tester.pumpAndSettle();
 
     // المحفظة ظاهرة مباشرة دون الحاجة للضغط على التبويب.

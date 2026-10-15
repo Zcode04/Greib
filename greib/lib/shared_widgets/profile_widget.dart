@@ -1,12 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/models/user_model.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/mock_data/mock_data.dart';
+import '../../core/user/user_data.dart';
 import '../../shared_widgets/app_button.dart';
 import '../../shared_widgets/smart_image.dart';
 import 'sheets/avatar_picker_sheet.dart';
@@ -58,39 +60,32 @@ class ProfileWidget extends StatelessWidget {
 ///  _IdentityCard — بطاقة الهوية بروح KIMI.
 ///
 ///  الأفاتار في المنتصف، الاسم تحته، وأيقونة كاميرا عائمة تفتح شيت
-///  (التقاط/إرفاق) — الصورة المختارة تُعرض في البروفايل فوراً.
-///
-///  ★ نقطة التطوير لاحقاً: حفظ الصورة في Auth/Backend (رفع + تحديث الملف).
+///  (التقاط/إرفاق) — الصورة المختارة تُحفظ في UserData (ملف المستخدم
+///  المركزي) فتظهر فوراً وتبقى بعد الخروج والعودة وإعادة التشغيل.
 /// ============================================================================
-class _IdentityCard extends StatefulWidget {
+class _IdentityCard extends StatelessWidget {
   final AppUserProfile profile;
 
   const _IdentityCard({required this.profile});
 
-  @override
-  State<_IdentityCard> createState() => _IdentityCardState();
-}
-
-class _IdentityCardState extends State<_IdentityCard> {
-  /// المسار المحلي للصورة المختارة حديثاً (له الأولوية على avatarUrl).
-  String? _localAvatarPath;
-
-  Future<void> _changeAvatar() async {
+  Future<void> _changeAvatar(BuildContext context) async {
     final file = await showAvatarPickerSheet(context);
-    if (!mounted || file == null) return;
-    setState(() => _localAvatarPath = file.path);
-    // ★ تطوير لاحق: ارفع الصورة هنا وخزّن رابطها في الملف الشخصي.
+    if (file == null) return;
+    // ★ تُحفظ في ملف المستخدم المركزي (UserData) — تبقى بعد الخروج والعودة.
+    await UserData.instance.setAvatarPath(file.path);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final profile = widget.profile;
     final accent = context.accentColor;
     final surface = theme.colorScheme.surface;
     final onSurface = theme.colorScheme.onSurface;
     final muted = onSurface.withValues(alpha: 0.55);
     final hairline = onSurface.withValues(alpha: 0.1);
+
+    // ★ الصورة من ملف المستخدم المركزي — أي تغيير يُعاد بناء كل الواجهات.
+    final avatarPath = context.select<UserData, String?>((u) => u.avatarPath);
 
     return Container(
       width: double.infinity,
@@ -121,9 +116,9 @@ class _IdentityCardState extends State<_IdentityCard> {
                 ),
                 padding: const EdgeInsets.all(3),
                 child: ClipOval(
-                  child: _localAvatarPath != null
+                  child: avatarPath != null
                       ? Image.file(
-                          File(_localAvatarPath!),
+                          File(avatarPath),
                           fit: BoxFit.cover,
                           errorBuilder: (_, _, _) => _AvatarInitials(
                             name: profile.name,
@@ -149,7 +144,7 @@ class _IdentityCardState extends State<_IdentityCard> {
                   color: Colors.transparent,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(AppRadii.full),
-                    onTap: _changeAvatar,
+                    onTap: () => _changeAvatar(context),
                     child: Container(
                       width: 30,
                       height: 30,

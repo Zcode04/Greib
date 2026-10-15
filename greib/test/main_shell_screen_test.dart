@@ -10,6 +10,7 @@ import 'package:greib_menk/core/permissions/permissions.dart';
 import 'package:greib_menk/core/router/app_router.dart';
 import 'package:greib_menk/core/storage/app_prefs.dart';
 import 'package:greib_menk/core/theme/theme_controller.dart';
+import 'package:greib_menk/core/user/user_data.dart';
 import 'package:greib_menk/features/auth/auth_service.dart';
 
 /// ============================================================================
@@ -45,6 +46,9 @@ void main() {
           ),
           ChangeNotifierProvider<LocationController>.value(
             value: LocationController(),
+          ),
+          ChangeNotifierProvider<UserData>.value(
+            value: UserData.instance,
           ),
         ],
         child: MaterialApp.router(routerConfig: router),
