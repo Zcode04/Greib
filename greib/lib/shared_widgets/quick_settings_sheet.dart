@@ -4,9 +4,10 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../core/mock_data/mock_data.dart';
-import '../core/theme/design_tokens.dart';
 import '../core/storage/app_prefs.dart';
 import '../core/theme/theme_controller.dart';
+import '../core/widgets/app_sheet.dart';
+import '../core/widgets/draggable_sheet_body.dart';
 
 class QuickSettingsItem {
   final String label;
@@ -25,8 +26,12 @@ class QuickSettingsItem {
 }
 
 /// ============================================================================
-///  QuickSettingsSheet — ورقة سفلية تلتصق بحافة الشاشة السفلية بعرض كامل،
-///  قابلة للتمرير، وكل بند يحمل أيقونته ونصه فقط (الحقول تُطوَّر لاحقاً).
+///  QuickSettingsSheet — ورقة زر ⋮ في الهيدر.
+///
+///  ★ نفس تصميم ورقة صور المنشور (_showPostImagesSheet):
+///    بلا عنوان علوي، فقط الأزرار — InkWell + padding vertical 16،
+///    أيقونة 24 + مسافة 16 + نص 16 w600 بلون onSurface،
+///    داخل DraggableSheetBody قابل للسحب.
 ///  الضغط على «الأقسام» يعرض نفس أقسام شريط الأقسام في الرئيسية (الكل…).
 /// ============================================================================
 class QuickSettingsSheet extends StatefulWidget {
@@ -44,14 +49,8 @@ class QuickSettingsSheet extends StatefulWidget {
     List<QuickSettingsItem>? items,
   }) {
     final resolved = (items == null || items.isEmpty) ? defaultItems : items;
-    return showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.xxl)),
-      ),
+    return showAppSheet<void>(
+      context,
       builder: (_) => QuickSettingsSheet(items: resolved),
     );
   }
@@ -85,391 +84,205 @@ class _QuickSettingsSheetState extends State<QuickSettingsSheet> {
     // ★ نُبقي الورقة متجاوبة مع تبديل النمط أثناء فتحها.
     context.watch<ThemeController>();
 
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.7,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    return DraggableSheetBody(
+      initialExtent: 0.45,
+      snapSizes: const [0.35, 0.45, 0.6, 0.92],
+      builder: (context, scrollController) => Column(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // مقبض السحب
-          Container(
-            width: 40,
-            height: 4,
-            margin: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(AppRadii.full),
-            ),
+          Expanded(
+            child: _showSections
+                ? _buildSections(context, theme, scrollController)
+                : _buildMenu(context, theme, scrollController),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              0,
-              AppSpacing.sm,
-              AppSpacing.md,
-            ),
-            child: Row(
-              children: [
-                if (_showSections)
-                  IconButton(
-                    icon: Icon(
-                      LucideIcons.chevronRight,
-                      size: 20,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                    tooltip: 'رجوع',
-                    visualDensity: VisualDensity.compact,
-                    onPressed: _closeSections,
-                  )
-                else
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(AppRadii.sm),
-                    ),
-                    child: Icon(
-                      LucideIcons.layoutGrid,
-                      size: 18,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    _showSections ? 'الأقسام' : 'الإعدادات السريعة',
-                    style: AppTypography.titleMedium.copyWith(
-                      color: theme.colorScheme.onSurface,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(
-                    LucideIcons.x,
-                    size: 18,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  tooltip: 'إغلاق',
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
-            ),
-          ),
-          Divider(height: 1, color: theme.dividerColor),
-          Flexible(
-            child: _showSections ? _buildSections(theme) : _buildMenu(theme),
-          ),
-          SizedBox(height: MediaQuery.of(context).padding.bottom),
         ],
       ),
     );
   }
 
+  /// صف واحد — نفس ستايل ورقة صور المنشور:
+  /// InkWell + padding vertical 16، أيقونة 24 + مسافة 16 + نص 16 w600.
+  Widget _sheetRow(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    String? subtitle,
+    required VoidCallback onTap,
+    Widget? trailing,
+  }) {
+    final sheetText = Theme.of(context).colorScheme.onSurface;
+    final sub = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6);
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Row(
+          children: [
+            Icon(icon, size: 24, color: sheetText),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: sheetText,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(color: sub, fontSize: 13),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (trailing != null) ...[
+              const SizedBox(width: 12),
+              trailing,
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   /// قائمة البنود الرئيسية + بند «الوضع الليلي» (نُقل من الهيدر إلى هنا).
-  Widget _buildMenu(ThemeData theme) {
+  Widget _buildMenu(
+    BuildContext context,
+    ThemeData theme,
+    ScrollController scrollController,
+  ) {
     final isDark = theme.brightness == Brightness.dark;
 
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    return ListView(
+      controller: scrollController,
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
         children: [
           // ★ بند «الحاذق» — المساعد الذكي (AI).
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg,
-              vertical: AppSpacing.xs,
-            ),
-            leading: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(AppRadii.sm),
-              ),
-              child: Icon(
-                LucideIcons.sparkles,
-                size: 18,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            title: Text(
-              'الحاذق',
-              style: AppTypography.titleMedium.copyWith(
-                color: theme.colorScheme.onSurface,
-                fontSize: 15,
-              ),
-            ),
-            subtitle: Text(
-              'المساعد الذكي (AI)',
-              style: AppTypography.bodySmall.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            trailing: Icon(
-              LucideIcons.chevronLeft,
-              size: 18,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+          _sheetRow(
+            context,
+            icon: LucideIcons.sparkles,
+            label: 'الحاذق',
+            subtitle: 'المساعد الذكي (AI)',
             onTap: () {
               final router = GoRouter.of(context);
               Navigator.of(context).pop();
               router.push('/alhadheq');
             },
           ),
-          Divider(
-            height: 1,
-            indent: 68,
-            endIndent: AppSpacing.lg,
-            color: theme.dividerColor,
-          ),
-          for (int i = 0; i < widget.items.length; i++) ...[
-            if (i > 0)
-              Divider(
-                height: 1,
-                indent: 68,
-                endIndent: AppSpacing.lg,
-                color: theme.dividerColor,
-              ),
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg,
-                vertical: AppSpacing.xs,
-              ),
-              leading: Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppRadii.sm),
-                ),
-                child: Icon(
-                  widget.items[i].icon,
-                  size: 18,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-              title: Text(
-                widget.items[i].label,
-                style: AppTypography.titleMedium.copyWith(
-                  color: theme.colorScheme.onSurface,
-                  fontSize: 15,
-                ),
-              ),
-              subtitle: widget.items[i].subtitle == null
-                  ? null
-                  : Text(
-                      widget.items[i].subtitle!,
-                      style: AppTypography.bodySmall.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-              trailing: Icon(
-                LucideIcons.chevronLeft,
-                size: 18,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              onTap: widget.items[i].enabled ? (widget.items[i].onTap ?? _openSections) : null,
+          for (int i = 0; i < widget.items.length; i++)
+            _sheetRow(
+              context,
+              icon: widget.items[i].icon,
+              label: widget.items[i].label,
+              subtitle: widget.items[i].subtitle,
+              onTap: widget.items[i].enabled
+                  ? (widget.items[i].onTap ?? _openSections)
+                  : () {},
             ),
-          ],
         // ★ بند «البحث» — كان أيقونة في الهيدر، ونُقل هنا مثل الوضع الليلي.
-        Divider(height: 1, indent: 68, endIndent: AppSpacing.lg, color: theme.dividerColor),
-        ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.xs,
+          _sheetRow(
+            context,
+            icon: LucideIcons.search,
+            label: 'البحث',
+            onTap: () {
+              final router = GoRouter.of(context);
+              Navigator.of(context).pop();
+              router.push('/search');
+            },
           ),
-          leading: Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(AppRadii.sm),
-            ),
-            child: Icon(
-              LucideIcons.search,
-              size: 18,
-              color: theme.colorScheme.primary,
-            ),
-          ),
-          title: Text(
-            'البحث',
-            style: AppTypography.titleMedium.copyWith(
-              color: theme.colorScheme.onSurface,
-              fontSize: 15,
-            ),
-          ),
-          trailing: Icon(
-            LucideIcons.chevronLeft,
-            size: 18,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          onTap: () {
-            final router = GoRouter.of(context);
-            Navigator.of(context).pop();
-            router.push('/search');
-          },
-        ),
         // ★ مبدّل الوضع الليلي/النهاري — كان أيقونة في الهيدر، ونُقل هنا.
-        Divider(height: 1, indent: 68, endIndent: AppSpacing.lg, color: theme.dividerColor),
-        SwitchListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.xs,
-          ),
-          value: isDark,
-          onChanged: (_) => context.read<ThemeController>().toggleTheme(),
-          secondary: Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(AppRadii.sm),
-            ),
-            child: Icon(
-              isDark ? LucideIcons.moon : LucideIcons.sun,
-              size: 18,
-              color: theme.colorScheme.primary,
+          _sheetRow(
+            context,
+            icon: isDark ? LucideIcons.moon : LucideIcons.sun,
+            label: 'الوضع الليلي',
+            subtitle: isDark
+                ? 'مُفعّل — اضغط للتبديل إلى النهاري'
+                : 'مُطفأ — اضغط للتبديل إلى الليلي',
+            onTap: () => context.read<ThemeController>().toggleTheme(),
+            trailing: Switch(
+              value: isDark,
+              onChanged: (_) =>
+                  context.read<ThemeController>().toggleTheme(),
             ),
           ),
-          title: Text(
-            'الوضع الليلي',
-            style: AppTypography.titleMedium.copyWith(
-              color: theme.colorScheme.onSurface,
-              fontSize: 15,
-            ),
-          ),
-          subtitle: Text(
-            isDark ? 'مُفعّل — اضغط للتبديل إلى النهاري' : 'مُطفأ — اضغط للتبديل إلى الليلي',
-            style: AppTypography.bodySmall.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+        // ★ بند «التحكم في الألوان» — معطّل مؤقتاً (يُفعَّل لاحقاً).
+        _sheetRow(
+          context,
+          icon: LucideIcons.palette,
+          label: 'التحكم في الألوان',
+          subtitle: 'تخصيص الخلفية والنصوص والأيقونات',
+          onTap: () {},
+          trailing: const Text(
+            'غير متاح في منطقتك',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
           ),
         ),
-        // ★ بند «التحكم في الألوان» — يظهر أسفل الوضع الليلي مباشرة.
-        // ★ معطّل مؤقتاً: غير قابل للاستجابة عند النقر، وزر «غير متاح في
-        //   منطقتك» يظهر مكان سهم التنقل (يُفعَّل لاحقاً).
-        Divider(height: 1, indent: 68, endIndent: AppSpacing.lg, color: theme.dividerColor),
-        ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.xs,
-          ),
-          enabled: false, // ★ لا يستجيب للنقر
-          leading: Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(AppRadii.sm),
-            ),
-            child: Icon(
-              LucideIcons.palette,
-              size: 18,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          title: Text(
-            'التحكم في الألوان',
-            style: AppTypography.titleMedium.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontSize: 15,
-            ),
-          ),
-          subtitle: Text(
-            'تخصيص الخلفية والنصوص والأيقونات',
-            style: AppTypography.bodySmall.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          trailing: OutlinedButton(
-            // ★ زر معطّل: يوضّح أن الميزة غير مفعّلة في المنطقة حالياً.
-            onPressed: null,
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              minimumSize: const Size(0, 30),
-              side: BorderSide(
-                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-              ),
-              foregroundColor: theme.colorScheme.onSurfaceVariant,
-              textStyle: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700),
-            ),
-            child: const Text('غير متاح في منطقتك'),
-          ),
-        ),
-        Divider(height: 1, indent: 68, endIndent: AppSpacing.lg, color: theme.dividerColor),
-        SwitchListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
-          value: AppPrefs.useRealMaps,
-          onChanged: (v) async {
-            await AppPrefs.setUseRealMaps(v);
+        _sheetRow(
+          context,
+          icon: LucideIcons.map,
+          label: 'الخرائط الحقيقية',
+          subtitle: AppPrefs.useRealMaps
+              ? 'مفعّلة — GPS وخريطة OSM حقيقية'
+              : 'مطفأة — الوضع الوهمي للعروض',
+          onTap: () async {
+            await AppPrefs.setUseRealMaps(!AppPrefs.useRealMaps);
             if (context.mounted) setState(() {});
           },
-          secondary: Container(
-            width: 38, height: 38,
-            decoration: BoxDecoration(color: theme.colorScheme.primary.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(AppRadii.sm)),
-            child: Icon(LucideIcons.map, size: 18, color: theme.colorScheme.primary),
+          trailing: Switch(
+            value: AppPrefs.useRealMaps,
+            onChanged: (v) async {
+              await AppPrefs.setUseRealMaps(v);
+              if (context.mounted) setState(() {});
+            },
           ),
-          title: Text('الخرائط الحقيقية', style: AppTypography.titleMedium.copyWith(color: theme.colorScheme.onSurface, fontSize: 15)),
-          subtitle: Text(AppPrefs.useRealMaps ? 'مفعّلة — GPS وخريطة OSM حقيقية' : 'مطفأة — الوضع الوهمي للعروض',
-            style: AppTypography.bodySmall.copyWith(color: theme.colorScheme.onSurfaceVariant)),
         ),
       ],
-    ),
-  );
-}
+    );
+  }
 
   /// نفس أقسام الشريط في الرئيسية (الكل، الإلكترونيات، …) كقائمة قابلة للتمرير.
-  Widget _buildSections(ThemeData theme) {
-    final accent = theme.colorScheme.primary;
-    return ListView.separated(
-      shrinkWrap: true,
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-      itemCount: _sections.length,
-      separatorBuilder: (_, _) => Divider(
-        height: 1,
-        indent: 68,
-        endIndent: AppSpacing.lg,
-        color: theme.dividerColor,
-      ),
-      itemBuilder: (context, index) {
-        final section = _sections[index];
-        final isSelected = section['id'] == _selectedSectionId;
-        return ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.xs,
+  Widget _buildSections(
+    BuildContext context,
+    ThemeData theme,
+    ScrollController scrollController,
+  ) {
+    return ListView(
+      controller: scrollController,
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+      children: [
+        _sheetRow(
+          context,
+          icon: LucideIcons.chevronRight,
+          label: 'رجوع',
+          onTap: _closeSections,
+        ),
+        ..._sections.map(
+          (section) => _sheetRow(
+            context,
+            icon: section['id'] == 'all'
+                ? LucideIcons.layoutGrid
+                : LucideIcons.chevronLeft,
+            label: section['label']!,
+            onTap: () => _selectSection(section),
+            trailing: section['id'] == _selectedSectionId
+                ? Icon(
+                    LucideIcons.check,
+                    size: 20,
+                    color: theme.colorScheme.primary,
+                  )
+                : null,
           ),
-          leading: Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: isSelected ? 0.18 : 0.10),
-              borderRadius: BorderRadius.circular(AppRadii.sm),
-              border: isSelected ? Border.all(color: accent, width: 1.5) : null,
-            ),
-            child: Icon(
-              index == 0 ? LucideIcons.layoutGrid : LucideIcons.chevronLeft,
-              size: 18,
-              color: accent,
-            ),
-          ),
-          title: Text(
-            section['label']!,
-            style: AppTypography.titleMedium.copyWith(
-              color: isSelected ? accent : theme.colorScheme.onSurface,
-              fontSize: 15,
-              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-            ),
-          ),
-          trailing: isSelected
-              ? Icon(LucideIcons.check, size: 18, color: accent)
-              : null,
-          onTap: () => _selectSection(section),
-        );
-      },
+        ),
+      ],
     );
   }
 }
