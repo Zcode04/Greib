@@ -7,7 +7,7 @@ import '../notifications/notification_manager.dart';
 import '../extensions/context_extensions.dart';
 import '../theme/design_tokens.dart';
 import '../../shared_widgets/quick_settings_sheet.dart';
-import 'user_avatar.dart';
+import '../../shared_widgets/sheets/upcoming_services_sheet.dart';
 import 'header_collapse_state.dart';
 
 /// ============================================================================
@@ -103,18 +103,20 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                           children: [
                             // ★ عرض ثابت لكل زر => مسافات أفقية متساوية بين الأيقونات
                             //   زر البحث نُقل إلى ورقة «⋯» (QuickSettingsSheet) مثل الوضع الليلي.
-                            // ★ زر البروفايل: يعرض صورة المستخدم من UserData (ملف المستخدم
-                            //   المركزي) ويفتح صفحة الحساب (/profile). التصميم متسق مع
-                            //   _HeaderIconBtn: نفس الحجم (btnBox) ونفس الإطار.
-                            //   (زر «+» وورقته UpcomingServicesSheet محفوظان — أعد
-                            //   الاستيراد والاستدعاء من الأسفل إن أردت إرجاعهما.)
+                            //   نسخة من أيقونة «حسابي» (نفس أيقونة الشريط السفلي) في الهيدر.
+                            // ★ زر (+) بدل أيقونة «حسابي» — يفتح ورقة «خدمات قادمة»
+                            //   (عرض فقط حالياً، تُطوَّر لاحقاً). صفحة الحساب
+                            //   ما زالت متاحة من /profile.
                             SizedBox(
                               width: btnBox,
-                              child: _HeaderAvatarBtn(
+                              child: _HeaderIconBtn(
                                 box: btnBox,
                                 iconSize: iconSize,
-                                onTap:
-                                    onAccount ?? () => context.push('/profile'),
+                                icon: LucideIcons.circlePlus,
+                                color: theme.colorScheme.onSurface,
+                                onPressed: onAccount ??
+                                    () => UpcomingServicesSheet.show(context),
+                                tooltip: 'إضافة',
                               ),
                             ),
                             SizedBox(
@@ -204,40 +206,6 @@ class _HeaderIconBtn extends StatelessWidget {
       ),
       onPressed: onPressed,
       tooltip: tooltip,
-    );
-  }
-}
-
-/// زر بروفايل الهيدر: دائرة بنفس قياس أزرار الهيدر.
-/// يعرض صورة المستخدم من ملف المستخدم المركزي (UserData) ويُحدَّث فور
-/// تغييرها؛ بلا صورة ⇒ أيقونة مستخدم هادئة.
-class _HeaderAvatarBtn extends StatelessWidget {
-  final double box;
-  final double iconSize;
-  final VoidCallback onTap;
-  const _HeaderAvatarBtn({
-    required this.box,
-    required this.iconSize,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // ★ الاستماع داخل UserAvatar — أي تغيير يُعاد بناء الزر وحده (أداء عالٍ).
-    return IconButton(
-      visualDensity: VisualDensity.compact,
-      padding: EdgeInsets.zero,
-      constraints: BoxConstraints(minWidth: box, minHeight: box),
-      tooltip: 'حسابي',
-      onPressed: onTap,
-      icon: AnimatedContainer(
-        duration: const Duration(milliseconds: 280),
-        curve: Curves.easeOut,
-        child: UserAvatar(
-          size: iconSize + 14,
-          iconSize: iconSize,
-        ),
-      ),
     );
   }
 }
