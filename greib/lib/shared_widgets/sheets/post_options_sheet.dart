@@ -55,16 +55,17 @@ class PostOptionsSheet extends StatelessWidget {
                     context.push('/service/${service.id}');
                   },
                 ),
-                // ★ عرض الشرائح.
-                _tile(
-                  context,
-                  icon: LucideIcons.galleryHorizontal,
-                  label: 'عرض الشرائح',
-                  onTap: () {
-                    Navigator.of(context, rootNavigator: true).pop();
-                    (onShowSlides ?? () => _showLater(context))();
-                  },
-                ),
+                // ★ عرض الشرائح — معطّل مؤقتاً (غير ضروري حالياً).
+                //   محفوظ للمستقبل: أعد تفعيله بحذف التعليق أدناه.
+                // _tile(
+                //   context,
+                //   icon: LucideIcons.galleryHorizontal,
+                //   label: 'عرض الشرائح',
+                //   onTap: () {
+                //     Navigator.of(context, rootNavigator: true).pop();
+                //     (onShowSlides ?? () => _showLater(context))();
+                //   },
+                // ),
                 _tile(
                   context,
                   icon: LucideIcons.image,
