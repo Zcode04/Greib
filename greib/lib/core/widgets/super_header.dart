@@ -28,7 +28,15 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
   /// الأدوات المعروضة داخل الورقة (فارغة = الافتراضي).
   final List<QuickSettingsItem> settingsItems;
 
-  const SuperHeader({super.key, this.title, this.onMore, this.extraActions, this.showBackButton = false, this.settingsItems = const [], this.onAccount});
+  const SuperHeader({
+    super.key,
+    this.title,
+    this.onMore,
+    this.extraActions,
+    this.showBackButton = false,
+    this.settingsItems = const [],
+    this.onAccount,
+  });
 
   @override
   Size get preferredSize => const Size.fromHeight(64);
@@ -41,63 +49,86 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
       (manager) => manager.unreadCount,
     );
 
-    // ★ انكماش الهيدر عند التمرير: حجم كامل أول دخول → مصغّر مرتفع.
+    // ★ إخفاء احترافي عند التمرير: الشعار + الأيقونات يتلاشيان وينزلقان
+    //   للأعلى (Opacity + Slide) بدل تصغيرهما — فيتضح المحتوى خلف الهيدر
+    //   الشفاف. الهيكل ثابت (64) بلا قفزات layout، والظهور عكسي عند الصعود.
     return ValueListenableBuilder<bool>(
       valueListenable: HeaderCollapseState.collapsed,
       builder: (context, collapsed, _) {
-        final toolbarH = collapsed ? 48.0 : 64.0;
-        final logoSize = collapsed ? 18.0 : 24.0;
-        // ★ أيقونات أكبر وأوضح: 18→21 (كامل) و 15→17 (مصغّر)،
-        //   مع صندوق أكبر ليبقى التباعد مريحاً.
-        final iconSize = collapsed ? 17.0 : 21.0;
-        final btnBox = collapsed ? 32.0 : 38.0;
+        // ★ مقاسات ثابتة دائماً — الاحترافية = ثبات الـ layout + تلاشي ناعم.
+        const toolbarH = 64.0;
+        const logoSize = 24.0;
+        const iconSize = 21.0;
+        const btnBox = 38.0;
+        const animDur = Duration(milliseconds: 260);
 
-
-        // ★ تأثير زجاجي (Glassmorphism):
-        // شفافية أعلى لرؤية تأثير الضبابي بوضوح، مع ظل ناعم حقيقي للأسفل
-        // ★ الحاوية الخارجية مسؤولة عن رسم الظل (حتى لا يتم قصه)
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-          child: AppBar(
-                  toolbarHeight: toolbarH,
-                  backgroundColor: Colors.transparent,
-                  surfaceTintColor: Colors.transparent,
-                  elevation: 0,
-                  scrolledUnderElevation: 0,
-                  titleSpacing: showBackButton ? 0 : AppSpacing.md,
-                  automaticallyImplyLeading: showBackButton,
-                  // ★ زر الرجوع يعيد دائماً إلى «الرئيسية» (/home) بدل الخروج العشوائي
-                  //   من مكدّس التنقل — تجربة Super-App متوقّعة وثابتة.
-                  leading: showBackButton
-                      ? IconButton(
-                          icon: const Icon(LucideIcons.chevronRight),
-                          color: theme.colorScheme.onSurface,
-                          tooltip: 'رجوع',
-                          onPressed: () => context.go('/home'),
-                        )
-                      : null,
-                  centerTitle: false,
-                  title: AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 280),
-                    curve: Curves.easeOut,
-                    style: theme.textTheme.titleLarge!.copyWith(
-                      fontWeight: FontWeight.w900,
-                      fontSize: logoSize,
-                      color: context.textColors.primary,
-                    ),
-                    child: const Text('گريب منك'),
+        // ★ الهيدر شفاف دائماً: عند الإخفاء يتضح المحتوى الممرَّر خلفه،
+        //   وعند الظهور يعود الشعار + الأيقونات بانزلاق ناعم من الأعلى.
+        return AppBar(
+          toolbarHeight: toolbarH,
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          titleSpacing: showBackButton ? 0 : AppSpacing.md,
+          automaticallyImplyLeading: showBackButton,
+          // ★ زر الرجوع يعيد دائماً إلى «الرئيسية» (/home) بدل الخروج العشوائي
+          //   من مكدّس التنقل — تجربة Super-App متوقّعة وثابتة.
+          //   (زر الرجوع يبقى ظاهراً دائماً حتى أثناء الإخفاء — للتنقل الآمن).
+          leading: showBackButton
+              ? IconButton(
+                  icon: const Icon(LucideIcons.chevronRight),
+                  color: theme.colorScheme.onSurface,
+                  tooltip: 'رجوع',
+                  onPressed: () => context.go('/home'),
+                )
+              : null,
+          centerTitle: false,
+          // ★ الشعار: تلاشي + انزلاق للأعلى عند السحب، وظهور عكسي عند الصعود.
+          title: AnimatedOpacity(
+            duration: animDur,
+            curve: Curves.easeOut,
+            opacity: collapsed ? 0.0 : 1.0,
+            child: AnimatedSlide(
+              duration: animDur,
+              curve: Curves.easeOutCubic,
+              offset: collapsed ? const Offset(0, -0.6) : Offset.zero,
+              child: IgnorePointer(
+                ignoring: collapsed,
+                child: Text(
+                  'گريب منك',
+                  style: theme.textTheme.titleLarge!.copyWith(
+                    fontWeight: FontWeight.w900,
+                    fontSize: logoSize,
+                    color: context.textColors.primary,
                   ),
-                  actions: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
-                          vertical: collapsed ? 10 : 14),
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          // ★ نفس خلفية التطبيق: شفاف بدون إطار (stroke)
-                          color: Colors.transparent,
-                        ),
+                ),
+              ),
+            ),
+          ),
+          actions: [
+            // ★ الأيقونات: نفس حركة الشعار (تلاشي + انزلاق) بتأخير بصري
+            //   خفيف عبر نفس المدة — إحساس Super-App احترافي متناسق.
+            AnimatedOpacity(
+              duration: animDur,
+              curve: Curves.easeOut,
+              opacity: collapsed ? 0.0 : 1.0,
+              child: AnimatedSlide(
+                duration: animDur,
+                curve: Curves.easeOutCubic,
+                offset: collapsed ? const Offset(0, -0.6) : Offset.zero,
+                child: IgnorePointer(
+                  ignoring: collapsed,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: 14,
+                    ),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        // ★ نفس خلفية التطبيق: شفاف بدون إطار (stroke)
+                        color: Colors.transparent,
+                      ),
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
@@ -116,7 +147,8 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                                 iconSize: iconSize,
                                 icon: LucideIcons.circlePlus,
                                 color: theme.colorScheme.onSurface,
-                                onPressed: onAccount ??
+                                onPressed:
+                                    onAccount ??
                                     () => UpcomingServicesSheet.show(context),
                                 tooltip: 'إضافة',
                               ),
@@ -127,7 +159,9 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                                 box: btnBox,
                                 iconSize: iconSize,
                                 icon: LucideIcons.bell,
-                                badge: unreadNotifications > 9 ? '+9' : '$unreadNotifications',
+                                badge: unreadNotifications > 9
+                                    ? '+9'
+                                    : '$unreadNotifications',
                                 showBadge: unreadNotifications > 0,
                                 color: theme.colorScheme.onSurface,
                                 onPressed: () => context.push('/notifications'),
@@ -143,7 +177,12 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                                 iconSize: iconSize,
                                 icon: LucideIcons.ellipsisVertical,
                                 color: theme.colorScheme.onSurface,
-                                onPressed: onMore ?? () => QuickSettingsSheet.show(context, items: settingsItems),
+                                onPressed:
+                                    onMore ??
+                                    () => QuickSettingsSheet.show(
+                                      context,
+                                      items: settingsItems,
+                                    ),
                                 tooltip: 'المزيد',
                               ),
                             ),
@@ -153,11 +192,13 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                       ),
                     ),
                   ),
-                ],
-                bottom: null,
-          ),
+                ),
+              ),
+            ),
+          ],
+          bottom: null,
         );
-    },
+      },
     );
   }
 }

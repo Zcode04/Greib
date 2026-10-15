@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../../core/location/location_controller.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/widgets/location_picker.dart';
-import '../../../core/widgets/header_collapse_state.dart';
 
 /// كبسولة لاصقة تجمع زر الموقع (وتضمّ الـ 14 تبويب سابقاً — مخفية حالياً).
 /// تظهر عند التمرير حتى موضع التبويبات مع أنيميشن دمج احترافي.
@@ -27,9 +26,10 @@ class _StickyTabsBarState extends State<StickyTabsBar>
     super.initState();
     // ★ أنيميشن واحد سلس: 600ms easeOutCubic بدون نبضات أو ارتداد.
     _merge = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 600));
-    _grow = CurvedAnimation(
-        parent: _merge, curve: Curves.easeOutCubic);
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _grow = CurvedAnimation(parent: _merge, curve: Curves.easeOutCubic);
     _pulse = Tween(begin: 1.0, end: 1.0).animate(_merge);
     if (widget.visible) _merge.value = 1.0;
   }
@@ -49,6 +49,7 @@ class _StickyTabsBarState extends State<StickyTabsBar>
     _merge.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -61,55 +62,52 @@ class _StickyTabsBarState extends State<StickyTabsBar>
     // نفس أبعاد زر الموقع الأصلي تماماً + عرض متجاوب مع الشاشة.
     final screenW = MediaQuery.of(context).size.width;
     const double itemH = 34.0;
-    // ★ عند انكماش الهيدر: الشريط اللاصق أكبر وملتصق به (top: 0).
-    final collapsed = HeaderCollapseState.collapsed.value;
+    // ★ الهيدر ثابت الارتفاع (64) — الشريط ملتصق بالأعلى (top: 0) بلا فجوة.
     // ★ ظهور مباشر خفيف من مكانه (بدون انزلاق/تكبير ثقيل).
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeOut,
       opacity: widget.visible ? 1.0 : 0.0,
       child: IgnorePointer(
-          ignoring: !widget.visible,
-          child: SafeArea(
-            bottom: false,
-            // ★ Directionality ثابت LTR حتى تبقى topLeft فيزيائية
-            // (في RTL كانت تنعكس لليمين).
-            // ★ ملتصق بالهيدر المصغّر: top: 0 (بدون فجوة) وأكبر منه.
-            child: Directionality(
-              textDirection: TextDirection.ltr,
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding: EdgeInsets.only(
-                      top: collapsed ? 4 : 8, left: 20, right: 20),
+        ignoring: !widget.visible,
+        child: SafeArea(
+          bottom: false,
+          // ★ Directionality ثابت LTR حتى تبقى topLeft فيزيائية
+          // (في RTL كانت تنعكس لليمين).
+          // ★ ملتصق بالهيدر: top: 0 (بدون فجوة).
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8, left: 20, right: 20),
                 child: AnimatedBuilder(
                   animation: _merge,
                   builder: (context, _) {
-                    // ★ عند الالتصاق: حشو أكبر (أكبر من الهيدر المصغّر 48).
-                    final pad = collapsed ? 5.0 : 3.0;
-                    final h = collapsed ? 40.0 : itemH;
+                    const pad = 3.0;
+                    const h = itemH;
                     return ConstrainedBox(
                       // ★ عرض متجاوب: لا يتجاوز الشاشة أبداً
-                      constraints: BoxConstraints(
-                        maxWidth: screenW - 40,
-                      ),
+                      constraints: BoxConstraints(maxWidth: screenW - 40),
                       child: Container(
                         padding: EdgeInsets.symmetric(
-                            horizontal: 6, vertical: pad),
+                          horizontal: 6,
+                          vertical: pad,
+                        ),
                         decoration: BoxDecoration(
                           // ★ نفس ستايل زر الموقع الأصلي حرفياً
-                          color: theme.colorScheme.surface
-                              .withValues(alpha: 0.92),
-                          borderRadius: BorderRadius.circular(
-                              AppRadii.full),
+                          color: theme.colorScheme.surface.withValues(
+                            alpha: 0.92,
+                          ),
+                          borderRadius: BorderRadius.circular(AppRadii.full),
                           border: Border.all(
-                            color: theme.colorScheme.primary
-                                .withValues(alpha: 0.25),
+                            color: theme.colorScheme.primary.withValues(
+                              alpha: 0.25,
+                            ),
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(
-                                  alpha: 0.12),
+                              color: Colors.black.withValues(alpha: 0.12),
                               blurRadius: 10,
                               offset: const Offset(0, 3),
                             ),
@@ -129,10 +127,10 @@ class _StickyTabsBarState extends State<StickyTabsBar>
                   },
                 ),
               ),
-              ),
             ),
           ),
         ),
+      ),
     );
   }
 }
@@ -166,45 +164,47 @@ class _MergedRow extends StatelessWidget {
                 context: context,
                 isScrollControlled: true,
                 useSafeArea: true,
-                backgroundColor:
-                    Theme.of(context).colorScheme.surface,
+                backgroundColor: Theme.of(context).colorScheme.surface,
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(AppRadii.xxl)),
+                    top: Radius.circular(AppRadii.xxl),
+                  ),
                 ),
                 builder: (_) => const LocationPickerSheet(),
               );
             },
             child: Container(
               height: itemH,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary
-                    .withValues(alpha: 0.12 * merge.value),
-                borderRadius:
-                    BorderRadius.circular(AppRadii.full),
+                color: theme.colorScheme.primary.withValues(
+                  alpha: 0.12 * merge.value,
+                ),
+                borderRadius: BorderRadius.circular(AppRadii.full),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(LucideIcons.mapPin,
-                      size: 14,
-                      color: theme.colorScheme.primary),
+                  Icon(
+                    LucideIcons.mapPin,
+                    size: 14,
+                    color: theme.colorScheme.primary,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     city,
-                    style:
-                        theme.textTheme.labelMedium?.copyWith(
+                    style: theme.textTheme.labelMedium?.copyWith(
                       color: theme.colorScheme.primary,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(width: 2),
-                  Icon(LucideIcons.chevronDown,
-                      size: 13,
-                      color: theme.colorScheme.primary),
+                  Icon(
+                    LucideIcons.chevronDown,
+                    size: 13,
+                    color: theme.colorScheme.primary,
+                  ),
                 ],
               ),
             ),

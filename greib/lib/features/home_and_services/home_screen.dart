@@ -59,14 +59,14 @@ class _HomeScreenState extends State<HomeScreen> {
   // ★ السلوك المطلوب:
   // - تمرير لأسفل (reverse) + تجاوز موضع التبويبات → تظهر وتبقى ظاهرة.
   // - التوقف (idle) → لا يتغير أي شيء (تبقى على حالتها).
-  // - سحب عكسي للأعلى (forward) فقط → تختفي + الهيدر يكبر.
+  // - سحب عكسي للأعلى (forward) فقط → تختفي + يظهر الهيدر (الشعار + الأيقونات).
   void _onScroll() {
     final dir = _scrollController.position.userScrollDirection;
     // التوقف: لا تلمس الحالة أبداً — كانت هذه هي الثغرة (كانت تعيد
     // الحساب بالموضع فتخفي التبويب عند رفع الإصبع).
     if (dir == ScrollDirection.idle) return;
     if (dir == ScrollDirection.forward) {
-      // سحب عكسي (للأعلى): تكبير الهيدر + إخفاء التبويبات (مرة واحدة).
+      // سحب عكسي (للأعلى): إظهار الهيدر + إخفاء التبويبات (مرة واحدة).
       if (HeaderCollapseState.collapsed.value) {
         HeaderCollapseState.collapsed.value = false;
       }
@@ -117,7 +117,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Scaffold(
-      backgroundColor: (isDark ? AppColors.background : AppColors.lightBackground),
+      backgroundColor: (isDark
+          ? AppColors.background
+          : AppColors.lightBackground),
       // القائمة الجانبية (Drawer) انتقلت إلى MainShellScreen — مصدر واحد للتنقل.
       body: Stack(
         children: [
@@ -145,10 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 28),
 
                 // ★ تبويبات الـ 14 قسم بين "رائج" و"الأحدث".
-                const AnimatedListItem(
-                  index: 1,
-                  child: HomeCategoriesTabBar(),
-                ),
+                const AnimatedListItem(index: 1, child: HomeCategoriesTabBar()),
                 const SizedBox(height: 28),
 
                 // ★ منشور واحد قبل قسم «الأحدث» (تدفّق أكثر احترافية).
@@ -209,7 +208,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: SpotlightSection(isDark: isDark),
                 ),
                 const SizedBox(height: 28),
-
 
                 AnimatedListItem(
                   index: 4,
