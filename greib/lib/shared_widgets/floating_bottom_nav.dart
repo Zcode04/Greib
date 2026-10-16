@@ -227,10 +227,13 @@ class _SelectedPillState extends State<_SelectedPill> {
   @override
   void initState() {
     super.initState();
-    // ★ الاسم يظهر بعد تأخير قصير (180ms) من ظهور الأيقونة —
-    // تسلسل احترافي: أيقونة أولاً ثم الاسم.
+    // ★ الاسم يظهر بعد تأخير قصير (180ms) من ظهور الأيقونة،
+    // ثم يختفي تلقائياً بعد (1200ms) — وتبقى الأيقونة وحدها.
     Future.delayed(const Duration(milliseconds: 180), () {
       if (mounted) setState(() => _showLabel = true);
+      Future.delayed(const Duration(milliseconds: 1200), () {
+        if (mounted) setState(() => _showLabel = false);
+      });
     });
   }
 
