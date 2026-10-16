@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 /// حالة إخفاء الهيدر — جسر بين تمرير الـ Home والـ SuperHeader.
@@ -18,4 +20,38 @@ class HeaderCollapseState {
   /// بلا شريط كبير حولها. يُصفَّر تلقائياً عند التوقف/العكسي.
   static final ValueNotifier<bool> navShellHidden =
       ValueNotifier<bool>(false);
+
+  /// ★ إخفاء الدائرة الأخيرة أيضاً (شاشة فارغة تماماً لأقصى وضوح).
+  /// `true` = حتى أيقونة house مخفية. تُضبط بعد اختفاء الخلفية بقليل.
+  static final ValueNotifier<bool> navDotHidden =
+      ValueNotifier<bool>(false);
+
+  /// ★ مؤقت العودة بعد التوقف (ثانيتان) — أي تمرير جديد يلغيه.
+  static Timer? _restoreTimer;
+
+  /// إلغاء مؤقت العودة (عند أي تمرير جديد).
+  static void cancelRestore() {
+    _restoreTimer?.cancel();
+    _restoreTimer = null;
+  }
+
+  /// جدولة عودة كل شيء (هيدر + سفلي) بعد ثانيتين من التوقف.
+  static void scheduleRestore() {
+    cancelRestore();
+    _restoreTimer = Timer(const Duration(seconds: 2), () {
+      collapsed.value = false;
+      navCompact.value = false;
+      navShellHidden.value = false;
+      navDotHidden.value = false;
+    });
+  }
+
+  /// عودة فورية (سحب عكسي / نقرة) — تلغي المؤقت وتصفّر كل الحالات.
+  static void restoreNow() {
+    cancelRestore();
+    collapsed.value = false;
+    navCompact.value = false;
+    navShellHidden.value = false;
+    navDotHidden.value = false;
+  }
 }

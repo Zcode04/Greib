@@ -90,6 +90,17 @@ class FloatingBottomNav extends StatelessWidget {
               // الكبيرة (اللون + الحد + الظل) تتلاشى وتبقى الدائرة بلا تكرار.
               final hideShell = shellHidden && compact;
               final selectedItem = items[currentIndex];
+              if (hideShell) {
+                return SizedBox(
+                  height: 68,
+                  child: Center(
+                    child: _DotOnly(
+                      item: selectedItem,
+                      isDark: isDark,
+                    ),
+                  ),
+                );
+              }
               return SizedBox(
                 height: 68,
                 child: Stack(
@@ -197,15 +208,10 @@ class FloatingBottomNav extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (hideShell)
-                      _SelectedPill(
-                        item: selectedItem,
-                        selected: true,
-                        isDark: isDark,
-                        onTap: () => onTap(currentIndex),
-                        overlay: true,
-                        visible: true,
-                        iconOnly: true,
+                    if (compact && !hideShell)
+                      _HideChain(
+                        key: ValueKey(currentIndex),
+                        active: true,
                       ),
                   ],
                 ),
@@ -254,18 +260,11 @@ class _SelectedPill extends StatefulWidget {
   final bool selected;
   final bool isDark;
   final VoidCallback onTap;
-  final bool overlay;
-  final bool visible;
-  final bool iconOnly;
-
   const _SelectedPill({
     required this.item,
     required this.selected,
     required this.isDark,
     required this.onTap,
-    this.overlay = false,
-    this.visible = true,
-    this.iconOnly = false,
   });
 
   @override
@@ -278,23 +277,19 @@ class _SelectedPillState extends State<_SelectedPill> {
   @override
   void initState() {
     super.initState();
-    if (widget.iconOnly) return;
     Future.delayed(const Duration(milliseconds: 180), () {
       if (mounted) setState(() => _showLabel = true);
       Future.delayed(const Duration(milliseconds: 1200), () {
         if (mounted) setState(() => _showLabel = false);
-        Future.delayed(const Duration(milliseconds: 400), () {
-          if (mounted) HeaderCollapseState.navShellHidden.value = true;
-        });
       });
     });
   }
 
   @override
   void dispose() {
-    if (HeaderCollapseState.navShellHidden.value) {
-      HeaderCollapseState.navShellHidden.value = false;
-    }
+    // ★ العودة الفورية/المجدولة تتولى التصفير فلا نصفّر هنا
+    // (التصفير عند الإزالة كان يلغي التسلسل) — فقط نلغي مؤقت العودة
+    // المجدول إلذي قد يعيد إظهار الشريط مبكراً.
     super.dispose();
   }
 
@@ -379,15 +374,94 @@ class _SelectedPillState extends State<_SelectedPill> {
         ),
       ),
     );
-    if (!widget.overlay) return body;
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 250),
-      opacity: widget.visible ? 1.0 : 0.0,
-      child: AnimatedScale(
-        duration: const Duration(milliseconds: 250),
-        scale: widget.visible ? 1.0 : 0.7,
-        child: IgnorePointer(ignoring: !widget.visible, child: body),
-      ),
+    return body;
+  }
+}
+
+/// ★ محرك السلسلة الثابت: يعيش طوال فترة التقلص
+/// (بخلاف Pill الصف الذي يُزال) — يدفع
+/// الخلفية الكبيرة ثم الدائرة للاختفاء النهائي.
+class _HideChain extends StatefulWidget {
+  final bool active;
+  const _HideChain({super.key, required this.active});
+  @override
+  State<_HideChain> createState() => _HideChainState();
+}
+
+class _HideChainState extends State<_HideChain> {
+  bool _dead = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // ★ الاسم يختفي بعد 1380ms من بدء التقلص →
+    // الأيقونة + الخلفية يختفيان معاً بعد 300ms
+    // (تجربة موحدة) — أي تمرير جديد يعيد السلسلة من الصفر.
+    Future.delayed(const Duration(milliseconds: 1680), () {
+      if (_dead || !mounted || !widget.active) return;
+      if (!HeaderCollapseState.navCompact.value) return;
+      HeaderCollapseState.navShellHidden.value = true;
+      HeaderCollapseState.navDotHidden.value = true;
+    });
+  }
+
+  @override
+  void dispose() {
+    _dead = true;
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
+}
+
+/// ★ الدائرة الأخيرة: أيقونة واحدة بلا اسم وبلا مؤقتات.
+class _DotOnly extends StatelessWidget {
+  final FloatingNavItem item;
+  final bool isDark;
+  const _DotOnly({required this.item, required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    final activeColor = context.iconColors.active;
+    final accent = context.accentColor;
+    final iconColor = isDark ? Colors.white : activeColor;
+    return ValueListenableBuilder<bool>(
+      valueListenable: HeaderCollapseState.navDotHidden,
+      builder: (context, dotHidden, _) {
+        return AnimatedOpacity(
+          duration: const Duration(milliseconds: 250),
+          opacity: dotHidden ? 0.0 : 1.0,
+          child: AnimatedScale(
+            duration: const Duration(milliseconds: 250),
+            scale: dotHidden ? 0.6 : 1.0,
+            child: IgnorePointer(
+              ignoring: dotHidden,
+              child: GestureDetector(
+                onTap: HeaderCollapseState.restoreNow,
+                child: Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: accent.withValues(
+                        alpha: isDark ? 0.2 : 0.12),
+                  ),
+                  child: Center(
+                    child: NavIcon(
+                      outlined: item.icon,
+                      filledAsset: item.filledAsset,
+                      selected: true,
+                      color: iconColor,
+                      size: 26,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

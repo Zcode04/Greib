@@ -58,35 +58,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ★ السلوك المطلوب:
   // - تمرير لأسفل (reverse) + تجاوز موضع التبويبات → تظهر وتبقى ظاهرة.
-  // - التوقف (idle) → الهيدر يبقى على حاله، لكن الشريط السفلي يعود
-  //   كاملاً (تظهر الأيقونات الغير نشطة بأنيميشن).
-  // - سحب عكسي للأعلى (forward) فقط → تختفي + يظهر الهيدر (الشعار + الأيقونات).
+  // - التوقف (idle) → جدولة عودة كل شيء (هيدر + سفلي) بعد ثانيتين.
+  // - سحب عكسي للأعلى (forward) فقط → عودة فورية + إخفاء التبويبات.
   void _onScroll() {
     final dir = _scrollController.position.userScrollDirection;
-    // التوقف: الهيدر لا يتغير، لكن السفلي يعود كاملاً (إظهار الأيقونات).
+    // التوقف: لا عودة فورية — جدولة العودة بعد ثانيتين (أي تمرير يلغيها).
     if (dir == ScrollDirection.idle) {
-      if (HeaderCollapseState.navCompact.value) {
-        HeaderCollapseState.navCompact.value = false;
-      }
-      if (HeaderCollapseState.navShellHidden.value) {
-        HeaderCollapseState.navShellHidden.value = false;
-      }
-      if (HeaderCollapseState.navShellHidden.value) {
-        HeaderCollapseState.navShellHidden.value = false;
+      if (HeaderCollapseState.collapsed.value ||
+          HeaderCollapseState.navCompact.value) {
+        HeaderCollapseState.scheduleRestore();
       }
       return;
     }
     if (dir == ScrollDirection.forward) {
-      // سحب عكسي (للأعلى): إظهار الهيدر + إظهار السفلي كاملاً + إخفاء التبويبات.
-      if (HeaderCollapseState.collapsed.value) {
-        HeaderCollapseState.collapsed.value = false;
-      }
-      if (HeaderCollapseState.navCompact.value) {
-        HeaderCollapseState.navCompact.value = false;
-      }
-      if (HeaderCollapseState.navShellHidden.value) {
-        HeaderCollapseState.navShellHidden.value = false;
-      }
+      // سحب عكسي (للأعلى): عودة فورية لكل شيء + إخفاء التبويبات.
+      HeaderCollapseState.restoreNow();
       if (_showStickyTabs) {
         setState(() => _showStickyTabs = false);
       }
