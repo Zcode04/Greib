@@ -142,12 +142,21 @@ class FloatingBottomNav extends StatelessWidget {
                                 : Offset.zero,
                             child: IgnorePointer(
                               ignoring: compact && !selected,
-                              child: _NavTile(
-                                item: item,
-                                selected: selected,
-                                isDark: isDark,
-                                onTap: () => onTap(index),
-                              ),
+                              // ★ بعد التقلص: المحددة تعرض أيقونة + اسمها
+                              // جنباً (أفقي) بدل العمودي — يستغل التوسع.
+                              child: selected && compact
+                                  ? _SelectedPill(
+                                      item: item,
+                                      selected: selected,
+                                      isDark: isDark,
+                                      onTap: () => onTap(index),
+                                    )
+                                  : _NavTile(
+                                      item: item,
+                                      selected: selected,
+                                      isDark: isDark,
+                                      onTap: () => onTap(index),
+                                    ),
                             ),
                           ),
                         ),
@@ -191,6 +200,120 @@ class _AnimatedFlex extends StatelessWidget {
         );
       },
       child: child,
+    );
+  }
+}
+
+class _SelectedPill extends StatefulWidget {
+  final FloatingNavItem item;
+  final bool selected;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  const _SelectedPill({
+    required this.item,
+    required this.selected,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  @override
+  State<_SelectedPill> createState() => _SelectedPillState();
+}
+
+class _SelectedPillState extends State<_SelectedPill> {
+  bool _showLabel = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // ★ الاسم يظهر بعد تأخير قصير (180ms) من ظهور الأيقونة —
+    // تسلسل احترافي: أيقونة أولاً ثم الاسم.
+    Future.delayed(const Duration(milliseconds: 180), () {
+      if (mounted) setState(() => _showLabel = true);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final activeColor = context.iconColors.active;
+    final accent = context.accentColor;
+    final iconColor =
+        widget.isDark ? Colors.white : activeColor;
+
+    return Semantics(
+      label: widget.item.label,
+      button: true,
+      selected: true,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // ★ الدائرة تحتوي الأيقونة فقط — الاسم خارجها.
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.easeOutCubic,
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: accent.withValues(
+                      alpha: widget.isDark ? 0.2 : 0.12),
+                ),
+                child: Center(
+                  child: NavIcon(
+                    outlined: widget.item.icon,
+                    filledAsset: widget.item.filledAsset,
+                    selected: true,
+                    color: iconColor,
+                    size: 26,
+                  ),
+                ),
+              ),
+              // ★ الاسم خارج الدائرة — يظهر بعد التأخير بتلاشي + انزلاق.
+              AnimatedSize(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                child: _showLabel
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(width: 10),
+                          AnimatedOpacity(
+                            duration:
+                                const Duration(milliseconds: 220),
+                            opacity: _showLabel ? 1.0 : 0.0,
+                            child: AnimatedSlide(
+                              duration: const Duration(
+                                  milliseconds: 220),
+                              curve: Curves.easeOutCubic,
+                              offset: _showLabel
+                                  ? Offset.zero
+                                  : const Offset(-0.3, 0),
+                              child: Text(
+                                widget.item.label,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: iconColor,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
