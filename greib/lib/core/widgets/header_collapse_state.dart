@@ -5,4 +5,11 @@ import 'package:flutter/material.dart';
 /// `false` = أول دخول / سحب للأعلى → الشعار + الأيقونات ظاهرة.
 class HeaderCollapseState {
   static final ValueNotifier<bool> collapsed = ValueNotifier<bool>(false);
+
+  /// ★ تصغير الشريط السفلي أثناء التمرير النشط فقط:
+  /// `true` = تمرير لأسفل نشط → إخفاء الأيقونات الغير نشطة وإبقاء
+  /// المحددة (house) فقط. `false` = توقف / سحب عكسي → إظهار الكل.
+  /// منفصل عن `collapsed` (الهيدر يبقى مخفياً حتى السحب العكسي،
+  /// بينما السفلي يعود فور التوقف — تجربة أكثر احترافية).
+  static final ValueNotifier<bool> navCompact = ValueNotifier<bool>(false);
 }

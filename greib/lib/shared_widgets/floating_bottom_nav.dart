@@ -25,6 +25,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/theme/design_tokens.dart';
+import '../core/widgets/header_collapse_state.dart';
 import 'nav_icon.dart';
 
 class FloatingNavItem {
@@ -79,53 +80,117 @@ class FloatingBottomNav extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(36),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-          child: Container(
-            height: 68,
-            decoration: BoxDecoration(
-              color: surface.withValues(alpha: 0.85),
-              borderRadius: BorderRadius.circular(36),
-              border: Border.all(
-                color: isDark ? outline.withValues(alpha: 0.6) : outline,
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.12),
-                  blurRadius: 32,
-                  offset: const Offset(0, 12),
+      child: ValueListenableBuilder<bool>(
+        valueListenable: HeaderCollapseState.navCompact,
+        builder: (context, compact, _) {
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(36),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.easeOutCubic,
+                // ★ الحجم ثابت دائماً (68) — الاحترافية = ثبات الـ layout
+                // + تلاشي المحتوى فقط، بلا تقلص يكسر التناسق.
+                height: 68,
+                decoration: BoxDecoration(
+                  color: surface.withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(36),
+                  border: Border.all(
+                    color: isDark ? outline.withValues(alpha: 0.6) : outline,
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.12),
+                      blurRadius: 32,
+                      offset: const Offset(0, 12),
+                    ),
+                    if (isDark)
+                      BoxShadow(
+                        color: accent.withValues(alpha: 0.08),
+                        blurRadius: 32,
+                        offset: const Offset(0, 4),
+                      ),
+                  ],
                 ),
-                if (isDark)
-                  BoxShadow(
-                    color: accent.withValues(alpha: 0.08),
-                    blurRadius: 32,
-                    offset: const Offset(0, 4),
-                  ),
-              ],
+                child: Row(
+                  children: List.generate(items.length, (index) {
+                    final item = items[index];
+                    // ★ زر الإجراء (الكاميرا): نفس تصميم _NavTile تماماً
+                    // لهوية موحدة — لكنه لا يأخذ حالة «محدد» أبداً.
+                    final selected =
+                        !item.isAction && index == currentIndex;
+                    // ★ الأنيميشن السابق القوي (تقلص العرض) لكن بـ AnimatedFlex —
+                    // لا عروض ثابتة تكسر الـ constraints: الغير نشطة تنكمش
+                    // تدريجياً (تلاشي + انزلاق + تقلص flex)، والمحددة تتوسع.
+                    return _AnimatedFlex(
+                      flex: compact ? (selected ? 1 : 0) : 1,
+                      duration: const Duration(milliseconds: 280),
+                      child: ClipRect(
+                        child: AnimatedOpacity(
+                          duration: selected
+                              ? const Duration(milliseconds: 200)
+                              : const Duration(milliseconds: 160),
+                          curve: Curves.easeOut,
+                          opacity: compact && !selected ? 0.0 : 1.0,
+                          child: AnimatedSlide(
+                            duration: const Duration(milliseconds: 280),
+                            curve: Curves.easeOutCubic,
+                            offset: compact && !selected
+                                ? const Offset(0, 0.35)
+                                : Offset.zero,
+                            child: IgnorePointer(
+                              ignoring: compact && !selected,
+                              child: _NavTile(
+                                item: item,
+                                selected: selected,
+                                isDark: isDark,
+                                onTap: () => onTap(index),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
             ),
-            child: Row(
-              children: List.generate(items.length, (index) {
-                final item = items[index];
-                // ★ زر الإجراء (الكاميرا): نفس تصميم _NavTile تماماً
-                // لهوية موحدة — لكنه لا يأخذ حالة «محدد» أبداً.
-                final selected = !item.isAction && index == currentIndex;
-
-                return Expanded(
-                  child: _NavTile(
-                    item: item,
-                    selected: selected,
-                    isDark: isDark,
-                    onTap: () => onTap(index),
-                  ),
-                );
-              }),
-            ),
-          ),
-        ),
+          );
+        },
       ),
+    );
+  }
+}
+
+class _AnimatedFlex extends StatelessWidget {
+  final int flex;
+  final Duration duration;
+  final Widget child;
+
+  const _AnimatedFlex({
+    required this.flex,
+    required this.duration,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // ★ Flexible يقبل flex صحيحاً فقط — نحرك بالألف (1000 مقابل 1)
+    // فيتداخل التلاشي + الانزلاق مع تقلص حقيقي ناعم بلا كسر constraints.
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 1000, end: flex == 0 ? 1 : 1000),
+      duration: duration,
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Flexible(
+          flex: value.round().clamp(1, 1000),
+          fit: FlexFit.tight,
+          child: child!,
+        );
+      },
+      child: child,
     );
   }
 }

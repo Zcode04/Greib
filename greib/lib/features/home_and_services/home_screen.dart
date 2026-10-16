@@ -58,28 +58,39 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ★ السلوك المطلوب:
   // - تمرير لأسفل (reverse) + تجاوز موضع التبويبات → تظهر وتبقى ظاهرة.
-  // - التوقف (idle) → لا يتغير أي شيء (تبقى على حالتها).
+  // - التوقف (idle) → الهيدر يبقى على حاله، لكن الشريط السفلي يعود
+  //   كاملاً (تظهر الأيقونات الغير نشطة بأنيميشن).
   // - سحب عكسي للأعلى (forward) فقط → تختفي + يظهر الهيدر (الشعار + الأيقونات).
   void _onScroll() {
     final dir = _scrollController.position.userScrollDirection;
-    // التوقف: لا تلمس الحالة أبداً — كانت هذه هي الثغرة (كانت تعيد
-    // الحساب بالموضع فتخفي التبويب عند رفع الإصبع).
-    if (dir == ScrollDirection.idle) return;
+    // التوقف: الهيدر لا يتغير، لكن السفلي يعود كاملاً (إظهار الأيقونات).
+    if (dir == ScrollDirection.idle) {
+      if (HeaderCollapseState.navCompact.value) {
+        HeaderCollapseState.navCompact.value = false;
+      }
+      return;
+    }
     if (dir == ScrollDirection.forward) {
-      // سحب عكسي (للأعلى): إظهار الهيدر + إخفاء التبويبات (مرة واحدة).
+      // سحب عكسي (للأعلى): إظهار الهيدر + إظهار السفلي كاملاً + إخفاء التبويبات.
       if (HeaderCollapseState.collapsed.value) {
         HeaderCollapseState.collapsed.value = false;
+      }
+      if (HeaderCollapseState.navCompact.value) {
+        HeaderCollapseState.navCompact.value = false;
       }
       if (_showStickyTabs) {
         setState(() => _showStickyTabs = false);
       }
       return;
     }
-    // تمرير لأسفل فقط: القرار حسب الموضع — يظهر عند التجاوز ويبقى.
+    // تمرير لأسفل نشط فقط: إخفاء الهيدر + تصغير السفلي (المحددة فقط).
     if (!_scrollController.hasClients) return;
     final offset = _scrollController.offset;
     if (offset > 24 && !HeaderCollapseState.collapsed.value) {
       HeaderCollapseState.collapsed.value = true;
+    }
+    if (offset > 24 && !HeaderCollapseState.navCompact.value) {
+      HeaderCollapseState.navCompact.value = true;
     }
     final ctx = _tabsKey.currentContext;
     if (ctx == null) return;
