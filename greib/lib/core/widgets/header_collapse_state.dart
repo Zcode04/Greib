@@ -12,4 +12,10 @@ class HeaderCollapseState {
   /// منفصل عن `collapsed` (الهيدر يبقى مخفياً حتى السحب العكسي،
   /// بينما السفلي يعود فور التوقف — تجربة أكثر احترافية).
   static final ValueNotifier<bool> navCompact = ValueNotifier<bool>(false);
+
+  /// ★ إخفاء الخلفية الكبيرة للشريط السفلي بعد اكتمال تسلسل الـ Pill
+  /// (الأيقونة → الاسم → اختفاء الاسم): `true` = تبقى الدائرة فقط
+  /// بلا شريط كبير حولها. يُصفَّر تلقائياً عند التوقف/العكسي.
+  static final ValueNotifier<bool> navShellHidden =
+      ValueNotifier<bool>(false);
 }

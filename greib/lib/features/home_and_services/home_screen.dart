@@ -68,6 +68,12 @@ class _HomeScreenState extends State<HomeScreen> {
       if (HeaderCollapseState.navCompact.value) {
         HeaderCollapseState.navCompact.value = false;
       }
+      if (HeaderCollapseState.navShellHidden.value) {
+        HeaderCollapseState.navShellHidden.value = false;
+      }
+      if (HeaderCollapseState.navShellHidden.value) {
+        HeaderCollapseState.navShellHidden.value = false;
+      }
       return;
     }
     if (dir == ScrollDirection.forward) {
@@ -77,6 +83,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       if (HeaderCollapseState.navCompact.value) {
         HeaderCollapseState.navCompact.value = false;
+      }
+      if (HeaderCollapseState.navShellHidden.value) {
+        HeaderCollapseState.navShellHidden.value = false;
       }
       if (_showStickyTabs) {
         setState(() => _showStickyTabs = false);

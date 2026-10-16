@@ -83,36 +83,63 @@ class FloatingBottomNav extends StatelessWidget {
       child: ValueListenableBuilder<bool>(
         valueListenable: HeaderCollapseState.navCompact,
         builder: (context, compact, _) {
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(36),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-              child: AnimatedContainer(
+          return ValueListenableBuilder<bool>(
+            valueListenable: HeaderCollapseState.navShellHidden,
+            builder: (context, shellHidden, _) {
+              // ★ الأمر أبسط: نفس الأيقونة تبقى دائماً — فقط الخلفية
+              // الكبيرة (اللون + الحد + الظل) تتلاشى وتبقى الدائرة بلا تكرار.
+              final hideShell = shellHidden && compact;
+              final selectedItem = items[currentIndex];
+              return SizedBox(
+                height: 68,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    AnimatedOpacity(
+                      duration: const Duration(milliseconds: 300),
+                      opacity: hideShell ? 0.0 : 1.0,
+                      child: IgnorePointer(
+                        ignoring: hideShell,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(36),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(
+                                sigmaX: hideShell ? 0 : 16,
+                                sigmaY: hideShell ? 0 : 16),
+                            child: AnimatedContainer(
                 duration: const Duration(milliseconds: 280),
                 curve: Curves.easeOutCubic,
                 // ★ الحجم ثابت دائماً (68) — الاحترافية = ثبات الـ layout
                 // + تلاشي المحتوى فقط، بلا تقلص يكسر التناسق.
                 height: 68,
                 decoration: BoxDecoration(
-                  color: surface.withValues(alpha: 0.85),
+                  color: surface.withValues(
+                      alpha: hideShell ? 0.0 : 0.85),
                   borderRadius: BorderRadius.circular(36),
                   border: Border.all(
-                    color: isDark ? outline.withValues(alpha: 0.6) : outline,
+                    color: hideShell
+                        ? Colors.transparent
+                        : (isDark
+                            ? outline.withValues(alpha: 0.6)
+                            : outline),
                     width: 1,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.12),
-                      blurRadius: 32,
-                      offset: const Offset(0, 12),
-                    ),
-                    if (isDark)
-                      BoxShadow(
-                        color: accent.withValues(alpha: 0.08),
-                        blurRadius: 32,
-                        offset: const Offset(0, 4),
-                      ),
-                  ],
+                  boxShadow: hideShell
+                      ? const []
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withValues(
+                                alpha: isDark ? 0.5 : 0.12),
+                            blurRadius: 32,
+                            offset: const Offset(0, 12),
+                          ),
+                          if (isDark)
+                            BoxShadow(
+                              color: accent.withValues(alpha: 0.08),
+                              blurRadius: 32,
+                              offset: const Offset(0, 4),
+                            ),
+                        ],
                 ),
                 child: Row(
                   children: List.generate(items.length, (index) {
@@ -142,9 +169,10 @@ class FloatingBottomNav extends StatelessWidget {
                                 : Offset.zero,
                             child: IgnorePointer(
                               ignoring: compact && !selected,
-                              // ★ بعد التقلص: المحددة تعرض أيقونة + اسمها
-                              // جنباً (أفقي) بدل العمودي — يستغل التوسع.
-                              child: selected && compact
+                              // ★ التدفق: أثناء التقلص المحددة Pill
+                              // (دائرة + اسم بعد 180ms ثم يختفي بعد 1200ms)،
+                              // وبعد اختفاء الخلفية تحل محلها الدائرة المستقلة.
+                              child: selected && compact && !hideShell
                                   ? _SelectedPill(
                                       item: item,
                                       selected: selected,
@@ -163,9 +191,26 @@ class FloatingBottomNav extends StatelessWidget {
                       ),
                     );
                   }),
+                          ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (hideShell)
+                      _SelectedPill(
+                        item: selectedItem,
+                        selected: true,
+                        isDark: isDark,
+                        onTap: () => onTap(currentIndex),
+                        overlay: true,
+                        visible: true,
+                        iconOnly: true,
+                      ),
+                  ],
                 ),
-              ),
-            ),
+              );
+            },
           );
         },
       ),
@@ -209,12 +254,18 @@ class _SelectedPill extends StatefulWidget {
   final bool selected;
   final bool isDark;
   final VoidCallback onTap;
+  final bool overlay;
+  final bool visible;
+  final bool iconOnly;
 
   const _SelectedPill({
     required this.item,
     required this.selected,
     required this.isDark,
     required this.onTap,
+    this.overlay = false,
+    this.visible = true,
+    this.iconOnly = false,
   });
 
   @override
@@ -227,14 +278,24 @@ class _SelectedPillState extends State<_SelectedPill> {
   @override
   void initState() {
     super.initState();
-    // ★ الاسم يظهر بعد تأخير قصير (180ms) من ظهور الأيقونة،
-    // ثم يختفي تلقائياً بعد (1200ms) — وتبقى الأيقونة وحدها.
+    if (widget.iconOnly) return;
     Future.delayed(const Duration(milliseconds: 180), () {
       if (mounted) setState(() => _showLabel = true);
       Future.delayed(const Duration(milliseconds: 1200), () {
         if (mounted) setState(() => _showLabel = false);
+        Future.delayed(const Duration(milliseconds: 400), () {
+          if (mounted) HeaderCollapseState.navShellHidden.value = true;
+        });
       });
     });
+  }
+
+  @override
+  void dispose() {
+    if (HeaderCollapseState.navShellHidden.value) {
+      HeaderCollapseState.navShellHidden.value = false;
+    }
+    super.dispose();
   }
 
   @override
@@ -244,7 +305,7 @@ class _SelectedPillState extends State<_SelectedPill> {
     final iconColor =
         widget.isDark ? Colors.white : activeColor;
 
-    return Semantics(
+    final body = Semantics(
       label: widget.item.label,
       button: true,
       selected: true,
@@ -316,6 +377,16 @@ class _SelectedPillState extends State<_SelectedPill> {
             ],
           ),
         ),
+      ),
+    );
+    if (!widget.overlay) return body;
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 250),
+      opacity: widget.visible ? 1.0 : 0.0,
+      child: AnimatedScale(
+        duration: const Duration(milliseconds: 250),
+        scale: widget.visible ? 1.0 : 0.7,
+        child: IgnorePointer(ignoring: !widget.visible, child: body),
       ),
     );
   }
