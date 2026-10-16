@@ -86,8 +86,6 @@ class FloatingBottomNav extends StatelessWidget {
           return ValueListenableBuilder<bool>(
             valueListenable: HeaderCollapseState.navShellHidden,
             builder: (context, shellHidden, _) {
-              // ★ الأمر أبسط: نفس الأيقونة تبقى دائماً — فقط الخلفية
-              // الكبيرة (اللون + الحد + الظل) تتلاشى وتبقى الدائرة بلا تكرار.
               final hideShell = shellHidden && compact;
               final selectedItem = items[currentIndex];
               if (hideShell) {
@@ -106,109 +104,72 @@ class FloatingBottomNav extends StatelessWidget {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    AnimatedOpacity(
-                      duration: const Duration(milliseconds: 300),
-                      opacity: hideShell ? 0.0 : 1.0,
-                      child: IgnorePointer(
-                        ignoring: hideShell,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(36),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(
-                                sigmaX: hideShell ? 0 : 16,
-                                sigmaY: hideShell ? 0 : 16),
-                            child: AnimatedContainer(
-                duration: const Duration(milliseconds: 280),
-                curve: Curves.easeOutCubic,
-                // ★ الحجم ثابت دائماً (68) — الاحترافية = ثبات الـ layout
-                // + تلاشي المحتوى فقط، بلا تقلص يكسر التناسق.
-                height: 68,
-                decoration: BoxDecoration(
-                  color: surface.withValues(
-                      alpha: hideShell ? 0.0 : 0.85),
-                  borderRadius: BorderRadius.circular(36),
-                  border: Border.all(
-                    color: hideShell
-                        ? Colors.transparent
-                        : (isDark
-                            ? outline.withValues(alpha: 0.6)
-                            : outline),
-                    width: 1,
-                  ),
-                  boxShadow: hideShell
-                      ? const []
-                      : [
-                          BoxShadow(
-                            color: Colors.black.withValues(
-                                alpha: isDark ? 0.5 : 0.12),
-                            blurRadius: 32,
-                            offset: const Offset(0, 12),
-                          ),
-                          if (isDark)
-                            BoxShadow(
-                              color: accent.withValues(alpha: 0.08),
-                              blurRadius: 32,
-                              offset: const Offset(0, 4),
+                    RepaintBoundary(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(36),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                          child: Container(
+                            height: 68,
+                            decoration: BoxDecoration(
+                              color: surface.withValues(alpha: 0.85),
+                              borderRadius: BorderRadius.circular(36),
+                              border: Border.all(
+                                color: isDark
+                                    ? outline.withValues(alpha: 0.6)
+                                    : outline,
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(
+                                      alpha: isDark ? 0.5 : 0.12),
+                                  blurRadius: 32,
+                                  offset: const Offset(0, 12),
+                                ),
+                                if (isDark)
+                                  BoxShadow(
+                                    color: accent.withValues(alpha: 0.08),
+                                    blurRadius: 32,
+                                    offset: const Offset(0, 4),
+                                  ),
+                              ],
                             ),
-                        ],
-                ),
-                child: Row(
-                  children: List.generate(items.length, (index) {
-                    final item = items[index];
-                    // ★ زر الإجراء (الكاميرا): نفس تصميم _NavTile تماماً
-                    // لهوية موحدة — لكنه لا يأخذ حالة «محدد» أبداً.
-                    final selected =
-                        !item.isAction && index == currentIndex;
-                    // ★ الأنيميشن السابق القوي (تقلص العرض) لكن بـ AnimatedFlex —
-                    // لا عروض ثابتة تكسر الـ constraints: الغير نشطة تنكمش
-                    // تدريجياً (تلاشي + انزلاق + تقلص flex)، والمحددة تتوسع.
-                    return _AnimatedFlex(
-                      flex: compact ? (selected ? 1 : 0) : 1,
-                      duration: const Duration(milliseconds: 280),
-                      child: ClipRect(
-                        child: AnimatedOpacity(
-                          duration: selected
-                              ? const Duration(milliseconds: 200)
-                              : const Duration(milliseconds: 160),
-                          curve: Curves.easeOut,
-                          opacity: compact && !selected ? 0.0 : 1.0,
-                          child: AnimatedSlide(
-                            duration: const Duration(milliseconds: 280),
-                            curve: Curves.easeOutCubic,
-                            offset: compact && !selected
-                                ? const Offset(0, 0.35)
-                                : Offset.zero,
-                            child: IgnorePointer(
-                              ignoring: compact && !selected,
-                              // ★ التدفق: أثناء التقلص المحددة Pill
-                              // (دائرة + اسم بعد 180ms ثم يختفي بعد 1200ms)،
-                              // وبعد اختفاء الخلفية تحل محلها الدائرة المستقلة.
-                              child: selected && compact && !hideShell
-                                  ? _SelectedPill(
-                                      item: item,
-                                      selected: selected,
-                                      isDark: isDark,
-                                      onTap: () => onTap(index),
-                                    )
-                                  : _NavTile(
-                                      item: item,
-                                      selected: selected,
-                                      isDark: isDark,
-                                      onTap: () => onTap(index),
+                            child: Row(
+                              children: List.generate(items.length, (index) {
+                                final item = items[index];
+                                final selected = !item.isAction &&
+                                    index == currentIndex;
+                                return Expanded(
+                                  flex: compact ? (selected ? 1 : 0) : 1,
+                                  child: AnimatedOpacity(
+                                    duration: const Duration(milliseconds: 160),
+                                    opacity: compact && !selected ? 0.0 : 1.0,
+                                    child: IgnorePointer(
+                                      ignoring: compact && !selected,
+                                      child: selected && compact
+                                          ? _SelectedPill(
+                                              item: item,
+                                              selected: selected,
+                                              isDark: isDark,
+                                              onTap: () => onTap(index),
+                                            )
+                                          : _NavTile(
+                                              item: item,
+                                              selected: selected,
+                                              isDark: isDark,
+                                              onTap: () => onTap(index),
+                                            ),
                                     ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                          ),
+                                  ),
+                                );
+                              }),
                             ),
                           ),
                         ),
                       ),
                     ),
-                    if (compact && !hideShell)
+                    if (compact)
                       _HideChain(
                         key: ValueKey(currentIndex),
                         active: true,
@@ -220,37 +181,6 @@ class FloatingBottomNav extends StatelessWidget {
           );
         },
       ),
-    );
-  }
-}
-
-class _AnimatedFlex extends StatelessWidget {
-  final int flex;
-  final Duration duration;
-  final Widget child;
-
-  const _AnimatedFlex({
-    required this.flex,
-    required this.duration,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // ★ Flexible يقبل flex صحيحاً فقط — نحرك بالألف (1000 مقابل 1)
-    // فيتداخل التلاشي + الانزلاق مع تقلص حقيقي ناعم بلا كسر constraints.
-    return TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: 1000, end: flex == 0 ? 1 : 1000),
-      duration: duration,
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Flexible(
-          flex: value.round().clamp(1, 1000),
-          fit: FlexFit.tight,
-          child: child!,
-        );
-      },
-      child: child,
     );
   }
 }
