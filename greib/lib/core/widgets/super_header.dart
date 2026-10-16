@@ -61,6 +61,9 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
         const iconSize = 21.0;
         const btnBox = 38.0;
         const animDur = Duration(milliseconds: 260);
+        // ★ نفس خلفية التطبيق الأصلية (primary) لتوحيد التجربة —
+        //   الهيدر يندمج تماماً مع الـ Scaffold بدل الإحساس الزجاجي.
+        final headerBg = context.backgroundColors.primary;
 
         // ★ الهيدر شفاف دائماً: عند الإخفاء يتضح المحتوى الممرَّر خلفه،
         //   وعند الظهور يعود الشعار + الأيقونات بانزلاق ناعم من الأعلى.
@@ -70,6 +73,18 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
           surfaceTintColor: Colors.transparent,
           elevation: 0,
           scrolledUnderElevation: 0,
+          // ★ خلفية بسيطة بنفس لون خلفية التطبيق الأصلية (primary):
+          //   تظهر فقط مع الشعار + الأيقونات عند السحب للأعلى، وتتلاشى
+          //   معهما عند التمرير للأسفل — توحيد كامل لتجربة المستخدم.
+          flexibleSpace: AnimatedOpacity(
+            duration: animDur,
+            curve: Curves.easeOut,
+            opacity: collapsed ? 0.0 : 1.0,
+            child: IgnorePointer(
+              ignoring: collapsed,
+              child: Container(color: headerBg),
+            ),
+          ),
           titleSpacing: showBackButton ? 0 : AppSpacing.md,
           automaticallyImplyLeading: showBackButton,
           // ★ زر الرجوع يعيد دائماً إلى «الرئيسية» (/home) بدل الخروج العشوائي
