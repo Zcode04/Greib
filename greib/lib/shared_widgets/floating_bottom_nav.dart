@@ -147,19 +147,29 @@ class FloatingBottomNav extends StatelessWidget {
                                     opacity: compact && !selected ? 0.0 : 1.0,
                                     child: IgnorePointer(
                                       ignoring: compact && !selected,
-                                      child: selected && compact
-                                          ? _SelectedPill(
-                                              item: item,
-                                              selected: selected,
-                                              isDark: isDark,
-                                              onTap: () => onTap(index),
-                                            )
-                                          : _NavTile(
-                                              item: item,
-                                              selected: selected,
-                                              isDark: isDark,
-                                              onTap: () => onTap(index),
-                                            ),
+                                      child: AnimatedSlide(
+                                        duration: const Duration(
+                                            milliseconds: 280),
+                                        curve: Curves.easeOutCubic,
+                                        offset: compact && !selected
+                                            ? const Offset(0, 0.35)
+                                            : Offset.zero,
+                                        child: selected && compact
+                                            ? _SelectedPill(
+                                                item: item,
+                                                selected: selected,
+                                                isDark: isDark,
+                                                onTap: () =>
+                                                    onTap(index),
+                                              )
+                                            : _NavTile(
+                                                item: item,
+                                                selected: selected,
+                                                isDark: isDark,
+                                                onTap: () =>
+                                                    onTap(index),
+                                              ),
+                                      ),
                                     ),
                                   ),
                                 );
