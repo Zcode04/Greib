@@ -61,6 +61,7 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
         const iconSize = 21.0;
         const btnBox = 38.0;
         const animDur = Duration(milliseconds: 260);
+        const hideDur = Duration(milliseconds: 120);
         // ★ نفس خلفية التطبيق الأصلية (primary) لتوحيد التجربة —
         //   الهيدر يندمج تماماً مع الـ Scaffold بدل الإحساس الزجاجي.
         final headerBg = context.backgroundColors.primary;
@@ -76,8 +77,9 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
           // ★ خلفية بسيطة بنفس لون خلفية التطبيق الأصلية (primary):
           //   تظهر فقط مع الشعار + الأيقونات عند السحب للأعلى، وتتلاشى
           //   معهما عند التمرير للأسفل — توحيد كامل لتجربة المستخدم.
+          //   ★ الإخفاء سريع (120ms) والظهور ناعم (260ms).
           flexibleSpace: AnimatedOpacity(
-            duration: animDur,
+            duration: collapsed ? hideDur : animDur,
             curve: Curves.easeOut,
             opacity: collapsed ? 0.0 : 1.0,
             child: IgnorePointer(
