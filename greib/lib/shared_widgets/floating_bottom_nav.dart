@@ -69,6 +69,10 @@ class FloatingBottomNav extends StatelessWidget {
          'استخدم بين 2 و8 عناصر ليبقى الشكل متوازناً',
        );
 
+  // ★ توقيت موحّد مع الهيدر (SuperHeader): إخفاء سريع 120ms / ظهور ناعم 260ms.
+  static const _hideDur = Duration(milliseconds: 120);
+  static const _showDur = Duration(milliseconds: 260);
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -80,84 +84,77 @@ class FloatingBottomNav extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      // ★ إخفاء كامل متناسق مع الهيدر: الشريط كتلة واحدة تنزلق للأسفل
+      //   وتتلاشى (بلا إعادة layout — transform/opacity رخيصان على GPU).
+      //   نفس توقيت الهيدر تماماً ⇒ إحساس بقطعة واحدة.
       child: ValueListenableBuilder<bool>(
         valueListenable: HeaderCollapseState.navCompact,
-        builder: (context, compact, _) {
-          return SizedBox(
-            height: 68,
-            child: RepaintBoundary(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(36),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                  child: Container(
-                    height: 68,
-                    decoration: BoxDecoration(
-                      color: surface.withValues(alpha: 0.85),
+        builder: (context, hidden, _) {
+          return AnimatedSlide(
+            duration: hidden ? _hideDur : _showDur,
+            curve: Curves.easeOutCubic,
+            offset: hidden ? const Offset(0, 1.6) : Offset.zero,
+            child: AnimatedOpacity(
+              duration: hidden ? _hideDur : _showDur,
+              curve: Curves.easeOut,
+              opacity: hidden ? 0.0 : 1.0,
+              // ★ عند الإخفاء الكامل نمنع اللمس (كان IgnorePointer لكل عنصر).
+              child: IgnorePointer(
+                ignoring: hidden,
+                child: SizedBox(
+                  height: 68,
+                  child: RepaintBoundary(
+                    child: ClipRRect(
                       borderRadius: BorderRadius.circular(36),
-                      border: Border.all(
-                        color: isDark
-                            ? outline.withValues(alpha: 0.6)
-                            : outline,
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(
-                              alpha: isDark ? 0.5 : 0.12),
-                          blurRadius: 32,
-                          offset: const Offset(0, 12),
-                        ),
-                        if (isDark)
-                          BoxShadow(
-                            color: accent.withValues(alpha: 0.08),
-                            blurRadius: 32,
-                            offset: const Offset(0, 4),
-                          ),
-                      ],
-                    ),
-                    child: Row(
-                      children: List.generate(items.length, (index) {
-                        final item = items[index];
-                        final selected =
-                            !item.isAction && index == currentIndex;
-                        return Expanded(
-                          flex: compact ? (selected ? 1 : 0) : 1,
-                          child: AnimatedOpacity(
-                            duration:
-                                const Duration(milliseconds: 160),
-                            opacity: compact && !selected
-                                ? 0.0
-                                : 1.0,
-                            child: IgnorePointer(
-                              ignoring: compact && !selected,
-                              child: AnimatedSlide(
-                                duration: const Duration(
-                                    milliseconds: 280),
-                                curve: Curves.easeOutCubic,
-                                offset: compact && !selected
-                                    ? const Offset(0, 0.35)
-                                    : Offset.zero,
-                                child: selected && compact
-                                    ? _SelectedPill(
-                                        item: item,
-                                        selected: selected,
-                                        isDark: isDark,
-                                        onTap: () =>
-                                            onTap(index),
-                                      )
-                                    : _NavTile(
-                                        item: item,
-                                        selected: selected,
-                                        isDark: isDark,
-                                        onTap: () =>
-                                            onTap(index),
-                                      ),
-                              ),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                        child: Container(
+                          height: 68,
+                          decoration: BoxDecoration(
+                            color: surface.withValues(alpha: 0.85),
+                            borderRadius: BorderRadius.circular(36),
+                            border: Border.all(
+                              color: isDark
+                                  ? outline.withValues(alpha: 0.6)
+                                  : outline,
+                              width: 1,
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(
+                                    alpha: isDark ? 0.5 : 0.12),
+                                blurRadius: 32,
+                                offset: const Offset(0, 12),
+                              ),
+                              if (isDark)
+                                BoxShadow(
+                                  color: accent.withValues(alpha: 0.08),
+                                  blurRadius: 32,
+                                  offset: const Offset(0, 4),
+                                ),
+                            ],
                           ),
-                        );
-                      }),
+                          child: Row(
+                            // ★ كل الأيقونات ظاهرة دائماً بمرونة ثابتة (flex: 1):
+                            //   لا تغيير layout أثناء التمرير ⇒ خفيف على الهواتف الضعيفة.
+                            //   الإخفاء يتم على مستوى الشريط كله (AnimatedSlide +
+                            //   AnimatedOpacity في الأعلى) بتناسق مع الهيدر.
+                            children: List.generate(items.length, (index) {
+                              final item = items[index];
+                              final selected =
+                                  !item.isAction && index == currentIndex;
+                              return Expanded(
+                                child: _NavTile(
+                                  item: item,
+                                  selected: selected,
+                                  isDark: isDark,
+                                  onTap: () => onTap(index),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -167,129 +164,6 @@ class FloatingBottomNav extends StatelessWidget {
         },
       ),
     );
-  }
-}
-
-class _SelectedPill extends StatefulWidget {
-  final FloatingNavItem item;
-  final bool selected;
-  final bool isDark;
-  final VoidCallback onTap;
-  const _SelectedPill({
-    required this.item,
-    required this.selected,
-    required this.isDark,
-    required this.onTap,
-  });
-
-  @override
-  State<_SelectedPill> createState() => _SelectedPillState();
-}
-
-class _SelectedPillState extends State<_SelectedPill> {
-  bool _showLabel = false;
-
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(milliseconds: 180), () {
-      if (mounted) setState(() => _showLabel = true);
-      Future.delayed(const Duration(milliseconds: 1200), () {
-        if (mounted) setState(() => _showLabel = false);
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    // ★ العودة الفورية/المجدولة تتولى التصفير فلا نصفّر هنا
-    // (التصفير عند الإزالة كان يلغي التسلسل) — فقط نلغي مؤقت العودة
-    // المجدول إلذي قد يعيد إظهار الشريط مبكراً.
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final activeColor = context.iconColors.active;
-    final accent = context.accentColor;
-    final iconColor =
-        widget.isDark ? Colors.white : activeColor;
-
-    final body = Semantics(
-      label: widget.item.label,
-      button: true,
-      selected: true,
-      child: GestureDetector(
-        onTap: widget.onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // ★ الدائرة تحتوي الأيقونة فقط — الاسم خارجها.
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 280),
-                curve: Curves.easeOutCubic,
-                width: 54,
-                height: 54,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: accent.withValues(
-                      alpha: widget.isDark ? 0.2 : 0.12),
-                ),
-                child: Center(
-                  child: NavIcon(
-                    outlined: widget.item.icon,
-                    filledAsset: widget.item.filledAsset,
-                    selected: true,
-                    color: iconColor,
-                    size: 26,
-                  ),
-                ),
-              ),
-              // ★ الاسم خارج الدائرة — يظهر بعد التأخير بتلاشي + انزلاق.
-              AnimatedSize(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOutCubic,
-                child: _showLabel
-                    ? Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const SizedBox(width: 10),
-                          AnimatedOpacity(
-                            duration:
-                                const Duration(milliseconds: 220),
-                            opacity: _showLabel ? 1.0 : 0.0,
-                            child: AnimatedSlide(
-                              duration: const Duration(
-                                  milliseconds: 220),
-                              curve: Curves.easeOutCubic,
-                              offset: _showLabel
-                                  ? Offset.zero
-                                  : const Offset(-0.3, 0),
-                              child: Text(
-                                widget.item.label,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: iconColor,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    : const SizedBox.shrink(),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-    return body;
   }
 }
 

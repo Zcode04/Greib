@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/permissions/permissions.dart';
+import '../../core/extensions/context_extensions.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/auth/auth_service.dart';
 import '../../core/widgets/header_collapse_state.dart';
@@ -151,9 +152,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Scaffold(
-      backgroundColor: (isDark
-          ? AppColors.background
-          : AppColors.lightBackground),
+      // ★ خلفية ديناميكية: تتغير فوراً مع «التحكم في الألوان» (/color-settings).
+      backgroundColor: context.backgroundColors.primary,
       // القائمة الجانبية (Drawer) انتقلت إلى MainShellScreen — مصدر واحد للتنقل.
       body: Stack(
         children: [
@@ -196,7 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       singleEntry: preLatestPost,
                     ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 8),
                 ],
 
                 AnimatedListItem(
@@ -213,7 +213,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   index: 1,
                   child: const LatestProductsCarousel(),
                 ),
-                const SizedBox(height: 28),
+                // ★ تقريب عمودي: 28 → 8 بين «الأحدث» والبوست التالي.
+                const SizedBox(height: 8),
 
                 // ★ منشور آخر بعد قسم «الأحدث» (منشور مختلف ⇒ تنويع).
                 if (postLatestPost != null) ...[
@@ -225,7 +226,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       singleEntry: postLatestPost,
                     ),
                   ),
-                  const SizedBox(height: 28),
+                  // ★ تقريب عمودي: 28 → 8 قبل «المميز عندنا».
+                  const SizedBox(height: 8),
                 ],
 
                 AnimatedListItem(
@@ -241,7 +243,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   index: 1,
                   child: SpotlightSection(isDark: isDark),
                 ),
-                const SizedBox(height: 28),
+                // ★ تقريب عمودي: 28 → 8 بين «المميز» و«الأطباء».
+                const SizedBox(height: 8),
 
                 AnimatedListItem(
                   index: 4,
@@ -285,14 +288,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      (isDark
-                              ? AppColors.background
-                              : AppColors.lightBackground)
-                          .withValues(alpha: 0.35), // ★ كان صلباً (1.0)
-                      (isDark
-                              ? AppColors.background
-                              : AppColors.lightBackground)
-                          .withValues(alpha: 0.0), // شفاف في النهاية
+                      // ★ ديناميكي: يتبع لون الخلفية المختار من «التحكم في الألوان».
+                      context.backgroundColors.primary.withValues(
+                        alpha: 0.35,
+                      ), // ★ كان صلباً (1.0)
+                      context.backgroundColors.primary.withValues(
+                        alpha: 0.0,
+                      ), // شفاف في النهاية
                     ],
                     stops: const [0.0, 1.0], // ★ تلاشي مباشر بلا منطقة صلبة
                   ),

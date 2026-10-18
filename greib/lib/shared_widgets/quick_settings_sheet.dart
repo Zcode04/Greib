@@ -214,17 +214,17 @@ class _QuickSettingsSheetState extends State<QuickSettingsSheet> {
                   context.read<ThemeController>().toggleTheme(),
             ),
           ),
-        // ★ بند «التحكم في الألوان» — معطّل مؤقتاً (يُفعَّل لاحقاً).
+        // ★ بند «التحكم في الألوان» — يفتح صفحة تخصيص الخلفية/النصوص/الأيقونات.
         _sheetRow(
           context,
           icon: LucideIcons.palette,
           label: 'التحكم في الألوان',
           subtitle: 'تخصيص الخلفية والنصوص والأيقونات',
-          onTap: () {},
-          trailing: const Text(
-            'غير متاح في منطقتك',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-          ),
+          onTap: () {
+            final router = GoRouter.of(context);
+            Navigator.of(context).pop();
+            router.push('/color-settings');
+          },
         ),
         _sheetRow(
           context,

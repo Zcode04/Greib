@@ -24,11 +24,9 @@ Future<void> main() async {
   // ★ تحميل صورة البروفايل المحفوظة (تبقى بعد الخروج والعودة).
   UserData.instance.load();
 
-  // ★ ميزة «التحكم في الألوان» معطّلة حالياً (زر «غير متاح في منطقتك»)
-  //   ⇒ نضمن اعتماد التطبيق على اللوحة الافتراضية وحده: نحذف أي تخصيص
-  //   محفوظ سابقاً حتى لا يعود مع تفعيل الكود لاحقاً.
-  await AppPrefs.clearPaletteOverrides(isDark: true);
-  await AppPrefs.clearPaletteOverrides(isDark: false);
+  // ★ ميزة «التحكم في الألوان» مفعّلة: نستعيد تخصيصات المستخدم المحفوظة
+  //   عبر ColorPaletteController.withStored() فتبقى ألوانه بعد إعادة التشغيل.
+  //   (الحفظ يتم من صفحة /color-settings عبر AppPrefs.setPaletteOverride).
 
   // نحمّل ملفات البيانات (المصدر الوحيد للحقيقة) قبل بناء الواجهة،
   // فتكون كل الصفحات جاهزة فوراً بلا شاشة تحميل وبلا وميض.
@@ -44,8 +42,8 @@ Widget buildGreibMenkApp() {
   return MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => ThemeController()),
-      // ★ اللوحة الافتراضية فقط (ميزة تخصيص الألوان معطّلة حالياً).
-      ChangeNotifierProvider(create: (_) => ColorPaletteController()),
+      // ★ اللوحة مع تخصيصات المستخدم المحفوظة (تبقى بعد إعادة التشغيل).
+      ChangeNotifierProvider(create: (_) => ColorPaletteController.withStored()),
       ChangeNotifierProvider<AuthService>.value(value: AuthService.instance),
       // ★ ملف بيانات المستخدم المركزي (صورة البروفايل).
       ChangeNotifierProvider<UserData>.value(value: UserData.instance),
