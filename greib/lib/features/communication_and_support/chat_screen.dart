@@ -1431,10 +1431,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
+      backgroundColor: chat.conversationBackground,
       appBar: AppBar(
         elevation: 0,
         scrolledUnderElevation: 0,
-        backgroundColor: chat.composerBackground,
+        backgroundColor: chat.conversationBackground,
         leadingWidth: 40,
         toolbarHeight: isLandscape ? 52 : kToolbarHeight,
         leading: Container(
@@ -2843,8 +2844,9 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
 
     final chat = context.chatColors;
     final onBubble = isMine ? chat.bubbleMineText : chat.bubbleTheirsText;
-    final playedColor = isMine ? onBubble : chat.tickRead;
-    final unplayedColor = onBubble.withValues(alpha: 0.35);
+    // ★ شرائط الموجات المطابقة لواتساب: المقروءة أبيض ناصع، غير المقروءة بيضاء شفافة.
+    final playedColor = onBubble.withValues(alpha: 0.95);
+    final unplayedColor = onBubble.withValues(alpha: 0.3);
 
     return Directionality(
       textDirection: TextDirection.ltr,

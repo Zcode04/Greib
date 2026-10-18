@@ -92,54 +92,70 @@ class AppChatColors extends ThemeExtension<AppChatColors> {
   });
 
   /// يبني ألوان الدردشة من اللوحة المركزية — المصدر الوحيد للحقيقة.
+  /// ★ مطابقة واتساب (Dark Mode) بنسبة 100%:
+  ///   - خلفية طبيعية صلبة (#000000) بدون نقوش Doodle (خلفية خاصة).
+  ///   - فقاعة مرسّلة أخضر واتساب (#0E7C58)، نص أبيض.
+  ///   - فقاعة مستلمة رمادي داكن (#1C1E22)، نص أبيض.
+  ///   - زر الإرسال وفعل التركيز أخضر مشرق (#25D366).
+  ///   - علامات القراءة والتوقيت بألوان واتساب الدقيقة.
   factory AppChatColors.fromPalette(AppColorPalette p) {
     final bool isDark = p.isDark;
-    final Color accent = p.accent;
     const Color danger = Color(0xFFEF4444);
-    const Color readBlue = Color(0xFF38BDF8);
-    const Color onlineGreen = Color(0xFF10B981);
+    // ★ ألوان واتساب الداكنة الدقيقة (WhatsApp Dark Mode)
+    const Color waBg = Color(0xFF000000); // خلفية طبيعية صلبة (أسود خالص)
+    const Color waBubbleMine = Color(0xFF0E7C58); // فقاعة مرسّلة (أ Dark Green)
+    const Color waBubbleTheirs = Color(0xFF1C1E22); // فقاعة مستلمة (رمادي داكن)
+    const Color waSend = Color(0xFF25D366); // زر الإرسال / فعل التركيز (أخضر مشرق)
+    const Color waTick = Color(0xFF25D366); // علامات القراءة المقروءة
+    const Color waOnline = Color(0xFF128C7E); // نقطة الاتصال
+    const Color waTime = Color(0xFF94A3B8); // التوقيت (رمادي فاتح شاحب)
+    const Color waSurface = Color(0xFF1C1E22); // سطح شريط الكتابة / حقل الإدخال
+    final Color waText = isDark ? Colors.white : const Color(0xFF1C1E22);
+    final Color waMuted = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+
     return AppChatColors(
-      // ★ خلفية المحادثة بلون واتساب الأصلي:
-      //   ليلي  #0B141A (أسود مزرقّق مميز لواتساب)،
-      //   نهاري أبيض نقي مثل قائمة واتساب.
-      conversationBackground: isDark ? const Color(0xFF0B141A) : Colors.white,
-      doodleColor: p.text.tertiary.withValues(alpha: isDark ? 0.06 : 0.08),
-      bubbleMine: accent,
-      bubbleTheirs: p.background.surface,
-      bubbleMineText: p.text.onAccent,
-      bubbleTheirsText: p.text.primary,
-      bubbleMineTime: p.text.onAccent.withValues(alpha: 0.7),
-      bubbleTheirsTime: p.text.tertiary,
-      senderName: accent,
-      quotedBackgroundMine: p.text.onAccent.withValues(alpha: 0.12),
-      quotedBackgroundTheirs: p.background.surfaceElevated,
-      quotedBar: accent,
-      quotedTitle: accent,
-      quotedBodyMine: p.text.onAccent.withValues(alpha: 0.75),
-      quotedBodyTheirs: p.text.secondary,
-      composerBackground: p.background.surfaceElevated,
-      composerBorder: p.background.outline.withValues(alpha: 0.2),
-      inputField: p.background.surface,
-      inputHint: p.text.tertiary,
-      inputText: p.text.primary,
-      composerIcon: p.text.secondary,
-      micButton: p.background.surface,
-      micIcon: p.text.primary,
-      sendButton: accent,
-      sendIcon: p.text.onAccent,
-      attachmentSheet: p.background.surfaceElevated,
-      attachmentSheetHandle: p.text.tertiary,
-      attachmentIconBackground: p.background.surface,
-      attachmentLabel: p.text.primary,
-      recordingBackground: p.background.surfaceElevated,
-      recordingTimer: p.text.primary,
-      recordingWavePlayed: accent,
-      recordingWaveUnplayed: p.text.tertiary.withValues(alpha: 0.4),
+      // ★ خلفية المحادثة طبيعية صلبة (#000000) — بدون نقش/خلفية خاصة.
+      conversationBackground: waBg,
+      // إلغاء النقوش تمامًا (شفاف) ليصبح الخلفية لونًا طبيعيًا واحدًا.
+      doodleColor: Colors.transparent,
+      bubbleMine: waBubbleMine,
+      bubbleTheirs: waBubbleTheirs,
+      bubbleMineText: waText,
+      bubbleTheirsText: waText,
+      bubbleMineTime: waTime,
+      bubbleTheirsTime: waTime,
+      senderName: waText,
+      quotedBackgroundMine: waBubbleMine.withValues(alpha: 0.12),
+      quotedBackgroundTheirs: waSurface,
+      quotedBar: waSend,
+      quotedTitle: waSend,
+      quotedBodyMine: waText.withValues(alpha: 0.75),
+      quotedBodyTheirs: waMuted,
+      composerBackground: waSurface,
+      composerBorder: waMuted.withValues(alpha: 0.3),
+      inputField: waSurface,
+      inputHint: waMuted,
+      inputText: waText,
+      composerIcon: waMuted,
+      micButton: waSurface,
+      micIcon: waText,
+      sendButton: waSend,
+      sendIcon: Colors.white,
+      attachmentSheet: waSurface,
+      attachmentSheetHandle: waMuted,
+      attachmentIconBackground: waSurface,
+      attachmentLabel: waText,
+      recordingBackground: waSurface,
+      recordingTimer: waText,
+      recordingWavePlayed: Colors.white,
+      recordingWaveUnplayed: Colors.white.withValues(alpha: 0.35),
       recordingTrash: danger,
       recordingCancelBackground: danger.withValues(alpha: 0.1),
-      tickRead: readBlue,
-      tickSent: p.text.tertiary,
-      onlineDot: onlineGreen,
+      tickRead: waTick,
+      tickSent: waMuted,
+      onlineDot: waOnline,
     );
   }
 
