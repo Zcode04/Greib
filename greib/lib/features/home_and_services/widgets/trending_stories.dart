@@ -902,6 +902,7 @@ class _StoryOrderBar extends StatefulWidget {
   final VoidCallback onShare;
   final VoidCallback? onFocusChanged;
   const _StoryOrderBar({
+    super.key,
     required this.title,
     required this.onSend,
     required this.onShare,

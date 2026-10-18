@@ -147,6 +147,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // ★ تحديث عند كل عودة للصفحة (مثلاً بعد إرسال من ستوري):
+    // تُدمج محادثات الخدمات الجديدة في الأعلى تلقائياً.
+    final before = _conversations.length;
+    _loadConversations();
+    if (_conversations.length != before && mounted) setState(() {});
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
@@ -219,6 +229,18 @@ class _ChatListScreenState extends State<ChatListScreen> {
         'participants': [],
       },
     ];
+
+    // ★ محادثات الستوري المرسلة (حسابات خدمات جديدة بأسلوب فيسبوك):
+    // تُدمج في الأعلى — كل خدمة أُرسل لها تظهر كحساب جديد بانتظار الرد.
+    final storyConvs = StoryMessageStore.instance.storyConversations();
+    final existingIds = _conversations.map((c) => c['id']).toSet();
+    for (final sc in storyConvs) {
+      if (existingIds.contains(sc['id'])) continue;
+      _conversations.insert(0, {
+        ...sc,
+        'participants': <String>[],
+      });
+    }
 
     if (role == UserRole.admin) {
       _conversations.addAll([
