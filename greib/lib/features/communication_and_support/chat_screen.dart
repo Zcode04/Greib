@@ -27,6 +27,7 @@ import 'widgets/whatsapp_attachment.dart';
 import 'widgets/whatsapp_bubble.dart';
 import 'widgets/whatsapp_input_bar.dart';
 import '../../features/auth/mock_auth.dart';
+import 'story_message_store.dart';
 
 // ---------------------------------------------------------------------------
 //  أدوات مساعدة متجاوبة (Responsive helpers)
@@ -482,7 +483,7 @@ class ChatDetailScreen extends StatefulWidget {
   final ChatPostPreview? postPreview;
 
   /// ★ تركيز تلقائي على حقل الكتابة + فتح الكيبورد عند الفتح.
-  /// يُستخدم عند القدوم من حقل ستوري وهمي: المستخدم لمس «اكتب…»
+  /// يُستخدم عند القدوم من ستوري: المستخدم لمس «اكتب…»
   /// فيُوجَّه للدردشة ليكمل الكتابة فعلياً (هجين احترافي).
   final bool autofocusMessage;
 
@@ -505,6 +506,21 @@ class ChatDetailScreen extends StatefulWidget {
 
 class _ChatDetailScreenState extends State<ChatDetailScreen>
     with WidgetsBindingObserver {
+  /// ★ رسائل مرسلة من الستوري (إرسال خلفي بأسلوب فيسبوك): دمجها في
+  /// قائمة المحادثة عند فتح الدردشة — بلا تكرار (نفس المعرف يُتجاهل).
+  void _mergeStoryMessages() {
+    final pending =
+        StoryMessageStore.instance.forConversation(widget.conversationId);
+    if (pending.isEmpty) return;
+    final existingIds = _messages.map((m) => m['id']).toSet();
+    var added = false;
+    for (final p in pending) {
+      if (existingIds.contains(p.id)) continue;
+      _messages.add(p.toChatMap());
+      added = true;
+    }
+    if (added) _scrollToBottom();
+  }
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
   // يتتبّع ظهور لوحة المفاتيح لإعادة التمرير لأسفل الرسائل عند فتحها.
@@ -662,6 +678,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     // ★ «طلب الآن» يفتح المحادثة ومعه معاينة المنشور ⇒ نضعها كمرفق «بانتظار
     // الإرسال» حتى لا تُرسل تلقائياً؛ المستخدم يختار الإرسال (نصاً/صوتاً).
     _pendingPost = widget.postPreview;
+    // ★ رسائل مرسلة من الستوري (إرسال خلفي بأسلوب فيسبوك): دمجها هنا
+    //   عند فتح الدردشة لاحقاً فيراها المستخدم مع المرفق — بلا توجيه تلقائي.
+    _mergeStoryMessages();
     // لاحظ ظهور/اختفاء لوحة المفاتيح لإعادة التمرير لأسفل تلقائياً.
     WidgetsBinding.instance.addObserver(this);
     // ★ قدوم من حقل الستوري: ركّز حقل الكتابة وافتح الكيبورد تلقائياً.

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../shared_widgets/share_arrow_icon.dart';
-import '../../communication_and_support/chat_screen.dart';
+import '../../communication_and_support/story_message_store.dart';
 import 'user_request_story_card.dart';
 
 // ─────────────────────────────────────────────
@@ -424,13 +424,37 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
     super.dispose();
   }
 
-  /// إعادة تشغيل مؤقت الصفحة الحالية
+  /// إعادة تشغيل مؤقت الصفحة الحالية — يُتجاهل أثناء الكتابة (سكون).
   void _restartAutoTimer() {
     _autoTimer?.cancel();
+    // ★ سكون الستوري: ما دام حقل الكتابة مركّزاً (المستخدم يكتب)
+    // لا نجدول أي تقدم تلقائي — ثبات تام بلا تبديل في الخلفية.
+    if (_orderBarKey.currentState?.isComposing == true) return;
     _autoTimer = Timer(const Duration(seconds: 5), () {
       if (!mounted) return;
+      // ★ فحص لحظة التنفيذ أيضاً (قد يركّز المستخدم أثناء العد).
+      if (_orderBarKey.currentState?.isComposing == true) return;
       _autoNext();
     });
+  }
+
+  /// مفتاح شريط الكتابة — لسؤاله هل المستخدم يكتب (للتجميد).
+  final GlobalKey<_StoryOrderBarState> _orderBarKey =
+      GlobalKey<_StoryOrderBarState>();
+
+  /// تغيّر تركيز حقل الكتابة ⇒ تجميد فوري أو استئناف.
+  void _onComposeFocusChanged() {
+    if (!mounted) return;
+    if (_orderBarKey.currentState?.isComposing == true) {
+      // ★ بدأ الكتابة: إلغاء فوري للمؤقت + إيقاف شريط التقدم.
+      _autoTimer?.cancel();
+      _autoTimer = null;
+      setState(() {});
+    } else {
+      // ★ انتهى/غادر الحقل: استئناف التقدم من جديد.
+      _restartAutoTimer();
+      setState(() {});
+    }
   }
 
   /// التقدم التلقائي: صفحة تالية، أو الخدمة التالية عند الاكتمال
@@ -475,33 +499,51 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
   bool get _hasPreviousPage => _pageIndex > 0;
   bool get _hasNextPage => _pageIndex < _pages.length - 1;
 
-  /// ★ زر «اطلب» في الستوري: ينقل الصورة/الخدمة كما هي إلى الدردشة
-  /// كمرفق ChatPostPreview (نفس ميكانيزم «طلب الآن») — والمستخدم يكتب
-  /// أو يسجّل صوتياً هناك كما يريد. أبسط للتطوير لاحقاً: لا حقل هنا.
-  void _orderFromStory(BuildContext context) {
+  /// ★ إرسال خلفي بأسلوب فيسبوك: الرسالة تُحفظ في المخزن (تبقى في
+  /// الستوري بلا توجيه) + تأكيد «تم الإرسال ✓» في منتصف الشاشة
+  /// (أفقي + عمودي). لاحقاً عندما يفتح المستخدم الدردشة بنفسه
+  /// يجدها هناك مع المرفق.
+  void _sendFromStory(BuildContext context, String message) {
     final item = widget.items[_serviceIndex];
     final page = _pageIndex.clamp(0, item.storyPages.length - 1);
-    Navigator.of(context).maybePop();
-    Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute(
-        builder: (_) => ChatDetailScreen(
-          conversationTitle: item.title,
-          conversationId: 'story_${item.title}_$page',
-          avatar: '📸',
-          phone: 'طلب من ستوري · ${item.category}',
-          online: true,
-          activity: 'متصل الآن',
-          isGroup: false,
-          autofocusMessage: true,
-          postPreview: ChatPostPreview(
-            title: item.title,
-            subtitle: 'طلب من ستوري · ${item.category}',
-            imageUrl: item.storyPages[page],
-            color: const Color(0xFF3B82F6),
-          ),
+    StoryMessageStore.instance.save(
+      StoryPendingMessage(
+        id: 'story_${DateTime.now().millisecondsSinceEpoch}',
+        conversationId: 'story_${item.title}_$page',
+        content: message,
+        time: 'الآن',
+        // ★ بيانات حساب الخدمة — لتظهر محادثة جديدة في قائمة الدردشة.
+        serviceName: item.title,
+        serviceAvatar: '🏪',
+        servicePhone: 'خدمة · ${item.category}',
+        serviceCategory: item.category,
+        postTitle: item.title,
+        postSubtitle: 'طلب من ستوري · ${item.category}',
+        postImageUrl: item.storyPages[page],
+        postColor: const Color(0xFF3B82F6).toARGB32(),
+      ),
+    );
+    if (!context.mounted) return;
+    _showCenterSentToast(context);
+  }
+
+  /// ★ تأكيد «تم الإرسال ✓» عائم في منتصف الشاشة (Center أفقي + عمودي):
+  /// كبسولة داكنة بعلامة صح خضراء تتلاشى تلقائياً بعد ثانيتين —
+  /// Overlay خفيف بلا حجب للتفاعل (IgnorePointer) وبلا إعادة بناء الستوري.
+  void _showCenterSentToast(BuildContext context) {
+    final overlay = Overlay.of(context);
+    late final OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (_) => const IgnorePointer(
+        child: Center(
+          child: _CenterSentToast(),
         ),
       ),
     );
+    overlay.insert(entry);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (entry.mounted) entry.remove();
+    });
   }
 
   @override
@@ -608,9 +650,11 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _StoryOrderBar(
+                      key: _orderBarKey,
                       title: widget.items[_serviceIndex].title,
-                      onOrder: () => _orderFromStory(context),
+                      onSend: (text) => _sendFromStory(context, text),
                       onShare: () => context.showSnackBar('المشاركة — قريباً'),
+                      onFocusChanged: _onComposeFocusChanged,
                     ),
                   ],
                 ),
@@ -618,6 +662,86 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// ★ كبسولة «تم الإرسال ✓» في منتصف الشاشة: دائرية داكنة شفافة
+/// بعلامة صح خضراء + نص أبيض — ظهور بتلاشي ناعم، خفيفة على الأداء
+/// (Tween واحد فقط، بلا Streams أو إعادة بناء).
+class _CenterSentToast extends StatefulWidget {
+  const _CenterSentToast();
+
+  @override
+  State<_CenterSentToast> createState() => _CenterSentToastState();
+}
+
+class _CenterSentToastState extends State<_CenterSentToast>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _fade;
+  late final Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 250),
+    )..forward();
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+    _scale = Tween<double>(begin: 0.85, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack),
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _fade,
+      child: ScaleTransition(
+        scale: _scale,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.82),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.18),
+              width: 1,
+            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black54,
+                blurRadius: 20,
+                offset: Offset(0, 6),
+              ),
+            ],
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.check_circle_rounded,
+                  color: Color(0xFF22C55E), size: 22),
+              SizedBox(width: 10),
+              Text(
+                'تم الإرسال',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -768,43 +892,56 @@ class _HeaderBtn extends StatelessWidget {
   }
 }
 
-/// شريط الستوري السفلي (هجين احترافي): حقل وهمي + زر طلب.
-/// ★ الحقل الوهمي «اكتب رسالتك…» عند لمسه يوجّه للدردشة بالمرفق
-/// مع تركيز تلقائي وكيبورد مفتوح ليكمل الكتابة هناك (إنستغرام).
-/// ★ مؤشر وامض (|) يوحي أنه حقل حقيقي — مثل حقول الكتابة الأصلية.
+/// شريط الستوري السفلي (هجين احترافي): حقل كتابة حقيقي + زر إرسال.
+/// ★ المستخدم يكتب رسالته هنا داخل الستوري، وعند الإرسال تُرسل الرسالة
+/// ثم يُوجَّه للدردشة ليراها وصلت للعميل مباشرة (تدفق احترافي).
 /// ★ زر السلة ينقل مباشرة للدردشة بالمرفق دون تركيز.
 class _StoryOrderBar extends StatefulWidget {
   final String title;
-  final VoidCallback onOrder;
+  final ValueChanged<String> onSend;
   final VoidCallback onShare;
+  final VoidCallback? onFocusChanged;
   const _StoryOrderBar({
     required this.title,
-    required this.onOrder,
+    required this.onSend,
     required this.onShare,
+    this.onFocusChanged,
   });
 
   @override
   State<_StoryOrderBar> createState() => _StoryOrderBarState();
 }
 
-class _StoryOrderBarState extends State<_StoryOrderBar>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _blink;
+class _StoryOrderBarState extends State<_StoryOrderBar> {
+  late final TextEditingController _controller;
+  late final FocusNode _focusNode;
+  bool _canSend = false;
 
   @override
   void initState() {
     super.initState();
-    // ★ وميض المؤشر: 530ms (معدل وميض حقول iOS/Android الأصلية).
-    _blink = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 530),
-    )..repeat(reverse: true);
+    _controller = TextEditingController();
+    _focusNode = FocusNode();
+    // ★ أي تركيز على الحقل = المستخدم يكتب ⇒ إشعار الستوري لتجميدها.
+    _focusNode.addListener(() => widget.onFocusChanged?.call());
   }
 
   @override
   void dispose() {
-    _blink.dispose();
+    _focusNode.dispose();
+    _controller.dispose();
     super.dispose();
+  }
+
+  /// هل المستخدم يكتب الآن؟ (تركيز + كيبورد) — الستوري تسأل عنه للتجميد.
+  bool get isComposing => _focusNode.hasFocus;
+
+  void _submit() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+    _controller.clear();
+    setState(() => _canSend = false);
+    widget.onSend(text);
   }
 
   @override
@@ -812,40 +949,65 @@ class _StoryOrderBarState extends State<_StoryOrderBar>
     return Row(
       children: [
         Expanded(
-          child: GestureDetector(
-            // ★ لمس الحقل = توجيه للدردشة لإكمال الكتابة هناك.
-            onTap: widget.onOrder,
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.white24, width: 1),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'اكتب رسالتك…',
-                    style: TextStyle(color: Colors.white60, fontSize: 13),
+          child: Container(
+            padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white24, width: 1),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    onChanged: (v) =>
+                        setState(() => _canSend = v.trim().isNotEmpty),
+                    onSubmitted: (_) => _submit(),
+                    onTapOutside: (_) => _focusNode.unfocus(),
+                    textInputAction: TextInputAction.send,
+                    minLines: 1,
+                    maxLines: 3,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    cursorColor: Colors.white,
+                    decoration: const InputDecoration(
+                      hintText: 'اكتب رسالتك…',
+                      hintStyle:
+                          TextStyle(color: Colors.white60, fontSize: 13),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 12),
+                    ),
                   ),
-                  const SizedBox(width: 2),
-                  // ★ مؤشر الكتابة الوامض (|) — يظهر كحقل حقيقي.
-                  FadeTransition(
-                    opacity: _blink,
+                ),
+                // ★ زر إرسال دائري يظهر فقط عند وجود نص (احترافي + خفيف).
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 180),
+                  opacity: _canSend ? 1.0 : 0.4,
+                  child: GestureDetector(
+                    onTap: _canSend ? _submit : null,
+                    behavior: HitTestBehavior.opaque,
                     child: Container(
-                      width: 2,
-                      height: 15,
+                      width: 34,
+                      height: 34,
                       decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _canSend
+                            ? const Color(0xFF0866FF)
+                            : Colors.white.withValues(alpha: 0.15),
+                      ),
+                      child: const Icon(
+                        Icons.send_rounded,
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(1),
+                        size: 17,
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
