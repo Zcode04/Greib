@@ -83,111 +83,86 @@ class FloatingBottomNav extends StatelessWidget {
       child: ValueListenableBuilder<bool>(
         valueListenable: HeaderCollapseState.navCompact,
         builder: (context, compact, _) {
-          return ValueListenableBuilder<bool>(
-            valueListenable: HeaderCollapseState.navShellHidden,
-            builder: (context, shellHidden, _) {
-              final hideShell = shellHidden && compact;
-              final selectedItem = items[currentIndex];
-              if (hideShell) {
-                return SizedBox(
-                  height: 68,
-                  child: Center(
-                    child: _DotOnly(
-                      item: selectedItem,
-                      isDark: isDark,
+          return SizedBox(
+            height: 68,
+            child: RepaintBoundary(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(36),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                  child: Container(
+                    height: 68,
+                    decoration: BoxDecoration(
+                      color: surface.withValues(alpha: 0.85),
+                      borderRadius: BorderRadius.circular(36),
+                      border: Border.all(
+                        color: isDark
+                            ? outline.withValues(alpha: 0.6)
+                            : outline,
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(
+                              alpha: isDark ? 0.5 : 0.12),
+                          blurRadius: 32,
+                          offset: const Offset(0, 12),
+                        ),
+                        if (isDark)
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.08),
+                            blurRadius: 32,
+                            offset: const Offset(0, 4),
+                          ),
+                      ],
                     ),
-                  ),
-                );
-              }
-              return SizedBox(
-                height: 68,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    RepaintBoundary(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(36),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                          child: Container(
-                            height: 68,
-                            decoration: BoxDecoration(
-                              color: surface.withValues(alpha: 0.85),
-                              borderRadius: BorderRadius.circular(36),
-                              border: Border.all(
-                                color: isDark
-                                    ? outline.withValues(alpha: 0.6)
-                                    : outline,
-                                width: 1,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(
-                                      alpha: isDark ? 0.5 : 0.12),
-                                  blurRadius: 32,
-                                  offset: const Offset(0, 12),
-                                ),
-                                if (isDark)
-                                  BoxShadow(
-                                    color: accent.withValues(alpha: 0.08),
-                                    blurRadius: 32,
-                                    offset: const Offset(0, 4),
-                                  ),
-                              ],
-                            ),
-                            child: Row(
-                              children: List.generate(items.length, (index) {
-                                final item = items[index];
-                                final selected = !item.isAction &&
-                                    index == currentIndex;
-                                return Expanded(
-                                  flex: compact ? (selected ? 1 : 0) : 1,
-                                  child: AnimatedOpacity(
-                                    duration: const Duration(milliseconds: 160),
-                                    opacity: compact && !selected ? 0.0 : 1.0,
-                                    child: IgnorePointer(
-                                      ignoring: compact && !selected,
-                                      child: AnimatedSlide(
-                                        duration: const Duration(
-                                            milliseconds: 280),
-                                        curve: Curves.easeOutCubic,
-                                        offset: compact && !selected
-                                            ? const Offset(0, 0.35)
-                                            : Offset.zero,
-                                        child: selected && compact
-                                            ? _SelectedPill(
-                                                item: item,
-                                                selected: selected,
-                                                isDark: isDark,
-                                                onTap: () =>
-                                                    onTap(index),
-                                              )
-                                            : _NavTile(
-                                                item: item,
-                                                selected: selected,
-                                                isDark: isDark,
-                                                onTap: () =>
-                                                    onTap(index),
-                                              ),
+                    child: Row(
+                      children: List.generate(items.length, (index) {
+                        final item = items[index];
+                        final selected =
+                            !item.isAction && index == currentIndex;
+                        return Expanded(
+                          flex: compact ? (selected ? 1 : 0) : 1,
+                          child: AnimatedOpacity(
+                            duration:
+                                const Duration(milliseconds: 160),
+                            opacity: compact && !selected
+                                ? 0.0
+                                : 1.0,
+                            child: IgnorePointer(
+                              ignoring: compact && !selected,
+                              child: AnimatedSlide(
+                                duration: const Duration(
+                                    milliseconds: 280),
+                                curve: Curves.easeOutCubic,
+                                offset: compact && !selected
+                                    ? const Offset(0, 0.35)
+                                    : Offset.zero,
+                                child: selected && compact
+                                    ? _SelectedPill(
+                                        item: item,
+                                        selected: selected,
+                                        isDark: isDark,
+                                        onTap: () =>
+                                            onTap(index),
+                                      )
+                                    : _NavTile(
+                                        item: item,
+                                        selected: selected,
+                                        isDark: isDark,
+                                        onTap: () =>
+                                            onTap(index),
                                       ),
-                                    ),
-                                  ),
-                                );
-                              }),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
+                        );
+                      }),
                     ),
-                    if (compact)
-                      _HideChain(
-                        key: ValueKey(currentIndex),
-                        active: true,
-                      ),
-                  ],
+                  ),
                 ),
-              );
-            },
+              ),
+            ),
           );
         },
       ),
@@ -315,94 +290,6 @@ class _SelectedPillState extends State<_SelectedPill> {
       ),
     );
     return body;
-  }
-}
-
-/// ★ محرك السلسلة الثابت: يعيش طوال فترة التقلص
-/// (بخلاف Pill الصف الذي يُزال) — يدفع
-/// الخلفية الكبيرة ثم الدائرة للاختفاء النهائي.
-class _HideChain extends StatefulWidget {
-  final bool active;
-  const _HideChain({super.key, required this.active});
-  @override
-  State<_HideChain> createState() => _HideChainState();
-}
-
-class _HideChainState extends State<_HideChain> {
-  bool _dead = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // ★ الاسم يختفي بعد 1380ms من بدء التقلص →
-    // الأيقونة + الخلفية يختفيان معاً بعد 300ms
-    // (تجربة موحدة) — أي تمرير جديد يعيد السلسلة من الصفر.
-    Future.delayed(const Duration(milliseconds: 1680), () {
-      if (_dead || !mounted || !widget.active) return;
-      if (!HeaderCollapseState.navCompact.value) return;
-      HeaderCollapseState.navShellHidden.value = true;
-      HeaderCollapseState.navDotHidden.value = true;
-    });
-  }
-
-  @override
-  void dispose() {
-    _dead = true;
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => const SizedBox.shrink();
-}
-
-/// ★ الدائرة الأخيرة: أيقونة واحدة بلا اسم وبلا مؤقتات.
-class _DotOnly extends StatelessWidget {
-  final FloatingNavItem item;
-  final bool isDark;
-  const _DotOnly({required this.item, required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    final activeColor = context.iconColors.active;
-    final accent = context.accentColor;
-    final iconColor = isDark ? Colors.white : activeColor;
-    return ValueListenableBuilder<bool>(
-      valueListenable: HeaderCollapseState.navDotHidden,
-      builder: (context, dotHidden, _) {
-        return AnimatedOpacity(
-          duration: const Duration(milliseconds: 250),
-          opacity: dotHidden ? 0.0 : 1.0,
-          child: AnimatedScale(
-            duration: const Duration(milliseconds: 250),
-            scale: dotHidden ? 0.6 : 1.0,
-            child: IgnorePointer(
-              ignoring: dotHidden,
-              child: GestureDetector(
-                onTap: HeaderCollapseState.restoreNow,
-                child: Container(
-                  width: 54,
-                  height: 54,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: accent.withValues(
-                        alpha: isDark ? 0.2 : 0.12),
-                  ),
-                  child: Center(
-                    child: NavIcon(
-                      outlined: item.icon,
-                      filledAsset: item.filledAsset,
-                      selected: true,
-                      color: iconColor,
-                      size: 26,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
   }
 }
 

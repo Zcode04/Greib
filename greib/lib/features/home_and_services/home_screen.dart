@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
@@ -41,6 +43,27 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey _tabsKey = GlobalKey();
   bool _showStickyTabs = false;
 
+  /// ★ مؤقت أمان: حدث idle لا يصل دائماً عند التوقف (قصور ذاتي) —
+  /// هذا المؤقت يضمن العودة بعد 150ms من آخر حركة تمرير.
+  Timer? _idleTimer;
+
+  void _scheduleIdleRestore() {
+    _idleTimer?.cancel();
+    _idleTimer = Timer(const Duration(milliseconds: 150), () {
+      if (!mounted) return;
+      if (!_scrollController.hasClients) return;
+      // فقط إذا توقفت الحركة فعلاً (لا تمرير نشط الآن).
+      if (_scrollController.position.userScrollDirection !=
+          ScrollDirection.idle) {
+        return;
+      }
+      if (HeaderCollapseState.collapsed.value ||
+          HeaderCollapseState.navCompact.value) {
+        HeaderCollapseState.restoreNow();
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -49,29 +72,32 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _idleTimer?.cancel();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     // إعادة الهيدر لحجمه الكامل عند مغادرة الشاشة.
     HeaderCollapseState.collapsed.value = false;
+    HeaderCollapseState.navCompact.value = false;
     super.dispose();
   }
 
-  // ★ السلوك المطلوب:
-  // - تمرير لأسفل (reverse) + تجاوز موضع التبويبات → تظهر وتبقى ظاهرة.
-  // - التوقف (idle) → جدولة عودة كل شيء (هيدر + سفلي) بعد ثانيتين.
-  // - سحب عكسي للأعلى (forward) فقط → عودة فورية + إخفاء التبويبات.
+  // ★ نظام الاتجاه النقي: أسفل = إخفاء، توقف/أعلى = إظهار فوري.
+  // - تمرير لأسفل (reverse) → إخفاء الهيدر + تصغير السفلي.
+  // - توقف (idle) → عودة فورية للهيدر + السفلي (بلا مؤقتات).
+  // - سحب عكسي (forward) → عودة فورية + إخفاء التبويبات اللاصقة.
   void _onScroll() {
     final dir = _scrollController.position.userScrollDirection;
-    // التوقف: لا عودة فورية — جدولة العودة بعد ثانيتين (أي تمرير يلغيها).
+    // التوقف: عودة فورية لكل شيء (إلغاء أي سلسلة إخفاء معلقة).
     if (dir == ScrollDirection.idle) {
       if (HeaderCollapseState.collapsed.value ||
           HeaderCollapseState.navCompact.value) {
-        HeaderCollapseState.scheduleRestore();
+        HeaderCollapseState.restoreNow();
       }
       return;
     }
     if (dir == ScrollDirection.forward) {
       // سحب عكسي (للأعلى): عودة فورية لكل شيء + إخفاء التبويبات.
+      _idleTimer?.cancel();
       HeaderCollapseState.restoreNow();
       if (_showStickyTabs) {
         setState(() => _showStickyTabs = false);
@@ -80,6 +106,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     // تمرير لأسفل نشط فقط: إخفاء الهيدر + تصغير السفلي (المحددة فقط).
     if (!_scrollController.hasClients) return;
+    // ★ أي حركة لأسفل تلغي العودة المجدولة وتجدول فحص التوقف من جديد.
+    _scheduleIdleRestore();
     final offset = _scrollController.offset;
     if (offset > 24 && !HeaderCollapseState.collapsed.value) {
       HeaderCollapseState.collapsed.value = true;

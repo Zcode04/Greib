@@ -32,12 +32,13 @@ class AppColors {
   static const Color _slate900 = Color(0xFF0F172A); // ★ لون الخلفية الرسمي
   static const Color _slate950 = Color(0xFF070C17); // أعمق درجة
 
-  // ---------- 🌙 الوضع الليلي (Dark Mode) — خلفية Slate 900 ----------
-  // ★ تحسين: فصل واضح بين الخلفية والسطح (كانا متقاربين جداً سابقاً)
-  static const Color _darkBg          = _slate900;  // #0F172A — الخلفية الرسمية
-  static const Color _darkSurface     = _slate800;  // كروت وبطاقات
-  static const Color _darkElevated    = _slate850;  // طبقة أعمق (modals, inputs)
-  static const Color _darkBorder      = _slate700;  // حدود دقيقة
+  // ---------- 🌙 الوضع الليلي (Dark Mode) — سواد تام احترافي ★
+  // ★ مثل الصورة المرجعية: خلفية #000000 تامة + أسطح داكنة باهتة للعمق
+  //   (تأثير اللون العكسي: نص أبيض فوق أسود + حدود زجاجية خفيفة)
+  static const Color _darkBg          = Color(0xFF000000);  // #000000 — سواد تام
+  static const Color _darkSurface     = Color(0xFF111214);  // كروت: أسود باهت (فصل ناعم عن الخلفية)
+  static const Color _darkElevated    = Color(0xFF1C1E22);  // طبقة أعمق (modals, inputs)
+  static const Color _darkBorder      = Color(0xFF2A2D34);  // حدود زجاجية خفيفة
   static const Color _darkTextPrimary = _slate50;   // نص أساسي أبيض ناعم
   static const Color _darkTextMuted   = _slate400;  // نص ثانوي رمادي
 
@@ -220,11 +221,11 @@ class AppColors {
   //  4) التدرجات الجاهزة
   // ==========================================================================
 
-  /// تدرج البانر الرئيسي: اللون الرسمي → أزرق أعمق → خلفية Slate 900
+  /// تدرج البانر الرئيسي: اللون الرسمي → أزرق أعمق → سواد تام (ليلي)
   static const List<Color> heroGradient = [
     _brandLight, // #93C5FD — تدرّج أفتح (تباين أفضل مع النص فوقه)
     _brand,      // #3B82F6 — اللون الرسمي
-    _slate900,   // خلفية Slate 900
+    Color(0xFF000000),   // سواد تام — يندمج مع خلفية الوضع الليلي
   ];
 
   /// تدرج الحلقة الدائرية (Dial) — اللون الرسمي → أزرق أعمق
@@ -239,10 +240,10 @@ class AppColors {
     _brandDeep, // #1E3A8A
   ];
 
-  /// تدرج بطاقات الكاتالوج في الوضع الداكن — لا يُستخدم (flat surface)
+  /// تدرج بطاقات الكاتالوج في الوضع الداكن — أسود باهت (متوافق مع السواد التام)
   static const List<Color> catalogCardGradientDark = [
-    _slate800,
-    _slate900,
+    Color(0xFF1C1E22),
+    Color(0xFF000000),
   ];
 
   // ==========================================================================

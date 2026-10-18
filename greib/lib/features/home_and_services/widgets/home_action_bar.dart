@@ -98,6 +98,8 @@ class _HomeActionBarState extends State<HomeActionBar>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accent = theme.colorScheme.primary;
+    // ★ ستايل زجاجي ليلي (مثل الصورة): سطح داكن شفاف + stroke أزرق خفيف + توهج ناعم
+    final isDark = theme.brightness == Brightness.dark;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -121,13 +123,31 @@ class _HomeActionBarState extends State<HomeActionBar>
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surface.withValues(
-                      alpha: _running ? 1.0 : 0.92,
-                    ),
+                    // ★ ليلي: أسود باهت شفاف (زجاجي) — نهاري: كما كان
+                    color: isDark
+                        ? const Color(0xFF111214).withValues(alpha: 0.72)
+                        : theme.colorScheme.surface.withValues(
+                            alpha: _running ? 1.0 : 0.92,
+                          ),
                     borderRadius: BorderRadius.circular(AppRadii.full),
                     border: Border.all(
-                      color: accent.withValues(alpha: _running ? 0.9 : 0.25),
+                      // ★ stroke أزرق زجاجي: أنعم في الحالة العادية، أقوى عند التشغيل
+                      color: accent.withValues(alpha: _running ? 0.9 : 0.45),
+                      width: _running ? 1.5 : 1.0,
                     ),
+                    // ★ توهج أزرق ناعم حول الزر (Glass glow) — ليلي فقط
+                    boxShadow: isDark
+                        ? [
+                            BoxShadow(
+                              color: accent.withValues(
+                                alpha: _running ? 0.35 : 0.18,
+                              ),
+                              blurRadius: _running ? 16 : 12,
+                              spreadRadius: 0,
+                              offset: const Offset(0, 0),
+                            ),
+                          ]
+                        : null,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -174,6 +194,7 @@ class _CircleAvatarButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accent = theme.colorScheme.primary;
+    final isDark = theme.brightness == Brightness.dark;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -185,9 +206,24 @@ class _CircleAvatarButton extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: theme.colorScheme.surface.withValues(alpha: 0.92),
+              // ★ ليلي: زجاجي داكن — نهاري: كما كان
+              color: isDark
+                  ? const Color(0xFF111214).withValues(alpha: 0.72)
+                  : theme.colorScheme.surface.withValues(alpha: 0.92),
               shape: BoxShape.circle,
-              border: Border.all(color: accent.withValues(alpha: 0.25)),
+              border: Border.all(
+                // ★ stroke أزرق زجاجي خفيف
+                color: accent.withValues(alpha: isDark ? 0.45 : 0.25),
+              ),
+              boxShadow: isDark
+                  ? [
+                      BoxShadow(
+                        color: accent.withValues(alpha: 0.18),
+                        blurRadius: 12,
+                        spreadRadius: 0,
+                      ),
+                    ]
+                  : null,
             ),
             padding: const EdgeInsets.all(3),
             child: const UserAvatar(size: 36, iconSize: 18),
@@ -214,6 +250,7 @@ class _CircleIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accent = theme.colorScheme.primary;
+    final isDark = theme.brightness == Brightness.dark;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -225,9 +262,22 @@ class _CircleIconButton extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: theme.colorScheme.surface.withValues(alpha: 0.92),
+              color: isDark
+                  ? const Color(0xFF111214).withValues(alpha: 0.72)
+                  : theme.colorScheme.surface.withValues(alpha: 0.92),
               shape: BoxShape.circle,
-              border: Border.all(color: accent.withValues(alpha: 0.25)),
+              border: Border.all(
+                color: accent.withValues(alpha: isDark ? 0.45 : 0.25),
+              ),
+              boxShadow: isDark
+                  ? [
+                      BoxShadow(
+                        color: accent.withValues(alpha: 0.18),
+                        blurRadius: 12,
+                        spreadRadius: 0,
+                      ),
+                    ]
+                  : null,
             ),
             child: Icon(icon, size: 18, color: accent),
           ),
