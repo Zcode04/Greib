@@ -39,7 +39,7 @@ class _ShellTab {
 
 const List<_ShellTab> _tabs = [
   // ★ الترتيب (من اليمين لليسار في RTL):
-  //   الرئيسية، البث المباشر، الدردشة، الكاميرا، الريلز، موقعي
+  //   الرئيسية، الدردشة، البث المباشر، الكاميرا، الريلز، موقعي
   //   (تبويب «المحفظة» حُذف: المحفظة تُفتح من تبويبها داخل صفحة الحساب /profile).
   // ★ الأيقونات Lucide الأصلية + النسخة الممتلئة Filled Lucide (SVG محلي):
   //   المفرّغة عند عدم التحديد، والممتلئة عند التحديد (بأسلوب فيسبوك).
@@ -50,6 +50,13 @@ const List<_ShellTab> _tabs = [
     filledAsset: 'house',
     label: 'الرئيسية',
   ),
+  _ShellTab(
+    route: '/chat',
+    title: 'الدردشة والرسائل',
+    icon: LucideIcons.messageSquare,
+    filledAsset: 'message-square',
+    label: 'الدردشة',
+  ),
   // ★ البث المباشر: الأيقونة تفتح بوابة «Publiveedit» التعريفية أولاً،
   //   وهي تحوّل تلقائياً إلى صفحة البث (/liveserver) بعد 5 ثوانٍ أو بالتخطي.
   //   بلا نسخة ممتلئة — يبقى Lucide مفرّغاً دائماً (الامتلاء للرئيسية والدردشة فقط).
@@ -58,13 +65,6 @@ const List<_ShellTab> _tabs = [
     title: 'البث المباشر',
     icon: LucideIcons.tvMinimal,
     label: 'البث المباشر',
-  ),
-  _ShellTab(
-    route: '/chat',
-    title: 'الدردشة والرسائل',
-    icon: LucideIcons.messageSquare,
-    filledAsset: 'message-square',
-    label: 'الدردشة',
   ),
   // ★ زر الكاميرا: نفس هوية بقية الأيقونات — يفتح صفحة البحث المستقلة
   //   (بحث بإرفاغ صورة / في الحقل / رسالة للوكيل) بدل ورقة الخيارات.
