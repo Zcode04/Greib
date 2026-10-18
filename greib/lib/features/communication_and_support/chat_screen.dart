@@ -27,6 +27,8 @@ import 'widgets/whatsapp_attachment.dart';
 import 'widgets/whatsapp_bubble.dart';
 import 'widgets/whatsapp_input_bar.dart';
 import '../../features/auth/mock_auth.dart';
+import 'contacts_chat_store.dart';
+import 'contacts_screen.dart';
 import 'story_message_store.dart';
 
 // ---------------------------------------------------------------------------
@@ -236,10 +238,20 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final existingIds = _conversations.map((c) => c['id']).toSet();
     for (final sc in storyConvs) {
       if (existingIds.contains(sc['id'])) continue;
+      existingIds.add(sc['id']);
       _conversations.insert(0, {
         ...sc,
         'participants': <String>[],
       });
+    }
+
+    // ★ «جهات اتصلي»: محادثات بدأها المستخدم من صفحة جهات الاتصال —
+    // تُدمج في الأعلى (الحسابات الرسمية chat1-3 موجودة أصلاً فلا تتكرر).
+    final contactConvs = ContactsChatStore.instance.contactConversations();
+    for (final cc in contactConvs) {
+      if (existingIds.contains(cc['id'])) continue;
+      existingIds.add(cc['id']);
+      _conversations.insert(0, cc);
     }
 
     if (role == UserRole.admin) {
@@ -396,18 +408,36 @@ class _ChatListScreenState extends State<ChatListScreen> {
               backgroundColor: chat.sendButton,
               foregroundColor: chat.sendIcon,
               elevation: 4,
+              // ★ زر القلم (محادثة جديدة) يفتح صفحة «جهات الاتصال»:
+              //   [جهات اتصال گريب منك | جهات اتصلي] — والضغط على أي حساب
+              //   يفتح دردشة جديدة تُحفظ في قائمة الدردشة تلقائياً.
+              //   في تبويب المكالمات يبقى سلوك «مكالمة جديدة» كما كان.
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      _isCallsTab ? 'مكالمة جديدة 📞' : 'محادثة جديدة ✏️',
+                if (_isCallsTab) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('مكالمة جديدة 📞'),
+                      duration: Duration(seconds: 1),
                     ),
-                    duration: const Duration(seconds: 1),
-                  ),
-                );
+                  );
+                  return;
+                }
+                Navigator.of(context, rootNavigator: true)
+                    .push(
+                      MaterialPageRoute(
+                        builder: (_) => ContactsScreen(
+                          existingConversations: _conversations,
+                        ),
+                      ),
+                    )
+                    .then((_) {
+                  // ★ العودة من الصفحة: دمج أي محادثات جديدة انطلقت منها.
+                  if (!mounted) return;
+                  setState(_loadConversations);
+                });
               },
               child: Icon(
-                _isCallsTab ? LucideIcons.phoneCall : LucideIcons.messageCircle,
+                _isCallsTab ? LucideIcons.phoneCall : LucideIcons.squarePen,
               ),
             ),
           ),
@@ -470,6 +500,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
           online: online,
           activity: conv['activity'] as String,
           isGroup: isGroup,
+          // ★ محادثة جديدة من جهات الاتصال تفتح فارغة (واتساب) —
+          // والقديمة تفتح بمحادثتها القائمة كالمعتاد.
+          startEmpty: (conv['isEmpty'] as bool?) ?? false,
         ),
       ),
     );
@@ -509,6 +542,10 @@ class ChatDetailScreen extends StatefulWidget {
   /// فيُوجَّه للدردشة ليكمل الكتابة فعلياً (هجين احترافي).
   final bool autofocusMessage;
 
+  /// ★ محادثة جديدة فارغة تماماً (بلا الرسائل التجريبية المدمجة):
+  /// تُستخدم عند بدء محادثة من صفحة «جهات الاتصال» — مثل واتساب.
+  final bool startEmpty;
+
   const ChatDetailScreen({
     super.key,
     required this.conversationTitle,
@@ -520,6 +557,7 @@ class ChatDetailScreen extends StatefulWidget {
     required this.isGroup,
     this.postPreview,
     this.autofocusMessage = false,
+    this.startEmpty = false,
   });
 
   @override
@@ -697,6 +735,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   @override
   void initState() {
     super.initState();
+    // ★ محادثة جديدة من صفحة جهات الاتصال: تبدأ فارغة تماماً (واتساب).
+    if (widget.startEmpty) _messages.clear();
     // ★ «طلب الآن» يفتح المحادثة ومعه معاينة المنشور ⇒ نضعها كمرفق «بانتظار
     // الإرسال» حتى لا تُرسل تلقائياً؛ المستخدم يختار الإرسال (نصاً/صوتاً).
     _pendingPost = widget.postPreview;

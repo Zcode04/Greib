@@ -101,6 +101,12 @@ class MainShellScreen extends StatefulWidget {
 class _MainShellScreenState extends State<MainShellScreen> {
   int _currentIndex = 0;
 
+  /// ★ تحكّم الـ PageView: الصفحة 0 = الرئيسية، الصفحة 1 = الدردشة
+  ///   (فهرسة عبر `_shellIndexes` — أي تبويب Shell إضافي未来 يُضاف تلقائياً).
+  ///   السحب الأفقي على المحتوى يتنقّل بينهما فقط، والتبويبات المستقلة
+  ///   (الكاميرا/الريلز/موقعي) تبقى بـ push خارج الـ PageView.
+  late final PageController _pageController;
+
   /// ★ فهرس تبويب «الرئيسية» (يُشتق من القائمة بدل رقم ثابت).
   static int get _homeTabIndex => _tabs.indexWhere((t) => t.route == '/home');
 
@@ -134,6 +140,16 @@ class _MainShellScreenState extends State<MainShellScreen> {
             (i) => _tabs[i].route == '/home',
             orElse: () => _shellIndexes.first,
           );
+    // ★ PageView يبدأ على نفس تبويب Shell المحفوظ (فهرسة عبر _shellIndexes).
+    _pageController = PageController(
+      initialPage: _shellIndexes.indexOf(_currentIndex),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   void _onTabSelected(int index) {
@@ -155,6 +171,31 @@ class _MainShellScreenState extends State<MainShellScreen> {
     if (index == _currentIndex) return;
     setState(() => _currentIndex = index);
     AppPrefs.setLastTabIndex(index);
+    // ★ الضغط على أيقونة الشريط يحرّك الـ PageView بنفس اتجاه السحب
+    //   (حركة ناعمة 200ms) — فحالة الشريط ومحتوى الصفحة تبقى متزامنة دائماً.
+    final page = _shellIndexes.indexOf(index);
+    if (page >= 0 && _pageController.hasClients && _pageController.page?.round() != page) {
+      _pageController.animateToPage(
+        page,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
+  /// ★ سحب أفقي على الشريط: تبديل مباشر بين تبويبات Shell
+  /// (الرئيسية ⇄ الدردشة) — أي سحبة تُبدّل للآخر، بسهولة سحب الستوري.
+  /// (يستخدم نفس `_onTabSelected` ⇒ يحرّك الـ PageView تلقائياً.)
+  void _onNavSwipe(int direction) {
+    final shell = _shellIndexes.toList()..sort();
+    if (shell.length < 2) return;
+    // ★ تبويبان فقط ⇒ أي سحبة تنتقل للتبويب الآخر (بلا حساب اتجاه).
+    final other = shell.firstWhere(
+      (i) => i != _currentIndex,
+      orElse: () => _currentIndex,
+    );
+    if (other == _currentIndex) return;
+    _onTabSelected(other);
   }
 
   /// ★ جسم التبويب: مبني على المسار (لا على رقم ثابت) ⇒ ترتيب التبويبات
@@ -230,7 +271,23 @@ class _MainShellScreenState extends State<MainShellScreen> {
       // شفافة جداً (مجرد دمج ناعم — بلا أي إحساس بالشادو).
       body: Stack(
         children: [
-          _buildBody(_currentIndex),
+          // ★ سحب أفقي على المحتوى بين تبويبات Shell فقط (الرئيسية ⇄ الدردشة):
+          //   PageView يبني صفحتين فقط من `_shellIndexes` ⇒ التبويبات المستقلة
+          //   (الكاميرا/الريلز/موقعي) تبقى بـ push خارجه تماماً كما كانت.
+          //   `onPageChanged` يزامن حالة الشريط السفلي مع السحب، و
+          //   `allowImplicitScrolling` يحتفظ بحالة كل صفحة (تمرير/مسودات)
+          //   عند التنقل ذهاباً وإياباً (سلوك فيسبوك المعتاد).
+          PageView(
+            controller: _pageController,
+            allowImplicitScrolling: true,
+            onPageChanged: (page) {
+              final index = _shellIndexes[page];
+              if (index == _currentIndex) return;
+              setState(() => _currentIndex = index);
+              AppPrefs.setLastTabIndex(index);
+            },
+            children: [for (final i in _shellIndexes) _buildBody(i)],
+          ),
           // ★ طبقة الحماية العلوية (Status-Bar Scrim): شريط صلب بلون خلفية
           //   التطبيق يغطي منطقة (البطارية + الوقت + النتوء) في الأعلى —
           //   المحتوى المسحوب يدخل تحتها بدل أن يتشابك مع رموز النظام.
@@ -253,6 +310,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
       bottomNavigationBar: FloatingBottomNav(
         currentIndex: _currentIndex,
         onTap: _onTabSelected,
+        // ★ سحب أفقي على الشريط للتنقل بين الرئيسية ⇄ الدردشة فقط.
+        onSwipeTo: _onNavSwipe,
         items: _tabs
             .map(
               (tab) => FloatingNavItem(

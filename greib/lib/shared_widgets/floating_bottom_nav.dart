@@ -59,11 +59,16 @@ class FloatingBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
+  /// ★ سحب أفقي على الشريط للتنقل بين تبويبات Shell (الرئيسية ⇄ الدردشة).
+  /// null = بلا سحب. يُمرَّر من MainShellScreen الذي يعرف الفهارس الصالحة.
+  final ValueChanged<int>? onSwipeTo;
+
   const FloatingBottomNav({
     super.key,
     required this.items,
     required this.currentIndex,
     required this.onTap,
+    this.onSwipeTo,
   }) : assert(
          items.length >= 2 && items.length <= 8,
          'استخدم بين 2 و8 عناصر ليبقى الشكل متوازناً',
@@ -87,7 +92,16 @@ class FloatingBottomNav extends StatelessWidget {
       // ★ إخفاء كامل متناسق مع الهيدر: الشريط كتلة واحدة تنزلق للأسفل
       //   وتتلاشى (بلا إعادة layout — transform/opacity رخيصان على GPU).
       //   نفس توقيت الهيدر تماماً ⇒ إحساس بقطعة واحدة.
-      child: ValueListenableBuilder<bool>(
+      // ★ سحب أفقي بسيط على الشريط (مثل سهولة سحب الستوري):
+      //   GestureDetector بـ translucent — النقر على الأيقونات يمر تحته
+      //   (الأيقونات أولاً في الـ hit-test)، والسحب الأفقي فقط يُبدّل التبويب.
+      //   بلا PageView/Overlay — خفيف تماماً على الهواتف الضعيفة.
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onHorizontalDragEnd: onSwipeTo == null
+            ? null
+            : (_) => onSwipeTo!.call(0),
+        child: ValueListenableBuilder<bool>(
         valueListenable: HeaderCollapseState.navCompact,
         builder: (context, hidden, _) {
           return AnimatedSlide(
@@ -162,6 +176,7 @@ class FloatingBottomNav extends StatelessWidget {
             ),
           );
         },
+      ),
       ),
     );
   }
