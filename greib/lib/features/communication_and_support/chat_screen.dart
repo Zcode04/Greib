@@ -3002,6 +3002,7 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
   StreamSubscription<Duration>? _durSub;
   StreamSubscription<void>? _completeSub;
   VoidCallback? _playingListener;
+  Timer? _simTimer;
 
   @override
   void initState() {
@@ -3026,7 +3027,11 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
     // Auto-pause this bubble if another one starts playing.
     _playingListener = () {
       if (widget.currentlyPlayingId.value != widget.id && _isPlaying) {
-        _player.pause();
+        if (widget.audioPath != null) {
+          _player.pause();
+        } else {
+          _simTimer?.cancel();
+        }
         if (mounted) setState(() => _isPlaying = false);
       }
     };
@@ -3035,6 +3040,7 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
 
   @override
   void dispose() {
+    _simTimer?.cancel();
     _posSub?.cancel();
     _durSub?.cancel();
     _completeSub?.cancel();
@@ -3058,52 +3064,81 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
   }
 
   Future<void> _togglePlay() async {
-    if (widget.audioPath == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'رسالة تجريبية بدون ملف صوتي حقيقي، سجّل رسالة جديدة لتجربة التشغيل',
-          ),
-        ),
-      );
-      return;
-    }
-
     if (_isPlaying) {
-      await _player.pause();
+      if (widget.audioPath != null) {
+        await _player.pause();
+      } else {
+        _simTimer?.cancel();
+      }
       setState(() => _isPlaying = false);
       return;
     }
 
-    setState(() => _isLoading = true);
     widget.currentlyPlayingId.value = widget.id;
 
-    if (_totalDuration > Duration.zero && _position >= _totalDuration) {
-      await _player.seek(Duration.zero);
-    }
+    if (widget.audioPath != null) {
+      setState(() => _isLoading = true);
+      if (_totalDuration > Duration.zero && _position >= _totalDuration) {
+        await _player.seek(Duration.zero);
+      }
+      try {
+        await _player.play(DeviceFileSource(widget.audioPath!));
+      } catch (e) {
+        debugPrint('Playback error: $e');
+      }
+      if (mounted) {
+        setState(() {
+          _isPlaying = true;
+          _isLoading = false;
+        });
+      }
+    } else {
+      // محاكاة حقيقية فائقة السلاسة لتشغيل الصوت وحركة الموجات
+      _simTimer?.cancel();
+      if (_totalDuration <= Duration.zero) {
+        _totalDuration = Duration(seconds: widget.durationSeconds > 0 ? widget.durationSeconds : 15);
+      }
+      if (_position >= _totalDuration) {
+        _position = Duration.zero;
+      }
+      setState(() => _isPlaying = true);
 
-    await _player.play(DeviceFileSource(widget.audioPath!));
-
-    if (mounted) {
-      setState(() {
-        _isPlaying = true;
-        _isLoading = false;
+      const stepMs = 100;
+      _simTimer = Timer.periodic(const Duration(milliseconds: stepMs), (t) {
+        if (!mounted) {
+          t.cancel();
+          return;
+        }
+        final nextMs = _position.inMilliseconds + stepMs;
+        if (nextMs >= _totalDuration.inMilliseconds) {
+          t.cancel();
+          setState(() {
+            _isPlaying = false;
+            _position = Duration.zero;
+          });
+        } else {
+          setState(() {
+            _position = Duration(milliseconds: nextMs);
+          });
+        }
       });
     }
   }
 
   /// Maps a local dx offset within the (dynamic) waveform width to a 0..1
   /// fraction of the clip. Works for both tap and horizontal drag.
-  double _fractionFromOffset(double dx, double width) {
+  double _fractionFromOffset(double dx, double width, bool isRTL) {
     if (width <= 0) return 0.0;
-    return (dx / width).clamp(0.0, 1.0);
+    final normalizedDx = isRTL ? (width - dx) : dx;
+    return (normalizedDx / width).clamp(0.0, 1.0);
   }
 
   Future<void> _seekToFraction(double fraction) async {
-    if (widget.audioPath == null || _totalDuration == Duration.zero) return;
+    if (_totalDuration <= Duration.zero) return;
     final target = _totalDuration * fraction.clamp(0.0, 1.0);
-    // Seeking is allowed both while playing and while paused.
-    await _player.seek(target);
+    if (widget.audioPath != null) {
+      await _player.seek(target);
+    }
     setState(() => _position = target);
   }
 
@@ -3122,16 +3157,18 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
 
     final chat = context.chatColors;
     final onBubble = isMine ? chat.bubbleMineText : chat.bubbleTheirsText;
-    // ★ ألوان موجات واتساب: المقروء أبيض، غير المقروء #8696A0.
-    final playedColor = Colors.white;
+    // ★ ألوان موجات واتساب: المشغّل أزرق سماوي #53BDEB، غير المشغّل أبيض خافت / رمادي.
+    const playedColor = Color(0xFF53BDEB);
     final unplayedColor = isMine
-        ? Colors.white.withValues(alpha: 0.38)
+        ? Colors.white.withValues(alpha: 0.42)
         : const Color(0xFF8696A0);
 
     // ★ سطر واحد مدمج مثل واتساب (ارتفاع ~68px) — بدون تكرار.
     // ★ الترتيب البصري من اليمين لليسار (واتساب عربي):
     //  رسائلي: [أفاتاري | موجة | تشغيل] — مثل صورتك.
     //  رسائلهم: [تشغيل | موجة | أفاتارهم].
+    final isRTL = Directionality.of(context) == TextDirection.rtl;
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Row(
@@ -3145,20 +3182,21 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
             ),
             const SizedBox(width: 6),
           ],
+          // ★ زر التشغيل/الإيقاف مكبّر وقريب جداً من الموجات
           GestureDetector(
             onTap: _togglePlay,
             behavior: HitTestBehavior.opaque,
             child: SizedBox(
-              width: 30,
-              height: 34,
+              width: 38,
+              height: 40,
               child: Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,
                 children: [
                   if (_isLoading)
                     SizedBox(
-                      width: 18,
-                      height: 18,
+                      width: 20,
+                      height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         color: onBubble,
@@ -3167,12 +3205,12 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
                   else
                     Icon(
                       _isPlaying ? Icons.pause : Icons.play_arrow,
-                      color: const Color(0xFFD1D7DB),
-                      size: 30,
+                      color: const Color(0xFFE9EDEF),
+                      size: 36,
                     ),
                   if (!widget.isListened && !_isPlaying && !isMine)
                     const Positioned(
-                      left: -3,
+                      left: -2,
                       top: 4,
                       child: _UnreadDot(),
                     ),
@@ -3180,7 +3218,7 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
               ),
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 2),
           Expanded(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 200, minWidth: 120),
@@ -3198,6 +3236,7 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
                             _fractionFromOffset(
                               details.localPosition.dx,
                               width,
+                              isRTL,
                             ),
                           );
                         },
@@ -3206,26 +3245,53 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
                             _fractionFromOffset(
                               details.localPosition.dx,
                               width,
+                              isRTL,
                             ),
                           );
                         },
                         child: SizedBox(
                           height: 26,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: List.generate(_barCount, (i) {
-                              final played = i < playedBars;
-                              final h = _bars[i].clamp(3.0, 22.0);
-                              return Container(
-                                width: 2,
-                                height: h,
-                                decoration: BoxDecoration(
-                                  color: played ? playedColor : unplayedColor,
-                                  borderRadius: BorderRadius.circular(1.5),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: List.generate(_barCount, (i) {
+                                  final isBarPlayed = i <= playedBars && (_isPlaying || _position > Duration.zero);
+                                  final h = _bars[i].clamp(3.5, 23.0);
+                                  return Container(
+                                    width: 2.2,
+                                    height: h,
+                                    decoration: BoxDecoration(
+                                      color: isBarPlayed ? playedColor : unplayedColor,
+                                      borderRadius: BorderRadius.circular(1.5),
+                                    ),
+                                  );
+                                }),
+                              ),
+                              // نقطة التقدم الحية في واتساب
+                              if (width > 0 && (_isPlaying || _position > Duration.zero))
+                                Positioned.directional(
+                                  textDirection: Directionality.of(context),
+                                  start: (playedFraction * (width - 7)).clamp(0.0, width - 7),
+                                  child: Container(
+                                    width: 7,
+                                    height: 7,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: const Color(0xFF53BDEB),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.35),
+                                          blurRadius: 2,
+                                          offset: const Offset(0, 1),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                              );
-                            }),
+                            ],
                           ),
                         ),
                       ),
