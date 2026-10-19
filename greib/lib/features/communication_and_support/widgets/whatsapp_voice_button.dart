@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -12,7 +13,7 @@ import '../../../core/theme/chat_colors.dart';
 ///    - المايك يكبر إلى ~1.5x بحركة spring أثناء الضغط + اهتزاز خفيف.
 ///    - يتحرك المايك أفقياً مع الإصبع أثناء السحب للإلغاء.
 ///    - يتحول لسلة حمراء وينكمش عند تجاوز عتبة الإلغاء.
-class WhatsAppVoiceButton extends StatelessWidget {
+class WhatsAppVoiceButton extends StatefulWidget {
   final bool hasText;
   final VoidCallback onSend;
   final VoidCallback onHoldStart;
@@ -37,30 +38,108 @@ class WhatsAppVoiceButton extends StatelessWidget {
   });
 
   @override
+  State<WhatsAppVoiceButton> createState() => _WhatsAppVoiceButtonState();
+}
+
+class _WhatsAppVoiceButtonState extends State<WhatsAppVoiceButton> {
+  Offset? _startPosition;
+  DateTime? _downTime;
+  Timer? _holdTimer;
+  bool _isHolding = false;
+
+  void _triggerHoldStart() {
+    if (_isHolding || widget.hasText) return;
+    _isHolding = true;
+    _holdTimer?.cancel();
+    HapticFeedback.lightImpact();
+    widget.onHoldStart();
+  }
+
+  void _onPointerDown(PointerDownEvent event) {
+    _startPosition = event.position;
+    _downTime = DateTime.now();
+    _isHolding = false;
+    _holdTimer?.cancel();
+
+    if (!widget.hasText) {
+      // استجابة فائقة السرعة: 100ms فقط للثبات (بدلاً من 500ms)
+      _holdTimer = Timer(const Duration(milliseconds: 100), () {
+        _triggerHoldStart();
+      });
+    }
+  }
+
+  void _onPointerMove(PointerMoveEvent event) {
+    if (_startPosition == null) return;
+    final delta = event.position - _startPosition!;
+
+    // ★ بمجرد حدوث أي سحب سريع (أكثر من 4px)، يبدأ التسجيل فوراً دون أي انتظار!
+    if (!_isHolding && !widget.hasText) {
+      if (delta.distance > 4.0) {
+        _triggerHoldStart();
+      }
+    }
+
+    if (_isHolding) {
+      widget.onHoldMove(delta);
+    }
+  }
+
+  void _onPointerUp(PointerUpEvent event) {
+    _holdTimer?.cancel();
+    final wasHolding = _isHolding;
+    _isHolding = false;
+
+    if (widget.hasText) {
+      final duration = DateTime.now().difference(_downTime ?? DateTime.now());
+      final distance = _startPosition != null
+          ? (event.position - _startPosition!).distance
+          : 0.0;
+      if (duration.inMilliseconds < 450 && distance < 25.0) {
+        HapticFeedback.lightImpact();
+        widget.onSend();
+      }
+    } else {
+      if (wasHolding) {
+        widget.onHoldEnd();
+      }
+    }
+    _startPosition = null;
+    _downTime = null;
+  }
+
+  void _onPointerCancel(PointerCancelEvent event) {
+    _holdTimer?.cancel();
+    if (_isHolding) {
+      _isHolding = false;
+      widget.onHoldEnd();
+    }
+    _startPosition = null;
+    _downTime = null;
+  }
+
+  @override
+  void dispose() {
+    _holdTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final chat = context.chatColors;
-    final bg = cancelArmed ? chat.recordingTrash : const Color(0xFF1FA855);
-    final effectiveScale = cancelArmed
-        ? (micScale * 0.85).clamp(0.6, 1.6)
-        : micScale;
+    final bg = widget.cancelArmed ? chat.recordingTrash : const Color(0xFF1FA855);
+    final effectiveScale = widget.cancelArmed
+        ? (widget.micScale * 0.85).clamp(0.6, 1.6)
+        : widget.micScale;
 
-    return GestureDetector(
+    return Listener(
       behavior: HitTestBehavior.opaque,
-      // ★ الضغطة السريعة = إرسال (عند وجود نص) أو لا شيء (بدون نص).
-      onTap: () {
-        HapticFeedback.lightImpact();
-        if (hasText) onSend();
-      },
-      // ★ الضغطة المطوّلة = بدء التسجيل (فقط بدون نص — مثل واتساب).
-      onLongPressStart: (_) {
-        if (hasText) return;
-        HapticFeedback.lightImpact();
-        onHoldStart();
-      },
-      onLongPressMoveUpdate: (details) => onHoldMove(details.offsetFromOrigin),
-      onLongPressEnd: (_) => onHoldEnd(),
+      onPointerDown: _onPointerDown,
+      onPointerMove: _onPointerMove,
+      onPointerUp: _onPointerUp,
+      onPointerCancel: _onPointerCancel,
       child: Transform.translate(
-        offset: translationOffset,
+        offset: widget.translationOffset,
         child: AnimatedScale(
           scale: effectiveScale,
           duration: const Duration(milliseconds: 180),
@@ -89,7 +168,7 @@ class WhatsAppVoiceButton extends StatelessWidget {
                     child: child,
                   ),
                 ),
-                child: hasText
+                child: widget.hasText
                     ? Icon(
                         LucideIcons.send,
                         key: const ValueKey('send_icon'),
@@ -97,8 +176,8 @@ class WhatsAppVoiceButton extends StatelessWidget {
                         size: 21,
                       )
                     : Icon(
-                        cancelArmed ? LucideIcons.trash2 : LucideIcons.mic,
-                        key: ValueKey(cancelArmed ? 'trash_icon' : 'mic_icon'),
+                        widget.cancelArmed ? LucideIcons.trash2 : LucideIcons.mic,
+                        key: ValueKey(widget.cancelArmed ? 'trash_icon' : 'mic_icon'),
                         color: chat.sendIcon,
                         size: 23,
                       ),

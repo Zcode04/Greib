@@ -599,6 +599,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   bool _axisLockHorizontal = false;
   bool _cancelArmed = false;
   double _micScale = 1.0;
+  bool _micPermissionGranted = false;
   AnimationController? _lockHintController;
   late final AnimationController _panelAnimController;
   int _recordSeconds = 0;
@@ -760,6 +761,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     _mergeStoryMessages();
     // لاحظ ظهور/اختفاء لوحة المفاتيح لإعادة التمرير لأسفل تلقائياً.
     WidgetsBinding.instance.addObserver(this);
+    // التحقق المسبق من إذن الميكروفون لتمكين التسجيل الفوري دون أي تأخير
+    Permission.microphone.status.then((status) {
+      if (status.isGranted && mounted) {
+        _micPermissionGranted = true;
+      }
+    });
     // ★ حركة تلميح القفل الصاعد — تتكرر صعوداً ونزولاً أثناء الضغطة المطوّلة.
     _lockHintController = AnimationController(
       vsync: this,
@@ -898,19 +905,21 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   }
 
   Future<void> _startRecording() async {
-    // Real permission request — actually prompts the OS mic permission
-    // dialog the first time, and reflects a prior denial afterwards.
-    final granted = await _requestPermission(
-      Permission.microphone,
-      'يجب السماح باستخدام الميكروفون من إعدادات الجهاز لتسجيل رسالة صوتية',
-    );
-    if (!granted) return;
-
-    if (!await _audioRecorder.hasPermission()) {
-      _showErrorMessage(
-        'تعذر الحصول على إذن الميكروفون لتسجيل الرسالة الصوتية',
+    // إذا تم التحقق من الإذن مسبقاً، يبدأ التسجيل فوراً دون أي انتظار
+    if (!_micPermissionGranted) {
+      final granted = await _requestPermission(
+        Permission.microphone,
+        'يجب السماح باستخدام الميكروفون من إعدادات الجهاز لتسجيل رسالة صوتية',
       );
-      return;
+      if (!granted) return;
+
+      if (!await _audioRecorder.hasPermission()) {
+        _showErrorMessage(
+          'تعذر الحصول على إذن الميكروفون لتسجيل الرسالة الصوتية',
+        );
+        return;
+      }
+      _micPermissionGranted = true;
     }
 
     final dir = await getTemporaryDirectory();
@@ -1117,18 +1126,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     final absDy = (-dy).clamp(0.0, double.infinity);
     final horizontalTowardsText = (isRTL ? dx : -dx).clamp(0.0, double.infinity);
 
-    // تثبيت المحور (Axis Lock): لا يُسمح بالاتجاهين معاً
+    // تثبيت المحور (Axis Lock): استجابة سريعة جداً لأي سحب للأعلى أو أفقياً
     if (!_axisLockVertical && !_axisLockHorizontal) {
-      if (absDy > 10.0 && absDy > horizontalTowardsText * 1.2) {
+      if (absDy > 6.0 && absDy >= horizontalTowardsText * 0.8) {
         _axisLockVertical = true;
-      } else if (horizontalTowardsText > 10.0 && horizontalTowardsText > absDy * 1.2) {
+      } else if (horizontalTowardsText > 6.0 && horizontalTowardsText >= absDy * 0.8) {
         _axisLockHorizontal = true;
       }
     }
 
-    // السحب للأعلى: قفل التسجيل Hands-free
+    // السحب للأعلى: قفل التسجيل Hands-free بسحب خفيف سريع (60px فقط)
     if (_axisLockVertical) {
-      final progress = (absDy / 80.0).clamp(0.0, 1.0);
+      final progress = (absDy / 60.0).clamp(0.0, 1.0);
       setState(() {
         _lockDragProgress = progress;
         _voiceState = ComposerVoiceState.lockDragging;
