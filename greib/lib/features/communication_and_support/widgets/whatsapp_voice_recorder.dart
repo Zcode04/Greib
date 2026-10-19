@@ -558,18 +558,42 @@ class _WhatsAppLockedPanelState extends State<WhatsAppLockedPanel> {
                         tooltip: 'حذف التسجيل',
                       ),
 
-                      // زر الإيقاف المؤقت — وسط
-                      _CircleActionButton(
-                        icon: LucideIcons.pause,
-                        iconColor: chat.sendButton,
-                        backgroundColor:
-                            chat.sendButton.withValues(alpha: 0.12),
-                        size: 48,
-                        onPressed: () {
-                          HapticFeedback.lightImpact();
-                          widget.onPause();
-                        },
-                        tooltip: 'إيقاف مؤقت',
+                      // زر الإيقاف المؤقت في الوسط — كبسولة أنيقة متناسقة مع كبسولة "استئناف"
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(24),
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            widget.onPause();
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                LucideIcons.pause,
+                                color: isDark ? Colors.white : const Color(0xFF111B21),
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'إيقاف مؤقت',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? Colors.white : const Color(0xFF111B21),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
 
                       // زر الإرسال — يمين
