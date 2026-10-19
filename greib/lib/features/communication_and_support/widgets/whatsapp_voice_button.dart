@@ -237,16 +237,20 @@ class VoiceLockRail extends StatelessWidget {
                 width: 42,
                 height: railHeight,
                 decoration: BoxDecoration(
-                  // ★ خلفية السكة من الثيم بدل الأبيض الثابت.
-                  color: chat.composerBackground,
+                  // ★ خلفية السكة متوافقة تماماً مع الثيم (ليلي / نهاري)
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF1F2C34)
+                      : Colors.white,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(
-                    color: chat.composerBorder.withValues(alpha: 0.6),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white.withValues(alpha: 0.10)
+                        : Colors.black.withValues(alpha: 0.08),
                     width: 0.8,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.12),
+                      color: Colors.black.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.35 : 0.12),
                       blurRadius: 10,
                       offset: const Offset(0, 3),
                     ),

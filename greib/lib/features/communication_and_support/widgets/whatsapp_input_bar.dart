@@ -37,6 +37,7 @@ class WhatsAppInputBar extends StatelessWidget {
   final int recordSeconds;
   final Offset micTranslationOffset;
   final double cancelProgress;
+  final List<double>? liveWaveform;
 
   const WhatsAppInputBar({
     super.key,
@@ -57,6 +58,7 @@ class WhatsAppInputBar extends StatelessWidget {
     this.recordSeconds = 0,
     this.micTranslationOffset = Offset.zero,
     this.cancelProgress = 0.0,
+    this.liveWaveform,
   });
 
   @override
@@ -182,33 +184,67 @@ class WhatsAppInputBar extends StatelessWidget {
               secondChild: Container(
                 height: 50,
                 decoration: BoxDecoration(
-                  color: chat.inputField,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF1F2C34)
+                      : chat.inputField,
                   borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.transparent,
+                    width: 0.8,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.07),
+                      color: Colors.black.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.25 : 0.07),
                       blurRadius: 4,
                       offset: const Offset(0, 1.5),
                     ),
                   ],
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
                 child: Row(
                   children: [
                     // النقطة الحمراء النابضة
                     const WhatsAppRecordingPulseDot(),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     // عداد الوقت
                     Text(
                       formatVoiceDuration(recordSeconds),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: chat.inputText,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : const Color(0xFF111B21),
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
-                    const Spacer(),
+                    if (liveWaveform != null && liveWaveform!.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: SizedBox(
+                          height: 22,
+                          child: RepaintBoundary(
+                            child: CustomPaint(
+                              painter: LiveWaveformPainter(
+                                waveform: liveWaveform!,
+                                liveBarColor: const Color(0xFF53BDEB),
+                                unplayedBarColor: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white.withValues(alpha: 0.25)
+                                    : const Color(0xFF8696A0).withValues(alpha: 0.35),
+                                playedBarColor: const Color(0xFF53BDEB),
+                                isPaused: false,
+                                isRTL: Directionality.of(context) == TextDirection.rtl,
+                              ),
+                              size: Size.infinite,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ] else
+                      const Spacer(),
                     // سهم الإلغاء
                     WhatsAppSlideToCancel(
                       opacity: (1.0 - cancelProgress).clamp(0.0, 1.0),

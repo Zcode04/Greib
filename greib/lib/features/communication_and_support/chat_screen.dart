@@ -1992,6 +1992,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                 recordSeconds: _recordSeconds,
                 micTranslationOffset: _micTranslationOffset,
                 cancelProgress: _cancelProgress,
+                liveWaveform: _liveWaveform,
               ),
               // ★ سكة القفل الصاعدة فوق زر المايك — تظهر أثناء الضغطة فقط.
               // في RTL الزر على اليسار ⇒ السكة على اليسار، وفي LTR على اليمين.

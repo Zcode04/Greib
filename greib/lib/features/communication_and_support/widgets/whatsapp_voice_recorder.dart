@@ -131,113 +131,130 @@ class _WhatsAppSlideToCancelState extends State<WhatsAppSlideToCancel>
 }
 
 /// ============================================================================
-///  رسام الموجة الصوتية الحية (Live Waveform CustomPainter)
+///  رسام الموجة الصوتية الحية بأسلوب واتساب الحقيقي (WhatsApp Live Waveform)
 /// ============================================================================
-///  - 60 إطاراً بالثانية مع RepaintBoundary
-///  - أعمدة تتغير حسب الـ amplitude الحقيقي وتتحرك من اليمين لليسار
-///  - مؤشر تشغيل أخضر playhead عند التجميد (paused)
+///  - أعمدة رأسية نحيفة (2.2px) ذات نهايات دائرية (Radius 1.5) مطابقة لفقاعة الصوت
+///  - تتوسط المحور الرأسي تماماً بدون أي تموج جيبي مصطنع
+///  - تدفق الصوت الحي من جانب المؤقت نحو الطرف الآخر بانسيابية تامة
+///  - خط هادئ من النقاط الدائرية (3px) للمسار القادم
+///  - مؤشر تشغيل (scrubber dot) سماوي #53BDEB عند المعاينة بعد الإيقاف المؤقت
 class LiveWaveformPainter extends CustomPainter {
   final List<double> waveform;
-  final Color color;
+  final Color liveBarColor;
+  final Color unplayedBarColor;
+  final Color playedBarColor;
   final bool isPaused;
-  final double animationValue;
   final double? playheadPosition; // 0.0 .. 1.0
   final bool isRTL;
 
   const LiveWaveformPainter({
     required this.waveform,
-    required this.color,
+    required this.liveBarColor,
+    required this.unplayedBarColor,
+    required this.playedBarColor,
     required this.isPaused,
-    required this.animationValue,
     this.playheadPosition,
     this.isRTL = true,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (waveform.isEmpty) {
-      // خط أساسي خفيف عند البداية قبل وصول عينات
-      final basePaint = Paint()
-        ..color = color.withValues(alpha: 0.25)
-        ..strokeWidth = 2.5
-        ..strokeCap = StrokeCap.round;
-      canvas.drawLine(
-        Offset(0, size.height / 2),
-        Offset(size.width, size.height / 2),
-        basePaint,
-      );
-      return;
-    }
+    if (size.width <= 0 || size.height <= 0) return;
 
-    final barPaint = Paint()
-      ..color = color
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.fill;
-
-    const double barWidth = 2.0;
+    const double barWidth = 2.2;
     const double barSpacing = 2.0;
-    const double totalBarStep = barWidth + barSpacing;
+    const double totalBarStep = barWidth + barSpacing; // 4.2px
     final int maxVisibleBars = (size.width / totalBarStep).floor();
-    final centerY = size.height / 2;
+    if (maxVisibleBars <= 0) return;
 
-    // نأخذ آخر N عينة تناسب العرض
-    final int count = math.min(waveform.length, maxVisibleBars);
-    final startIndex = waveform.length - count;
+    final double centerY = size.height / 2;
+    final int count = waveform.length;
 
-    for (int i = 0; i < count; i++) {
-      final sample = waveform[startIndex + i];
-      // ★ نفس حد ارتفاع موجة الفقاعة (3..22) لتوحيد التجربة.
-      final double barHeight = sample.clamp(3.0, 22.0);
+    // عدد الأشرطة المسجلة الفعلية
+    final int recordedBars = math.min(count, maxVisibleBars);
 
-      // في RTL الموجة تبدأ من اليمين وتتحرك لليسار مع تدفق الصوت الجديد
+    // في RTL: مؤشر الوقت يقع على اليمين، وتتدفق العينات الأحدث (المدخل الصوتي الجديد)
+    // مباشرة بجوار المؤقت وتتحرك نحو اليسار مثل شريط تسجيل واتساب تماماً.
+    for (int i = 0; i < maxVisibleBars; i++) {
+      final bool hasAudio = i < recordedBars;
+      // العينة 0 هي الأحدث في الطرف الأقرب للمؤقت
+      final double sample = hasAudio
+          ? waveform[waveform.length - 1 - i]
+          : 3.0; // نقطة أساسية هادئة للمسار القادم
+
+      final double barHeight = sample.clamp(3.0, size.height * 0.85);
+
+      // حساب إحداثي X الدقيق دون أي تجاوز خارج الحاوية
       final double x = isRTL
-          ? (size.width - ((count - i) * totalBarStep))
+          ? (size.width - barWidth - (i * totalBarStep))
           : (i * totalBarStep);
 
-      // تأثير تموج طفيف إضافي أثناء التسجيل النشط
-      final double dynamicWave = isPaused
-          ? 0.0
-          : math.sin(animationValue * 2 * math.pi + (i * 0.25)) * 2.0;
+      // تحديد لون الشريط (متوافق 100% مع الثيم وفقاعة الصوت)
+      Color currentBarColor;
+      if (isPaused && playheadPosition != null) {
+        final double progress = playheadPosition!.clamp(0.0, 1.0);
+        // أثناء الاستماع للمعاينة: التشغيل يبدأ من العينة الأقدم إلى الأحدث
+        final double barFraction = recordedBars > 1
+            ? (recordedBars - 1 - i) / (recordedBars - 1)
+            : 0.0;
+        final bool isPlayed = barFraction <= progress;
+        currentBarColor = isPlayed ? playedBarColor : unplayedBarColor;
+      } else {
+        currentBarColor = hasAudio ? liveBarColor : unplayedBarColor;
+      }
 
       final rect = RRect.fromRectAndRadius(
-        Rect.fromCenter(
-          center: Offset(x + barWidth / 2, centerY + dynamicWave),
-          width: barWidth,
-          height: barHeight,
+        Rect.fromLTWH(
+          x,
+          centerY - (barHeight / 2),
+          barWidth,
+          barHeight,
         ),
-        // ★ نفس نصف قطر موجة الفقاعة (1.5) لتوحيد التجربة.
         const Radius.circular(1.5),
       );
 
-      canvas.drawRRect(rect, barPaint);
+      final paint = Paint()
+        ..color = currentBarColor
+        ..style = PaintingStyle.fill;
+
+      canvas.drawRRect(rect, paint);
     }
 
-    // مؤشر التشغيل (playhead) عند الإيقاف المؤقت (paused)
-    if (isPaused && playheadPosition != null) {
-      final playheadX = playheadPosition!.clamp(0.0, 1.0) * size.width;
-      // ★ لون المؤشر من الثيم (لون الزر) بدل القيمة الثابتة.
-      final playheadPaint = Paint()
-        ..color = color
-        ..strokeWidth = 2.0
-        ..style = PaintingStyle.stroke;
+    // نقطة التمرير السفلية (Scrubber dot) بلون أزرق سماوي #53BDEB عند الإيقاف المؤقت
+    if (isPaused && playheadPosition != null && recordedBars > 0) {
+      final double progress = playheadPosition!.clamp(0.0, 1.0);
+      final double oldestX = isRTL
+          ? (size.width - barWidth - ((recordedBars - 1) * totalBarStep))
+          : 0.0;
+      final double newestX = isRTL
+          ? (size.width - barWidth)
+          : ((recordedBars - 1) * totalBarStep);
 
-      canvas.drawLine(
-        Offset(playheadX, 4),
-        Offset(playheadX, size.height - 4),
-        playheadPaint,
-      );
+      final double playheadX =
+          oldestX + (newestX - oldestX) * progress + (barWidth / 2);
 
-      // دائرة مقبض في المنتصف
+      // ظل خفيف للنقطة
       canvas.drawCircle(
         Offset(playheadX, centerY),
-        5.5,
+        4.5,
         Paint()
-          ..color = color
+          ..color = Colors.black.withValues(alpha: 0.30)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
+      );
+
+      // دائرة المقبض الزرقاء السماوية #53BDEB
+      canvas.drawCircle(
+        Offset(playheadX, centerY),
+        4.0,
+        Paint()
+          ..color = playedBarColor
           ..style = PaintingStyle.fill,
       );
+
+      // مركز أبيض نقي
       canvas.drawCircle(
         Offset(playheadX, centerY),
-        2.5,
+        1.6,
         Paint()
           ..color = Colors.white
           ..style = PaintingStyle.fill,
@@ -247,12 +264,12 @@ class LiveWaveformPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant LiveWaveformPainter old) {
-    // ★ أضف لون الموجة للمقارنة حتى يتحدث الـ repaint عند تبديل الثيم.
     return old.waveform.length != waveform.length ||
         old.isPaused != isPaused ||
-        old.animationValue != animationValue ||
         old.playheadPosition != playheadPosition ||
-        old.color != color;
+        old.liveBarColor != liveBarColor ||
+        old.unplayedBarColor != unplayedBarColor ||
+        old.playedBarColor != playedBarColor;
   }
 }
 
@@ -296,131 +313,126 @@ class WhatsAppLockedPanel extends StatefulWidget {
   State<WhatsAppLockedPanel> createState() => _WhatsAppLockedPanelState();
 }
 
-class _WhatsAppLockedPanelState extends State<WhatsAppLockedPanel>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _waveAnimController = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 900),
-  )..repeat();
-
-  @override
-  void dispose() {
-    _waveAnimController.dispose();
-    super.dispose();
-  }
-
+class _WhatsAppLockedPanelState extends State<WhatsAppLockedPanel> {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final chat = context.chatColors;
     final isRTL = Directionality.of(context) == TextDirection.rtl;
 
+    // ألوان لوحة التسجيل حسب الثيم الحقيقي للتطبيق (ليلي / نهاري)
+    final panelBg = isDark ? const Color(0xFF1F2C34) : Colors.white;
+    final handleColor = isDark
+        ? Colors.white.withValues(alpha: 0.20)
+        : Colors.black.withValues(alpha: 0.15);
+    final timerTextColor = isDark ? Colors.white : const Color(0xFF111B21);
+
+    // ألوان الموجات الصوتية مطابقة تماماً لفقاعة رسالة الصوت في واتساب
+    const Color waveCyan = Color(0xFF53BDEB);
+    final Color waveInactive = isDark
+        ? Colors.white.withValues(alpha: 0.30)
+        : const Color(0xFF8696A0).withValues(alpha: 0.38);
+
     return Container(
       width: double.infinity,
-      // ★ خلفية اللوحة من الثيم (تتبع الوضع الليلي/النهاري) بدل الأبيض الثابت.
       decoration: BoxDecoration(
-        color: chat.composerBackground,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border(top: BorderSide(color: chat.composerBorder)),
+        color: panelBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+        border: Border(
+          top: BorderSide(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.black.withValues(alpha: 0.06),
+            width: 0.8,
+          ),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 18,
-            offset: const Offset(0, -4),
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.09),
+            blurRadius: 16,
+            offset: const Offset(0, -3),
           ),
         ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // مقبض علوي صغير — من الثيم.
+          // مقبض علوي صغير أنيق
           Container(
-            margin: const EdgeInsets.only(top: 8, bottom: 4),
-            width: 38,
+            margin: const EdgeInsets.only(top: 8, bottom: 6),
+            width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: chat.composerBorder,
+              color: handleColor,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
 
-          // منطقة الموجة الصوتية الحية (RepaintBoundary للأداء 60fps)
+          // سطر المؤقت والموجات الصوتية الحية الموحدة مع فقاعة الصوت
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: Container(
-              height: 72,
-              // ★ خلفية منطقة الموجة من الثيم بدل #F7F8FA الثابتة.
-              decoration: BoxDecoration(
-                color: chat.inputField,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: chat.composerBorder,
-                  width: 1,
-                ),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: RepaintBoundary(
-                child: AnimatedBuilder(
-                  animation: _waveAnimController,
-                  builder: (context, _) {
-                    return CustomPaint(
-                      painter: LiveWaveformPainter(
-                        waveform: widget.liveWaveform,
-                        // ★ لون الموجة من الثيم (لون زر الإرسال) بدل الثابت.
-                        color: chat.sendButton,
-                        isPaused: widget.isPaused,
-                        animationValue: _waveAnimController.value,
-                        playheadPosition: widget.isPaused
-                            ? widget.previewProgress
-                            : null,
-                        isRTL: isRTL,
-                      ),
-                      size: Size.infinite,
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-
-          // عداد الوقت وشارة الإيقاف المؤقت
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // النقطة الحمراء النابضة (أثناء التسجيل فقط)
                 if (!widget.isPaused) ...[
                   const WhatsAppRecordingPulseDot(),
                   const SizedBox(width: 8),
                 ],
+                // عداد الوقت
                 Text(
                   formatVoiceDuration(widget.recordSeconds),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: chat.inputText,
+                    color: timerTextColor,
                     fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
                 if (widget.isPaused) ...[
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                     decoration: BoxDecoration(
-                      // ★ خلفية الشارة من الثيم بدل الأخضر الثابت الشفاف.
-                      color: chat.sendButton.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
+                      color: const Color(0xFF1FA855).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(
+                    child: const Text(
                       'متوقف مؤقتاً',
                       style: TextStyle(
-                        fontSize: 11.5,
+                        fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        // ★ نص الشارة من الثيم.
-                        color: chat.sendButton,
+                        color: Color(0xFF1FA855),
                       ),
                     ),
                   ),
                 ],
-                const Spacer(),
+
+                const SizedBox(width: 14),
+
+                // الموجات الصوتية الحية (بنفس أعمدة ونسب فقاعة الصوت)
+                Expanded(
+                  child: SizedBox(
+                    height: 38,
+                    child: RepaintBoundary(
+                      child: CustomPaint(
+                        painter: LiveWaveformPainter(
+                          waveform: widget.liveWaveform,
+                          liveBarColor: waveCyan,
+                          unplayedBarColor: waveInactive,
+                          playedBarColor: waveCyan,
+                          isPaused: widget.isPaused,
+                          playheadPosition: widget.isPaused
+                              ? widget.previewProgress
+                              : null,
+                          isRTL: isRTL,
+                        ),
+                        size: Size.infinite,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
