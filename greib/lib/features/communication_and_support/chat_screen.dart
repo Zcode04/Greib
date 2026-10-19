@@ -3322,38 +3322,38 @@ class _VoiceAvatarBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final chat = context.chatColors;
     return SizedBox(
-      width: 32,
-      height: 38,
+      width: 40,
+      height: 42,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: isMine
-                  ? chat.bubbleMineText.withValues(alpha: 0.16)
-                  : chat.bubbleTheirsText.withValues(alpha: 0.14),
-              image: null,
+                  ? Colors.white.withValues(alpha: 0.18)
+                  : Colors.white.withValues(alpha: 0.14),
             ),
             alignment: Alignment.center,
-            child: Text(
-              avatarText ?? (isMine ? '🌙' : '👤'),
-              style: const TextStyle(fontSize: 16),
+            child: const Icon(
+              LucideIcons.user,
+              size: 22,
+              color: Colors.white,
             ),
           ),
           Positioned(
             bottom: 0,
-            right: -1,
+            right: -2,
             child: Icon(
               LucideIcons.mic,
-              size: 14,
+              size: 15,
               color: chat.tickRead,
               shadows: [
                 Shadow(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  blurRadius: 2,
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 3,
                   offset: const Offset(0, 1),
                 ),
               ],
