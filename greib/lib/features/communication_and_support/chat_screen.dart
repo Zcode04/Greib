@@ -1939,11 +1939,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: vPad),
-      decoration: BoxDecoration(
-        color: chat.composerBackground,
-        border: Border(top: BorderSide(color: chat.composerBorder)),
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 4, vertical: vPad),
+      color: Colors.transparent,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

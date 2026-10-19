@@ -146,7 +146,7 @@ class VoiceLockRail extends StatelessWidget {
         curve: Curves.easeOutCubic,
         child: AnimatedBuilder(
           animation: bounce,
-          builder: (_, __) {
+          builder: (context, child) {
             final bounceOffset = -6.0 - (8.0 * bounce.value);
             return Transform.translate(
               offset: Offset(0, bounceOffset),

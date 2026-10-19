@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/theme/chat_colors.dart';
-import '../../../core/theme/design_tokens.dart';
 import 'whatsapp_voice_button.dart';
 import 'whatsapp_voice_recorder.dart';
 
@@ -66,37 +65,42 @@ class WhatsAppInputBar extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
+        horizontal: 8,
+        vertical: 6,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // الحقل البيضاوي الرئيسي (Pill Container)
+          // ═══════════════════════════════════════════════════
+          // الكبسولة البيضاوية — تحتوي فقط: ابتسامة + نص
+          // (الكاميرا والمرفق خارجها، مثل واتساب)
+          // ═══════════════════════════════════════════════════
           Expanded(
-            child: Container(
-              constraints: const BoxConstraints(minHeight: 48),
-              decoration: BoxDecoration(
-                color: chat.inputField,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 1.5),
-                  ),
-                ],
-              ),
-              child: AnimatedCrossFade(
-                duration: const Duration(milliseconds: 180),
-                crossFadeState: isHolding
-                    ? CrossFadeState.showSecond
-                    : CrossFadeState.showFirst,
-                // محتوى الإدخال العادي (idle)
-                firstChild: Row(
+            child: AnimatedCrossFade(
+              duration: const Duration(milliseconds: 180),
+              crossFadeState: isHolding
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+
+              // ── الوضع العادي (idle) ─────────────────────────
+              firstChild: Container(
+                constraints: const BoxConstraints(minHeight: 50),
+                decoration: BoxDecoration(
+                  color: chat.inputField,
+                  // StadiumBorder حقيقي: الراديوس دائماً = نصف الارتفاع
+                  borderRadius: BorderRadius.circular(999),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.07),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1.5),
+                    ),
+                  ],
+                ),
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    // زر الابتسامة / الإيموجي
+                    // زر الإيموجي — دائماً في الجانب الداخلي (يمين في RTL)
                     _actionButton(
                       icon: LucideIcons.smile,
                       color: chat.composerIcon,
@@ -104,45 +108,41 @@ class WhatsAppInputBar extends StatelessWidget {
                         HapticFeedback.selectionClick();
                         onEmojiToggle?.call();
                       },
-                      tooltip: 'رموز تعبيرية',
                     ),
 
-                    // حقل النص
+                    // حقل النص المرن
                     Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        child: TextField(
-                          controller: controller,
-                          maxLines: 5,
-                          minLines: 1,
-                          textInputAction: TextInputAction.newline,
-                          cursorColor: const Color(0xFF1FA855),
-                          cursorWidth: 2,
-                          cursorRadius: const Radius.circular(2),
-                          style: TextStyle(
-                            color: chat.inputText,
+                      child: TextField(
+                        controller: controller,
+                        maxLines: 5,
+                        minLines: 1,
+                        textInputAction: TextInputAction.newline,
+                        cursorColor: const Color(0xFF1FA855),
+                        cursorWidth: 2,
+                        cursorRadius: const Radius.circular(2),
+                        style: TextStyle(
+                          color: chat.inputText,
+                          fontSize: 16,
+                          height: 1.35,
+                        ),
+                        onChanged: onChanged,
+                        decoration: InputDecoration(
+                          hintText: 'مراسلة',
+                          hintStyle: TextStyle(
+                            color: chat.inputHint,
                             fontSize: 15.5,
-                            height: 1.35,
                           ),
-                          onChanged: onChanged,
-                          decoration: InputDecoration(
-                            hintText: 'اكتب رسالة...',
-                            hintStyle: TextStyle(
-                              color: chat.inputHint,
-                              fontSize: 15,
-                            ),
-                            isDense: true,
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.xs,
-                              vertical: 12,
-                            ),
+                          isDense: true,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 13,
                           ),
                         ),
                       ),
                     ),
 
-                    // مشبك المرفقات
+                    // ── أيقونات يسار الكبسولة (مرفق + كاميرا) ──
                     _actionButton(
                       icon: LucideIcons.paperclip,
                       color: chat.composerIcon,
@@ -151,10 +151,7 @@ class WhatsAppInputBar extends StatelessWidget {
                         HapticFeedback.lightImpact();
                         onAttach();
                       },
-                      tooltip: 'إرفاق وسائط',
                     ),
-
-                    // زر الكاميرا (يظهر فقط إذا كان الحقل فارغاً)
                     AnimatedSize(
                       duration: const Duration(milliseconds: 180),
                       curve: Curves.easeOutCubic,
@@ -166,50 +163,60 @@ class WhatsAppInputBar extends StatelessWidget {
                                 HapticFeedback.lightImpact();
                                 onCamera();
                               },
-                              tooltip: 'كاميرا',
                             )
                           : const SizedBox.shrink(),
                     ),
+                    const SizedBox(width: 4),
                   ],
                 ),
-                // محتوى كبسولة التسجيل أثناء الضغط المطوّل (holding / lockDragging)
-                secondChild: Container(
-                  height: 48,
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  child: Row(
-                    children: [
-                      // النقطة الحمراء النابضة
-                      const WhatsAppRecordingPulseDot(),
-                      const SizedBox(width: 10),
+              ),
 
-                      // عداد وقت التسجيل mm:ss
-                      Text(
-                        formatVoiceDuration(recordSeconds),
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: chat.inputText,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
+              // ── وضع التسجيل (holding / lockDragging) ──────────
+              secondChild: Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  color: chat.inputField,
+                  borderRadius: BorderRadius.circular(999),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.07),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1.5),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    // النقطة الحمراء النابضة
+                    const WhatsAppRecordingPulseDot(),
+                    const SizedBox(width: 10),
+                    // عداد الوقت
+                    Text(
+                      formatVoiceDuration(recordSeconds),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: chat.inputText,
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
-
-                      const Spacer(),
-
-                      // مؤشر اسحب للإلغاء مع السهم النابض (يخفت تدريجياً مع السحب)
-                      WhatsAppSlideToCancel(
-                        opacity: (1.0 - cancelProgress).clamp(0.0, 1.0),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const Spacer(),
+                    // سهم الإلغاء
+                    WhatsAppSlideToCancel(
+                      opacity: (1.0 - cancelProgress).clamp(0.0, 1.0),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
 
-          const SizedBox(width: AppSpacing.xs + 2),
+          const SizedBox(width: 6),
 
-          // زر الإجراء: تفاعلي (ضغطة مطوّلة + قفل + إلغاء) عند توفر callbacks،
-          // وإلا السلوك القديم (نقرة تبدأ التسجيل).
+          // ═══════════════════════════════════════════════════
+          // الدائرة الخضراء العائمة (ميكروفون ↔ إرسال) — 50 × 50
+          // ═══════════════════════════════════════════════════
           if (onHoldStart != null)
             WhatsAppVoiceButton(
               hasText: hasText,
@@ -239,11 +246,11 @@ class WhatsAppInputBar extends StatelessWidget {
     return IconButton(
       icon: Transform.rotate(
         angle: rotation,
-        child: Icon(icon, color: color, size: 22),
+        child: Icon(icon, color: color, size: 23),
       ),
-      padding: const EdgeInsets.all(AppSpacing.xs),
-      constraints: const BoxConstraints(minWidth: 38, minHeight: 46),
-      splashRadius: 20,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 40, minHeight: 48),
+      splashRadius: 22,
       tooltip: tooltip,
       onPressed: onPressed,
     );
