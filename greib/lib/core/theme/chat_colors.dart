@@ -101,24 +101,24 @@ class AppChatColors extends ThemeExtension<AppChatColors> {
   ///   - علامة القراءة الزرقاء (#53BDEB) — أزرق واتساب الرسمي.
   factory AppChatColors.fromPalette(AppColorPalette p) {
     final bool isDark = p.isDark;
-    const Color danger = Color(0xFFEF4444);
     // ★ ألوان واتساب الرسمية — داكن وفاتح (القيم الرسمية من واتساب):
     //  داكن: خلفية #0B141A ، مرسّلة #005C4B ، مستلمة #1F2C34.
     //  فاتح: خلفية #EFEAE2 ، مرسّلة #D9FDD3 ، مستلمة #FFFFFF.
     const Color waBgDark = Color(0xFF0B141A);
     const Color waMineDark = Color(0xFF005C4B);
     const Color waTheirsDark = Color(0xFF1F2C34);
-    const Color waSendDark = Color(0xFF00A884);
+    const Color waSendDark = Color(0xFF1FA855); // أخضر واتساب الرسمي
     const Color waBgLight = Color(0xFFEFEAE2);
     const Color waMineLight = Color(0xFFD9FDD3);
     const Color waTheirsLight = Color(0xFFFFFFFF);
-    const Color waSendLight = Color(0xFF00A884);
+    const Color waSendLight = Color(0xFF1FA855);
     const Color waTick = Color(0xFF53BDEB); // علامة القراءة الزرقاء الرسمية
+    const Color waTrash = Color(0xFFE53956); // أحمر واتساب الرسمي للإلغاء/الحذف
     final Color waBg = isDark ? waBgDark : waBgLight;
     final Color waBubbleMine = isDark ? waMineDark : waMineLight;
     final Color waBubbleTheirs = isDark ? waTheirsDark : waTheirsLight;
     final Color waSend = isDark ? waSendDark : waSendLight;
-    const Color waOnline = Color(0xFF00A884); // نقطة الاتصال
+    const Color waOnline = Color(0xFF1FA855); // نقطة الاتصال
     final Color waTime = isDark
         ? const Color(0xFF8696A0)
         : const Color(0xFF667781); // التوقيت الرسمي
@@ -166,8 +166,8 @@ class AppChatColors extends ThemeExtension<AppChatColors> {
       recordingTimer: waText,
       recordingWavePlayed: Colors.white,
       recordingWaveUnplayed: Colors.white.withValues(alpha: 0.35),
-      recordingTrash: danger,
-      recordingCancelBackground: danger.withValues(alpha: 0.1),
+      recordingTrash: waTrash,
+      recordingCancelBackground: waTrash.withValues(alpha: 0.1),
       tickRead: waTick,
       tickSent: waMuted,
       onlineDot: waOnline,
