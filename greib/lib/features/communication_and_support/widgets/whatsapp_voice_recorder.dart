@@ -452,171 +452,89 @@ class _WhatsAppLockedPanelState extends State<WhatsAppLockedPanel> {
           const SizedBox(height: 8),
 
           // ─────────────────────────────────────────────────────────────
-          // أزرار التحكم السفلية — تصميم واتساب الأصيل
+          // أزرار التحكم السفلية — ثابتة المواقع (حذف يسار | تحكم وسط | إرسال يمين)
           // ─────────────────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-            child: widget.isPaused
-                // ── حالة الإيقاف المؤقت ──────────────────────────────
-                // يسار: زر إرسال أخضر بسهم
-                // وسط:  أيقونة مايك + نص "استئناف"
-                // يمين: سلة حذف حمراء
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // زر الإرسال — يسار (سهم < مثل واتساب)
-                      _CircleActionButton(
-                        icon: LucideIcons.chevronLeft,
-                        iconColor: chat.sendIcon,
-                        backgroundColor: chat.sendButton,
-                        size: 52,
-                        shadow: [
-                          BoxShadow(
-                            color: chat.sendButton.withValues(alpha: 0.35),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                        onPressed: () {
-                          HapticFeedback.mediumImpact();
-                          widget.onSend();
-                        },
-                        tooltip: 'إرسال الرسالة الصوتية',
-                      ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // سلة الحذف — ثابتة دائماً على اليسار
+                _CircleActionButton(
+                  icon: LucideIcons.trash2,
+                  iconColor: chat.recordingTrash,
+                  backgroundColor:
+                      chat.recordingTrash.withValues(alpha: widget.isPaused ? 0.15 : 0.12),
+                  size: 48,
+                  onPressed: () {
+                    HapticFeedback.mediumImpact();
+                    widget.onDelete();
+                  },
+                  tooltip: 'حذف التسجيل',
+                ),
 
-                      // زر الاستئناف في الوسط — كبسولة واتساب الأنيقة مع المايك وكلمة "استئناف"
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.08)
-                              : Colors.black.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(24),
-                          onTap: () {
-                            HapticFeedback.lightImpact();
-                            widget.onResume();
-                          },
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                LucideIcons.mic,
-                                color: isDark ? Colors.white : const Color(0xFF111B21),
-                                size: 22,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'استئناف',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark ? Colors.white : const Color(0xFF111B21),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      // سلة الحذف — يمين
-                      _CircleActionButton(
-                        icon: LucideIcons.trash2,
-                        iconColor: chat.recordingTrash,
-                        backgroundColor:
-                            chat.recordingTrash.withValues(alpha: 0.15),
-                        size: 52,
-                        onPressed: () {
-                          HapticFeedback.mediumImpact();
-                          widget.onDelete();
-                        },
-                        tooltip: 'حذف التسجيل',
-                      ),
-                    ],
-                  )
-                // ── حالة التسجيل النشط ───────────────────────────────
-                // يسار: سلة حذف
-                // وسط:  زر إيقاف مؤقت
-                // يمين: زر إرسال أخضر
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // سلة الحذف — يسار
-                      _CircleActionButton(
-                        icon: LucideIcons.trash2,
-                        iconColor: chat.recordingTrash,
-                        backgroundColor:
-                            chat.recordingTrash.withValues(alpha: 0.12),
-                        size: 48,
-                        onPressed: () {
-                          HapticFeedback.mediumImpact();
-                          widget.onDelete();
-                        },
-                        tooltip: 'حذف التسجيل',
-                      ),
-
-                      // زر الإيقاف المؤقت في الوسط — كبسولة أنيقة متناسقة مع كبسولة "استئناف"
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.08)
-                              : Colors.black.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(24),
-                          onTap: () {
-                            HapticFeedback.lightImpact();
-                            widget.onPause();
-                          },
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                LucideIcons.pause,
-                                color: isDark ? Colors.white : const Color(0xFF111B21),
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'إيقاف مؤقت',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark ? Colors.white : const Color(0xFF111B21),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      // زر الإرسال — يمين
-                      _CircleActionButton(
-                        icon: LucideIcons.send,
-                        iconColor: chat.sendIcon,
-                        backgroundColor: chat.sendButton,
-                        size: 52,
-                        shadow: [
-                          BoxShadow(
-                            color: chat.sendButton.withValues(alpha: 0.35),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                        onPressed: () {
-                          HapticFeedback.mediumImpact();
-                          widget.onSend();
-                        },
-                        tooltip: 'إرسال الرسالة الصوتية',
-                      ),
-                    ],
+                // زر التحكم الأوسط (كبسولة استئناف عند الإيقاف المؤقت، أو كبسولة إيقاف مؤقت أثناء التسجيل)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.black.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(24),
                   ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(24),
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      if (widget.isPaused) {
+                        widget.onResume();
+                      } else {
+                        widget.onPause();
+                      }
+                    },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          widget.isPaused ? LucideIcons.mic : LucideIcons.pause,
+                          color: isDark ? Colors.white : const Color(0xFF111B21),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          widget.isPaused ? 'استئناف' : 'إيقاف مؤقت',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : const Color(0xFF111B21),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // زر الإرسال — ثابت دائماً على اليمين مع أيقونة الإرسال الأصلية
+                _CircleActionButton(
+                  icon: LucideIcons.send,
+                  iconColor: chat.sendIcon,
+                  backgroundColor: chat.sendButton,
+                  size: 52,
+                  shadow: [
+                    BoxShadow(
+                      color: chat.sendButton.withValues(alpha: 0.35),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                  onPressed: () {
+                    HapticFeedback.mediumImpact();
+                    widget.onSend();
+                  },
+                  tooltip: 'إرسال الرسالة الصوتية',
+                ),
+              ],
+            ),
           ),
 
           SizedBox(height: MediaQuery.of(context).padding.bottom),
