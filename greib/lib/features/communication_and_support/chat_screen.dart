@@ -3345,23 +3345,18 @@ class _VoiceAvatarBadge extends StatelessWidget {
           ),
           Positioned(
             bottom: 0,
-            right: 0,
-            child: Container(
-              width: 14,
-              height: 14,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: chat.tickRead,
-                border: Border.all(
-                  color: isMine ? chat.bubbleMine : chat.bubbleTheirs,
-                  width: 2,
+            right: -1,
+            child: Icon(
+              LucideIcons.mic,
+              size: 14,
+              color: chat.tickRead,
+              shadows: [
+                Shadow(
+                  color: Colors.black.withValues(alpha: 0.4),
+                  blurRadius: 2,
+                  offset: const Offset(0, 1),
                 ),
-              ),
-              child: const Icon(
-                LucideIcons.mic,
-                size: 9,
-                color: Colors.white,
-              ),
+              ],
             ),
           ),
         ],
