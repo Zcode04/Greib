@@ -618,6 +618,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
 
   // Preview player for locked/paused panel
   AudioPlayer? _previewPlayer;
+  Timer? _previewSimTimer;
   bool _isPreviewPlaying = false;
   double _previewProgress = 0.0;
   StreamSubscription<Duration>? _previewPosSub;
