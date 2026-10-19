@@ -92,28 +92,43 @@ class AppChatColors extends ThemeExtension<AppChatColors> {
   });
 
   /// يبني ألوان الدردشة من اللوحة المركزية — المصدر الوحيد للحقيقة.
-  /// ★ مطابقة واتساب (Dark Mode) بنسبة 100%:
-  ///   - خلفية طبيعية صلبة (#000000) بدون نقوش Doodle (خلفية خاصة).
-  ///   - فقاعة مرسّلة أخضر واتساب (#0E7C58)، نص أبيض.
-  ///   - فقاعة مستلمة رمادي داكن (#1C1E22)، نص أبيض.
-  ///   - زر الإرسال وفعل التركيز أخضر مشرق (#25D366).
-  ///   - علامات القراءة والتوقيت بألوان واتساب الدقيقة.
+  /// ★ مطابقة واتساب (Dark Mode) بنسبة 100% — قيم مأخوذة من واتساب الحقيقي:
+  ///   - خلفية المحادثة (#0B141A) — أسود مزرق مطفي وليس أسود خالص.
+  ///   - فقاعة مرسّلة (#005C4B) — أخضر واتساب الداكن المطفي.
+  ///   - فقاعة مستلمة (#1F2C34) — رمادي مزرق داكن.
+  ///   - زر الإرسال (#00A884) — أخضر واتساب الداكن.
+  ///   - التوقيت والميتا (#8696A0) — رمادي واتساب الرسمي.
+  ///   - علامة القراءة الزرقاء (#53BDEB) — أزرق واتساب الرسمي.
   factory AppChatColors.fromPalette(AppColorPalette p) {
     final bool isDark = p.isDark;
     const Color danger = Color(0xFFEF4444);
-    // ★ ألوان واتساب الداكنة الدقيقة (WhatsApp Dark Mode)
-    const Color waBg = Color(0xFF000000); // خلفية طبيعية صلبة (أسود خالص)
-    const Color waBubbleMine = Color(0xFF0E7C58); // فقاعة مرسّلة (أ Dark Green)
-    const Color waBubbleTheirs = Color(0xFF1C1E22); // فقاعة مستلمة (رمادي داكن)
-    const Color waSend = Color(0xFF25D366); // زر الإرسال / فعل التركيز (أخضر مشرق)
-    const Color waTick = Color(0xFF25D366); // علامات القراءة المقروءة
-    const Color waOnline = Color(0xFF128C7E); // نقطة الاتصال
-    const Color waTime = Color(0xFF94A3B8); // التوقيت (رمادي فاتح شاحب)
-    const Color waSurface = Color(0xFF1C1E22); // سطح شريط الكتابة / حقل الإدخال
-    final Color waText = isDark ? Colors.white : const Color(0xFF1C1E22);
+    // ★ ألوان واتساب الرسمية — داكن وفاتح (القيم الرسمية من واتساب):
+    //  داكن: خلفية #0B141A ، مرسّلة #005C4B ، مستلمة #1F2C34.
+    //  فاتح: خلفية #EFEAE2 ، مرسّلة #D9FDD3 ، مستلمة #FFFFFF.
+    const Color waBgDark = Color(0xFF0B141A);
+    const Color waMineDark = Color(0xFF005C4B);
+    const Color waTheirsDark = Color(0xFF1F2C34);
+    const Color waSendDark = Color(0xFF00A884);
+    const Color waBgLight = Color(0xFFEFEAE2);
+    const Color waMineLight = Color(0xFFD9FDD3);
+    const Color waTheirsLight = Color(0xFFFFFFFF);
+    const Color waSendLight = Color(0xFF00A884);
+    const Color waTick = Color(0xFF53BDEB); // علامة القراءة الزرقاء الرسمية
+    final Color waBg = isDark ? waBgDark : waBgLight;
+    final Color waBubbleMine = isDark ? waMineDark : waMineLight;
+    final Color waBubbleTheirs = isDark ? waTheirsDark : waTheirsLight;
+    final Color waSend = isDark ? waSendDark : waSendLight;
+    const Color waOnline = Color(0xFF00A884); // نقطة الاتصال
+    final Color waTime = isDark
+        ? const Color(0xFF8696A0)
+        : const Color(0xFF667781); // التوقيت الرسمي
+    final Color waSurface = isDark
+        ? const Color(0xFF1F2C34)
+        : const Color(0xFFF0F2F5); // سطح حقل الإدخال
+    final Color waText = isDark ? Colors.white : const Color(0xFF111B21);
     final Color waMuted = isDark
-        ? const Color(0xFF94A3B8)
-        : const Color(0xFF64748B);
+        ? const Color(0xFF8696A0)
+        : const Color(0xFF667781);
 
     return AppChatColors(
       // ★ خلفية المحادثة طبيعية صلبة (#000000) — بدون نقش/خلفية خاصة.

@@ -53,9 +53,10 @@ double _chatAreaMaxWidth(BuildContext context) =>
     min(MediaQuery.of(context).size.width, _kMaxChatAreaWidth);
 
 /// أقصى عرض لفقاعة رسالة واحدة (نسبة من الشاشة + حد أقصى مطلق بالبكسل).
+/// ★ مقاس واتساب الحقيقي: الصوت 75% بحد 300px — مدمجة وليست منفوخة.
 double _bubbleMaxWidth(BuildContext context, {required bool isVoice}) => min(
-  MediaQuery.of(context).size.width * (isVoice ? 0.82 : 0.78),
-  _kMaxBubbleWidth,
+  MediaQuery.of(context).size.width * (isVoice ? 0.75 : 0.78),
+  isVoice ? 300.0 : _kMaxBubbleWidth,
 );
 
 /// أقصى عرض لفقاعة الصورة (نسبة من الشاشة + حد أقصى).
@@ -2710,7 +2711,8 @@ class _VoiceMessageBubble extends StatefulWidget {
 }
 
 class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
-  static const int _barCount = 40;
+  // ★ واتساب الحقيقي: ~55 خط كثيف رفيع — وليس 40 متباعدة.
+  static const int _barCount = 55;
 
   final AudioPlayer _player = AudioPlayer();
   late final List<double> _bars = _generateWaveform(widget.id, _barCount);
@@ -2844,138 +2846,141 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
 
     final chat = context.chatColors;
     final onBubble = isMine ? chat.bubbleMineText : chat.bubbleTheirsText;
-    // ★ شرائط الموجات المطابقة لواتساب: المقروءة أبيض ناصع، غير المقروءة بيضاء شفافة.
-    final playedColor = onBubble.withValues(alpha: 0.95);
-    final unplayedColor = onBubble.withValues(alpha: 0.3);
+    // ★ ألوان موجات واتساب: المقروء أبيض، غير المقروء #8696A0.
+    final playedColor = Colors.white;
+    final unplayedColor = isMine
+        ? Colors.white.withValues(alpha: 0.38)
+        : const Color(0xFF8696A0);
 
+    // ★ سطر واحد مدمج مثل واتساب (ارتفاع ~68px) — بدون تكرار.
+    // ★ الترتيب البصري من اليمين لليسار (واتساب عربي):
+    //  رسائلي: [أفاتاري | موجة | تشغيل] — مثل صورتك.
+    //  رسائلهم: [تشغيل | موجة | أفاتارهم].
     return Directionality(
-      textDirection: TextDirection.ltr,
+      textDirection: TextDirection.rtl,
       child: Row(
-        mainAxisSize: MainAxisSize.max,
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(
-            width: 38,
-            child: Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.center,
-              children: [
-                GestureDetector(
-                  onTap: _togglePlay,
-                  child: _isLoading
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: onBubble,
-                          ),
-                        )
-                      : Icon(
-                          _isPlaying ? LucideIcons.pause : LucideIcons.play,
-                          color: onBubble.withValues(alpha: 0.92),
-                          size: 30,
-                        ),
-                ),
-                if (!widget.isListened && !_isPlaying)
-                  const Positioned(
-                    left: -2,
-                    top: 6,
-                    child: _UnreadDot(),
-                  ),
-              ],
+          if (isMine) ...[
+            _VoiceAvatarBadge(
+              avatarText: widget.avatarText,
+              isMine: true,
+            ),
+            const SizedBox(width: 6),
+          ],
+          GestureDetector(
+            onTap: _togglePlay,
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox(
+              width: 30,
+              height: 34,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  if (_isLoading)
+                    SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: onBubble,
+                      ),
+                    )
+                  else
+                    Icon(
+                      _isPlaying ? Icons.pause : Icons.play_arrow,
+                      color: const Color(0xFFD1D7DB),
+                      size: 30,
+                    ),
+                  if (!widget.isListened && !_isPlaying && !isMine)
+                    const Positioned(
+                      left: -3,
+                      top: 4,
+                      child: _UnreadDot(),
+                    ),
+                ],
+              ),
             ),
           ),
-
-          // الموجة تتمدّد تلقائياً حسب المساحة المتاحة داخل الفقاعة، مع حد
-          // أقصى معقول على الشاشات العريضة (تابلت) لتفادي التمدد المبالغ.
+          const SizedBox(width: 4),
           Expanded(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 260),
+              constraints: const BoxConstraints(maxWidth: 200, minWidth: 120),
               child: LayoutBuilder(
                 builder: (_, constraints) {
                   final width = constraints.maxWidth;
                   return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTapDown: (details) {
-                          final fraction = _fractionFromOffset(
-                            details.localPosition.dx,
-                            width,
+                          _seekToFraction(
+                            _fractionFromOffset(
+                              details.localPosition.dx,
+                              width,
+                            ),
                           );
-                          _seekToFraction(fraction);
                         },
                         onHorizontalDragUpdate: (details) {
-                          final fraction = _fractionFromOffset(
-                            details.localPosition.dx,
-                            width,
+                          _seekToFraction(
+                            _fractionFromOffset(
+                              details.localPosition.dx,
+                              width,
+                            ),
                           );
-                          _seekToFraction(fraction);
                         },
                         child: SizedBox(
-                          height: 30,
+                          height: 26,
                           child: Row(
-                            mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: List.generate(_barCount, (i) {
-                              final played = i <= playedBars;
-                              final waveScale =
-                                  0.45 + 0.55 * (0.5 + 0.5 * (i % 7) / 6);
-                              final h = (_bars[i] * waveScale)
-                                  .clamp(3.0, 26.0);
+                              final played = i < playedBars;
+                              final h = _bars[i].clamp(3.0, 22.0);
                               return Container(
-                                width: 2.2,
+                                width: 2,
                                 height: h,
                                 decoration: BoxDecoration(
-                                  color: played
-                                      ? playedColor
-                                      : unplayedColor,
-                                  borderRadius: BorderRadius.circular(2),
+                                  color: played ? playedColor : unplayedColor,
+                                  borderRadius: BorderRadius.circular(1.5),
                                 ),
                               );
                             }),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 2),
                       Row(
                         children: [
-                          Flexible(
-                            child: Text(
-                              _formatSeconds(
-                                _isPlaying || _position > Duration.zero
-                                    ? remainingSeconds
-                                    : widget.durationSeconds,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: onBubble.withValues(alpha: 0.72),
-                                fontSize: 11.5,
-                              ),
+                          Text(
+                            _formatSeconds(
+                              _isPlaying || _position > Duration.zero
+                                  ? remainingSeconds
+                                  : widget.durationSeconds,
+                            ),
+                            maxLines: 1,
+                            style: const TextStyle(
+                              color: Color(0xFF8696A0),
+                              fontSize: 11,
                             ),
                           ),
                           const Spacer(),
-                          Flexible(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                widget.time,
-                                style: TextStyle(
-                                  color: onBubble.withValues(alpha: 0.7),
-                                  fontSize: 10,
-                                ),
-                              ),
+                          Text(
+                            widget.time,
+                            style: const TextStyle(
+                              color: Color(0xFF8696A0),
+                              fontSize: 11,
                             ),
                           ),
                           if (isMine) ...[
                             const SizedBox(width: 3),
                             WhatsAppTicks(
                               isRead: widget.isListened,
-                              size: 14,
+                              size: 15,
                             ),
                           ],
                         ],
@@ -2986,12 +2991,13 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
               ),
             ),
           ),
-          const SizedBox(width: 8),
-
-          _VoiceAvatarBadge(
-            avatarText: widget.avatarText,
-            isMine: isMine,
-          ),
+          if (!isMine) ...[
+            const SizedBox(width: 6),
+            _VoiceAvatarBadge(
+              avatarText: widget.avatarText,
+              isMine: false,
+            ),
+          ],
         ],
       ),
     );
@@ -3022,7 +3028,7 @@ class _UnreadDot extends StatelessWidget {
   }
 }
 
-/// ★ أفاتار دائري بطرف الفقاعة الصوتية مع شارة مايك زرقاء سفلية.
+/// ★ أفاتار دائري بطرف الفقاعة الصوتية — مقاس واتساب 32px + شارة مايك 14px.
 class _VoiceAvatarBadge extends StatelessWidget {
   final String? avatarText;
   final bool isMine;
@@ -3033,14 +3039,14 @@ class _VoiceAvatarBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final chat = context.chatColors;
     return SizedBox(
-      width: 38,
-      height: 46,
+      width: 32,
+      height: 38,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           Container(
-            width: 38,
-            height: 38,
+            width: 32,
+            height: 32,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: isMine
@@ -3051,15 +3057,15 @@ class _VoiceAvatarBadge extends StatelessWidget {
             alignment: Alignment.center,
             child: Text(
               avatarText ?? (isMine ? '🌙' : '👤'),
-              style: const TextStyle(fontSize: 18),
+              style: const TextStyle(fontSize: 16),
             ),
           ),
           Positioned(
             bottom: 0,
             right: 0,
             child: Container(
-              width: 16,
-              height: 16,
+              width: 14,
+              height: 14,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: chat.tickRead,
@@ -3128,63 +3134,66 @@ class _InlineCallLogTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final chat = context.chatColors;
     final onBubble = isMine ? chat.bubbleMineText : chat.bubbleTheirsText;
-    return Align(
-      alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 220),
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2.5),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isMine ? chat.bubbleMine : chat.bubbleTheirs,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: Radius.circular(isMine ? 3 : 16),
-            bottomLeft: Radius.circular(isMine ? 16 : 3),
-            bottomRight: const Radius.circular(16),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Align(
+        alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 220),
+          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2.5),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: isMine ? chat.bubbleMine : chat.bubbleTheirs,
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(16),
+              topRight: Radius.circular(isMine ? 3 : 16),
+              bottomLeft: Radius.circular(isMine ? 16 : 3),
+              bottomRight: const Radius.circular(16),
+            ),
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: onBubble,
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w600,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: onBubble.withValues(alpha: 0.14),
+                ),
+                child: Icon(
+                  LucideIcons.phone,
+                  size: 16,
+                  color: onBubble.withValues(alpha: 0.9),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: onBubble,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    duration != null ? '$duration · $time' : time,
-                    style: TextStyle(
-                      color: onBubble.withValues(alpha: 0.65),
-                      fontSize: 11,
+                    const SizedBox(height: 2),
+                    Text(
+                      duration != null ? '$duration · $time' : time,
+                      style: TextStyle(
+                        color: onBubble.withValues(alpha: 0.65),
+                        fontSize: 11,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: onBubble.withValues(alpha: 0.14),
-              ),
-              child: Icon(
-                LucideIcons.phone,
-                size: 16,
-                color: onBubble.withValues(alpha: 0.9),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

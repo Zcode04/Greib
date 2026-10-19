@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/theme/chat_colors.dart';
-import '../../../core/theme/design_tokens.dart';
 import 'chat_whatsapp_ui.dart';
 
 /// ============================================================================
@@ -166,19 +165,19 @@ class _WhatsAppBubbleShellState extends State<WhatsAppBubbleShell>
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    // جسم الفقاعة
+                    // جسم الفقاعة — مقاسات واتساب الحقيقي: padding مدمج + radius 8.5
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm + 2,
-                        vertical: AppSpacing.xs + 3,
+                        horizontal: 9,
+                        vertical: 6,
                       ),
                       decoration: BoxDecoration(
                         color: bubbleColor,
                         borderRadius: BorderRadius.only(
-                          topLeft: const Radius.circular(16),
-                          topRight: Radius.circular(widget.isMine ? 3 : 16),
-                          bottomLeft: Radius.circular(widget.isMine ? 16 : 3),
-                          bottomRight: const Radius.circular(16),
+                          topLeft: Radius.circular(widget.isMine ? 8.5 : 0),
+                          topRight: Radius.circular(widget.isMine ? 0 : 8.5),
+                          bottomLeft: const Radius.circular(8.5),
+                          bottomRight: const Radius.circular(8.5),
                         ),
                         boxShadow: [
                           BoxShadow(
