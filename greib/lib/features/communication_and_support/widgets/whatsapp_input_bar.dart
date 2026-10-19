@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/theme/chat_colors.dart';
 import '../../../core/theme/design_tokens.dart';
+import 'whatsapp_voice_button.dart';
 
 /// ============================================================================
 ///  شريط الإدخال السفلي بأسلوب WhatsApp الحقيقي (WhatsApp Input Bar)
@@ -24,6 +25,12 @@ class WhatsAppInputBar extends StatelessWidget {
   final VoidCallback onCamera;
   final ValueChanged<String> onChanged;
   final VoidCallback? onEmojiToggle;
+  // ★ callbacks الضغطة المطوّلة بأسلوب واتساب (null = السلوك القديم).
+  final VoidCallback? onHoldStart;
+  final ValueChanged<Offset>? onHoldMove;
+  final VoidCallback? onHoldEnd;
+  final double micScale;
+  final bool cancelArmed;
 
   const WhatsAppInputBar({
     super.key,
@@ -35,6 +42,11 @@ class WhatsAppInputBar extends StatelessWidget {
     required this.onCamera,
     required this.onChanged,
     this.onEmojiToggle,
+    this.onHoldStart,
+    this.onHoldMove,
+    this.onHoldEnd,
+    this.micScale = 1.0,
+    this.cancelArmed = false,
   });
 
   @override
@@ -147,8 +159,20 @@ class WhatsAppInputBar extends StatelessWidget {
 
           const SizedBox(width: AppSpacing.xs + 2),
 
-          // زر الإجراء العائم الدائري (Mic / Send)
-          _buildFloatingActionButton(chat),
+          // ★ زر الإجراء: تفاعلي (ضغطة مطوّلة + قفل + إلغاء) عند توفر callbacks،
+          // وإلا السلوك القديم (نقرة تبدأ التسجيل).
+          if (onHoldStart != null)
+            WhatsAppVoiceButton(
+              hasText: hasText,
+              onSend: onSend,
+              onHoldStart: onHoldStart!,
+              onHoldMove: onHoldMove ?? (_) {},
+              onHoldEnd: onHoldEnd ?? () {},
+              micScale: micScale,
+              cancelArmed: cancelArmed,
+            )
+          else
+            _buildFloatingActionButton(chat),
         ],
       ),
     );

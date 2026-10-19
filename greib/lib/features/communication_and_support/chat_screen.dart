@@ -26,6 +26,7 @@ import 'widgets/document_preview_sheet.dart';
 import 'widgets/whatsapp_attachment.dart';
 import 'widgets/whatsapp_bubble.dart';
 import 'widgets/whatsapp_input_bar.dart';
+import 'widgets/whatsapp_voice_button.dart';
 import '../../features/auth/mock_auth.dart';
 import 'contacts_chat_store.dart';
 import 'contacts_screen.dart';
@@ -566,7 +567,7 @@ class ChatDetailScreen extends StatefulWidget {
 }
 
 class _ChatDetailScreenState extends State<ChatDetailScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   /// ★ رسائل مرسلة من الستوري (إرسال خلفي بأسلوب فيسبوك): دمجها في
   /// قائمة المحادثة عند فتح الدردشة — بلا تكرار (نفس المعرف يُتجاهل).
   void _mergeStoryMessages() {
@@ -593,6 +594,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   // ---- Real audio recording ----
   final AudioRecorder _audioRecorder = AudioRecorder();
   _ComposerMode _composerMode = _ComposerMode.idle;
+  // ★ حالة القفل hands-free مثل واتساب: سحب لفوق يقفل التسجيل فيستمر وحده.
+  bool _isLockedRecording = false;
+  // ★ هل الإصبع لا يزال ضاغطاً على المايك (ضغطة مطوّلة نشطة)؟
+  //  true ⇒ المايك مكبّر ولا يظهر صح — الإفلات هو الإنهاء (واتساب).
+  //  false (مقفل) ⇒ يظهر زر الصح للإنهاء والمعاينة.
+  bool _isHoldingMic = false;
+  // ★ هل تجاوز السحب الجانبي عتبة الإلغاء (يتحوّل الزر لأحمر).
+  bool _cancelArmed = false;
+  // ★ نمو المايك أثناء الضغط (1.0 → 1.6) مثل واتساب.
+  double _micScale = 1.0;
+  // ★ حركة أيقونة القفل الصاعدة (0.0 → 1.0) — تلميح بصري للسحب لفوق.
+  AnimationController? _lockHintController;
   int _recordSeconds = 0;
   Timer? _recordTimer;
   StreamSubscription<Amplitude>? _amplitudeSub;
@@ -746,6 +759,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     _mergeStoryMessages();
     // لاحظ ظهور/اختفاء لوحة المفاتيح لإعادة التمرير لأسفل تلقائياً.
     WidgetsBinding.instance.addObserver(this);
+    // ★ حركة تلميح القفل الصاعد — تتكرر صعوداً ونزولاً أثناء الضغطة المطوّلة.
+    _lockHintController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
     // ★ قدوم من حقل الستوري: ركّز حقل الكتابة وافتح الكيبورد تلقائياً.
     if (widget.autofocusMessage) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -777,6 +795,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     _amplitudeSub?.cancel();
     _audioRecorder.dispose();
     _currentlyPlayingId.dispose();
+    _lockHintController?.dispose();
     super.dispose();
   }
 
@@ -1002,6 +1021,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
 
     setState(() {
       _composerMode = _ComposerMode.preview;
+      _isLockedRecording = false;
       _pendingAudioPath = path;
       _pendingDuration = duration;
       _pendingWaveformBars = capturedWaveform;
@@ -1024,7 +1044,88 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       _composerMode = _ComposerMode.idle;
       _recordSeconds = 0;
       _liveWaveform.clear();
+      _resetHoldState();
     });
+  }
+
+  /// ★ يصفّر حالة الضغطة المطوّلة (السحب + النمو + تسليح الإلغاء).
+  /// يُستدعى عند الإفلات والقفل والإلغاء والانتقال للمعاينة.
+  void _resetHoldState() {
+    _cancelArmed = false;
+    _micScale = 1.0;
+  }
+
+  /// ★ بدء الضغطة المطوّلة بأسلوب واتساب: يكبّر المايك ويبدأ التسجيل فوراً.
+  Future<void> _onMicHoldStart() async {
+    if (_composerMode != _ComposerMode.idle) return;
+    setState(() {
+      _micScale = 1.5;
+      _cancelArmed = false;
+      _isLockedRecording = false;
+      _isHoldingMic = true;
+    });
+    HapticFeedback.lightImpact();
+    await _startRecording();
+    // ★ فشل بدء التسجيل (رفض إذن مثلاً) ⇒ أعد الزر لحجمه الطبيعي.
+    if (mounted && _composerMode != _ComposerMode.recording) {
+      setState(() => _resetHoldState());
+    }
+  }
+
+  /// ★ تحريك الإصبع أثناء الضغطة المطوّلة:
+  ///  - سحب لفوق (dy < -60) ⇒ قفل hands-free يستمر وحده + اهتزاز.
+  ///  - سحب لليسار (dx < -90 في RTL) ⇒ تسليح الإلغاء (أحمر) + اهتزاز.
+  void _onMicHoldMove(Offset delta) {
+    if (_composerMode != _ComposerMode.recording || _isLockedRecording) return;
+    // ★ في RTL واتساب العربي: السحب لليسار = dx سالب (نفس الإحداثيات).
+    final dx = delta.dx;
+    final dy = delta.dy;
+    // ★ القفل أولاً (أولوية أعلى): سحب علوي كافٍ يقفل فوراً.
+    // الإصبع يُرفع بعد القفل ⇒ لا ضغط نشط، ويظهر زر الصح.
+    if (dy < -60) {
+      setState(() {
+        _isLockedRecording = true;
+        _isHoldingMic = false;
+        _cancelArmed = false;
+        _micScale = 1.0;
+      });
+      HapticFeedback.heavyImpact();
+      return;
+    }
+    // ★ تسليح الإلغاء: تجاوز العتبة الجانبية.
+    final armed = dx < -90;
+    if (armed != _cancelArmed) {
+      setState(() {
+        _cancelArmed = armed;
+      });
+      HapticFeedback.selectionClick();
+    }
+  }
+
+  /// ★ إفلات الإصبع بعد الضغطة المطوّلة:
+  ///  - ملغي مسلّح ⇒ احذف التسجيل.
+  ///  - مقفل ⇒ لا شيء (يستمر وحده).
+  ///  - عادي ⇒ انتقل للمعاينة قبل الإرسال.
+  Future<void> _onMicHoldEnd() async {
+    if (_composerMode != _ComposerMode.recording) {
+      if (mounted) {
+        setState(() {
+          _resetHoldState();
+          _isHoldingMic = false;
+        });
+      }
+      return;
+    }
+    if (_isLockedRecording) return; // القفل يبقي التسجيل يعمل وحده.
+    if (_cancelArmed) {
+      await _cancelRecording();
+      return;
+    }
+    setState(() {
+      _resetHoldState();
+      _isHoldingMic = false;
+    });
+    await _finishRecordingToPreview();
   }
 
   /// Discards the recorded-but-unsent note and deletes its temp file.
@@ -1032,6 +1133,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     final path = _pendingAudioPath;
     setState(() {
       _composerMode = _ComposerMode.idle;
+      _isLockedRecording = false;
       _pendingAudioPath = null;
       _pendingDuration = 0;
       _pendingWaveformBars = const [];
@@ -1052,6 +1154,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
 
     setState(() {
       _composerMode = _ComposerMode.idle;
+      _isLockedRecording = false;
       _pendingAudioPath = null;
       _pendingDuration = 0;
       _pendingWaveformBars = const [];
@@ -1634,11 +1737,44 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                 fontSize: 14.5,
               ),
             ),
+            // ★ شارة القفل hands-free — تظهر فقط بعد السحب لفوق.
+            if (_isLockedRecording) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 3,
+                ),
+                decoration: BoxDecoration(
+                  color: chat.sendButton.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      LucideIcons.lock,
+                      size: 11,
+                      color: chat.sendButton,
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      'مقفول',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: chat.sendButton,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(width: AppSpacing.sm),
 
-            // مؤشر اسحب للإلغاء المتحرك
-            const _SlideToCancel(),
-            const SizedBox(width: AppSpacing.xs),
+            // مؤشر اسحب للإلغاء المتحرك — يُخفى بعد القفل (لم يعد الإصبع ضاغطاً).
+            if (!_isLockedRecording) const _SlideToCancel(),
+            if (!_isLockedRecording) const SizedBox(width: AppSpacing.xs),
 
             // موجات الصوت الحية المتفاعلة مع الميكروفون
             Expanded(
@@ -1675,30 +1811,63 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
             ),
             const SizedBox(width: AppSpacing.sm),
 
-            // زر التوقف والانتقال للمعاينة بأسلوب واتساب
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: chat.sendButton,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: chat.sendButton.withValues(alpha: 0.3),
-                    blurRadius: 5,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+            // ★ زر الإنهاء بأسلوب واتساب الحقيقي:
+            //  - الإصبع ضاغط (_isHoldingMic): مايك مكبّر 52px — لا صح أبداً.
+            //    الإفلات هو الإنهاء، أو السحب لفوق للقفل، أو للجنب للإلغاء.
+            //  - بعد القفل (مقفل + لا ضغط): زر صح 44px للإنهاء والمعاينة.
+            if (_isHoldingMic)
+              // ★ مايك مكبّر ثابت أثناء الضغطة — يوضح أن الإصبع لا يزال ضاغطاً.
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: _cancelArmed
+                      ? chat.recordingTrash
+                      : chat.sendButton,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: (_cancelArmed
+                              ? chat.recordingTrash
+                              : chat.sendButton)
+                          .withValues(alpha: 0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  _cancelArmed ? LucideIcons.trash2 : LucideIcons.mic,
+                  color: chat.sendIcon,
+                  size: 24,
+                ),
+              )
+            else
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: chat.sendButton,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: chat.sendButton.withValues(alpha: 0.3),
+                      blurRadius: 5,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  icon:
+                      Icon(LucideIcons.check, color: chat.sendIcon, size: 21),
+                  onPressed: () {
+                    HapticFeedback.mediumImpact();
+                    _finishRecordingToPreview();
+                  },
+                  tooltip: 'إيقاف ومعاينة',
+                ),
               ),
-              child: IconButton(
-                icon: Icon(LucideIcons.check, color: chat.sendIcon, size: 21),
-                onPressed: () {
-                  HapticFeedback.mediumImpact();
-                  _finishRecordingToPreview();
-                },
-                tooltip: 'إيقاف ومعاينة',
-              ),
-            ),
           ],
         ),
       );
@@ -1747,14 +1916,40 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
             ),
             const SizedBox(height: AppSpacing.xs),
           ],
-          WhatsAppInputBar(
-            controller: _messageController,
-            hasText: hasText,
-            onSend: _sendMessage,
-            onVoice: _startRecording,
-            onAttach: _showAttachmentOptions,
-            onCamera: () => _pickImage(ImageSource.camera),
-            onChanged: (_) => setState(() {}),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              WhatsAppInputBar(
+                controller: _messageController,
+                hasText: hasText,
+                onSend: _sendMessage,
+                onVoice: _startRecording,
+                onAttach: _showAttachmentOptions,
+                onCamera: () => _pickImage(ImageSource.camera),
+                onChanged: (_) => setState(() {}),
+                // ★ تفاعل واتساب: ضغطة مطوّلة + سحب للقفل/الإلغاء.
+                onHoldStart: _onMicHoldStart,
+                onHoldMove: _onMicHoldMove,
+                onHoldEnd: _onMicHoldEnd,
+                micScale: _micScale,
+                cancelArmed: _cancelArmed,
+              ),
+              // ★ سكة القفل الصاعدة فوق زر المايك — تظهر أثناء الضغطة فقط.
+              // الزر على اليسار في RTL ⇒ السكة فوق اليسار.
+              Positioned(
+                left: 8,
+                bottom: 54,
+                child: VoiceLockRail(
+                  bounce: _lockHintController != null
+                      ? _lockHintController!
+                      : kAlwaysCompleteAnimation,
+                  visible:
+                      _composerMode == _ComposerMode.recording &&
+                      !_isLockedRecording &&
+                      _micScale > 1.0,
+                ),
+              ),
+            ],
           ),
         ],
       ),
