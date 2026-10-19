@@ -904,6 +904,19 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     );
   }
 
+  /// مجلد التسجيلات الدائم في مستندات التطبيق (ينجو من إعادة التشغيل،
+  /// بخلاف المجلد المؤقت الذي قد تمسحه نظام التشغيل في أي وقت —
+  /// وبالتالي تظل أيقونة التشغيل تعمل والاستماع للتسجيل ممكناً لاحقاً).
+  Future<Directory> _recordingsDir() async {
+    final dir = Directory(
+      '${(await getApplicationDocumentsDirectory()).path}/recordings',
+    );
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    return dir;
+  }
+
   Future<void> _startRecording() async {
     // إذا تم التحقق من الإذن مسبقاً، يبدأ التسجيل فوراً دون أي انتظار
     if (!_micPermissionGranted) {
@@ -922,24 +935,15 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       _micPermissionGranted = true;
     }
 
-    final dir = await getTemporaryDirectory();
-    // Make sure the temp directory actually exists and is writable.
-    if (!await dir.exists()) {
-      try {
-        await dir.create(recursive: true);
-      } catch (e) {
-        debugPrint('Failed to create temp dir: $e');
-      }
-    }
+    // ★ يُحفظ التسجيل في مجلد "recordings" داخل مستندات التطبيق (دائم)،
+    // وليس المجلد المؤقت، لكي تظل أيقونة التشغيل تعمل والاستماع للتسجيل
+    // ممكناً حتى بعد إعادة تشغيل التطبيق (الملفات المؤقتة قد تمسحها النظام).
+    final dir = await _recordingsDir();
     _currentRecordingPath =
         '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
     // Print the full path so we can verify it's writable on the target OS.
     debugPrint('Recording path: $_currentRecordingPath');
-    assert(
-      await dir.exists(),
-      'Temporary directory must exist before recording',
-    );
 
     try {
       await _audioRecorder.start(
@@ -1207,14 +1211,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     await _sendRecordedVoice();
   }
 
-  /// 5. الحالة: الإيقاف المؤقت (paused)
+  /// 5. الحالة: الإيقاف المؤقت (paused) — يتم إيقاف المسجل لتجهيز الملف للمعاينة على iOS
   Future<void> _pauseRecording() async {
-    try {
-      await _audioRecorder.pause();
-    } catch (e) {
-      debugPrint('Pause failed: $e');
-    }
     _recordTimer?.cancel();
+    try {
+      // نوقف التسجيل حتى يقوم النظام (iOS / AVFoundation) بإغلاق ترويسة ملف m4a وكتابته فعلياً
+      final path = await _audioRecorder.stop();
+      if (path != null) {
+        _currentRecordingPath = path;
+      }
+    } catch (e) {
+      debugPrint('Pause/stop failed: $e');
+    }
     HapticFeedback.lightImpact();
     if (mounted) {
       setState(() => _voiceState = ComposerVoiceState.paused);
@@ -1229,7 +1237,29 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
         _isPreviewPlaying = false;
         _previewProgress = 0.0;
       });
-      await _audioRecorder.resume();
+
+      // إذا كان المسجل متوقفاً بالكامل، نبدأ تسجيلاً مكملاً أو نستأنف
+      final isRecording = await _audioRecorder.isRecording();
+      if (!isRecording) {
+        final dir = await _recordingsDir();
+        _currentRecordingPath =
+            '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+        await _audioRecorder.start(
+          const RecordConfig(
+            encoder: AudioEncoder.aacLc,
+            bitRate: 128000,
+            sampleRate: 44100,
+            numChannels: 1,
+            androidConfig: AndroidRecordConfig(
+              audioSource: AndroidAudioSource.mic,
+            ),
+            iosConfig: IosRecordConfig(),
+          ),
+          path: _currentRecordingPath!,
+        );
+      } else {
+        await _audioRecorder.resume();
+      }
     } catch (e) {
       debugPrint('Resume failed: $e');
     }
@@ -1247,19 +1277,47 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     final path = _currentRecordingPath;
     if (path == null) return;
 
+    final file = File(path);
+    if (!await file.exists()) {
+      debugPrint('Preview audio file does not exist at $path');
+      return;
+    }
+
+    _previewPlayer ??= AudioPlayer();
+
     if (_isPreviewPlaying) {
       await _previewPlayer?.pause();
       if (mounted) setState(() => _isPreviewPlaying = false);
       return;
     }
 
-    _previewPlayer ??= AudioPlayer();
+    // إعداد AudioContext مناسب لمنصة iOS للسماح بتشغيل الصوت عبر السماعة
+    await AudioPlayer.global.setAudioContext(
+      AudioContext(
+        iOS: AudioContextIOS(
+          category: AVAudioSessionCategory.playAndRecord,
+          options: const {
+            AVAudioSessionOptions.defaultToSpeaker,
+            AVAudioSessionOptions.allowBluetooth,
+          },
+        ),
+        android: const AudioContextAndroid(
+          isSpeakerphoneOn: true,
+          stayAwake: true,
+          contentType: AndroidContentType.speech,
+          usageType: AndroidUsageType.voiceCommunication,
+          audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+        ),
+      ),
+    );
+
     _previewPosSub?.cancel();
     _previewPosSub = _previewPlayer!.onPositionChanged.listen((pos) {
       final total = _recordSeconds > 0 ? _recordSeconds : 1;
       final frac = (pos.inMilliseconds / (total * 1000)).clamp(0.0, 1.0);
       if (mounted) setState(() => _previewProgress = frac);
     });
+
     _previewCompleteSub?.cancel();
     _previewCompleteSub = _previewPlayer!.onPlayerComplete.listen((_) {
       if (mounted) {
@@ -1271,10 +1329,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     });
 
     try {
+      if (_previewProgress >= 1.0) {
+        await _previewPlayer!.seek(Duration.zero);
+      }
       await _previewPlayer!.play(DeviceFileSource(path));
       if (mounted) setState(() => _isPreviewPlaying = true);
     } catch (e) {
       debugPrint('Preview playback failed: $e');
+      if (mounted) setState(() => _isPreviewPlaying = false);
     }
   }
 
