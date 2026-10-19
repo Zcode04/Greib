@@ -50,13 +50,15 @@ class _WhatsAppRecordingPulseDotState extends State<WhatsAppRecordingPulseDot>
 
   @override
   Widget build(BuildContext context) {
+    final chat = context.chatColors;
     return FadeTransition(
       opacity: Tween(begin: 0.35, end: 1.0).animate(_controller),
       child: Container(
         width: 10,
         height: 10,
-        decoration: const BoxDecoration(
-          color: Color(0xFFE53956),
+        // ★ لون النقطة من الثيم بدل الثابت.
+        decoration: BoxDecoration(
+          color: chat.recordingTrash,
           shape: BoxShape.circle,
         ),
       ),
@@ -172,8 +174,8 @@ class LiveWaveformPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.fill;
 
-    const double barWidth = 3.0;
-    const double barSpacing = 2.5;
+    const double barWidth = 2.0;
+    const double barSpacing = 2.0;
     const double totalBarStep = barWidth + barSpacing;
     final int maxVisibleBars = (size.width / totalBarStep).floor();
     final centerY = size.height / 2;
@@ -184,7 +186,8 @@ class LiveWaveformPainter extends CustomPainter {
 
     for (int i = 0; i < count; i++) {
       final sample = waveform[startIndex + i];
-      final double barHeight = sample.clamp(4.0, size.height * 0.85);
+      // ★ نفس حد ارتفاع موجة الفقاعة (3..22) لتوحيد التجربة.
+      final double barHeight = sample.clamp(3.0, 22.0);
 
       // في RTL الموجة تبدأ من اليمين وتتحرك لليسار مع تدفق الصوت الجديد
       final double x = isRTL
@@ -202,7 +205,8 @@ class LiveWaveformPainter extends CustomPainter {
           width: barWidth,
           height: barHeight,
         ),
-        const Radius.circular(2),
+        // ★ نفس نصف قطر موجة الفقاعة (1.5) لتوحيد التجربة.
+        const Radius.circular(1.5),
       );
 
       canvas.drawRRect(rect, barPaint);
@@ -211,8 +215,9 @@ class LiveWaveformPainter extends CustomPainter {
     // مؤشر التشغيل (playhead) عند الإيقاف المؤقت (paused)
     if (isPaused && playheadPosition != null) {
       final playheadX = playheadPosition!.clamp(0.0, 1.0) * size.width;
+      // ★ لون المؤشر من الثيم (لون الزر) بدل القيمة الثابتة.
       final playheadPaint = Paint()
-        ..color = const Color(0xFF1FA855)
+        ..color = color
         ..strokeWidth = 2.0
         ..style = PaintingStyle.stroke;
 
@@ -227,7 +232,7 @@ class LiveWaveformPainter extends CustomPainter {
         Offset(playheadX, centerY),
         5.5,
         Paint()
-          ..color = const Color(0xFF1FA855)
+          ..color = color
           ..style = PaintingStyle.fill,
       );
       canvas.drawCircle(
@@ -242,10 +247,12 @@ class LiveWaveformPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant LiveWaveformPainter old) {
+    // ★ أضف لون الموجة للمقارنة حتى يتحدث الـ repaint عند تبديل الثيم.
     return old.waveform.length != waveform.length ||
         old.isPaused != isPaused ||
         old.animationValue != animationValue ||
-        old.playheadPosition != playheadPosition;
+        old.playheadPosition != playheadPosition ||
+        old.color != color;
   }
 }
 
@@ -309,9 +316,11 @@ class _WhatsAppLockedPanelState extends State<WhatsAppLockedPanel>
 
     return Container(
       width: double.infinity,
+      // ★ خلفية اللوحة من الثيم (تتبع الوضع الليلي/النهاري) بدل الأبيض الثابت.
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: chat.composerBackground,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border(top: BorderSide(color: chat.composerBorder)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.12),
@@ -323,13 +332,13 @@ class _WhatsAppLockedPanelState extends State<WhatsAppLockedPanel>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // مقبض علوي صغير
+          // مقبض علوي صغير — من الثيم.
           Container(
             margin: const EdgeInsets.only(top: 8, bottom: 4),
             width: 38,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: chat.composerBorder,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -339,11 +348,12 @@ class _WhatsAppLockedPanelState extends State<WhatsAppLockedPanel>
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             child: Container(
               height: 72,
+              // ★ خلفية منطقة الموجة من الثيم بدل #F7F8FA الثابتة.
               decoration: BoxDecoration(
-                color: const Color(0xFFF7F8FA),
+                color: chat.inputField,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: Colors.grey.shade200,
+                  color: chat.composerBorder,
                   width: 1,
                 ),
               ),
@@ -355,7 +365,8 @@ class _WhatsAppLockedPanelState extends State<WhatsAppLockedPanel>
                     return CustomPaint(
                       painter: LiveWaveformPainter(
                         waveform: widget.liveWaveform,
-                        color: const Color(0xFF1FA855),
+                        // ★ لون الموجة من الثيم (لون زر الإرسال) بدل الثابت.
+                        color: chat.sendButton,
                         isPaused: widget.isPaused,
                         animationValue: _waveAnimController.value,
                         playheadPosition: widget.isPaused
@@ -394,15 +405,17 @@ class _WhatsAppLockedPanelState extends State<WhatsAppLockedPanel>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1FA855).withValues(alpha: 0.12),
+                      // ★ خلفية الشارة من الثيم بدل الأخضر الثابت الشفاف.
+                      color: chat.sendButton.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Text(
+                    child: Text(
                       'متوقف مؤقتاً',
                       style: TextStyle(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF1FA855),
+                        // ★ نص الشارة من الثيم.
+                        color: chat.sendButton,
                       ),
                     ),
                   ),
@@ -420,11 +433,12 @@ class _WhatsAppLockedPanelState extends State<WhatsAppLockedPanel>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // سلة الحذف الحمراء (#E53956)
+                // سلة الحذف الحمراء — من الثيم.
                 _CircleActionButton(
                   icon: LucideIcons.trash2,
-                  iconColor: const Color(0xFFE53956),
-                  backgroundColor: const Color(0xFFE53956).withValues(alpha: 0.12),
+                  iconColor: chat.recordingTrash,
+                  backgroundColor:
+                      chat.recordingTrash.withValues(alpha: 0.12),
                   size: 48,
                   onPressed: () {
                     HapticFeedback.mediumImpact();
@@ -443,8 +457,9 @@ class _WhatsAppLockedPanelState extends State<WhatsAppLockedPanel>
                         icon: widget.isPreviewPlaying
                             ? LucideIcons.pause
                             : LucideIcons.play,
-                        iconColor: const Color(0xFF1FA855),
-                        backgroundColor: const Color(0xFF1FA855).withValues(alpha: 0.12),
+                        iconColor: chat.sendButton,
+                        backgroundColor:
+                            chat.sendButton.withValues(alpha: 0.12),
                         size: 48,
                         onPressed: () {
                           HapticFeedback.lightImpact();
@@ -458,10 +473,10 @@ class _WhatsAppLockedPanelState extends State<WhatsAppLockedPanel>
                     // زر الإيقاف المؤقت أو الاستئناف
                     _CircleActionButton(
                       icon: widget.isPaused ? LucideIcons.mic : LucideIcons.pause,
-                      iconColor: widget.isPaused ? Colors.white : const Color(0xFF1FA855),
+                      iconColor: widget.isPaused ? chat.sendIcon : chat.sendButton,
                       backgroundColor: widget.isPaused
-                          ? const Color(0xFF1FA855)
-                          : const Color(0xFF1FA855).withValues(alpha: 0.12),
+                          ? chat.sendButton
+                          : chat.sendButton.withValues(alpha: 0.12),
                       size: 48,
                       onPressed: () {
                         HapticFeedback.lightImpact();
@@ -476,15 +491,15 @@ class _WhatsAppLockedPanelState extends State<WhatsAppLockedPanel>
                   ],
                 ),
 
-                // زر الإرسال الأخضر الدائري (#1FA855)
+                // زر الإرسال الأخضر الدائري — من الثيم.
                 _CircleActionButton(
                   icon: LucideIcons.send,
-                  iconColor: Colors.white,
-                  backgroundColor: const Color(0xFF1FA855),
+                  iconColor: chat.sendIcon,
+                  backgroundColor: chat.sendButton,
                   size: 52,
                   shadow: [
                     BoxShadow(
-                      color: const Color(0xFF1FA855).withValues(alpha: 0.35),
+                      color: chat.sendButton.withValues(alpha: 0.35),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),

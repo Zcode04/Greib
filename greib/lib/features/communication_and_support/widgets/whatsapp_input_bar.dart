@@ -267,12 +267,13 @@ class WhatsAppInputBar extends StatelessWidget {
     return Container(
       width: 48,
       height: 48,
+      // ★ لون الزر الاحتياطي من الثيم بدل الثابت.
       decoration: BoxDecoration(
-        color: const Color(0xFF1FA855),
+        color: chat.sendButton,
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1FA855).withValues(alpha: 0.35),
+            color: chat.sendButton.withValues(alpha: 0.35),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),

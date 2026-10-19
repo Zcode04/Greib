@@ -127,7 +127,8 @@ class _WhatsAppVoiceButtonState extends State<WhatsAppVoiceButton> {
   @override
   Widget build(BuildContext context) {
     final chat = context.chatColors;
-    final bg = widget.cancelArmed ? chat.recordingTrash : const Color(0xFF1FA855);
+    // ★ خلفية الزر من الثيم بدل الثابت.
+    final bg = widget.cancelArmed ? chat.recordingTrash : chat.sendButton;
     final effectiveScale = widget.cancelArmed
         ? (widget.micScale * 0.85).clamp(0.6, 1.6)
         : widget.micScale;
@@ -215,7 +216,8 @@ class VoiceLockRail extends StatelessWidget {
     final double railHeight = 84.0 + (40.0 * lockProgress.clamp(0.0, 1.0)); // تمدد من 84 إلى 124px
     final bool isNearLock = lockProgress >= 0.6;
     final IconData lockIcon = isNearLock ? LucideIcons.lockOpen : LucideIcons.lock;
-    final Color lockColor = isNearLock ? const Color(0xFF1FA855) : chat.composerIcon;
+    // ★ ألوان القفل والسكة من الثيم بدل الثابت.
+    final Color lockColor = isNearLock ? chat.sendButton : chat.composerIcon;
 
     return IgnorePointer(
       ignoring: !visible,
@@ -235,7 +237,8 @@ class VoiceLockRail extends StatelessWidget {
                 width: 42,
                 height: railHeight,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  // ★ خلفية السكة من الثيم بدل الأبيض الثابت.
+                  color: chat.composerBackground,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(
                     color: chat.composerBorder.withValues(alpha: 0.6),

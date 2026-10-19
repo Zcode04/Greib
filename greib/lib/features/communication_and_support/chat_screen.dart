@@ -974,11 +974,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     });
 
     // Real microphone amplitude drives the waveform, instead of random bars.
+    // ★ نفس نطاق ارتفاع موجة الفقاعة (3..22) لتوحيد التجربة.
     _amplitudeSub = _audioRecorder
         .onAmplitudeChanged(const Duration(milliseconds: 100))
         .listen((amp) {
           final normalized = ((amp.current + 45) / 45).clamp(0.0, 1.0);
-          final height = 4.0 + normalized * 32.0;
+          final height = 3.0 + normalized * 19.0;
           if (mounted) {
             setState(() {
               _liveWaveform.add(height);
@@ -1037,7 +1038,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       return;
     }
 
-    final capturedWaveform = _resampleWaveform(_liveWaveform, 40);
+    // ★ نفس عدد أشرطة موجة الفقاعة (55) لتوحيد التجربة.
+    final capturedWaveform = _resampleWaveform(_liveWaveform, 55);
 
     setState(() {
       _voiceState = ComposerVoiceState.idle;
@@ -1349,7 +1351,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   /// Collapses the raw ~150ms-interval amplitude samples down to a fixed
   /// number of bars so the preview/message waveform has a stable shape.
   List<double> _resampleWaveform(List<double> raw, int targetCount) {
-    if (raw.isEmpty) return List.filled(targetCount, 6.0);
+    // ★ القيمة الافتراضية وسط نطاق الموجة الموحد (3..22) مثل الفقاعة.
+    if (raw.isEmpty) return List.filled(targetCount, 12.0);
     if (raw.length <= targetCount) {
       return List.generate(targetCount, (i) {
         final idx = (i * raw.length / targetCount).floor().clamp(
