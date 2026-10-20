@@ -159,7 +159,8 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
 
   /// زر كبسولة مع سهم يدور عند الفتح.
   /// [plain] يُستخدم عندما يوضع الزر داخل كبسولة خارجية مشتركة — يزيل الخلفية الفردية.
-  /// [showIcon] يُظهر/يخفي أيقونة السهم المنبثق (تُعطّل داخل الكبسولة المشتركة).
+  /// [showIcon] يُظهر/يخفي أيقونة السهم المنبثق (تُعطّل داخل الكبسولة المشتركة إن ced إلى false).
+  /// [icon] أيقونة مخصصة تُعرض إلى يسار نص الزر.
   Widget _pillButton(
     ThemeData theme, {
     required String label,
@@ -167,6 +168,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
     required VoidCallback onTap,
     bool plain = false,
     bool showIcon = true,
+    IconData? icon,
   }) {
     final ink = theme.colorScheme.onSurface;
     if (plain) {
@@ -181,6 +183,10 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (icon != null) ...[
+                Icon(icon, size: 16, color: ink),
+                const SizedBox(width: AppSpacing.xs),
+              ],
               Text(
                 label,
                 style: theme.textTheme.titleSmall?.copyWith(
@@ -216,6 +222,10 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (icon != null) ...[
+                Icon(icon, size: 16, color: ink),
+                const SizedBox(width: AppSpacing.xs),
+              ],
               Text(
                 label,
                 style: theme.textTheme.titleSmall?.copyWith(
@@ -780,6 +790,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                       label: 'تفاصيل موقعي',
                       open: _detailsOpen,
                       plain: true,
+                      icon: LucideIcons.info,
                       showIcon: false,
                       onTap: () => setState(() => _detailsOpen = !_detailsOpen),
                     ),
@@ -795,6 +806,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                       label: 'الأقرب إلى منطقتك',
                       open: _nearestOpen,
                       plain: true,
+                      icon: LucideIcons.mapPin,
                       showIcon: false,
                       onTap: () => setState(() => _nearestOpen = !_nearestOpen),
                     ),
