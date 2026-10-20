@@ -28,6 +28,7 @@ import 'widgets/whatsapp_bubble.dart';
 import 'widgets/whatsapp_input_bar.dart';
 import 'widgets/whatsapp_voice_button.dart';
 import 'widgets/whatsapp_voice_recorder.dart';
+import 'widgets/voice_edit/voice_trim_sheet.dart';
 import '../../features/auth/mock_auth.dart';
 import 'contacts_chat_store.dart';
 import 'contacts_screen.dart';
@@ -624,6 +625,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   StreamSubscription<Duration>? _previewPosSub;
   StreamSubscription<void>? _previewCompleteSub;
 
+  // ★ ميزة القص النهائي: بعد تطبيق القص يُعطَّل الاستئناف (استماع + إرسال فقط).
+  bool _isTrimmed = false;
+
   // ---- Real image attachment ----
   final ImagePicker _imagePicker = ImagePicker();
 
@@ -975,16 +979,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     }
 
     final dir = await _recordingsDir();
+    // ★ التسجيل WAV مباشرة ليتوافق مع ميزة القص (WavCodec يدعم PCM 16-bit فقط).
     _currentRecordingPath =
-        '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+        '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.wav';
 
     debugPrint('Recording path: $_currentRecordingPath');
 
     try {
       await _audioRecorder.start(
         const RecordConfig(
-          encoder: AudioEncoder.aacLc,
-          bitRate: 128000,
+          encoder: AudioEncoder.wav,
           sampleRate: 44100,
           numChannels: 1,
           androidConfig: AndroidRecordConfig(
@@ -1305,6 +1309,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
 
   /// استئناف التسجيل بعد الإيقاف المؤقت
   Future<void> _resumeRecording() async {
+    // ★ القص النهائي يمنع الاستئناف — استماع + إرسال فقط.
+    if (_isTrimmed) return;
     try {
       await _previewPlayer?.stop();
       setState(() {
@@ -1316,12 +1322,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       final isRecording = await _audioRecorder.isRecording();
       if (!isRecording) {
         final dir = await _recordingsDir();
+        // ★ نفس صيغة WAV لضمان توافق القص المباشر.
         _currentRecordingPath =
-            '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+            '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.wav';
         await _audioRecorder.start(
           const RecordConfig(
-            encoder: AudioEncoder.aacLc,
-            bitRate: 128000,
+            encoder: AudioEncoder.wav,
             sampleRate: 44100,
             numChannels: 1,
             androidConfig: AndroidRecordConfig(
@@ -1348,6 +1354,131 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     HapticFeedback.lightImpact();
     if (mounted) {
       setState(() => _voiceState = ComposerVoiceState.locked);
+    }
+  }
+
+  /// ★ ميزة القص: فتح شيت القص المكبّر من زر المقص عند الإيقاف المؤقت.
+  /// يوقف المعاينة، يفتح [VoiceTrimSheet] بالملف WAV الحالي، وبعد التطبيق
+  /// يستبدل المسار الحالي بالملف المقصوص ويُفعّل وضع القص النهائي.
+  Future<void> _openTrimSheet() async {
+    if (_voiceState != ComposerVoiceState.paused) return;
+    final srcPath = _currentRecordingPath;
+    if (srcPath == null) {
+      _showErrorMessage('لا يوجد تسجيل لقصّه');
+      return;
+    }
+    final srcFile = File(srcPath);
+    if (!await srcFile.exists() || await srcFile.length() == 0) {
+      _showErrorMessage('ملف التسجيل غير صالح للقص');
+      return;
+    }
+    if (_recordSeconds < 1) {
+      _showErrorMessage('التسجيل قصير جداً للقص');
+      return;
+    }
+
+    // أوقف أي معاينة جارية قبل فتح الشيت.
+    try {
+      await _previewPlayer?.stop();
+    } catch (_) {}
+    if (mounted) {
+      setState(() {
+        _isPreviewPlaying = false;
+        _previewProgress = 0.0;
+      });
+    }
+
+    if (!mounted) return;
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      isDismissible: true,
+      builder: (sheetContext) => VoiceTrimSheet(
+        audioPath: srcPath,
+        onTrimmed: (trimmedPath, duration) {
+          Navigator.of(sheetContext).pop();
+          _applyTrimmedVoice(srcPath, trimmedPath, duration);
+        },
+        onCancel: () => Navigator.of(sheetContext).pop(),
+      ),
+    );
+  }
+
+  /// ★ بعد تطبيق القص: استبدال الملف الحالي بالمقصوص + تعطيل الاستئناف.
+  Future<void> _applyTrimmedVoice(
+    String oldPath,
+    String trimmedPath,
+    Duration duration,
+  ) async {
+    final oldFile = File(oldPath);
+    final newSeconds = duration.inSeconds > 0 ? duration.inSeconds : 1;
+    // إعادة حساب أشرطة الموجة من الملف المقصوص مباشرة.
+    List<double> newBars = const [];
+    try {
+      final bytes = await File(trimmedPath).readAsBytes();
+      newBars = _waveformFromWavBytes(bytes);
+    } catch (e) {
+      debugPrint('Trim waveform rebuild failed: $e');
+      newBars = List.filled(55, 12.0);
+    }
+    // حذف الملف الأصلي لتفادي الملفات الزائدة.
+    try {
+      if (await oldFile.exists() && oldPath != trimmedPath) {
+        await oldFile.delete();
+      }
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() {
+      _currentRecordingPath = trimmedPath;
+      _recordSeconds = newSeconds;
+      _liveWaveform
+        ..clear()
+        ..addAll(newBars);
+      _isTrimmed = true;
+      _isPreviewPlaying = false;
+      _previewProgress = 0.0;
+    });
+    HapticFeedback.mediumImpact();
+  }
+
+  /// ★ يحسب 55 شريط موجة من بايتات WAV (PCM 16-bit) للمعاينة بعد القص.
+  List<double> _waveformFromWavBytes(List<int> bytes) {
+    const targetCount = 55;
+    if (bytes.length < 44) return List.filled(targetCount, 12.0);
+    try {
+      // تخطي الرأس للوصول لبيانات PCM — نبحث عن chunk "data".
+      var dataOffset = 44;
+      for (var i = 12; i + 8 <= bytes.length && i < 256; i++) {
+        if (bytes[i] == 0x64 && // d
+            bytes[i + 1] == 0x61 && // a
+            bytes[i + 2] == 0x74 && // t
+            bytes[i + 3] == 0x61) {
+          // a
+          dataOffset = i + 8;
+          break;
+        }
+      }
+      const frameSize = 2; // mono 16-bit
+      final samples = (bytes.length - dataOffset) ~/ frameSize;
+      if (samples <= 0) return List.filled(targetCount, 12.0);
+      final perBar = (samples / targetCount).ceil().clamp(1, samples);
+      return List.generate(targetCount, (b) {
+        double maxAmp = 0;
+        final from = b * perBar;
+        final to = (b + 1) * perBar;
+        for (var s = from; s < to && s < samples; s++) {
+          final offset = dataOffset + s * frameSize;
+          if (offset + 1 >= bytes.length) break;
+          var v = bytes[offset] | (bytes[offset + 1] << 8);
+          if (v > 32767) v -= 65536;
+          final amp = v.abs() / 32768.0;
+          if (amp > maxAmp) maxAmp = amp;
+        }
+        return (3.0 + maxAmp * 19.0).clamp(3.0, 22.0);
+      });
+    } catch (_) {
+      return List.filled(targetCount, 12.0);
     }
   }
 
@@ -2108,6 +2239,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
           onTogglePreview: _togglePreviewPlayback,
           onDelete: _cancelRecording,
           onSend: _sendRecordedVoice,
+          onTrim: _openTrimSheet,
+          isTrimmed: _isTrimmed,
         ),
       );
     }

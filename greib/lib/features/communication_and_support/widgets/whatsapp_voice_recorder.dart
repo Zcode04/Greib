@@ -293,6 +293,10 @@ class WhatsAppLockedPanel extends StatefulWidget {
   final VoidCallback onTogglePreview;
   final VoidCallback onDelete;
   final VoidCallback onSend;
+  // ★ ميزة القص: تُفتح شيت القص عند الإيقاف المؤقت فقط.
+  final VoidCallback? onTrim;
+  // ★ بعد القص النهائي يُعطَّل زر الاستئناف (استماع + إرسال فقط).
+  final bool isTrimmed;
 
   const WhatsAppLockedPanel({
     super.key,
@@ -306,6 +310,8 @@ class WhatsAppLockedPanel extends StatefulWidget {
     required this.onTogglePreview,
     required this.onDelete,
     required this.onSend,
+    this.onTrim,
+    this.isTrimmed = false,
   });
 
   @override
@@ -474,6 +480,7 @@ class _WhatsAppLockedPanelState extends State<WhatsAppLockedPanel> {
                 ),
 
                 // زر التحكم الأوسط (كبسولة استئناف عند الإيقاف المؤقت، أو كبسولة إيقاف مؤقت أثناء التسجيل)
+                // ★ بعد القص النهائي تتحول الكبسولة لوضع استماع فقط (بدون استئناف).
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   decoration: BoxDecoration(
@@ -487,7 +494,7 @@ class _WhatsAppLockedPanelState extends State<WhatsAppLockedPanel> {
                     onTap: () {
                       HapticFeedback.lightImpact();
                       if (widget.isPaused) {
-                        widget.onResume();
+                        if (!widget.isTrimmed) widget.onResume();
                       } else {
                         widget.onPause();
                       }
@@ -496,13 +503,19 @@ class _WhatsAppLockedPanelState extends State<WhatsAppLockedPanel> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          widget.isPaused ? LucideIcons.mic : LucideIcons.pause,
+                          widget.isPaused
+                              ? (widget.isTrimmed
+                                  ? LucideIcons.check
+                                  : LucideIcons.mic)
+                              : LucideIcons.pause,
                           color: isDark ? Colors.white : const Color(0xFF111B21),
                           size: 20,
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          widget.isPaused ? 'استئناف' : 'إيقاف مؤقت',
+                          widget.isPaused
+                              ? (widget.isTrimmed ? 'مقصوص ✓' : 'استئناف')
+                              : 'إيقاف مؤقت',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -513,6 +526,22 @@ class _WhatsAppLockedPanelState extends State<WhatsAppLockedPanel> {
                     ),
                   ),
                 ),
+
+                // ★ زر المقص — يظهر فقط عند الإيقاف المؤقت وقبل القص النهائي.
+                if (widget.isPaused && !widget.isTrimmed && widget.onTrim != null)
+                  _CircleActionButton(
+                    icon: LucideIcons.scissors,
+                    iconColor: isDark ? Colors.white : const Color(0xFF111B21),
+                    backgroundColor: isDark
+                        ? Colors.white.withValues(alpha: 0.12)
+                        : Colors.black.withValues(alpha: 0.07),
+                    size: 48,
+                    onPressed: () {
+                      HapticFeedback.mediumImpact();
+                      widget.onTrim!();
+                    },
+                    tooltip: 'قص التسجيل',
+                  ),
 
                 // زر الإرسال — ثابت دائماً على اليمين مع أيقونة الإرسال الأصلية
                 _CircleActionButton(

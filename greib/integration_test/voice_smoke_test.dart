@@ -214,4 +214,57 @@ void main() {
       await recorder.dispose();
     }
   });
+
+  testWidgets('wav recording produces a parseable header', (tester) async {
+    final recorder = AudioRecorder();
+    final dir = await getApplicationDocumentsDirectory();
+    final path =
+        '${dir.path}/smoke_fmt_${DateTime.now().millisecondsSinceEpoch}.wav';
+
+    await recorder.start(
+      const RecordConfig(
+        encoder: AudioEncoder.wav,
+        sampleRate: 22050,
+        numChannels: 1,
+      ),
+      path: path,
+    );
+    expect(await recorder.isRecording(), isTrue);
+    await Future<void>.delayed(const Duration(seconds: 2));
+    final stoppedPath = await recorder.stop();
+    expect(stoppedPath, isNotNull);
+
+    final bytes = await File(stoppedPath!).readAsBytes();
+    expect(bytes.length, greaterThan(44));
+    String sig(List<int> b) => String.fromCharCodes(b);
+    // ignore: avoid_print
+    print('SMOKE wav magic: [${sig(bytes.sublist(0, 4))}]'
+        ' fmt:[${sig(bytes.sublist(8, 12))}] fmtChunk:[${sig(bytes.sublist(12, 16))}]'
+        ' audioFormat:${bytes[20] | (bytes[21] << 8)}'
+        ' channels:${bytes[22] | (bytes[23] << 8)}'
+        ' sampleRate:${bytes[24] | (bytes[25] << 8) | (bytes[26] << 16) | (bytes[27] << 24)}'
+        ' bitsPerSample:${bytes[34] | (bytes[35] << 8)}'
+        ' dataChunk:[${sig(bytes.sublist(36, 40))}]'
+        ' totalLen:${bytes.length}');
+    await recorder.dispose();
+
+    // Must be playable through the same playback path the chat UI uses.
+    final player = AudioPlayer();
+    try {
+      await player.play(DeviceFileSource(stoppedPath));
+      await Future<void>.delayed(const Duration(seconds: 1));
+      // ignore: avoid_print
+      print('SMOKE wav playback state: ${player.state}');
+      expect(player.state, PlayerState.playing);
+    } catch (e) {
+      // ignore: avoid_print
+      print('SMOKE wav playback FAILED: $e');
+      fail('WAV playback failed: $e');
+    } finally {
+      await player.stop();
+      await player.dispose();
+    }
+  });
+}
+
 }
