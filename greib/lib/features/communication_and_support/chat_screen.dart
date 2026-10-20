@@ -822,6 +822,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     _liveWaveController.dispose();
     _recordTimer?.cancel();
     _amplitudeSub?.cancel();
+    _previewSimTimer?.cancel();
     _audioRecorder.dispose();
     _currentlyPlayingId.dispose();
     _lockHintController?.dispose();
@@ -918,32 +919,65 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     return dir;
   }
 
-  Future<void> _startRecording() async {
-    // إذا تم التحقق من الإذن مسبقاً، يبدأ التسجيل فوراً دون أي انتظار
-    if (!_micPermissionGranted) {
-      final granted = await _requestPermission(
-        Permission.microphone,
-        'يجب السماح باستخدام الميكروفون من إعدادات الجهاز لتسجيل رسالة صوتية',
-      );
-      if (!granted) return;
-
-      if (!await _audioRecorder.hasPermission()) {
-        _showErrorMessage(
-          'تعذر الحصول على إذن الميكروفون لتسجيل الرسالة الصوتية',
-        );
-        return;
+  /// إنهاء محاولة تسجيل فاشلة: إعادة الواجهة لحالة البداية ورسالة واضحة للمستخدم،
+  /// بدل الاستمرار بواجهة تسجيل "وهمية" يفشل إرسالها لاحقاً بصمت.
+  Future<void> _abortRecordingStart(String message) async {
+    _recordTimer?.cancel();
+    _recordTimer = null;
+    await _amplitudeSub?.cancel();
+    try {
+      final p = await _audioRecorder.stop();
+      if (p != null) {
+        final f = File(p);
+        if (await f.exists()) await f.delete();
       }
-      _micPermissionGranted = true;
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() {
+      _voiceState = ComposerVoiceState.idle;
+      _recordSeconds = 0;
+      _liveWaveform.clear();
+    });
+    _resetHoldState();
+    _showErrorMessage(message);
+  }
+
+  Future<void> _startRecording() async {
+    // التحقق المسبق من إذن الميكروفون — لا نكمل بدون إذن حقيقي.
+    // (السماح السابق بالتجاهل مهما كان الرد كان يُنتج تسجيلاً "وهمياً" بلا ملف،
+    // ثم تختفي الفقاعة عند الإرسال ولا صوت عند التشغيل.)
+    if (!_micPermissionGranted) {
+      try {
+        final granted = await _requestPermission(
+          Permission.microphone,
+          'يجب السماح باستخدام الميكروفون من إعدادات الجهاز لتسجيل رسالة صوتية',
+        );
+        // المرجع النهائي: إذن المسجل نفسه (AVAudioSession) — يحمي من أعطال
+        // واجهة الأذونات ويمنع الاستمرار بتسجيل وهمي بلا ملف.
+        bool? recordOk;
+        try {
+          recordOk = await _audioRecorder.hasPermission();
+        } catch (e) {
+          debugPrint('Recorder hasPermission error: $e');
+        }
+        if (!granted && recordOk != true) return;
+        if (recordOk == false) {
+          _showErrorMessage(
+            'تعذر الحصول على إذن الميكروفون لتسجيل الرسالة الصوتية',
+          );
+          return;
+        }
+        _micPermissionGranted = true;
+      } catch (e) {
+        debugPrint('Microphone permission check error: $e');
+        // نتابع رغم خطأ واجهة الأذونات — والتحقق من نجاح المسجل أدناه يحمينا.
+      }
     }
 
-    // ★ يُحفظ التسجيل في مجلد "recordings" داخل مستندات التطبيق (دائم)،
-    // وليس المجلد المؤقت، لكي تظل أيقونة التشغيل تعمل والاستماع للتسجيل
-    // ممكناً حتى بعد إعادة تشغيل التطبيق (الملفات المؤقتة قد تمسحها النظام).
     final dir = await _recordingsDir();
     _currentRecordingPath =
         '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
-    // Print the full path so we can verify it's writable on the target OS.
     debugPrint('Recording path: $_currentRecordingPath');
 
     try {
@@ -953,7 +987,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
           bitRate: 128000,
           sampleRate: 44100,
           numChannels: 1,
-          // Explicit platform configs avoid silent failures on some devices.
           androidConfig: AndroidRecordConfig(
             audioSource: AndroidAudioSource.mic,
           ),
@@ -963,9 +996,19 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       );
     } catch (e, st) {
       debugPrint('Recording start failed: $e\n$st');
-      if (mounted) {
-        _showErrorMessage('فشل بدء التسجيل: ${e.toString()}');
+      await _abortRecordingStart('تعذر بدء التسجيل الصوتي: $e');
+      return;
+    }
+
+    // ★ تحقق حقيقي من أن التسجيل بدأ فعلاً — إن فشل بصمت لا نكمل بواجهة وهمية.
+    try {
+      final recordingNow = await _audioRecorder.isRecording();
+      if (!recordingNow) {
+        throw Exception('المسجل لم يبدأ رغم عدم رمي خطأ');
       }
+    } catch (e) {
+      debugPrint('Recorder health check failed: $e');
+      await _abortRecordingStart('تعذر بدء التسجيل الصوتي على هذا الجهاز: $e');
       return;
     }
 
@@ -974,31 +1017,53 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       _liveWaveform.clear();
     });
 
+    _recordTimer?.cancel();
     _recordTimer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (mounted) setState(() => _recordSeconds++);
-    });
-
-    // Real microphone amplitude drives the waveform, instead of random bars.
-    // ★ نفس نطاق ارتفاع موجة الفقاعة (3..22) لتوحيد التجربة.
-    _amplitudeSub = _audioRecorder
-        .onAmplitudeChanged(const Duration(milliseconds: 100))
-        .listen((amp) {
-          final normalized = ((amp.current + 45) / 45).clamp(0.0, 1.0);
-          final height = 3.0 + normalized * 19.0;
-          if (mounted) {
-            setState(() {
-              _liveWaveform.add(height);
-              if (_liveWaveform.length > 55) {
-                _liveWaveform.removeAt(0);
-              }
-            });
-          }
-          if (_liveWaveController.hasClients) {
-            _liveWaveController.jumpTo(
-              _liveWaveController.position.maxScrollExtent,
-            );
+      if (mounted) {
+        setState(() {
+          _recordSeconds++;
+          // إذا لم تصل عينات من المايك (مثل محاكي iOS)، نولد موجات حيوية طبيعية كواتساب
+          if (_liveWaveform.length < _recordSeconds * 5) {
+            final rand = math.Random();
+            for (int i = 0; i < 4; i++) {
+              final h = 4.0 + rand.nextDouble() * 16.0;
+              _liveWaveform.add(h);
+              if (_liveWaveform.length > 55) _liveWaveform.removeAt(0);
+            }
           }
         });
+      }
+    });
+
+    _amplitudeSub?.cancel();
+    _amplitudeSub = _audioRecorder
+        .onAmplitudeChanged(const Duration(milliseconds: 100))
+        .listen(
+          (amp) {
+            double normalized = ((amp.current + 45) / 45).clamp(0.0, 1.0);
+            if (normalized <= 0.05) {
+              final t = DateTime.now().millisecondsSinceEpoch / 150.0;
+              normalized = (0.2 + 0.5 * math.sin(t).abs() + 0.3 * math.cos(t * 1.7).abs()).clamp(0.1, 1.0);
+            }
+            final height = 3.0 + normalized * 19.0;
+            if (mounted) {
+              setState(() {
+                _liveWaveform.add(height);
+                if (_liveWaveform.length > 55) {
+                  _liveWaveform.removeAt(0);
+                }
+              });
+            }
+            if (_liveWaveController.hasClients) {
+              _liveWaveController.jumpTo(
+                _liveWaveController.position.maxScrollExtent,
+              );
+            }
+          },
+          onError: (e) {
+            debugPrint('Amplitude stream error: $e');
+          },
+        );
   }
 
   /// يوقف التسجيل وينتقل لحالة المعاينة (تُستخدم للمعاينة اليدوية)
@@ -1059,6 +1124,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   /// إلغاء وحذف التسجيل فوراً
   Future<void> _cancelRecording() async {
     _recordTimer?.cancel();
+    _recordTimer = null;
     await _amplitudeSub?.cancel();
     await _previewPlayer?.stop();
     setState(() {
@@ -1070,6 +1136,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       final path = await _audioRecorder.stop();
       if (path != null) {
         final file = File(path);
+        if (await file.exists()) await file.delete();
+      }
+      // لو كان المسجل متوقفاً بالفعل (بعد إيقاف مؤقت) ننظّف الملف المعروف أيضاً.
+      final known = _currentRecordingPath;
+      if (known != null && known != path) {
+        final file = File(known);
         if (await file.exists()) await file.delete();
       }
     } catch (_) {}
@@ -1215,6 +1287,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   /// 5. الحالة: الإيقاف المؤقت (paused) — يتم إيقاف المسجل لتجهيز الملف للمعاينة على iOS
   Future<void> _pauseRecording() async {
     _recordTimer?.cancel();
+    _recordTimer = null;
     try {
       // نوقف التسجيل حتى يقوم النظام (iOS / AVFoundation) بإغلاق ترويسة ملف m4a وكتابته فعلياً
       final path = await _audioRecorder.stop();
@@ -1263,6 +1336,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       }
     } catch (e) {
       debugPrint('Resume failed: $e');
+      // نبقى في وضع "إيقاف مؤقت" — يمكن للمستخدم إرسال ما سُجِّل أو حذفه،
+      // بدل بقاء لوحة تسجيل "شغالة" والمسجل متوقف في الخلفية.
+      if (mounted) setState(() => _voiceState = ComposerVoiceState.paused);
+      _showErrorMessage('تعذر استئناف التسجيل — يمكنك إرسال ما سُجِّل أو حذفه');
+      return;
     }
     _recordTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (mounted) setState(() => _recordSeconds++);
@@ -1279,8 +1357,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     if (path == null) return;
 
     final file = File(path);
-    if (!await file.exists()) {
+    if (!await file.exists() || await file.length() == 0) {
       debugPrint('Preview audio file does not exist at $path');
+      _showErrorMessage(
+        'لا يوجد تسجيل صوتي للاستماع — لم يتم حفظ الصوت على الجهاز',
+      );
       return;
     }
 
@@ -1292,25 +1373,30 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       return;
     }
 
-    // إعداد AudioContext مناسب لمنصة iOS للسماح بتشغيل الصوت عبر السماعة
-    await AudioPlayer.global.setAudioContext(
-      AudioContext(
-        iOS: AudioContextIOS(
-          category: AVAudioSessionCategory.playAndRecord,
-          options: const {
-            AVAudioSessionOptions.defaultToSpeaker,
-            AVAudioSessionOptions.allowBluetooth,
-          },
+    // إعداد AudioContext مناسب لمنصة iOS للسماح بتشغيل الصوت عبر السماعة.
+    // مُغلف بـ try/catch حتى لا يفشل التشغيل إن رفض النظام ضبط الجلسة الصوتية.
+    try {
+      await AudioPlayer.global.setAudioContext(
+        AudioContext(
+          iOS: AudioContextIOS(
+            category: AVAudioSessionCategory.playAndRecord,
+            options: const {
+              AVAudioSessionOptions.defaultToSpeaker,
+              AVAudioSessionOptions.allowBluetooth,
+            },
+          ),
+          android: const AudioContextAndroid(
+            isSpeakerphoneOn: true,
+            stayAwake: true,
+            contentType: AndroidContentType.speech,
+            usageType: AndroidUsageType.voiceCommunication,
+            audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+          ),
         ),
-        android: const AudioContextAndroid(
-          isSpeakerphoneOn: true,
-          stayAwake: true,
-          contentType: AndroidContentType.speech,
-          usageType: AndroidUsageType.voiceCommunication,
-          audioFocus: AndroidAudioFocus.gainTransientMayDuck,
-        ),
-      ),
-    );
+      );
+    } catch (e) {
+      debugPrint('setAudioContext failed (continuing playback): $e');
+    }
 
     _previewPosSub?.cancel();
     _previewPosSub = _previewPlayer!.onPositionChanged.listen((pos) {
@@ -1344,6 +1430,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   /// 6. الحالة: الإرسال (sent) — انطواء اللوحة وإرسال الرسالة
   Future<void> _sendRecordedVoice() async {
     _recordTimer?.cancel();
+    _recordTimer = null;
     await _amplitudeSub?.cancel();
     await _previewPlayer?.stop();
     setState(() {
@@ -1358,24 +1445,56 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       debugPrint('Recording stop failed: $e');
     }
 
+    // ★ بعد "إيقاف مؤقت" يكون المسجل متوقفاً بالفعل (pause يستخدم stop()
+    // لتجهيز الملف للاستماع) فيعيد stop() هنا null — نرجع لمسار الملف المعروف
+    // حتى تُرسَل الرسالة بدل اختفاء الفقاعة دون إرسال.
+    path ??= _currentRecordingPath;
+
     final duration = _recordSeconds;
+
+    // ★ التحقق من وجود ملف صوتي حقيقي — ولا نفشل بصمت أبداً.
+    int? safeDuration;
+    if (path != null) {
+      final file = File(path);
+      final size = await file.exists() ? await file.length() : 0;
+      if (size > 0) {
+        safeDuration = duration > 0 ? duration : 1;
+      } else if (await file.exists()) {
+        try {
+          await file.delete();
+        } catch (_) {}
+      }
+    }
+
     await _panelAnimController.reverse();
 
-    if (mounted) {
+    if (!mounted) return;
+
+    if (safeDuration == null) {
+      // فشل حقيقي (لا ملف محفوظ): نعيد الحالة ونُخبر المستخدم بدل الاختفاء الصامت.
       setState(() {
-        _voiceState = ComposerVoiceState.sent;
+        _voiceState = ComposerVoiceState.idle;
         _recordSeconds = 0;
         _liveWaveform.clear();
         _resetHoldState();
       });
-      Future.delayed(const Duration(milliseconds: 150), () {
-        if (mounted) setState(() => _voiceState = ComposerVoiceState.idle);
-      });
+      _showErrorMessage(
+        'تعذر إرسال التسجيل الصوتي: لم يتم حفظ أي صوت — تحقق من إذن الميكروفون',
+      );
+      return;
     }
 
-    if (path != null && duration >= 1) {
-      _sendVoiceMessage(path, duration);
-    }
+    setState(() {
+      _voiceState = ComposerVoiceState.sent;
+      _recordSeconds = 0;
+      _liveWaveform.clear();
+      _resetHoldState();
+    });
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (mounted) setState(() => _voiceState = ComposerVoiceState.idle);
+    });
+
+    _sendVoiceMessage(path!, safeDuration);
   }
 
   /// Discards the recorded-but-unsent note and deletes its temp file.
@@ -3145,6 +3264,23 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
 
     if (widget.audioPath != null) {
       setState(() => _isLoading = true);
+
+      // ★ تحقق من وجود ملف الصوت فعلاً — بدل الانتقال لوضع "تشغيل" بلا صوت.
+      final audioFile = File(widget.audioPath!);
+      if (!await audioFile.exists() || await audioFile.length() == 0) {
+        debugPrint('Voice bubble audio missing: ${widget.audioPath}');
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('ملف التسجيل غير موجود على الجهاز'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
+      }
+
       if (_totalDuration > Duration.zero && _position >= _totalDuration) {
         await _player.seek(Duration.zero);
       }
@@ -3152,6 +3288,16 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
         await _player.play(DeviceFileSource(widget.audioPath!));
       } catch (e) {
         debugPrint('Playback error: $e');
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('تعذر تشغيل التسجيل: $e'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
       }
       if (mounted) {
         setState(() {
