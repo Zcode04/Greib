@@ -475,6 +475,8 @@ class _NearbyServicesSectionState extends State<NearbyServicesSection> {
       child: SingleChildScrollView(
         controller: _tabsController,
         scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 4),
         child: Row(
           children: List.generate(_tabs.length, (i) {
             final selected = i == _tab;
@@ -483,8 +485,8 @@ class _NearbyServicesSectionState extends State<NearbyServicesSection> {
               onTap: () => setState(() => _tab = i),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  vertical: 8,
-                  horizontal: 10,
+                  vertical: 12,
+                  horizontal: 14,
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -492,20 +494,20 @@ class _NearbyServicesSectionState extends State<NearbyServicesSection> {
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 220),
                       curve: Curves.easeOut,
-                      height: 3,
-                      width: selected ? 22 : 0,
+                      height: 4,
+                      width: selected ? 28 : 0,
                       decoration: BoxDecoration(
                         color: tint,
                         borderRadius: BorderRadius.circular(3),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     Text(
                       _tabs[i].label,
                       maxLines: 1,
                       style: TextStyle(
                         color: selected ? active : inactive,
-                        fontSize: 12.5,
+                        fontSize: 15,
                         fontWeight: selected
                             ? FontWeight.w700
                             : FontWeight.w500,
