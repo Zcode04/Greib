@@ -718,26 +718,23 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            Center(
-              child: _pillButton(
-                theme,
-                label: 'تفاصيل موقعي',
-                open: _detailsOpen,
-                onTap: () => setState(() => _detailsOpen = !_detailsOpen),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Divider(height: 1, thickness: 1, color: ink.withValues(alpha: 0.12)),
-            const SizedBox(height: AppSpacing.md),
-
-            // ── الأقرب إلى منطقتك ──
-            Center(
-              child: _pillButton(
-                theme,
-                label: 'الأقرب إلى منطقتك',
-                open: _nearestOpen,
-                onTap: () => setState(() => _nearestOpen = !_nearestOpen),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _pillButton(
+                  theme,
+                  label: 'تفاصيل موقعي',
+                  open: _detailsOpen,
+                  onTap: () => setState(() => _detailsOpen = !_detailsOpen),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                _pillButton(
+                  theme,
+                  label: 'الأقرب إلى منطقتك',
+                  open: _nearestOpen,
+                  onTap: () => setState(() => _nearestOpen = !_nearestOpen),
+                ),
+              ],
             ),
             AnimatedSize(
               duration: const Duration(milliseconds: 280),
