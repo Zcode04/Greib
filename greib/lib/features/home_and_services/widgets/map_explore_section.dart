@@ -454,9 +454,19 @@ class _NearbyServicesSectionState extends State<NearbyServicesSection> {
 
   @override
   Widget build(BuildContext context) {
+    final primary = context.textColors.primary;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Text(
+          '${_tabs[_tab].label} الأقرب إليك',
+          style: TextStyle(
+            color: primary,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 10),
         _tabsBar(),
         const SizedBox(height: 14),
         _nearbyList(),
@@ -464,9 +474,8 @@ class _NearbyServicesSectionState extends State<NearbyServicesSection> {
     );
   }
 
-  // ---------- تبويبات الأقرب إليك + مؤشر التبويب النشط ----------
+  // ---------- تبويبات الأقرب إليك ----------
   Widget _tabsBar() {
-    final tint = context.iconColors.primary;
     final inactive = context.textColors.secondary;
     final active = context.textColors.primary;
 
@@ -488,32 +497,14 @@ class _NearbyServicesSectionState extends State<NearbyServicesSection> {
                   vertical: 12,
                   horizontal: 14,
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 220),
-                      curve: Curves.easeOut,
-                      height: 4,
-                      width: selected ? 28 : 0,
-                      decoration: BoxDecoration(
-                        color: tint,
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      _tabs[i].label,
-                      maxLines: 1,
-                      style: TextStyle(
-                        color: selected ? active : inactive,
-                        fontSize: 15,
-                        fontWeight: selected
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  _tabs[i].label,
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: selected ? active : inactive,
+                    fontSize: 15,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  ),
                 ),
               ),
             );
@@ -532,15 +523,6 @@ class _NearbyServicesSectionState extends State<NearbyServicesSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          '${_tabs[_tab].label} الأقرب إليك',
-          style: TextStyle(
-            color: primary,
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 8),
         for (var i = 0; i < _nearbyForTab.length; i++) ...[
           if (i > 0) const SizedBox(height: 8),
           _nearbyCard(
