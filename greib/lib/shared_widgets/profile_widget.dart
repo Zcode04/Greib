@@ -7,9 +7,7 @@ import '../../core/theme/design_tokens.dart';
 import '../../core/mock_data/mock_data.dart';
 import '../../core/permissions/permissions.dart';
 import '../../shared_widgets/app_button.dart';
-import '../../shared_widgets/section_header.dart';
 import '../../shared_widgets/smart_image.dart';
-import '../../features/home_and_services/widgets/orders_list.dart';
 
 /// ============================================================================
 ///  ProfileWidget — الملف الشخصي بروح KIMI: هادئ، خفيف، راقٍ.
@@ -76,8 +74,6 @@ class _ProfileWidgetState extends State<ProfileWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     final topInset = widget.includeTopInset
         ? MediaQuery.paddingOf(context).top + 64
         : 0.0;
@@ -103,29 +99,6 @@ class _ProfileWidgetState extends State<ProfileWidget> {
             _isEditing = false;
           }),
           isEditable: widget.isEditable,
-        ),
-        Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SectionHeader(
-                title: 'طلباتك الحالية',
-                icon: LucideIcons.package,
-                iconColor: AppColors.warning,
-                actionTitle: 'كل الطلبات',
-                onActionTap: () => context.push('/orders'),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg,
-                ),
-                child: OrdersList(
-                  isDark: theme.brightness == Brightness.dark,
-                ),
-              ),
-            ],
-          ),
         ),
       ],
     );

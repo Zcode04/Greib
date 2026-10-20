@@ -35,7 +35,7 @@ class AppColors {
   // ---------- 🌙 الوضع الليلي (Dark Mode) — سواد تام احترافي ★
   // ★ مثل الصورة المرجعية: خلفية #000000 تامة + أسطح داكنة باهتة للعمق
   //   (تأثير اللون العكسي: نص أبيض فوق أسود + حدود زجاجية خفيفة)
-  static const Color _darkBg          = Color(0xFF000000);  // #000000 — سواد تام
+  static const Color _darkBg          = Color(0xFF0B141A);  // #0B141A — خلفية واتساب الداكنة (backdrop خلف الرسائل)
   static const Color _darkSurface     = Color(0xFF111214);  // كروت: أسود باهت (فصل ناعم عن الخلفية)
   static const Color _darkElevated    = Color(0xFF1C1E22);  // طبقة أعمق (modals, inputs)
   static const Color _darkBorder      = Color(0xFF2A2D34);  // حدود زجاجية خفيفة
