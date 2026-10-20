@@ -159,12 +159,14 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
 
   /// زر كبسولة مع سهم يدور عند الفتح.
   /// [plain] يُستخدم عندما يوضع الزر داخل كبسولة خارجية مشتركة — يزيل الخلفية الفردية.
+  /// [showIcon] يُظهر/يخفي أيقونة السهم المنبثق (تُعطّل داخل الكبسولة المشتركة).
   Widget _pillButton(
     ThemeData theme, {
     required String label,
     required bool open,
     required VoidCallback onTap,
     bool plain = false,
+    bool showIcon = true,
   }) {
     final ink = theme.colorScheme.onSurface;
     if (plain) {
@@ -185,13 +187,15 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(width: AppSpacing.xs),
-              AnimatedRotation(
-                turns: open ? 0.5 : 0,
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeOut,
-                child: const Icon(LucideIcons.chevronDown, size: 18),
-              ),
+              if (showIcon) ...[
+                const SizedBox(width: AppSpacing.xs),
+                AnimatedRotation(
+                  turns: open ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOut,
+                  child: const Icon(LucideIcons.chevronDown, size: 18),
+                ),
+              ],
             ],
           ),
         ),
@@ -218,13 +222,15 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(width: AppSpacing.xs),
-              AnimatedRotation(
-                turns: open ? 0.5 : 0,
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeOut,
-                child: const Icon(LucideIcons.chevronDown, size: 18),
-              ),
+              if (showIcon) ...[
+                const SizedBox(width: AppSpacing.xs),
+                AnimatedRotation(
+                  turns: open ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOut,
+                  child: const Icon(LucideIcons.chevronDown, size: 18),
+                ),
+              ],
             ],
           ),
         ),
@@ -750,37 +756,50 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.xs),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest
-                    .withValues(alpha: 0.35),
-                borderRadius: BorderRadius.circular(AppRadii.full),
-                border: Border.all(
-                  color: theme.dividerColor.withValues(alpha: 0.35),
-                  width: 1,
+            Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm + 2,
                 ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _pillButton(
-                    theme,
-                    label: 'تفاصيل موقعي',
-                    open: _detailsOpen,
-                    plain: true,
-                    onTap: () => setState(() => _detailsOpen = !_detailsOpen),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.35),
+                  borderRadius: BorderRadius.circular(AppRadii.full),
+                  border: Border.all(
+                    color: theme.dividerColor.withValues(alpha: 0.45),
+                    width: 1.2,
                   ),
-                  const VerticalDivider(width: 1, thickness: 1),
-                  const SizedBox(width: AppSpacing.sm),
-                  _pillButton(
-                    theme,
-                    label: 'الأقرب إلى منطقتك',
-                    open: _nearestOpen,
-                    plain: true,
-                    onTap: () => setState(() => _nearestOpen = !_nearestOpen),
-                  ),
-                ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _pillButton(
+                      theme,
+                      label: 'تفاصيل موقعي',
+                      open: _detailsOpen,
+                      plain: true,
+                      showIcon: false,
+                      onTap: () => setState(() => _detailsOpen = !_detailsOpen),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Container(
+                      width: 1.2,
+                      height: 20,
+                      color: theme.dividerColor.withValues(alpha: 0.6),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    _pillButton(
+                      theme,
+                      label: 'الأقرب إلى منطقتك',
+                      open: _nearestOpen,
+                      plain: true,
+                      showIcon: false,
+                      onTap: () => setState(() => _nearestOpen = !_nearestOpen),
+                    ),
+                  ],
+                ),
               ),
             ),
             AnimatedSize(
