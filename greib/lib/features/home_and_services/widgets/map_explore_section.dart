@@ -489,8 +489,8 @@ class _NearbyServicesSectionState extends State<NearbyServicesSection> {
         child: Row(
           children: List.generate(_tabs.length, (i) {
             final selected = i == _tab;
-            return InkWell(
-              borderRadius: BorderRadius.circular(16),
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () => setState(() => _tab = i),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
