@@ -545,10 +545,8 @@ class _NearbyServicesSectionState extends State<NearbyServicesSection> {
     final presence = place.online ? 'متصل الآن' : place.lastSeen;
     final quiet = context.backgroundColors.secondary;
 
-    return GlassContainer(
+    return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      borderRadius: BorderRadius.circular(20),
-      opacity: widget.isDark ? 0.05 : 0.08,
       child: Row(
         children: [
           Container(
