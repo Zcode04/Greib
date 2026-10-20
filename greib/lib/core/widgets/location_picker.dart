@@ -158,13 +158,45 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
   }
 
   /// زر كبسولة مع سهم يدور عند الفتح.
+  /// [plain] يُستخدم عندما يوضع الزر داخل كبسولة خارجية مشتركة — يزيل الخلفية الفردية.
   Widget _pillButton(
     ThemeData theme, {
     required String label,
     required bool open,
     required VoidCallback onTap,
+    bool plain = false,
   }) {
     final ink = theme.colorScheme.onSurface;
+    if (plain) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              AnimatedRotation(
+                turns: open ? 0.5 : 0,
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOut,
+                child: const Icon(LucideIcons.chevronDown, size: 18),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return Material(
       color: ink.withValues(alpha: 0.07),
       borderRadius: BorderRadius.circular(99),
@@ -718,23 +750,38 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _pillButton(
-                  theme,
-                  label: 'تفاصيل موقعي',
-                  open: _detailsOpen,
-                  onTap: () => setState(() => _detailsOpen = !_detailsOpen),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.xs),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest
+                    .withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(AppRadii.full),
+                border: Border.all(
+                  color: theme.dividerColor.withValues(alpha: 0.35),
+                  width: 1,
                 ),
-                const SizedBox(width: AppSpacing.sm),
-                _pillButton(
-                  theme,
-                  label: 'الأقرب إلى منطقتك',
-                  open: _nearestOpen,
-                  onTap: () => setState(() => _nearestOpen = !_nearestOpen),
-                ),
-              ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _pillButton(
+                    theme,
+                    label: 'تفاصيل موقعي',
+                    open: _detailsOpen,
+                    plain: true,
+                    onTap: () => setState(() => _detailsOpen = !_detailsOpen),
+                  ),
+                  const VerticalDivider(width: 1, thickness: 1),
+                  const SizedBox(width: AppSpacing.sm),
+                  _pillButton(
+                    theme,
+                    label: 'الأقرب إلى منطقتك',
+                    open: _nearestOpen,
+                    plain: true,
+                    onTap: () => setState(() => _nearestOpen = !_nearestOpen),
+                  ),
+                ],
+              ),
             ),
             AnimatedSize(
               duration: const Duration(milliseconds: 280),
