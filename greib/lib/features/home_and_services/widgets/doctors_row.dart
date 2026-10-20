@@ -4,7 +4,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/mock_data/mock_data.dart';
 import '../../../../core/models/doctor_model.dart';
-import '../../../../core/theme/design_tokens.dart';
 
 class DoctorsRow extends StatelessWidget {
   final bool isDark;
@@ -100,7 +99,7 @@ class DoctorsRow extends StatelessWidget {
                     width: 16,
                     height: 16,
                     decoration: BoxDecoration(
-                      color: AppColors.success,
+                      color: context.iconColors.success,
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: context.backgroundColors.surface,

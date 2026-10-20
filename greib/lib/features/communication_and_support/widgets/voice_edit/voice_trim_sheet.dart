@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:audioplayers/audioplayers.dart';
+import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/theme/chat_colors.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'wav_codec.dart';
@@ -132,10 +133,12 @@ class _VoiceTrimSheetState extends State<VoiceTrimSheet> {
     if (_dragging == _DragHandle.start) {
       setState(() => _startSec = sec.clamp(0, _endSec - _minTrimSec));
     } else {
-      setState(() => _endSec = sec.clamp(
-        _startSec + _minTrimSec,
-        _info.duration.inSeconds.toDouble(),
-      ));
+      setState(
+        () => _endSec = sec.clamp(
+          _startSec + _minTrimSec,
+          _info.duration.inSeconds.toDouble(),
+        ),
+      );
     }
   }
 
@@ -150,7 +153,9 @@ class _VoiceTrimSheetState extends State<VoiceTrimSheet> {
         _playheadFraction = _fraction(_startSec);
         _playStartTime = DateTime.now();
       });
-      final playDuration = Duration(milliseconds: ((_endSec - _startSec) * 1000).round());
+      final playDuration = Duration(
+        milliseconds: ((_endSec - _startSec) * 1000).round(),
+      );
       _playTimer = Timer(playDuration, () {
         if (mounted) {
           setState(() => _isPlaying = false);
@@ -163,13 +168,22 @@ class _VoiceTrimSheetState extends State<VoiceTrimSheet> {
           _playheadTimer?.cancel();
           return;
         }
-        final elapsedMs = DateTime.now().difference(_playStartTime ?? DateTime.now()).inMilliseconds.toDouble();
+        final elapsedMs = DateTime.now()
+            .difference(_playStartTime ?? DateTime.now())
+            .inMilliseconds
+            .toDouble();
         final startMs = _startSec * 1000;
         final endMs = _endSec * 1000;
         final totalMs = endMs - startMs;
         if (totalMs <= 0) return;
         final progress = (elapsedMs / totalMs).clamp(0.0, 1.0);
-        if (mounted) setState(() => _playheadFraction = _fraction(_startSec + progress * (_endSec - _startSec)));
+        if (mounted) {
+          setState(
+            () => _playheadFraction = _fraction(
+              _startSec + progress * (_endSec - _startSec),
+            ),
+          );
+        }
       });
     } catch (e) {
       debugPrint('Trim preview play failed: $e');
@@ -182,7 +196,8 @@ class _VoiceTrimSheetState extends State<VoiceTrimSheet> {
     setState(() => _isApplying = true);
     try {
       final dir = await _recordingsDir();
-      final out = '${dir.path}/trimmed_${DateTime.now().millisecondsSinceEpoch}.wav';
+      final out =
+          '${dir.path}/trimmed_${DateTime.now().millisecondsSinceEpoch}.wav';
       final result = await VoiceAudioEditor.trim(
         inputPath: widget.audioPath,
         outputPath: out,
@@ -259,8 +274,9 @@ class _VoiceTrimSheetState extends State<VoiceTrimSheet> {
                   size: Size(width, _trackHeight),
                   painter: _WaveBarsPainter(
                     bars: _bars,
-                    inactiveColor: chat.recordingWaveUnplayed
-                        .withValues(alpha: 0.45),
+                    inactiveColor: chat.recordingWaveUnplayed.withValues(
+                      alpha: 0.45,
+                    ),
                   ),
                 ),
               ),
@@ -288,7 +304,7 @@ class _VoiceTrimSheetState extends State<VoiceTrimSheet> {
                     ),
                   ),
                 ),
-            ),
+              ),
 
             // مؤشر التشغيل (playhead)
             if (_isPlaying)
@@ -366,8 +382,11 @@ class _VoiceTrimSheetState extends State<VoiceTrimSheet> {
           Row(
             children: [
               IconButton(
-                icon: Icon(_isPlaying ? LucideIcons.pause : LucideIcons.play,
-                    size: 20, color: chat.sendButton),
+                icon: Icon(
+                  _isPlaying ? LucideIcons.pause : LucideIcons.play,
+                  size: 20,
+                  color: chat.sendButton,
+                ),
                 onPressed: _isPlaying ? null : _playSelected,
                 tooltip: 'استماع للمقطع المحدد',
                 padding: EdgeInsets.zero,
@@ -387,7 +406,7 @@ class _VoiceTrimSheetState extends State<VoiceTrimSheet> {
                   label: const Text('تطبيق القص'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: chat.sendButton,
-                    foregroundColor: Colors.white,
+                    foregroundColor: context.textColors.onAccent,
                     minimumSize: const Size(150, 44),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(22),
@@ -437,7 +456,7 @@ class _VoiceTrimSheetState extends State<VoiceTrimSheet> {
                 width: 40,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.12),
+                  color: context.textColors.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),
@@ -447,9 +466,7 @@ class _VoiceTrimSheetState extends State<VoiceTrimSheet> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : const Color(0xFF111B21),
+                  color: context.textColors.primary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -457,14 +474,16 @@ class _VoiceTrimSheetState extends State<VoiceTrimSheet> {
                 'اسحب المقبضين من الطرفين لتحديد الجزء الذي تريد إبقاءه',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Theme.of(context).disabledColor,
+                  color: context.textColors.disabled,
                   height: 1.4,
                 ),
               ),
               const SizedBox(height: 26),
-              LayoutBuilder(builder: (ctx, constraints) {
-                return _buildTrack(constraints.maxWidth);
-              }),
+              LayoutBuilder(
+                builder: (ctx, constraints) {
+                  return _buildTrack(constraints.maxWidth);
+                },
+              ),
               const SizedBox(height: 26),
               _buildControls(),
               const SizedBox(height: 30),
@@ -541,15 +560,12 @@ class _TrimHandle extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.backgroundColors.surface,
         shape: BoxShape.circle,
-        border: Border.all(
-          color: color,
-          width: isActive ? 3 : 2,
-        ),
+        border: Border.all(color: color, width: isActive ? 3 : 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.16),
+            color: context.backgroundColors.scrim.withValues(alpha: 0.16),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -559,10 +575,7 @@ class _TrimHandle extends StatelessWidget {
         child: Container(
           width: isActive ? 10 : 6,
           height: isActive ? 10 : 6,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
       ),
     );

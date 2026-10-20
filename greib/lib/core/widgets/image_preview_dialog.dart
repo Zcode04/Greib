@@ -3,6 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/mock_data/mock_data.dart';
 import '../../core/models/service_model.dart';
+import '../../core/extensions/context_extensions.dart';
 
 /// ============================================================================
 ///  ImagePreviewDialog — معاينة صور البطاقة:
@@ -154,6 +155,9 @@ class _ImagePreviewDialogState extends State<ImagePreviewDialog>
 
   Widget _buildStack(BuildContext context) {
     final many = widget.images.length > 1;
+    // محتوى فوق الصور ⇒ ألوان "على الوسائط" (فاتحة دائماً فوق طبقة تعتيم).
+    final onMedia = context.textColors.onMedia;
+    final iconOnMedia = context.iconColors.onMedia;
     return Stack(
       children: [
         Listener(
@@ -186,12 +190,12 @@ class _ImagePreviewDialogState extends State<ImagePreviewDialog>
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.16),
+              color: onMedia.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
               '${_index + 1}/${widget.images.length}',
-              style: const TextStyle(color: Colors.white, fontSize: 12),
+              style: TextStyle(color: onMedia, fontSize: 12),
             ),
           ),
         ),
@@ -202,10 +206,10 @@ class _ImagePreviewDialogState extends State<ImagePreviewDialog>
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
+              Text(
                 'گريب منك',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: onMedia,
                   fontSize: 14,
                   fontWeight: FontWeight.w900,
                 ),
@@ -215,12 +219,12 @@ class _ImagePreviewDialogState extends State<ImagePreviewDialog>
                 onPressed: _toggleZoom,
                 icon: Icon(
                   _zoomed ? LucideIcons.zoomOut : LucideIcons.zoomIn,
-                  color: Colors.white,
+                  color: iconOnMedia,
                 ),
               ),
               IconButton(
                 onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.close, color: Colors.white),
+                icon: Icon(Icons.close, color: iconOnMedia),
               ),
             ],
           ),
@@ -241,7 +245,7 @@ class _ImagePreviewDialogState extends State<ImagePreviewDialog>
                   width: i == _index ? 18 : 6,
                   height: 6,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(
+                    color: onMedia.withValues(
                       alpha: i == _index ? 1 : 0.5,
                     ),
                     borderRadius: BorderRadius.circular(4),

@@ -818,7 +818,7 @@ class ProfileScreen extends StatelessWidget {
                 label: 'تسجيل الخروج',
                 icon: LucideIcons.logOut,
                 type: ButtonType.ghost,
-                color: AppColors.error,
+                color: context.iconColors.error,
                 onPressed: () => context.go('/login'),
               ),
             ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/extensions/context_extensions.dart';
 import '../../../../features/auth/mock_auth.dart';
 import '../../../../core/permissions/permissions.dart';
 
@@ -17,20 +17,20 @@ class QuickActions extends StatelessWidget {
       runSpacing: 10,
       children: [
         if (role == UserRole.admin)
-          _chip(context, LucideIcons.shieldCheck, 'لوحة المشرفين', AppColors.error,
-              () => context.push('/admin_dashboard')),
+          _chip(context, LucideIcons.shieldCheck, 'لوحة المشرفين',
+              context.iconColors.error, () => context.push('/admin_dashboard')),
         if (role == UserRole.agent)
-          _chip(context, LucideIcons.bike, 'لوحة الوكيل', AppColors.warning,
-              () => context.push('/agent_dashboard')),
+          _chip(context, LucideIcons.bike, 'لوحة الوكيل',
+              context.iconColors.warning, () => context.push('/agent_dashboard')),
         if (role == UserRole.admin || role == UserRole.agent)
-          _chip(context, LucideIcons.package, 'طلباتي', AppColors.info,
-              () => context.push('/orders')),
-        _chip(context, LucideIcons.search, 'البحث', AppColors.accentPrimary,
+          _chip(context, LucideIcons.package, 'طلباتي',
+              context.iconColors.info, () => context.push('/orders')),
+        _chip(context, LucideIcons.search, 'البحث', context.accentColor,
             () => context.push('/search')),
-        _chip(context, LucideIcons.settings, 'الإعدادات', AppColors.textSecondary,
-            () => context.push('/settings')),
-        _chip(context, LucideIcons.logOut, 'تسجيل الخروج', AppColors.textMuted,
-            () {
+        _chip(context, LucideIcons.settings, 'الإعدادات',
+            context.textColors.secondary, () => context.push('/settings')),
+        _chip(context, LucideIcons.logOut, 'تسجيل الخروج',
+            context.textColors.tertiary, () {
           AuthService.instance.logout();
           context.go('/login');
         }),
@@ -38,8 +38,8 @@ class QuickActions extends StatelessWidget {
     );
   }
 
-  Widget _chip(BuildContext context, IconData icon, String label, Color color, VoidCallback onTap) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _chip(BuildContext context, IconData icon, String label,
+      Color color, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
@@ -57,7 +57,7 @@ class QuickActions extends StatelessWidget {
             const SizedBox(width: 6),
             Text(label,
                 style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: context.textColors.primary,
                     fontSize: 12,
                     fontWeight: FontWeight.w600)),
           ],

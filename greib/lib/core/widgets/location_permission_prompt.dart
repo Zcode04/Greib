@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../location/location_service.dart';
-import '../theme/app_colors.dart';
+import '../extensions/context_extensions.dart';
 
 /// ============================================================================
 ///  LocationPermissionPrompt — Dialog احترافي يشرح سبب طلب الموقع ثم يطلبه.
@@ -62,11 +62,12 @@ class _LocationPermissionPromptState extends State<LocationPermissionPrompt>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg     = isDark ? AppColors.surface : Colors.white;
-    final tint   = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
-    final text   = isDark ? AppColors.textPrimary : AppColors.lightText;
-    final sub    = isDark ? AppColors.textSecondary : AppColors.lightTextSecondary;
+    // اللوحة المركزية تتكفّل بالوضعين ⇒ لا حاجة لِفحص السطوع هنا.
+    final bg   = context.backgroundColors.surface;
+    final tint = context.iconColors.primary;
+    final text = context.textColors.primary;
+    final sub  = context.textColors.secondary;
+    final onAccent = context.textColors.onAccent;
 
     return Dialog(
       backgroundColor: bg,
@@ -128,7 +129,7 @@ class _LocationPermissionPromptState extends State<LocationPermissionPrompt>
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(
                   backgroundColor: tint,
-                  foregroundColor: isDark ? Colors.black : Colors.white,
+                  foregroundColor: onAccent,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -141,7 +142,7 @@ class _LocationPermissionPromptState extends State<LocationPermissionPrompt>
                         height: 18,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: isDark ? Colors.black : Colors.white,
+                          color: onAccent,
                         ),
                       )
                     : const Icon(LucideIcons.check, size: 18),
@@ -170,8 +171,7 @@ class _LocationPermissionPromptState extends State<LocationPermissionPrompt>
   }
 
   Widget _featureRow(Color tint, IconData icon, String label) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final sub = isDark ? AppColors.textSecondary : AppColors.lightTextSecondary;
+    final sub = context.textColors.secondary;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(

@@ -10,6 +10,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/mock_data/mock_data.dart';
 import '../../core/models/service_model.dart';
 import '../../core/theme/design_tokens.dart';
+import '../../core/extensions/context_extensions.dart';
 import '../../core/widgets/super_header.dart';
 import '../services/data/services_repository.dart';
 import '../visual_search/visual_search_analysis_screen.dart';
@@ -212,9 +213,7 @@ class _SearchScreenState extends State<SearchScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: isDark
-            ? AppColors.background
-            : AppColors.lightBackground,
+        backgroundColor: context.backgroundColors.primary,
         appBar: const SuperHeader(title: 'البحث', showBackButton: true),
         body: SafeArea(
           child: Column(
@@ -239,7 +238,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                 ),
               ),
-              _buildBottomInputBar(theme, isDark),
+              _buildBottomInputBar(context, theme),
             ],
           ),
         ),
@@ -249,7 +248,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   // ───────────────────────── شريط الإدخال ─────────────────────────
 
-  Widget _buildBottomInputBar(ThemeData theme, bool isDark) {
+  Widget _buildBottomInputBar(BuildContext context, ThemeData theme) {
     return Container(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.lg,
@@ -257,7 +256,7 @@ class _SearchScreenState extends State<SearchScreen> {
         AppSpacing.lg,
         AppSpacing.md,
       ),
-      color: isDark ? AppColors.background : AppColors.lightBackground,
+      color: context.backgroundColors.primary,
       child: SafeArea(
         top: false,
         child: Column(
@@ -266,7 +265,7 @@ class _SearchScreenState extends State<SearchScreen> {
           children: [
             _buildToolbar(theme),
             const SizedBox(height: AppSpacing.sm),
-            _buildSearchField(theme, isDark),
+            _buildSearchField(context, theme),
           ],
         ),
       ),
@@ -325,7 +324,8 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildSearchField(ThemeData theme, bool isDark) {
+  Widget _buildSearchField(BuildContext context, ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
     final focused = _focusNode.hasFocus;
     final canSend =
         _searchController.text.trim().isNotEmpty || _attachment != null;
@@ -336,12 +336,12 @@ class _SearchScreenState extends State<SearchScreen> {
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeOutCubic,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
+        color: context.backgroundColors.surface,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
           color: focused
               ? (isDark ? Colors.white24 : Colors.black26)
-              : (isDark ? AppColors.outline : AppColors.lightOutline),
+              : context.backgroundColors.outline,
         ),
       ),
       child: Column(
@@ -371,7 +371,7 @@ class _SearchScreenState extends State<SearchScreen> {
               keyboardType: TextInputType.multiline,
               textInputAction: TextInputAction.newline,
               onChanged: (_) => setState(() {}),
-              cursorColor: AppColors.accentPrimary,
+              cursorColor: context.accentColor,
               style: textStyle,
               decoration: InputDecoration(
                 hintText: _attachment != null
@@ -457,14 +457,14 @@ class _SearchScreenState extends State<SearchScreen> {
             key: ValueKey('$_phase$_runId'),
             child: _phase == _SearchPhase.thinking
                 ? _AiThinking(query: _submittedQuery)
-                : _buildResults(theme, isDark),
+                : _buildResults(context, theme),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildResults(ThemeData theme, bool isDark) {
+  Widget _buildResults(BuildContext context, ThemeData theme) {
     final results = _found;
     final muted = theme.colorScheme.onSurfaceVariant;
     return Column(
@@ -485,7 +485,7 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
         const SizedBox(height: AppSpacing.md),
         if (results.isEmpty)
-          _buildEmptyResults(theme, isDark, _submittedQuery)
+          _buildEmptyResults(theme, _submittedQuery)
         else
           for (var i = 0; i < results.length; i++)
             _FadeInUp(
@@ -496,7 +496,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   if (i < results.length - 1)
                     Divider(
                       height: 1,
-                      color: isDark ? AppColors.outline : AppColors.lightOutline,
+                      color: context.backgroundColors.outline,
                     ),
                 ],
               ),
@@ -547,7 +547,7 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildEmptyResults(ThemeData theme, bool isDark, String query) {
+  Widget _buildEmptyResults(ThemeData theme, String query) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
       child: SizedBox(
@@ -557,7 +557,9 @@ class _SearchScreenState extends State<SearchScreen> {
             Icon(
               LucideIcons.searchX,
               size: 40,
-              color: isDark ? Colors.white : theme.colorScheme.onSurface,
+              color: theme.brightness == Brightness.dark
+                  ? Colors.white
+                  : theme.colorScheme.onSurface,
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
@@ -981,7 +983,7 @@ class _QuickChip extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final fg = isDark ? Colors.white : theme.colorScheme.onSurface;
     return Material(
-      color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
+      color: context.backgroundColors.surface,
       borderRadius: BorderRadius.circular(AppRadii.full),
       child: InkWell(
         onTap: onTap,
@@ -994,7 +996,7 @@ class _QuickChip extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppRadii.full),
             border: Border.all(
-              color: isDark ? AppColors.outline : AppColors.lightOutline,
+              color: context.backgroundColors.outline,
             ),
           ),
           child: Row(
@@ -1139,7 +1141,6 @@ class _UserBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return Align(
       alignment: AlignmentDirectional.centerStart,
       child: _FadeInUp(
@@ -1152,7 +1153,7 @@ class _UserBubble extends StatelessWidget {
             vertical: AppSpacing.md,
           ),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceCard : AppColors.lightSurface,
+            color: context.backgroundColors.surface,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(text, style: theme.textTheme.bodyLarge),
@@ -1206,7 +1207,7 @@ class _AiThinkingState extends State<_AiThinking>
     super.dispose();
   }
 
-  Widget _orb(Color bg, Color fg) {
+  Widget _orb(BuildContext context, Color bg, Color fg) {
     return AnimatedBuilder(
       animation: _c,
       builder: (_, __) {
@@ -1226,15 +1227,15 @@ class _AiThinkingState extends State<_AiThinking>
                       shape: BoxShape.circle,
                       gradient: SweepGradient(
                         colors: [
-                          AppColors.accentPrimary,
+                          context.accentColor,
                           const Color(0xFF8E7BFF),
                           const Color(0xFF2FD1FF),
-                          AppColors.accentPrimary,
+                          context.accentColor,
                         ],
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.accentPrimary.withValues(alpha: 0.35),
+                          color: context.accentColor.withValues(alpha: 0.35),
                           blurRadius: 18,
                         ),
                       ],
@@ -1259,7 +1260,7 @@ class _AiThinkingState extends State<_AiThinking>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final bg = isDark ? AppColors.background : AppColors.lightBackground;
+    final bg = context.backgroundColors.primary;
     final fg = isDark ? Colors.white : theme.colorScheme.onSurface;
     final muted = theme.colorScheme.onSurfaceVariant;
     final steps = _steps;
@@ -1272,7 +1273,7 @@ class _AiThinkingState extends State<_AiThinking>
       children: [
         Row(
           children: [
-            _orb(bg, fg),
+            _orb(context, bg, fg),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: AnimatedSwitcher(
@@ -1336,7 +1337,7 @@ class _AiThinkingState extends State<_AiThinking>
                           ? Icon(
                               LucideIcons.check,
                               size: 16,
-                              color: AppColors.accentPrimary,
+                              color: context.accentColor,
                             )
                           : i == _step
                               ? CircularProgressIndicator(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../core/extensions/context_extensions.dart';
 import '../../../core/theme/chat_colors.dart';
 
 /// ============================================================================
@@ -177,8 +178,12 @@ class _WhatsAppVoiceButtonState extends State<WhatsAppVoiceButton> {
                         size: 21,
                       )
                     : Icon(
-                        widget.cancelArmed ? LucideIcons.trash2 : LucideIcons.mic,
-                        key: ValueKey(widget.cancelArmed ? 'trash_icon' : 'mic_icon'),
+                        widget.cancelArmed
+                            ? LucideIcons.trash2
+                            : LucideIcons.mic,
+                        key: ValueKey(
+                          widget.cancelArmed ? 'trash_icon' : 'mic_icon',
+                        ),
                         color: chat.sendIcon,
                         size: 23,
                       ),
@@ -197,8 +202,8 @@ class _WhatsAppVoiceButtonState extends State<WhatsAppVoiceButton> {
 ///  قفل يتحول من مغلق → مفتوح تدريجياً مع السحب، وسهمين صاعدين يتحركان.
 ///  الكبسولة تمتد ارتفاعاً مع تقدم السحب. تختفي عند القفل أو الإفلات.
 class VoiceLockRail extends StatelessWidget {
-  final Animation<double> bounce;       // حركة السهمين الصاعدة/النازلة
-  final double lockProgress;            // 0.0 (مغلق) → 1.0 (مفتوح/مقفل)
+  final Animation<double> bounce; // حركة السهمين الصاعدة/النازلة
+  final double lockProgress; // 0.0 (مغلق) → 1.0 (مفتوح/مقفل)
   final bool visible;
   final bool isRTL;
 
@@ -213,9 +218,12 @@ class VoiceLockRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chat = context.chatColors;
-    final double railHeight = 84.0 + (40.0 * lockProgress.clamp(0.0, 1.0)); // تمدد من 84 إلى 124px
+    final double railHeight =
+        84.0 + (40.0 * lockProgress.clamp(0.0, 1.0)); // تمدد من 84 إلى 124px
     final bool isNearLock = lockProgress >= 0.6;
-    final IconData lockIcon = isNearLock ? LucideIcons.lockOpen : LucideIcons.lock;
+    final IconData lockIcon = isNearLock
+        ? LucideIcons.lockOpen
+        : LucideIcons.lock;
     // ★ ألوان القفل والسكة من الثيم بدل الثابت.
     final Color lockColor = isNearLock ? chat.sendButton : chat.composerIcon;
 
@@ -238,19 +246,19 @@ class VoiceLockRail extends StatelessWidget {
                 height: railHeight,
                 decoration: BoxDecoration(
                   // ★ خلفية السكة متوافقة تماماً مع الثيم (ليلي / نهاري)
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF1F2C34)
-                      : Colors.white,
+                  color: context.chatColors.recordingBackground,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white.withValues(alpha: 0.10)
-                        : Colors.black.withValues(alpha: 0.08),
+                    color: context.textColors.primary.withValues(
+                      alpha: context.isDarkMode ? 0.10 : 0.08,
+                    ),
                     width: 0.8,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.35 : 0.12),
+                      color: context.backgroundColors.scrim.withValues(
+                        alpha: context.isDarkMode ? 0.35 : 0.12,
+                      ),
                       blurRadius: 10,
                       offset: const Offset(0, 3),
                     ),
@@ -261,10 +269,8 @@ class VoiceLockRail extends StatelessWidget {
                   children: [
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 160),
-                      transitionBuilder: (child, anim) => ScaleTransition(
-                        scale: anim,
-                        child: child,
-                      ),
+                      transitionBuilder: (child, anim) =>
+                          ScaleTransition(scale: anim, child: child),
                       child: Icon(
                         lockIcon,
                         key: ValueKey(isNearLock),

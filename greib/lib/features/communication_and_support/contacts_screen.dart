@@ -69,8 +69,9 @@ class _ContactsScreenState extends State<ContactsScreen> {
       activity: contact.activity,
       // الرسمية تفتح محادثتها القائمة — والخدمات الجديدة تفتح محادثة
       // فارغة تماماً مثل واتساب.
-      startEmpty:
-          !ContactsChatStore.officialAccounts.any((a) => a.id == contact.id),
+      startEmpty: !ContactsChatStore.officialAccounts.any(
+        (a) => a.id == contact.id,
+      ),
     );
   }
 
@@ -112,7 +113,6 @@ class _ContactsScreenState extends State<ContactsScreen> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -144,8 +144,9 @@ class _ContactsScreenState extends State<ContactsScreen> {
                 decoration: BoxDecoration(
                   border: Border(
                     bottom: BorderSide(
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.10),
+                      color: theme.colorScheme.onSurface.withValues(
+                        alpha: 0.10,
+                      ),
                     ),
                   ),
                 ),
@@ -159,15 +160,17 @@ class _ContactsScreenState extends State<ContactsScreen> {
                       color: context.accentColor,
                       width: 2.5,
                     ),
-                    insets:
-                        const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                    insets: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                    ),
                   ),
                   labelPadding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.lg,
                   ),
                   labelColor: context.accentColor,
-                  unselectedLabelColor:
-                      theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                  unselectedLabelColor: theme.colorScheme.onSurface.withValues(
+                    alpha: 0.55,
+                  ),
                   labelStyle: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
@@ -318,7 +321,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
           children: [
             _ContactTile(
               name: conv['name'] as String,
-              subtitle: (conv['activity'] as String?) ??
+              subtitle:
+                  (conv['activity'] as String?) ??
                   (conv['phone'] as String?) ??
                   '',
               avatar: conv['avatar'] as String,
@@ -334,14 +338,13 @@ class _ContactsScreenState extends State<ContactsScreen> {
 
   /// فاصل واتساب: رفيع + يبدأ بعد الأفاتار (12+52+12=76).
   Widget _tileDivider(AppChatColors chat) => Divider(
-        height: 1,
-        thickness: 0.5,
-        indent: 76,
-        endIndent: 12,
-        color: chat.composerBorder,
-      );
+    height: 1,
+    thickness: 0.5,
+    indent: 76,
+    endIndent: 12,
+    color: chat.composerBorder,
+  );
 }
-
 
 /// عنوان قسم صغير بلون الـ accent (مثل واتساب: «الأكثر تواصلاً»).
 class _SectionHeader extends StatelessWidget {
@@ -449,21 +452,16 @@ class _ContactTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontSize: 13,
-                      color: chat.recordingWaveUnplayed,
+                      color: chat.mutedText,
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(
-              LucideIcons.chevronLeft,
-              size: 18,
-              color: chat.recordingWaveUnplayed,
-            ),
+            Icon(LucideIcons.chevronLeft, size: 18, color: chat.mutedText),
           ],
         ),
       ),
     );
   }
 }
-

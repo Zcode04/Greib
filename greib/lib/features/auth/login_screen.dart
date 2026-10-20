@@ -408,7 +408,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   borderRadius: BorderRadius.circular(50),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
+                      color: context.backgroundColors.scrim.withValues(
+                        alpha: 0.08,
+                      ),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -716,22 +718,23 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildErrorBanner(String message) {
+    final error = context.iconColors.error;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: 0.1),
+        color: error.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(50),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+        border: Border.all(color: error.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          const Icon(LucideIcons.alertCircle, color: AppColors.error, size: 18),
+          Icon(LucideIcons.alertCircle, color: error, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(
-                color: AppColors.error,
+              style: TextStyle(
+                color: error,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),

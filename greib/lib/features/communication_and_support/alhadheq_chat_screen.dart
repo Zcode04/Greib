@@ -195,7 +195,9 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
       );
     }
 
-    if (lower.contains('طلب') || lower.contains('تتبع') || lower.contains('أوردر')) {
+    if (lower.contains('طلب') ||
+        lower.contains('تتبع') ||
+        lower.contains('أوردر')) {
       return AlhadheqMessage(
         id: id,
         text:
@@ -328,7 +330,9 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('بدء محادثة جديدة'),
-        content: const Text('هل ترغب في مسح سجل المحادثة الحالي وبدء جلسة جديدة مع الحاذق؟'),
+        content: const Text(
+          'هل ترغب في مسح سجل المحادثة الحالي وبدء جلسة جديدة مع الحاذق؟',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -371,7 +375,11 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
                       color: context.accentColor.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(LucideIcons.sparkles, color: context.accentColor, size: 24),
+                    child: Icon(
+                      LucideIcons.sparkles,
+                      color: context.accentColor,
+                      size: 24,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   const Text(
@@ -405,8 +413,7 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final isDark = context.palette.isDark;
     final surface = context.backgroundColors.surface;
     final accent = context.accentColor;
     final outline = context.backgroundColors.outline;
@@ -444,7 +451,7 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
                         colors: [
                           accent,
                           accent.withValues(alpha: 0.75),
-                          const Color(0xFF8B5CF6),
+                          context.accentLightColor,
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -460,9 +467,9 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
                         ),
                       ],
                     ),
-                    child: const Icon(
+                    child: Icon(
                       LucideIcons.sparkles,
-                      color: Colors.white,
+                      color: context.textColors.onAccent,
                       size: 18,
                     ),
                   ),
@@ -512,9 +519,7 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
                   _isTyping ? 'يكتب الآن...' : 'متصل ومستعد للمساعدة ⚡️',
                   style: TextStyle(
                     fontSize: 11,
-                    color: _isTyping
-                        ? accent
-                        : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                    color: _isTyping ? accent : context.textColors.secondary,
                   ),
                 ),
               ],
@@ -573,7 +578,7 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
         color: surface.withValues(alpha: 0.6),
         border: Border(
           bottom: BorderSide(
-            color: (isDark ? Colors.white10 : Colors.black12),
+            color: context.backgroundColors.outline.withValues(alpha: 0.5),
             width: 0.5,
           ),
         ),
@@ -588,16 +593,10 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
           return ActionChip(
             label: Text(
               suggestion,
-              style: TextStyle(
-                fontSize: 11,
-                color: isDark ? Colors.grey[300] : Colors.grey[800],
-              ),
+              style: TextStyle(fontSize: 11, color: context.textColors.primary),
             ),
             backgroundColor: surface,
-            side: BorderSide(
-              color: accent.withValues(alpha: 0.25),
-              width: 0.8,
-            ),
+            side: BorderSide(color: accent.withValues(alpha: 0.25), width: 0.8),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -617,18 +616,17 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
     final isUser = message.isUser;
     final bubbleColor = isUser
         ? accent
-        : (isDark
-            ? const Color(0xFF242632)
-            : const Color(0xFFF1F3F9));
+        : context.backgroundColors.surfaceElevated;
     final textColor = isUser
-        ? Colors.white
-        : (isDark ? Colors.white : const Color(0xFF1E293B));
+        ? context.textColors.onAccent
+        : context.textColors.primary;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Row(
-        mainAxisAlignment:
-            isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isUser) ...[
@@ -644,8 +642,9 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
           ],
           Flexible(
             child: Column(
-              crossAxisAlignment:
-                  isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment: isUser
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -662,7 +661,9 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
+                        color: context.backgroundColors.scrim.withValues(
+                          alpha: 0.04,
+                        ),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -688,16 +689,18 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
                             style: TextStyle(
                               fontSize: 10,
                               color: isUser
-                                  ? Colors.white.withValues(alpha: 0.75)
-                                  : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                                  ? context.textColors.onAccent.withValues(
+                                      alpha: 0.75,
+                                    )
+                                  : context.textColors.secondary,
                             ),
                           ),
                           if (isUser) ...[
                             const SizedBox(width: 4),
-                            const Icon(
+                            Icon(
                               LucideIcons.checkCheck,
                               size: 13,
-                              color: Colors.white,
+                              color: context.textColors.onAccent,
                             ),
                           ],
                         ],
@@ -707,7 +710,9 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
                 ),
 
                 // أزرار الإجراءات داخل رد الذكاء الاصطناعي
-                if (!isUser && message.actions != null && message.actions!.isNotEmpty) ...[
+                if (!isUser &&
+                    message.actions != null &&
+                    message.actions!.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
@@ -719,8 +724,9 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
                             horizontal: 12,
                             vertical: 8,
                           ),
-                          backgroundColor:
-                              accent.withValues(alpha: isDark ? 0.12 : 0.06),
+                          backgroundColor: accent.withValues(
+                            alpha: isDark ? 0.12 : 0.06,
+                          ),
                           side: BorderSide(
                             color: accent.withValues(alpha: 0.35),
                           ),
@@ -758,7 +764,10 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
                       IconButton(
                         icon: const Icon(LucideIcons.copy, size: 14),
                         padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                        constraints: const BoxConstraints(
+                          minWidth: 28,
+                          minHeight: 28,
+                        ),
                         tooltip: 'نسخ الرد',
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: message.text));
@@ -779,7 +788,10 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
                           color: message.isLiked == true ? accent : null,
                         ),
                         padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                        constraints: const BoxConstraints(
+                          minWidth: 28,
+                          minHeight: 28,
+                        ),
                         tooltip: 'مفيد',
                         onPressed: () {
                           setState(() => message.isLiked = true);
@@ -791,10 +803,15 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
                               ? LucideIcons.thumbsDown
                               : LucideIcons.thumbsDown,
                           size: 14,
-                          color: message.isLiked == false ? Colors.redAccent : null,
+                          color: message.isLiked == false
+                              ? context.iconColors.error
+                              : null,
                         ),
                         padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                        constraints: const BoxConstraints(
+                          minWidth: 28,
+                          minHeight: 28,
+                        ),
                         tooltip: 'غير دقيق',
                         onPressed: () {
                           setState(() => message.isLiked = false);
@@ -831,9 +848,7 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
             decoration: BoxDecoration(
               color: surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: accent.withValues(alpha: 0.2),
-              ),
+              border: Border.all(color: accent.withValues(alpha: 0.2)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -895,7 +910,9 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
         color: surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+            color: context.backgroundColors.scrim.withValues(
+              alpha: isDark ? 0.3 : 0.05,
+            ),
             blurRadius: 10,
             offset: const Offset(0, -3),
           ),
@@ -909,13 +926,9 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF1E212B)
-                      : const Color(0xFFF1F3F8),
+                  color: context.backgroundColors.surfaceElevated,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: outline.withValues(alpha: 0.5),
-                  ),
+                  border: Border.all(color: outline.withValues(alpha: 0.5)),
                 ),
                 child: Row(
                   children: [
@@ -939,7 +952,9 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('التعرف الصوتي الذكي سيتوفر قريباً 🎙️'),
+                            content: Text(
+                              'التعرف الصوتي الذكي سيتوفر قريباً 🎙️',
+                            ),
                             duration: Duration(seconds: 1),
                           ),
                         );
@@ -963,7 +978,11 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
                 ],
               ),
               child: IconButton(
-                icon: const Icon(LucideIcons.sendHorizontal, color: Colors.white, size: 18),
+                icon: Icon(
+                  LucideIcons.sendHorizontal,
+                  color: context.textColors.onAccent,
+                  size: 18,
+                ),
                 tooltip: 'إرسال',
                 onPressed: () => _sendMessage(),
               ),
@@ -975,7 +994,9 @@ class _AlhadheqChatScreenState extends State<AlhadheqChatScreen>
   }
 
   String _formatTime(DateTime time) {
-    final hour = time.hour > 12 ? time.hour - 12 : (time.hour == 0 ? 12 : time.hour);
+    final hour = time.hour > 12
+        ? time.hour - 12
+        : (time.hour == 0 ? 12 : time.hour);
     final period = time.hour >= 12 ? 'م' : 'ص';
     final minute = time.minute.toString().padLeft(2, '0');
     return '$hour:$minute $period';

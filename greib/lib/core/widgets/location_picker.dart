@@ -10,6 +10,7 @@ import '../../features/home_and_services/widgets/map_explore_section.dart';
 import '../location/location_controller.dart';
 import '../location/mauritania_regions.dart';
 import '../theme/design_tokens.dart';
+import '../extensions/context_extensions.dart';
 import 'app_sheet.dart';
 
 /// عنصر واحد في قائمة الاختيار — ولاية أو مقاطعة.
@@ -223,12 +224,13 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
     required double opacity,
     VoidCallback? onTap,
   }) {
+    final onMedia = context.textColors.onMedia;
     return Opacity(
       opacity: opacity,
       child: InkWell(
         onTap: onTap,
         overlayColor:
-            WidgetStatePropertyAll(Colors.white.withValues(alpha: 0.08)),
+            WidgetStatePropertyAll(onMedia.withValues(alpha: 0.08)),
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
@@ -247,7 +249,10 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                       width: 5,
                       height: 5,
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.white70, width: 0.9),
+                        border: Border.all(
+                          color: onMedia.withValues(alpha: 0.70),
+                          width: 0.9,
+                        ),
                       ),
                     ),
                   ),
@@ -255,7 +260,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                   Text(
                     label,
                     style: t.textTheme.labelMedium?.copyWith(
-                      color: Colors.white60,
+                      color: onMedia.withValues(alpha: 0.60),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -277,6 +282,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
     required String cityName,
     required LatLng point,
   }) {
+    final onMedia = context.textColors.onMedia;
     final valueStyle = t.textTheme.titleLarge?.copyWith(
       fontSize: 19,
       fontWeight: FontWeight.w800,
@@ -288,7 +294,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
       fontWeight: FontWeight.w600,
       fontFeatures: const [FontFeature.tabularFigures()],
     );
-    final lineColor = Colors.white.withValues(alpha: 0.18);
+    final lineColor = onMedia.withValues(alpha: 0.18);
 
     return TweenAnimationBuilder<double>(
       key: const ValueKey('open'),
@@ -318,8 +324,11 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
               const SizedBox(width: 6),
               const Text('🇲🇷', style: TextStyle(fontSize: 16)),
               const SizedBox(width: 2),
-              const Icon(LucideIcons.chevronDown,
-                  size: 14, color: Colors.white54),
+              Icon(
+                LucideIcons.chevronDown,
+                size: 14,
+                color: onMedia.withValues(alpha: 0.54),
+              ),
             ],
           ),
         );
@@ -372,7 +381,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                     '${_fmtDms(point.longitude, isLat: false)}',
                     style: mono?.copyWith(
                       fontSize: 9.5,
-                      color: Colors.white54,
+                      color: onMedia.withValues(alpha: 0.54),
                     ),
                   ),
                 ],
@@ -385,16 +394,16 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             // خلفية سوداء بشفافية ضئيلة.
-            color: Colors.black.withValues(alpha: 0.35),
+            color: context.backgroundColors.mediaScrim.withValues(alpha: 0.35),
             borderRadius: BorderRadius.circular(_cardRadius + 4),
             // ستروك ضئيل.
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.18),
+              color: onMedia.withValues(alpha: 0.18),
               width: 0.8,
             ),
           ),
           child: CustomPaint(
-            foregroundPainter: _CornerBracketsPainter(),
+            foregroundPainter: _CornerBracketsPainter(onMedia),
             child: Material(
               color: Colors.transparent,
               child: Column(
@@ -414,11 +423,11 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                           width: 6,
                           height: 6,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: onMedia,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.white.withValues(alpha: 0.7),
+                                color: onMedia.withValues(alpha: 0.7),
                                 blurRadius: 6,
                               ),
                             ],
@@ -438,7 +447,9 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: t.textTheme.labelSmall
-                                ?.copyWith(color: Colors.white54),
+                                ?.copyWith(
+                                  color: onMedia.withValues(alpha: 0.54),
+                                ),
                           ),
                         ),
                       ],
@@ -579,15 +590,16 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
     final theme = Theme.of(context);
     final location = context.watch<LocationController>();
     final ink = theme.colorScheme.onSurface;
-    // اللوحة سوداء دائماً، فنجعل نصوصها فاتحة في الوضعين.
+    // اللوحة سوداء دائماً، فنجعل نصوصها فاتحة في الوضعين ⇒ "على الوسائط".
+    final onMedia = context.textColors.onMedia;
     final panelTheme = theme.copyWith(
       textTheme: theme.textTheme.apply(
-        bodyColor: Colors.white,
-        displayColor: Colors.white,
+        bodyColor: onMedia,
+        displayColor: onMedia,
       ),
       colorScheme: theme.colorScheme.copyWith(
-        onSurface: Colors.white,
-        onSurfaceVariant: Colors.white70,
+        onSurface: onMedia,
+        onSurfaceVariant: onMedia.withValues(alpha: 0.70),
       ),
     );
 
@@ -842,13 +854,17 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
 
 /// أقواس زوايا رفيعة على لوحة التفاصيل (لمسة الهاكرز) — باللون الأبيض.
 class _CornerBracketsPainter extends CustomPainter {
+  final Color color;
+
+  const _CornerBracketsPainter(this.color);
+
   @override
   void paint(Canvas canvas, Size size) {
     final p = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5
       ..strokeCap = StrokeCap.round
-      ..color = Colors.white.withValues(alpha: 0.7);
+      ..color = color.withValues(alpha: 0.7);
     const l = 14.0;
     const o = 8.0; // ابتعاد عن الحافة بسبب انحناء الزوايا
     final w = size.width, h = size.height;
@@ -870,7 +886,8 @@ class _CornerBracketsPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter old) => false;
+  bool shouldRepaint(covariant _CornerBracketsPainter old) =>
+      old.color != color;
 }
 
 /// كرة أرضية إلكترونية (هولوغرام): شبكة خطوط طول/عرض + نقاط + مدار + نبض

@@ -200,7 +200,13 @@ class RealMapViewState extends State<RealMapView>
                         LucideIcons.mapPin,
                         size: 38,
                         color: context.iconColors.primary,
-                        shadows: const [Shadow(color: Colors.black38, blurRadius: 8)],
+                        shadows: [
+                          Shadow(
+                            color: context.backgroundColors.scrim
+                                .withValues(alpha: 0.38),
+                            blurRadius: 8,
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 30),
                     ],
@@ -301,7 +307,11 @@ class _KindBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, icon, color) = switch (kind) {
-      MapProviderKind.satellite => ('أقمار', LucideIcons.satellite, AppColors.success),
+      MapProviderKind.satellite => (
+          'أقمار',
+          LucideIcons.satellite,
+          context.iconColors.success
+        ),
       MapProviderKind.osmDark   => ('داكن', LucideIcons.moon,      const Color(0xFF8B5CF6)),
       MapProviderKind.osm       => ('عادي', LucideIcons.map,       context.accentColor),
     };
@@ -310,7 +320,12 @@ class _KindBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.backgroundColors.surface.withValues(alpha: 0.82),
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 6)],
+        boxShadow: [
+          BoxShadow(
+            color: context.backgroundColors.scrim.withValues(alpha: 0.12),
+            blurRadius: 6,
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

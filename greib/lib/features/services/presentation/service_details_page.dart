@@ -5,12 +5,12 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/mock_data/mock_data.dart';
 import '../../../core/models/service_model.dart';
 import '../../../core/theme/design_tokens.dart';
+import '../../../core/extensions/context_extensions.dart';
 import '../../../shared_widgets/smart_image.dart';
 import '../../../shared_widgets/post_sheets.dart';
 import '../../../shared_widgets/service_post_card.dart';
 import '../data/account_repository.dart';
 import '../data/services_repository.dart';
-import '../../../shared_widgets/share_arrow_icon.dart';
 
 /// ============================================================================
 ///  ServiceDetailsPage — صفحة الخدمة بتصميم "بروفايل".
@@ -67,7 +67,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final bg = isDark ? AppColors.backgroundPrimary : AppColors.lightBackground;
+    final bg = context.backgroundColors.primary;
     final sheets = _sheets!;
 
     return Directionality(
@@ -132,7 +132,7 @@ class _ProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bg = isDark ? AppColors.backgroundPrimary : AppColors.lightBackground;
+    final bg = context.backgroundColors.primary;
     final hasCover = service.imageUrls.isNotEmpty;
 
     return Column(
@@ -158,12 +158,10 @@ class _ProfileHeader extends StatelessWidget {
             PositionedDirectional(
               top: MediaQuery.of(context).padding.top + AppSpacing.sm,
               start: AppSpacing.md,
-              child: Container(
-                decoration: BoxDecoration(
-                  color:
-                      (isDark ? AppColors.surfaceCard : AppColors.lightSurface)
-                          .withValues(alpha: 0.9),
-                  shape: BoxShape.circle,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: context.backgroundColors.surface.withValues(alpha: 0.9),
+                    shape: BoxShape.circle,
                 ),
                 child: IconButton(
                   icon: const Icon(LucideIcons.arrowRight, size: 18),
@@ -182,9 +180,7 @@ class _ProfileHeader extends StatelessWidget {
                 width: _avatarSize,
                 height: _avatarSize,
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.surfaceCard
-                      : AppColors.lightSurface,
+                  color: context.backgroundColors.surface,
                   shape: BoxShape.circle,
                   // حلقة بلون الخلفية لتبدو "مقتطعة" من الغلاف
                   border: Border.all(color: bg, width: 4),
@@ -340,10 +336,10 @@ class _AccountsSection extends StatelessWidget {
                                 shape: BoxShape.circle,
                                 color: theme.colorScheme.surface,
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 LucideIcons.checkCircle,
                                 size: 16,
-                                color: AppColors.success,
+                                color: context.iconColors.success,
                               ),
                             ),
                           ),
@@ -422,7 +418,7 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
         labelColor: accent,
         unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
         indicatorSize: TabBarIndicatorSize.tab,
-        dividerColor: isDark ? AppColors.outline : AppColors.lightOutline,
+        dividerColor: context.backgroundColors.outline,
         labelStyle: const TextStyle(fontWeight: FontWeight.w700),
         tabs: const [
           Tab(text: 'الأحدث'),
@@ -463,7 +459,7 @@ class _PostsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final bg = isDark ? AppColors.backgroundPrimary : AppColors.lightBackground;
+    final bg = context.backgroundColors.primary;
     final source = ServicesRepository.instance.postsFor(service.id);
 
     // ترتيب مختلف لكل تبويب (Sorting) — البيانات نفسها، العرض يختلف.
@@ -551,13 +547,10 @@ class _ServiceNotFound extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: isDark
-            ? AppColors.backgroundPrimary
-            : AppColors.lightBackground,
+        backgroundColor: context.backgroundColors.primary,
       ),
       body: Center(
         child: Padding(

@@ -96,7 +96,7 @@ class CallLogTile extends StatelessWidget {
                       Icon(
                         _isVideo ? LucideIcons.video : LucideIcons.phone,
                         size: 13,
-                        color: chat.recordingWaveUnplayed,
+                        color: chat.mutedText,
                       ),
                       const SizedBox(width: 4),
                       Expanded(
@@ -106,7 +106,7 @@ class CallLogTile extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontSize: 13,
-                            color: chat.recordingWaveUnplayed,
+                            color: chat.mutedText,
                           ),
                         ),
                       ),

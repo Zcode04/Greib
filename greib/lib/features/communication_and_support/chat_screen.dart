@@ -13,6 +13,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:file_picker/file_picker.dart';
+import '../../core/extensions/context_extensions.dart';
 import '../../core/permissions/permissions.dart';
 import '../../core/theme/chat_colors.dart';
 import '../../core/theme/design_tokens.dart';
@@ -57,10 +58,11 @@ double _chatAreaMaxWidth(BuildContext context) =>
 
 /// أقصى عرض لفقاعة رسالة واحدة (نسبة من الشاشة + حد أقصى مطلق بالبكسل).
 /// ★ مقاس واتساب الحقيقي: الصوت 75% بحد 300px — مدمجة وليست منفوخة.
-double _bubbleMaxWidth(BuildContext context, {required bool isVoice}) => math.min(
-  MediaQuery.of(context).size.width * (isVoice ? 0.75 : 0.78),
-  isVoice ? 300.0 : _kMaxBubbleWidth,
-);
+double _bubbleMaxWidth(BuildContext context, {required bool isVoice}) =>
+    math.min(
+      MediaQuery.of(context).size.width * (isVoice ? 0.75 : 0.78),
+      isVoice ? 300.0 : _kMaxBubbleWidth,
+    );
 
 /// أقصى عرض لفقاعة الصورة (نسبة من الشاشة + حد أقصى).
 double _imageMaxWidth(BuildContext context) =>
@@ -240,10 +242,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     for (final sc in storyConvs) {
       if (existingIds.contains(sc['id'])) continue;
       existingIds.add(sc['id']);
-      _conversations.insert(0, {
-        ...sc,
-        'participants': <String>[],
-      });
+      _conversations.insert(0, {...sc, 'participants': <String>[]});
     }
 
     // ★ «جهات اتصلي»: محادثات بدأها المستخدم من صفحة جهات الاتصال —
@@ -432,10 +431,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       ),
                     )
                     .then((_) {
-                  // ★ العودة من الصفحة: دمج أي محادثات جديدة انطلقت منها.
-                  if (!mounted) return;
-                  setState(_loadConversations);
-                });
+                      // ★ العودة من الصفحة: دمج أي محادثات جديدة انطلقت منها.
+                      if (!mounted) return;
+                      setState(_loadConversations);
+                    });
               },
               child: Icon(
                 _isCallsTab ? LucideIcons.phoneCall : LucideIcons.squarePen,
@@ -570,8 +569,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   /// ★ رسائل مرسلة من الستوري (إرسال خلفي بأسلوب فيسبوك): دمجها في
   /// قائمة المحادثة عند فتح الدردشة — بلا تكرار (نفس المعرف يُتجاهل).
   void _mergeStoryMessages() {
-    final pending =
-        StoryMessageStore.instance.forConversation(widget.conversationId);
+    final pending = StoryMessageStore.instance.forConversation(
+      widget.conversationId,
+    );
     if (pending.isEmpty) return;
     final existingIds = _messages.map((m) => m['id']).toSet();
     var added = false;
@@ -582,6 +582,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     }
     if (added) _scrollToBottom();
   }
+
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
   // يتتبّع ظهور لوحة المفاتيح لإعادة التمرير لأسفل الرسائل عند فتحها.
@@ -1047,7 +1048,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
             double normalized = ((amp.current + 45) / 45).clamp(0.0, 1.0);
             if (normalized <= 0.05) {
               final t = DateTime.now().millisecondsSinceEpoch / 150.0;
-              normalized = (0.2 + 0.5 * math.sin(t).abs() + 0.3 * math.cos(t * 1.7).abs()).clamp(0.1, 1.0);
+              normalized =
+                  (0.2 +
+                          0.5 * math.sin(t).abs() +
+                          0.3 * math.cos(t * 1.7).abs())
+                      .clamp(0.1, 1.0);
             }
             final height = 3.0 + normalized * 19.0;
             if (mounted) {
@@ -1190,7 +1195,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     });
     HapticFeedback.lightImpact();
     await _startRecording();
-    if (mounted && _voiceState == ComposerVoiceState.holding && _recordTimer == null) {
+    if (mounted &&
+        _voiceState == ComposerVoiceState.holding &&
+        _recordTimer == null) {
       _resetHoldState();
       setState(() => _voiceState = ComposerVoiceState.idle);
     }
@@ -1207,13 +1214,17 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     final dx = delta.dx;
     final dy = delta.dy;
     final absDy = (-dy).clamp(0.0, double.infinity);
-    final horizontalTowardsText = (isRTL ? dx : -dx).clamp(0.0, double.infinity);
+    final horizontalTowardsText = (isRTL ? dx : -dx).clamp(
+      0.0,
+      double.infinity,
+    );
 
     // تثبيت المحور (Axis Lock): استجابة سريعة جداً لأي سحب للأعلى أو أفقياً
     if (!_axisLockVertical && !_axisLockHorizontal) {
       if (absDy > 6.0 && absDy >= horizontalTowardsText * 0.8) {
         _axisLockVertical = true;
-      } else if (horizontalTowardsText > 6.0 && horizontalTowardsText >= absDy * 0.8) {
+      } else if (horizontalTowardsText > 6.0 &&
+          horizontalTowardsText >= absDy * 0.8) {
         _axisLockHorizontal = true;
       }
     }
@@ -2135,7 +2146,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: (!widget.isGroup && widget.online)
                                   ? chat.onlineDot
-                                  : chat.recordingWaveUnplayed,
+                                  : chat.mutedText,
                             ),
                           ),
                         ),
@@ -2221,10 +2232,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
             child: Align(
               alignment: Alignment.bottomCenter,
               heightFactor: curveVal.clamp(0.0, 1.0),
-              child: Opacity(
-                opacity: curveVal.clamp(0.0, 1.0),
-                child: child,
-              ),
+              child: Opacity(opacity: curveVal.clamp(0.0, 1.0), child: child),
             ),
           );
         },
@@ -2302,7 +2310,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                 onHoldEnd: _onMicHoldEnd,
                 micScale: _micScale,
                 cancelArmed: _cancelArmed,
-                isHolding: _voiceState == ComposerVoiceState.holding ||
+                isHolding:
+                    _voiceState == ComposerVoiceState.holding ||
                     _voiceState == ComposerVoiceState.lockDragging,
                 recordSeconds: _recordSeconds,
                 micTranslationOffset: _micTranslationOffset,
@@ -2319,7 +2328,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                   bounce: _lockHintController ?? kAlwaysCompleteAnimation,
                   lockProgress: _lockDragProgress,
                   isRTL: isRTL,
-                  visible: _voiceState == ComposerVoiceState.holding ||
+                  visible:
+                      _voiceState == ComposerVoiceState.holding ||
                       _voiceState == ComposerVoiceState.lockDragging,
                 ),
               ),
@@ -2700,7 +2710,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.45),
+                      color: context.backgroundColors.mediaScrim.withValues(
+                        alpha: 0.45,
+                      ),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
@@ -2708,8 +2720,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                       children: [
                         Text(
                           time,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: context.textColors.onMedia,
                             fontSize: 10.5,
                           ),
                         ),
@@ -2857,27 +2869,28 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   }
 
   Color _getDocumentColor(String extension) {
+    final palette = context.attachmentPalette;
     switch (extension) {
       case 'pdf':
-        return Colors.red;
+        return palette.documentPdf;
       case 'doc':
       case 'docx':
-        return Colors.blue;
+        return palette.documentWord;
       case 'xls':
       case 'xlsx':
-        return Colors.green;
+        return palette.documentSheet;
       case 'ppt':
       case 'pptx':
-        return Colors.orange;
+        return palette.documentSlides;
       case 'zip':
       case 'rar':
-        return Colors.purple;
+        return palette.documentArchive;
       case 'mp3':
       case 'wav':
       case 'm4a':
-        return Colors.teal;
+        return palette.documentAudio;
       default:
-        return Colors.grey;
+        return palette.documentFallback;
     }
   }
 
@@ -3002,7 +3015,9 @@ class _BubbleQuoted extends StatelessWidget {
     if (isVoice) {
       typeIcon = LucideIcons.mic;
       final duration = quoted['duration'] as int?;
-      label = duration != null ? 'رسالة صوتية (0:${duration.toString().padLeft(2, '0')})' : 'رسالة صوتية';
+      label = duration != null
+          ? 'رسالة صوتية (0:${duration.toString().padLeft(2, '0')})'
+          : 'رسالة صوتية';
     } else if (isImage) {
       typeIcon = LucideIcons.image;
       label = content.isEmpty ? 'صورة' : content;
@@ -3249,16 +3264,12 @@ class _SlideToCancelState extends State<_SlideToCancel>
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                LucideIcons.chevronRight,
-                size: 16,
-                color: chat.recordingWaveUnplayed,
-              ),
+              Icon(LucideIcons.chevronRight, size: 16, color: chat.mutedText),
               const SizedBox(width: 2),
               Text(
                 'اسحب للإلغاء',
                 style: TextStyle(
-                  color: chat.recordingWaveUnplayed,
+                  color: chat.mutedText,
                   fontSize: 12.5,
                   fontWeight: FontWeight.w500,
                 ),
@@ -3442,7 +3453,9 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
       // محاكاة حقيقية فائقة السلاسة لتشغيل الصوت وحركة الموجات
       _simTimer?.cancel();
       if (_totalDuration <= Duration.zero) {
-        _totalDuration = Duration(seconds: widget.durationSeconds > 0 ? widget.durationSeconds : 15);
+        _totalDuration = Duration(
+          seconds: widget.durationSeconds > 0 ? widget.durationSeconds : 15,
+        );
       }
       if (_position >= _totalDuration) {
         _position = Duration.zero;
@@ -3504,10 +3517,10 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
     final chat = context.chatColors;
     final onBubble = isMine ? chat.bubbleMineText : chat.bubbleTheirsText;
     // ★ ألوان موجات واتساب: المشغّل أزرق سماوي #53BDEB، غير المشغّل أبيض خافت / رمادي.
-    const playedColor = Color(0xFF53BDEB);
+    final playedColor = chat.recordingWavePlayed;
     final unplayedColor = isMine
-        ? Colors.white.withValues(alpha: 0.42)
-        : const Color(0xFF8696A0);
+        ? onBubble.withValues(alpha: 0.42)
+        : chat.mutedText;
 
     // ★ سطر واحد مدمج مثل واتساب (ارتفاع ~68px) — بدون تكرار.
     // ★ الترتيب البصري من اليمين لليسار (واتساب عربي):
@@ -3522,10 +3535,7 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           if (isMine) ...[
-            _VoiceAvatarBadge(
-              avatarText: widget.avatarText,
-              isMine: true,
-            ),
+            _VoiceAvatarBadge(avatarText: widget.avatarText, isMine: true),
             const SizedBox(width: 6),
           ],
           // ★ زر التشغيل/الإيقاف مكبّر وقريب جداً من الموجات
@@ -3551,15 +3561,11 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
                   else
                     Icon(
                       _isPlaying ? Icons.pause : Icons.play_arrow,
-                      color: const Color(0xFFE9EDEF),
+                      color: onBubble,
                       size: 36,
                     ),
                   if (!widget.isListened && !_isPlaying && !isMine)
-                    const Positioned(
-                      left: -2,
-                      top: 4,
-                      child: _UnreadDot(),
-                    ),
+                    const Positioned(left: -2, top: 4, child: _UnreadDot()),
                 ],
               ),
             ),
@@ -3601,35 +3607,45 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
                             alignment: Alignment.center,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: List.generate(_barCount, (i) {
-                                  final isBarPlayed = i <= playedBars && (_isPlaying || _position > Duration.zero);
+                                  final isBarPlayed =
+                                      i <= playedBars &&
+                                      (_isPlaying || _position > Duration.zero);
                                   final h = _bars[i].clamp(3.5, 23.0);
                                   return Container(
                                     width: 2.2,
                                     height: h,
                                     decoration: BoxDecoration(
-                                      color: isBarPlayed ? playedColor : unplayedColor,
+                                      color: isBarPlayed
+                                          ? playedColor
+                                          : unplayedColor,
                                       borderRadius: BorderRadius.circular(1.5),
                                     ),
                                   );
                                 }),
                               ),
                               // نقطة التقدم الحية في واتساب
-                              if (width > 0 && (_isPlaying || _position > Duration.zero))
+                              if (width > 0 &&
+                                  (_isPlaying || _position > Duration.zero))
                                 Positioned.directional(
                                   textDirection: Directionality.of(context),
-                                  start: (playedFraction * (width - 7)).clamp(0.0, width - 7),
+                                  start: (playedFraction * (width - 7)).clamp(
+                                    0.0,
+                                    width - 7,
+                                  ),
                                   child: Container(
                                     width: 7,
                                     height: 7,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: const Color(0xFF53BDEB),
+                                      color: playedColor,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.35),
+                                          color: context.backgroundColors.scrim
+                                              .withValues(alpha: 0.35),
                                           blurRadius: 2,
                                           offset: const Offset(0, 1),
                                         ),
@@ -3651,26 +3667,32 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
                                   : widget.durationSeconds,
                             ),
                             maxLines: 1,
-                            style: const TextStyle(
-                              color: Color(0xFF8696A0),
+                            style: TextStyle(
+                              color: isMine
+                                  ? chat.bubbleMineTime
+                                  : chat.bubbleTheirsTime,
                               fontSize: 11,
                             ),
                           ),
                           const Spacer(),
                           Text(
                             widget.time,
-                            style: const TextStyle(
-                              color: Color(0xFF8696A0),
+                            style: TextStyle(
+                              color: isMine
+                                  ? chat.bubbleMineTime
+                                  : chat.bubbleTheirsTime,
                               fontSize: 11,
                             ),
                           ),
                           if (isMine) ...[
                             const SizedBox(width: 3),
                             if (widget.status == 'sending')
-                              const Icon(
+                              Icon(
                                 LucideIcons.clock,
                                 size: 12,
-                                color: Color(0xFF8696A0),
+                                color: isMine
+                                    ? chat.bubbleMineTime
+                                    : chat.bubbleTheirsTime,
                               )
                             else
                               WhatsAppTicks(
@@ -3688,10 +3710,7 @@ class _VoiceMessageBubbleState extends State<_VoiceMessageBubble> {
           ),
           if (!isMine) ...[
             const SizedBox(width: 6),
-            _VoiceAvatarBadge(
-              avatarText: widget.avatarText,
-              isMine: false,
-            ),
+            _VoiceAvatarBadge(avatarText: widget.avatarText, isMine: false),
           ],
         ],
       ),
@@ -3715,8 +3734,8 @@ class _UnreadDot extends StatelessWidget {
     return Container(
       width: 9,
       height: 9,
-      decoration: const BoxDecoration(
-        color: Color(0xFF38BDF8),
+      decoration: BoxDecoration(
+        color: context.chatColors.tickRead,
         shape: BoxShape.circle,
       ),
     );
@@ -3733,6 +3752,7 @@ class _VoiceAvatarBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chat = context.chatColors;
+    final onBubble = isMine ? chat.bubbleMineText : chat.bubbleTheirsText;
     return SizedBox(
       width: 40,
       height: 42,
@@ -3744,15 +3764,13 @@ class _VoiceAvatarBadge extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isMine
-                  ? Colors.white.withValues(alpha: 0.18)
-                  : Colors.white.withValues(alpha: 0.14),
+              color: onBubble.withValues(alpha: isMine ? 0.18 : 0.14),
             ),
             alignment: Alignment.center,
-            child: const Icon(
+            child: Icon(
               LucideIcons.user,
               size: 22,
-              color: Colors.white,
+              color: context.textColors.onMedia,
             ),
           ),
           Positioned(
@@ -3764,7 +3782,7 @@ class _VoiceAvatarBadge extends StatelessWidget {
               color: chat.tickRead,
               shadows: [
                 Shadow(
-                  color: Colors.black.withValues(alpha: 0.5),
+                  color: context.backgroundColors.scrim.withValues(alpha: 0.5),
                   blurRadius: 3,
                   offset: const Offset(0, 1),
                 ),
@@ -4129,7 +4147,7 @@ class _RecordingPreviewBarState extends State<_RecordingPreviewBar> {
                       : widget.durationSeconds,
                 ),
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: context.chatColors.recordingWaveUnplayed,
+                  color: context.chatColors.mutedText,
                 ),
               ),
             ],
@@ -4334,12 +4352,15 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
 
   @override
   Widget build(BuildContext context) {
+    final onMedia = context.textColors.onMedia;
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: context.backgroundColors.mediaScrim,
       appBar: AppBar(
-        backgroundColor: Colors.black.withValues(alpha: 0.6),
+        backgroundColor: context.backgroundColors.mediaScrim.withValues(
+          alpha: 0.6,
+        ),
         leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
+          icon: Icon(LucideIcons.arrowLeft, color: onMedia),
           onPressed: () {
             if (context.canPop()) context.pop();
           },
@@ -4347,20 +4368,20 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
         actions: [
           IconButton(
             icon: _saving
-                ? const SizedBox(
+                ? SizedBox(
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors.white,
+                      color: onMedia,
                     ),
                   )
-                : const Icon(LucideIcons.download, color: Colors.white),
+                : Icon(LucideIcons.download, color: onMedia),
             onPressed: _saving ? null : _save,
             tooltip: 'حفظ',
           ),
           IconButton(
-            icon: const Icon(LucideIcons.share2, color: Colors.white),
+            icon: Icon(LucideIcons.share2, color: onMedia),
             onPressed: _share,
             tooltip: 'مشاركة',
           ),

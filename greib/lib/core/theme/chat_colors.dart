@@ -44,6 +44,9 @@ class AppChatColors extends ThemeExtension<AppChatColors> {
   final Color recordingTimer;
   final Color recordingWavePlayed;
   final Color recordingWaveUnplayed;
+
+  /// لون نص/أيقونة باهتة عام داخل المحادثة.
+  final Color mutedText;
   final Color recordingTrash;
   final Color recordingCancelBackground;
   final Color tickRead;
@@ -84,6 +87,7 @@ class AppChatColors extends ThemeExtension<AppChatColors> {
     required this.recordingTimer,
     required this.recordingWavePlayed,
     required this.recordingWaveUnplayed,
+    required this.mutedText,
     required this.recordingTrash,
     required this.recordingCancelBackground,
     required this.tickRead,
@@ -164,8 +168,14 @@ class AppChatColors extends ThemeExtension<AppChatColors> {
       attachmentLabel: waText,
       recordingBackground: waSurface,
       recordingTimer: waText,
-      recordingWavePlayed: Colors.white,
-      recordingWaveUnplayed: Colors.white.withValues(alpha: 0.35),
+      // ★ لون الموجة المشغَّلة = الأزرق الرسمي لواتساب (#53BDEB) — نفس لون علامة القراءة.
+      recordingWavePlayed: waTick,
+      // ★ الموجة غير المشغَّلة: باهتة في الوضع الداكن، ورمادية مقروءة في النهاري.
+      recordingWaveUnplayed: isDark
+          ? Colors.white.withValues(alpha: 0.25)
+          : const Color(0xFF8696A0).withValues(alpha: 0.35),
+      // ★ لون نص/أيقونة باهتة عام داخل المحادثة (ليس خاصاً بالموجة).
+      mutedText: waMuted,
       recordingTrash: waTrash,
       recordingCancelBackground: waTrash.withValues(alpha: 0.1),
       tickRead: waTick,
@@ -209,6 +219,7 @@ class AppChatColors extends ThemeExtension<AppChatColors> {
     Color? recordingTimer,
     Color? recordingWavePlayed,
     Color? recordingWaveUnplayed,
+    Color? mutedText,
     Color? recordingTrash,
     Color? recordingCancelBackground,
     Color? tickRead,
@@ -254,6 +265,7 @@ class AppChatColors extends ThemeExtension<AppChatColors> {
       recordingWavePlayed: recordingWavePlayed ?? this.recordingWavePlayed,
       recordingWaveUnplayed:
           recordingWaveUnplayed ?? this.recordingWaveUnplayed,
+      mutedText: mutedText ?? this.mutedText,
       recordingTrash: recordingTrash ?? this.recordingTrash,
       recordingCancelBackground:
           recordingCancelBackground ?? this.recordingCancelBackground,
@@ -316,6 +328,7 @@ class AppChatColors extends ThemeExtension<AppChatColors> {
         recordingWaveUnplayed,
         other.recordingWaveUnplayed,
       ),
+      mutedText: l(mutedText, other.mutedText),
       recordingTrash: l(recordingTrash, other.recordingTrash),
       recordingCancelBackground: l(
         recordingCancelBackground,
@@ -352,6 +365,15 @@ class ChatAttachmentPalette {
   final Color contact;
   final Color location;
 
+  /// ألوان أنواع المستندات — دلالية ثابتة ومتناسقة مع بقية المرفقات.
+  final Color documentPdf;
+  final Color documentWord;
+  final Color documentSheet;
+  final Color documentSlides;
+  final Color documentArchive;
+  final Color documentAudio;
+  final Color documentFallback;
+
   const ChatAttachmentPalette({
     required this.camera,
     required this.gallery,
@@ -360,6 +382,13 @@ class ChatAttachmentPalette {
     required this.audio,
     required this.contact,
     required this.location,
+    required this.documentPdf,
+    required this.documentWord,
+    required this.documentSheet,
+    required this.documentSlides,
+    required this.documentArchive,
+    required this.documentAudio,
+    required this.documentFallback,
   });
 
   factory ChatAttachmentPalette.fromPalette(AppColorPalette p) {
@@ -371,6 +400,68 @@ class ChatAttachmentPalette {
       audio: const Color(0xFFF59E0B),
       contact: const Color(0xFF06B6D4),
       location: const Color(0xFF10B981),
+      documentPdf: p.icon.error,
+      documentWord: const Color(0xFF3B82F6),
+      documentSheet: p.icon.success,
+      documentSlides: const Color(0xFFF59E0B),
+      documentArchive: const Color(0xFF8B5CF6),
+      documentAudio: const Color(0xFF06B6D4),
+      documentFallback: p.text.tertiary,
+    );
+  }
+
+  ChatAttachmentPalette copyWith({
+    Color? camera,
+    Color? gallery,
+    Color? video,
+    Color? document,
+    Color? audio,
+    Color? contact,
+    Color? location,
+    Color? documentPdf,
+    Color? documentWord,
+    Color? documentSheet,
+    Color? documentSlides,
+    Color? documentArchive,
+    Color? documentAudio,
+    Color? documentFallback,
+  }) {
+    return ChatAttachmentPalette(
+      camera: camera ?? this.camera,
+      gallery: gallery ?? this.gallery,
+      video: video ?? this.video,
+      document: document ?? this.document,
+      audio: audio ?? this.audio,
+      contact: contact ?? this.contact,
+      location: location ?? this.location,
+      documentPdf: documentPdf ?? this.documentPdf,
+      documentWord: documentWord ?? this.documentWord,
+      documentSheet: documentSheet ?? this.documentSheet,
+      documentSlides: documentSlides ?? this.documentSlides,
+      documentArchive: documentArchive ?? this.documentArchive,
+      documentAudio: documentAudio ?? this.documentAudio,
+      documentFallback: documentFallback ?? this.documentFallback,
+    );
+  }
+
+  ChatAttachmentPalette lerp(ChatAttachmentPalette? other, double t) {
+    if (other == null) return this;
+    Color l(Color a, Color b) => Color.lerp(a, b, t)!;
+    return ChatAttachmentPalette(
+      camera: l(camera, other.camera),
+      gallery: l(gallery, other.gallery),
+      video: l(video, other.video),
+      document: l(document, other.document),
+      audio: l(audio, other.audio),
+      contact: l(contact, other.contact),
+      location: l(location, other.location),
+      documentPdf: l(documentPdf, other.documentPdf),
+      documentWord: l(documentWord, other.documentWord),
+      documentSheet: l(documentSheet, other.documentSheet),
+      documentSlides: l(documentSlides, other.documentSlides),
+      documentArchive: l(documentArchive, other.documentArchive),
+      documentAudio: l(documentAudio, other.documentAudio),
+      documentFallback: l(documentFallback, other.documentFallback),
     );
   }
 }

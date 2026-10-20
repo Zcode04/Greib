@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/theme/design_tokens.dart';
+import '../../../core/extensions/context_extensions.dart';
 import '../../../core/mock_data/mock_data.dart';
 import '../../../shared_widgets/store_category_tabs.dart';
 import 'sticky_location_button.dart';
@@ -65,8 +66,7 @@ class _HomeCategoriesTabBarState extends State<HomeCategoriesTabBar>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final accent = AppColors.accentFor(isDark);
+    final accent = context.accentColor;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,9 +147,7 @@ class _HomeCategoriesTabBarState extends State<HomeCategoriesTabBar>
           child: _expanded
               ? Container(
                   height: 46,
-                  color: isDark
-                      ? AppColors.backgroundPrimary
-                      : AppColors.lightBackground,
+                  color: context.backgroundColors.primary,
                   child: TabBar(
                     controller: _controller,
                     onTap: (index) {

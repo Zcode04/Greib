@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
+import '../../core/extensions/context_extensions.dart';
 import '../../shared_widgets/app_button.dart';
 
 class WalletScreen extends StatefulWidget {
@@ -39,14 +40,14 @@ class _WalletScreenState extends State<WalletScreen> {
                       'محفظتي',
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
+                        color: context.textColors.primary,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       'إدارة رصيدك ونقاطك',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
+                        color: context.textColors.secondary,
                       ),
                     ),
                   ],
@@ -88,10 +89,17 @@ class _WalletScreenState extends State<WalletScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           stops: const [0.0, 0.6, 1.0],
-          colors: AppColors.heroGradient,
+          colors: [context.accentColor, context.accentColor, context.backgroundColors.primary],
         ),
         borderRadius: BorderRadius.circular(AppRadii.xl),
-        boxShadow: AppColors.violetGlow(blur: 28, alpha: 0.4),
+        boxShadow: [
+          BoxShadow(
+            color: context.accentColor.withValues(alpha: 0.4),
+            blurRadius: 28,
+            spreadRadius: 2.8,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Stack(
         children: [
@@ -264,10 +272,10 @@ class _WalletScreenState extends State<WalletScreen> {
       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       padding: const EdgeInsets.all(AppSpacing.xs),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.backgroundColors.surface,
         borderRadius: BorderRadius.circular(AppRadii.full),
         border: Border.all(
-          color: AppColors.outline.withValues(alpha: 0.5),
+          color: context.backgroundColors.outline.withValues(alpha: 0.5),
         ),
       ),
       child: Row(
@@ -293,14 +301,23 @@ class _WalletScreenState extends State<WalletScreen> {
             gradient: isSelected
                 ? LinearGradient(
                     colors: [
-                      AppColors.primary,
-                      AppColors.primaryLight,
+                      context.accentColor,
+                      context.accentColor,
                     ],
                   )
                 : null,
             color: isSelected ? null : Colors.transparent,
             borderRadius: BorderRadius.circular(AppRadii.full),
-            boxShadow: isSelected ? AppColors.violetGlow(blur: 16, alpha: 0.3) : null,
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: context.accentColor.withValues(alpha: 0.3),
+                      blurRadius: 16,
+                      spreadRadius: 1.6,
+                      offset: const Offset(0, 8),
+                    ),
+                  ]
+                : null,
           ),
           child: Text(
             label,
@@ -308,7 +325,7 @@ class _WalletScreenState extends State<WalletScreen> {
             style: theme.textTheme.labelLarge?.copyWith(
               color: isSelected
                   ? Colors.white
-                  : AppColors.textSecondary,
+                  : context.textColors.secondary,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
             ),
           ),
@@ -341,7 +358,7 @@ class _WalletScreenState extends State<WalletScreen> {
         'amount': '-45.00 درهم',
         'type': 'debit',
         'icon': LucideIcons.utensilsCrossed,
-        'color': AppColors.serviceFood,
+        'color': context.accentColor,
       },
       {
         'title': 'شحن المحفظة',
@@ -349,7 +366,7 @@ class _WalletScreenState extends State<WalletScreen> {
         'amount': '+200.00 درهم',
         'type': 'credit',
         'icon': LucideIcons.wallet,
-        'color': AppColors.serviceCourier,
+        'color': context.accentColor,
       },
       {
         'title': 'طلب صيدلية',
@@ -357,7 +374,7 @@ class _WalletScreenState extends State<WalletScreen> {
         'amount': '-32.00 درهم',
         'type': 'debit',
         'icon': LucideIcons.pill,
-        'color': AppColors.servicePharmacy,
+        'color': context.accentColor,
       },
       {
         'title': 'مكافأة ولاء',
@@ -365,7 +382,7 @@ class _WalletScreenState extends State<WalletScreen> {
         'amount': '+25.00 درهم',
         'type': 'credit',
         'icon': LucideIcons.gift,
-        'color': AppColors.serviceShopping,
+        'color': context.accentColor,
       },
     ];
 
@@ -409,13 +426,13 @@ class _WalletScreenState extends State<WalletScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.primary.withValues(alpha: 0.18),
-                  AppColors.primaryLight.withValues(alpha: 0.08),
+                  context.accentColor.withValues(alpha: 0.18),
+                  context.accentColor.withValues(alpha: 0.08),
                 ],
               ),
               borderRadius: BorderRadius.circular(AppRadii.lg),
               border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.3),
+                color: context.accentColor.withValues(alpha: 0.3),
               ),
             ),
             child: Row(
@@ -424,12 +441,12 @@ class _WalletScreenState extends State<WalletScreen> {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.2),
+                    color: context.accentColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(AppRadii.md),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     LucideIcons.sparkles,
-                    color: AppColors.primaryLight,
+                    color: context.accentColor,
                     size: 26,
                   ),
                 ),
@@ -441,13 +458,13 @@ class _WalletScreenState extends State<WalletScreen> {
                       Text(
                         'نقاطك الحالية',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: context.textColors.secondary,
                         ),
                       ),
                       Text(
                         '1,250 نقطة',
                         style: theme.textTheme.headlineMedium?.copyWith(
-                          color: AppColors.primaryLight,
+                          color: context.accentColor,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -460,21 +477,21 @@ class _WalletScreenState extends State<WalletScreen> {
                     vertical: AppSpacing.xs,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.success.withValues(alpha: 0.15),
+                    color: context.iconColors.success.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(AppRadii.full),
                   ),
                   child: Row(
                     children: [
                       Icon(
                         LucideIcons.trendingUp,
-                        color: AppColors.success,
+                        color: context.iconColors.success,
                         size: 14,
                       ),
                       const SizedBox(width: AppSpacing.xs),
                       Text(
                         '+255',
                         style: theme.textTheme.labelMedium?.copyWith(
-                          color: AppColors.success,
+                          color: context.iconColors.success,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -525,9 +542,9 @@ class _WalletScreenState extends State<WalletScreen> {
             icon: reward['icon'] as IconData,
             onRedeem: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
+                SnackBar(
                   content: Text('تم استبدال المكافأة بنجاح ✅'),
-                  backgroundColor: AppColors.success,
+                  backgroundColor: context.iconColors.success,
                 ),
               );
             },
@@ -569,10 +586,10 @@ class _TransactionTile extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.backgroundColors.surface,
         borderRadius: BorderRadius.circular(AppRadii.lg),
         border: Border.all(
-          color: AppColors.outline.withValues(alpha: 0.4),
+          color: context.backgroundColors.outline.withValues(alpha: 0.4),
         ),
       ),
       child: Row(
@@ -594,7 +611,7 @@ class _TransactionTile extends StatelessWidget {
                 Text(
                   title,
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: AppColors.textPrimary,
+                    color: context.textColors.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -602,7 +619,7 @@ class _TransactionTile extends StatelessWidget {
                 Text(
                   subtitle,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.textColors.secondary,
                   ),
                 ),
               ],
@@ -611,7 +628,7 @@ class _TransactionTile extends StatelessWidget {
           Text(
             amount,
             style: theme.textTheme.titleMedium?.copyWith(
-              color: isCredit ? AppColors.success : AppColors.textPrimary,
+              color: isCredit ? context.iconColors.success : context.textColors.primary,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -644,10 +661,10 @@ class _PointsTile extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.backgroundColors.surface,
         borderRadius: BorderRadius.circular(AppRadii.lg),
         border: Border.all(
-          color: AppColors.outline.withValues(alpha: 0.4),
+          color: context.backgroundColors.outline.withValues(alpha: 0.4),
         ),
       ),
       child: Row(
@@ -656,13 +673,13 @@ class _PointsTile extends StatelessWidget {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: (isPositive ? AppColors.success : AppColors.error)
+              color: (isPositive ? context.iconColors.success : context.iconColors.error)
                   .withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppRadii.md),
             ),
             child: Icon(
               isPositive ? LucideIcons.plus : LucideIcons.minus,
-              color: isPositive ? AppColors.success : AppColors.error,
+              color: isPositive ? context.iconColors.success : context.iconColors.error,
               size: 22,
             ),
           ),
@@ -674,7 +691,7 @@ class _PointsTile extends StatelessWidget {
                 Text(
                   title,
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: AppColors.textPrimary,
+                    color: context.textColors.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -682,7 +699,7 @@ class _PointsTile extends StatelessWidget {
                 Text(
                   time,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.textColors.secondary,
                   ),
                 ),
               ],
@@ -691,7 +708,7 @@ class _PointsTile extends StatelessWidget {
           Text(
             points,
             style: theme.textTheme.titleMedium?.copyWith(
-              color: isPositive ? AppColors.success : AppColors.error,
+              color: isPositive ? context.iconColors.success : context.iconColors.error,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -720,10 +737,10 @@ class _RewardCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.backgroundColors.surface,
         borderRadius: BorderRadius.circular(AppRadii.lg),
         border: Border.all(
-          color: AppColors.outline.withValues(alpha: 0.4),
+          color: context.backgroundColors.outline.withValues(alpha: 0.4),
         ),
       ),
       child: Column(
@@ -735,15 +752,15 @@ class _RewardCard extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.primary.withValues(alpha: 0.2),
-                  AppColors.primaryLight.withValues(alpha: 0.1),
+                  context.accentColor.withValues(alpha: 0.2),
+                  context.accentColor.withValues(alpha: 0.1),
                 ],
               ),
               borderRadius: BorderRadius.circular(AppRadii.md),
             ),
             child: Icon(
               icon,
-              color: AppColors.primaryLight,
+              color: context.accentColor,
               size: 26,
             ),
           ),
@@ -751,7 +768,7 @@ class _RewardCard extends StatelessWidget {
           Text(
             title,
             style: theme.textTheme.titleMedium?.copyWith(
-              color: AppColors.textPrimary,
+              color: context.textColors.primary,
               fontWeight: FontWeight.w700,
             ),
             textAlign: TextAlign.center,
@@ -763,13 +780,13 @@ class _RewardCard extends StatelessWidget {
               vertical: AppSpacing.xs,
             ),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.12),
+              color: context.accentColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppRadii.full),
             ),
             child: Text(
               '$points نقطة',
               style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.primaryLight,
+                color: context.accentColor,
                 fontWeight: FontWeight.w700,
               ),
             ),

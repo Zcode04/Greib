@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../core/extensions/context_extensions.dart';
 import '../../../core/theme/chat_colors.dart';
 import '../../../core/theme/design_tokens.dart';
 
@@ -49,7 +50,7 @@ class ComposerReplyPreview extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadii.md),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: context.backgroundColors.scrim.withValues(alpha: 0.04),
             blurRadius: 3,
             offset: const Offset(0, 1),
           ),
@@ -60,16 +61,15 @@ class ComposerReplyPreview extends StatelessWidget {
         child: Row(
           children: [
             // الخط الجانبي الملون البارز (Accent Bar)
-            Container(
-              width: 4.5,
-              color: chat.quotedBar,
-            ),
+            Container(width: 4.5, color: chat.quotedBar),
             const SizedBox(width: AppSpacing.sm),
 
             // تفاصيل الرسالة المقتبسة
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs + 2),
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppSpacing.xs + 2,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -88,7 +88,11 @@ class ComposerReplyPreview extends StatelessWidget {
                     Row(
                       children: [
                         if (typeIcon != null) ...[
-                          Icon(typeIcon, size: 14, color: chat.quotedBodyTheirs),
+                          Icon(
+                            typeIcon,
+                            size: 14,
+                            color: chat.quotedBodyTheirs,
+                          ),
                           const SizedBox(width: 4),
                         ],
                         Expanded(
@@ -240,11 +244,15 @@ class WhatsAppAttachmentPanel extends StatelessWidget {
                 color: pal.location,
                 icon: LucideIcons.mapPin,
                 label: 'الموقع',
-                onTap: onLocation ?? () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('ميزة مشاركة الموقع قيد التطوير')),
-                  );
-                },
+                onTap:
+                    onLocation ??
+                    () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('ميزة مشاركة الموقع قيد التطوير'),
+                        ),
+                      );
+                    },
               ),
               _buildAttachmentOption(
                 context,
@@ -294,10 +302,7 @@ class WhatsAppAttachmentPanel extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      color.withValues(alpha: 0.95),
-                      color,
-                    ],
+                    colors: [color.withValues(alpha: 0.95), color],
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -310,7 +315,7 @@ class WhatsAppAttachmentPanel extends StatelessWidget {
                 child: Center(
                   child: Icon(
                     icon,
-                    color: Colors.white,
+                    color: context.textColors.onAccent,
                     size: 26,
                   ),
                 ),

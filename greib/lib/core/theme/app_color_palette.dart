@@ -42,6 +42,7 @@ class AppTextColors {
   final Color onAccent; // نص فوق اللون الرسمي (أزرار ملوّنة، شارات)
   final Color disabled; // نص معطّل
   final Color link; // نص روابط / إجراءات
+  final Color onMedia; // نص فوق الصور/الفيديو (طبقة معتمة خلفه)
 
   const AppTextColors({
     required this.primary,
@@ -51,6 +52,7 @@ class AppTextColors {
     required this.onAccent,
     required this.disabled,
     required this.link,
+    required this.onMedia,
   });
 
   /// إرجاع نسخة مع تعديل حقول محدّدة (يُستخدم في نظام التخصيص الديناميكي).
@@ -62,6 +64,7 @@ class AppTextColors {
     Color? onAccent,
     Color? disabled,
     Color? link,
+    Color? onMedia,
   }) {
     return AppTextColors(
       primary: primary ?? this.primary,
@@ -71,6 +74,7 @@ class AppTextColors {
       onAccent: onAccent ?? this.onAccent,
       disabled: disabled ?? this.disabled,
       link: link ?? this.link,
+      onMedia: onMedia ?? this.onMedia,
     );
   }
 }
@@ -88,6 +92,7 @@ class AppBackgroundColors {
   final Color scrim; // حاجب تعتيم (خلف الحوارات)
   final Color accent; // خلفية ملوّنة باللون الرسمي
   final Color outline; // حدود/فواصل دقيقة
+  final Color mediaScrim; // طبقة تعتيم فوق الصور/الفيديو
 
   const AppBackgroundColors({
     required this.primary,
@@ -98,6 +103,7 @@ class AppBackgroundColors {
     required this.scrim,
     required this.accent,
     required this.outline,
+    required this.mediaScrim,
   });
 
   AppBackgroundColors copyWith({
@@ -109,6 +115,7 @@ class AppBackgroundColors {
     Color? scrim,
     Color? accent,
     Color? outline,
+    Color? mediaScrim,
   }) {
     return AppBackgroundColors(
       primary: primary ?? this.primary,
@@ -119,6 +126,7 @@ class AppBackgroundColors {
       scrim: scrim ?? this.scrim,
       accent: accent ?? this.accent,
       outline: outline ?? this.outline,
+      mediaScrim: mediaScrim ?? this.mediaScrim,
     );
   }
 }
@@ -136,6 +144,12 @@ class AppIconColors {
   final Color onAccent; // أيقونة فوق اللون الرسمي
   final Color onBackground; // أيقونة فوق خلفية (تكيّف مع الوضع)
   final Color disabled; // أيقونة معطّلة
+  // ألوان الحالة الدلالية — تُستخدم بدلاً من AppColors.static للسماح بالتغيير الديناميكي
+  final Color success; // نجاح / تأكيد
+  final Color warning; // تحذير / انتب
+  final Color error; // خطأ / حذف
+  final Color info; // معلومات عامة
+  final Color onMedia; // أيقونة فوق الصور/الفيديو
 
   const AppIconColors({
     required this.primary,
@@ -146,6 +160,11 @@ class AppIconColors {
     required this.onAccent,
     required this.onBackground,
     required this.disabled,
+    required this.success,
+    required this.warning,
+    required this.error,
+    required this.info,
+    required this.onMedia,
   });
 
   AppIconColors copyWith({
@@ -157,6 +176,11 @@ class AppIconColors {
     Color? onAccent,
     Color? onBackground,
     Color? disabled,
+    Color? success,
+    Color? warning,
+    Color? error,
+    Color? info,
+    Color? onMedia,
   }) {
     return AppIconColors(
       primary: primary ?? this.primary,
@@ -167,6 +191,11 @@ class AppIconColors {
       onAccent: onAccent ?? this.onAccent,
       onBackground: onBackground ?? this.onBackground,
       disabled: disabled ?? this.disabled,
+      success: success ?? this.success,
+      warning: warning ?? this.warning,
+      error: error ?? this.error,
+      info: info ?? this.info,
+      onMedia: onMedia ?? this.onMedia,
     );
   }
 }
@@ -194,6 +223,25 @@ class AppColorPalette extends ThemeExtension<AppColorPalette> {
   });
 
   // --------------------------------------------------------------------------
+  //  درجات اللون الرسمي — تُشتق وقت التشغيل من [accent] الحالي.
+  //  بهذه الطريقة يظل أي لون رسمي مختار من المستخدم قادراً على إنتاج
+  //  تدرّجات وتوهّجات متناسقة (بدل ثوابت AppColors الثابتة).
+  // --------------------------------------------------------------------------
+
+  /// درجة أفتح من اللون الرسمي (توهّجات، تدرّجات، إبراز).
+  Color get accentLight => _shiftLightness(accent, 0.18);
+
+  /// درجة أغمق من اللونfficial تُقرأ على الخلفيات الفاتحة (نص/أيقونة).
+  Color get accentDark => _shiftLightness(accent, -0.12);
+
+  /// إزاحة الإضاءة بلون HSL مع الحفاظ على درجة اللون والتشبّع (طابع العلامة).
+  static Color _shiftLightness(Color color, double delta) {
+    final hsl = HSLColor.fromColor(color);
+    final lightness = (hsl.lightness + delta).clamp(0.0, 1.0);
+    return hsl.withLightness(lightness).toColor();
+  }
+
+  // --------------------------------------------------------------------------
   //  اللوحات الافتراضية (مشتقة من AppColors — توافق هوية بصري كامل)
   // --------------------------------------------------------------------------
 
@@ -211,6 +259,7 @@ class AppColorPalette extends ThemeExtension<AppColorPalette> {
         onAccent: AppColors.onAccentPrimary,
         disabled: AppColors.neutral500,
         link: AppColors.accentPrimaryLight,
+        onMedia: AppColors.neutral50,
       ),
       background: AppBackgroundColors(
         primary: AppColors.backgroundPrimary,
@@ -221,6 +270,7 @@ class AppColorPalette extends ThemeExtension<AppColorPalette> {
         scrim: AppColors.neutral950,
         accent: brand,
         outline: AppColors.outline,
+        mediaScrim: AppColors.neutral950,
       ),
       icon: AppIconColors(
         primary: brand,
@@ -231,6 +281,11 @@ class AppColorPalette extends ThemeExtension<AppColorPalette> {
         onAccent: AppColors.onAccentPrimary,
         onBackground: AppColors.textPrimary,
         disabled: AppColors.neutral500,
+        success: AppColors.success,
+        warning: AppColors.warning,
+        error: AppColors.error,
+        info: AppColors.info,
+        onMedia: AppColors.neutral50,
       ),
     );
   }
@@ -250,6 +305,7 @@ class AppColorPalette extends ThemeExtension<AppColorPalette> {
         onAccent: AppColors.onAccentPrimary,
         disabled: AppColors.neutral400,
         link: AppColors.accentPrimaryDark,
+        onMedia: AppColors.neutral50,
       ),
       background: AppBackgroundColors(
         primary: AppColors.lightBackground,
@@ -260,6 +316,7 @@ class AppColorPalette extends ThemeExtension<AppColorPalette> {
         scrim: AppColors.neutral900,
         accent: brand,
         outline: AppColors.lightOutline,
+        mediaScrim: AppColors.neutral900,
       ),
       icon: AppIconColors(
         primary: AppColors.accentPrimaryDark,
@@ -270,6 +327,11 @@ class AppColorPalette extends ThemeExtension<AppColorPalette> {
         onAccent: AppColors.onAccentPrimary,
         onBackground: AppColors.lightText,
         disabled: AppColors.neutral400,
+        success: AppColors.success,
+        warning: AppColors.warning,
+        error: AppColors.error,
+        info: AppColors.info,
+        onMedia: AppColors.neutral50,
       ),
     );
   }
@@ -303,12 +365,12 @@ class AppColorPalette extends ThemeExtension<AppColorPalette> {
       accent: accent,
       background: background.copyWith(accent: accent),
       icon: icon.copyWith(
-        primary: isDark ? accent : AppColors.accentPrimaryDark,
-        active: isDark ? accent : AppColors.accentPrimaryDark,
+        primary: isDark ? accent : _shiftLightness(accent, -0.12),
+        active: isDark ? accent : _shiftLightness(accent, -0.12),
       ),
       text: text.copyWith(
         onAccent: AppColors.onAccentPrimary,
-        link: isDark ? AppColors.accentPrimaryLight : AppColors.accentPrimaryDark,
+        link: isDark ? _shiftLightness(accent, 0.18) : _shiftLightness(accent, -0.12),
       ),
     );
   }
@@ -336,6 +398,7 @@ class AppColorPalette extends ThemeExtension<AppColorPalette> {
       onAccent: Color.lerp(a.onAccent, b.onAccent, t)!,
       disabled: Color.lerp(a.disabled, b.disabled, t)!,
       link: Color.lerp(a.link, b.link, t)!,
+      onMedia: Color.lerp(a.onMedia, b.onMedia, t)!,
     );
   }
 
@@ -350,6 +413,7 @@ class AppColorPalette extends ThemeExtension<AppColorPalette> {
       scrim: Color.lerp(a.scrim, b.scrim, t)!,
       accent: Color.lerp(a.accent, b.accent, t)!,
       outline: Color.lerp(a.outline, b.outline, t)!,
+      mediaScrim: Color.lerp(a.mediaScrim, b.mediaScrim, t)!,
     );
   }
 
@@ -363,6 +427,11 @@ class AppColorPalette extends ThemeExtension<AppColorPalette> {
       onAccent: Color.lerp(a.onAccent, b.onAccent, t)!,
       onBackground: Color.lerp(a.onBackground, b.onBackground, t)!,
       disabled: Color.lerp(a.disabled, b.disabled, t)!,
+      success: Color.lerp(a.success, b.success, t)!,
+      warning: Color.lerp(a.warning, b.warning, t)!,
+      error: Color.lerp(a.error, b.error, t)!,
+      info: Color.lerp(a.info, b.info, t)!,
+      onMedia: Color.lerp(a.onMedia, b.onMedia, t)!,
     );
   }
 }

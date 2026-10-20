@@ -4,7 +4,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../extensions/context_extensions.dart';
 import '../location/map_config.dart';
 import '../storage/app_prefs.dart';
-import '../theme/app_colors.dart';
 
 /// ============================================================================
 ///  MapStyleSelector — شريط اختيار نمط الخريطة (3 أوضاع: عادي/داكن/أقمار).
@@ -99,7 +98,7 @@ class MapStyleSelector extends StatelessWidget {
                       kind: MapProviderKind.satellite,
                       selected: picked == MapProviderKind.satellite,
                       isDark: isDark,
-                      color: AppColors.success,
+                      color: ctx.iconColors.success,
                       onTap: () =>
                           setSt(() => picked = MapProviderKind.satellite),
                     ),
@@ -163,7 +162,7 @@ class MapStyleSelector extends StatelessWidget {
           kind: MapProviderKind.satellite,
           selected: current == MapProviderKind.satellite,
           isDark: isDark,
-          color: AppColors.success,
+          color: context.iconColors.success,
           onTap: () => onChanged(MapProviderKind.satellite),
         ),
       ],

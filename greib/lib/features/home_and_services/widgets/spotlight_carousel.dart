@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/models/service_model.dart';
 import '../../../../core/mock_data/mock_data.dart';
 import '../../../../core/widgets/draggable_sheet_body.dart';
@@ -277,7 +277,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     required String label,
     required VoidCallback onPressed,
   }) {
-    final tint = widget.isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+    final tint = context.accentColor;
     return TextButton.icon(
       style: TextButton.styleFrom(
         backgroundColor: tint.withValues(alpha: 0.1),
@@ -337,9 +337,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                 mainAxisSize: MainAxisSize.min,
                 children: List.generate(posts.length, (i) {
                   final active = i == activeIndex;
-                  final neonColor = widget.isDark
-                      ? AppColors.neon
-                      : AppColors.accentPrimaryDark;
+                  final neonColor = context.accentColor;
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 220),
                     margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -348,9 +346,9 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                     decoration: BoxDecoration(
                       color: active
                           ? neonColor
-                          : (widget.isDark
+                          : (Theme.of(context).brightness == Brightness.dark
                                 ? Colors.white24
-                                : AppColors.lightOutline),
+                                : context.textColors.tertiary),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   );
@@ -587,9 +585,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
             service: service,
             isDark: widget.isDark,
             imageUrls: images,
-            backgroundColor: widget.isDark
-                ? AppColors.background
-                : AppColors.lightBackground,
+            backgroundColor: context.backgroundColors.primary,
             // ★ الأعداد كما كانت: ثابتة ومشتقّة من معرّف المنشور.
             countSeed: postId,
             likeCount: PostSheetsController.countFor(postId, 80, 10),
@@ -823,7 +819,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                           hint: 'تم استلام بلاغك عن «${service.title}». سنقوم بمراجعته قريباً.',
                         ),
                       ),
-                      color: AppColors.error,
+                      color: context.iconColors.error,
                     ),
                   ],
                 ),
@@ -838,9 +834,7 @@ class _SpotlightSectionState extends State<SpotlightSection> {
   Widget _spotlightItem(ServicePostEntry entry) {
     final service = entry.service;
     final post = entry.post;
-    final neonColor = widget.isDark
-        ? AppColors.neon
-        : AppColors.accentPrimaryDark;
+    final neonColor = context.accentColor;
     
     final imageUrl = post.imageUrls.isNotEmpty 
         ? post.imageUrls.first 
@@ -849,8 +843,15 @@ class _SpotlightSectionState extends State<SpotlightSection> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        boxShadow: widget.isDark
-            ? AppColors.neonGlow(blur: 20, alpha: 0.1)
+        boxShadow: Theme.of(context).brightness == Brightness.dark
+            ? [
+                BoxShadow(
+                  color: context.accentColor.withValues(alpha: 0.1),
+                  blurRadius: 20,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 0),
+                ),
+              ]
             : [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),
@@ -955,17 +956,13 @@ class _SpotlightSectionState extends State<SpotlightSection> {
                                   Icon(
                                     LucideIcons.shoppingBag,
                                     size: 16,
-                                    color: widget.isDark
-                                        ? Colors.black
-                                        : Colors.white,
+                                    color: context.iconColors.onAccent,
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
                                     'طلب الآن',
                                     style: TextStyle(
-                                      color: widget.isDark
-                                          ? Colors.black
-                                          : Colors.white,
+                                      color: context.iconColors.onAccent,
                                       fontWeight: FontWeight.w700,
                                       fontSize: 12,
                                     ),

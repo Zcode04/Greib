@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../extensions/context_extensions.dart';
-import '../theme/app_colors.dart';
 
 /// Globe3D — الكرة الأرضية 3D الأصلية (الوضع العادي قبل المكتبات).
 /// الخريطة الحقيقية اختيارية فقط عبر زر «نمط الخريطة».
@@ -103,6 +102,8 @@ class _SpinningGlobeState extends State<_SpinningGlobe>
             turns: _spin.value,
             brand: context.accentColor,
             background: context.backgroundColors.primary,
+            grid: context.textColors.onMedia,
+            success: context.iconColors.success,
           ),
         )));
   }
@@ -117,10 +118,18 @@ class _GlobePainter extends CustomPainter {
   /// ★ لون الخلفية من اللوحة المركزية.
   final Color background;
 
+  /// ★ لون خطوط الشبكة فوق الكرة (لون "على الوسائط").
+  final Color grid;
+
+  /// ★ لون دبابيس السفر من اللوحة المركزية.
+  final Color success;
+
   const _GlobePainter({
     required this.turns,
     required this.brand,
     required this.background,
+    required this.grid,
+    required this.success,
   });
 
   @override
@@ -135,7 +144,7 @@ class _GlobePainter extends CustomPainter {
         stops: const [0.0, 1.0]).createShader(rect);
     canvas.drawCircle(center, radius, sphere);
     final line = Paint()
-      ..color = Colors.white.withValues(alpha: 0.16)
+      ..color = grid.withValues(alpha: 0.16)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.9;
     final phase = turns * 2 * math.pi;
@@ -155,7 +164,7 @@ class _GlobePainter extends CustomPainter {
     canvas.drawCircle(center, radius, Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.4
-      ..color = Colors.white.withValues(alpha: 0.25));
+      ..color = grid.withValues(alpha: 0.25));
     final refLat = _SpinningGlobeState.pins.first[0];
     final refLon = _SpinningGlobeState.pins.first[1];
     for (final pin in _SpinningGlobeState.pins) {
@@ -163,10 +172,14 @@ class _GlobePainter extends CustomPainter {
       final y = ((refLat - pin[0]) / 90) * radius;
       final p = center.translate(x, y);
       if ((p - center).distance > radius * 0.94) continue;
-      canvas.drawCircle(p, 2.4, Paint()..color = AppColors.success);
+      canvas.drawCircle(p, 2.4, Paint()..color = success);
     }
   }
   @override
   bool shouldRepaint(_GlobePainter old) =>
-      old.turns != turns || old.brand != brand || old.background != background;
+      old.turns != turns ||
+      old.brand != brand ||
+      old.background != background ||
+      old.grid != grid ||
+      old.success != success;
 }

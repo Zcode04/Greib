@@ -101,9 +101,7 @@ class ConversationTile extends StatelessWidget {
                         style: theme.textTheme.bodySmall?.copyWith(
                           // ★ 11 حجم وقت واتساب الصغير.
                           fontSize: 11,
-                          color: unread > 0
-                              ? chat.sendButton
-                              : chat.recordingWaveUnplayed,
+                          color: unread > 0 ? chat.sendButton : chat.mutedText,
                           fontWeight: unread > 0
                               ? FontWeight.w700
                               : FontWeight.normal,
@@ -122,9 +120,7 @@ class ConversationTile extends StatelessWidget {
                           style: theme.textTheme.bodyMedium?.copyWith(
                             // ★ 13 حجم رسالة واتساب بدل 14.
                             fontSize: 13,
-                            color: unread > 0
-                                ? chat.inputText
-                                : chat.recordingWaveUnplayed,
+                            color: unread > 0 ? chat.inputText : chat.mutedText,
                             fontWeight: unread > 0
                                 ? FontWeight.w600
                                 : FontWeight.normal,

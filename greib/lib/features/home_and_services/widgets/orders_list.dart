@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared_widgets/glass_container.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../core/extensions/context_extensions.dart';
 import '../../../../core/mock_data/mock_data.dart';
 import '../../../../shared_widgets/order_status_badge.dart';
 
@@ -13,19 +13,19 @@ class OrdersList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final orders = MockData.demoOrders;
-    final neonColor = isDark ? AppColors.neon : AppColors.accentPrimaryDark;
+    final neonColor = context.accentColor;
 
     if (orders.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.surface : AppColors.lightSurface,
+          color: context.backgroundColors.surface,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Center(
           child: Text('لا توجد طلبات حالية',
-              style: TextStyle(
-                  color: isDark ? AppColors.textMuted : AppColors.lightTextTertiary)),
+                      style: TextStyle(
+                          color: context.textColors.tertiary)),
         ),
       );
     }
@@ -62,7 +62,7 @@ class OrdersList extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: isDark ? AppColors.textPrimary : AppColors.lightText,
+                          color: context.textColors.primary,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
@@ -73,7 +73,7 @@ class OrdersList extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                            color: isDark ? AppColors.textMuted : AppColors.lightTextTertiary,
+                            color: context.textColors.tertiary,
                             fontSize: 11),
                       ),
                     ],

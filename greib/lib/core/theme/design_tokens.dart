@@ -37,18 +37,25 @@ class AppElevation {
 }
 
 class AppShadows {
-  static List<BoxShadow> get brandGlow => [
+  /// توهّج اللون الرسمي — الافتراضي ثابت (لون العلامة الافتراضي).
+  static List<BoxShadow> get brandGlow => brandGlowFor(AppColors.accentGlow);
+
+  /// توهّج بلون محدّد — يُستخدم مع اللوحة الديناميكية (لون رسمي مختار).
+  static List<BoxShadow> brandGlowFor(Color accent) => [
         BoxShadow(
-          color: AppColors.accentGlow,
+          color: accent,
           blurRadius: 24,
           spreadRadius: 2,
           offset: const Offset(0, 4),
         ),
       ];
 
-  static List<BoxShadow> get brandGlowStrong => [
+  static List<BoxShadow> get brandGlowStrong => brandGlowStrongFor(AppColors.accentGlow);
+
+  /// توهّج قوي بلون محدّد — يُستخدم مع اللوحة الديناميكية (لون رسمي مختار).
+  static List<BoxShadow> brandGlowStrongFor(Color accent) => [
         BoxShadow(
-          color: AppColors.accentGlow,
+          color: accent,
           blurRadius: 40,
           spreadRadius: 6,
           offset: const Offset(0, 8),
@@ -58,6 +65,15 @@ class AppShadows {
   // أسماء قديمة (هوية سابقة) — للتوافق، توجّه للـ brand
   static List<BoxShadow> get glowGreen => brandGlow;
   static List<BoxShadow> get glowGreenStrong => brandGlowStrong;
+
+  /// ظل ناعم للبطاقات والأسطح الزجاجية (محايد — لا يرتبط بلون رسمي).
+  static List<BoxShadow> get soft => [
+        BoxShadow(
+          color: const Color(0xFF000000).withValues(alpha: 0.15),
+          blurRadius: 20,
+          offset: const Offset(0, 8),
+        ),
+      ];
 
   static List<BoxShadow> get xs => [
         BoxShadow(

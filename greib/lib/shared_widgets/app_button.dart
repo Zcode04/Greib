@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme/design_tokens.dart';
+import '../core/extensions/context_extensions.dart';
 
 enum ButtonType { primary, secondary, ghost, danger }
 
@@ -33,10 +34,12 @@ class AppButton extends StatelessWidget {
     final effectiveColor =
         color ??
         (type == ButtonType.danger
-            ? AppColors.error
+            ? context.iconColors.error
             : type == ButtonType.secondary
-            ? AppColors.secondary
+            ? theme.colorScheme.secondary
             : theme.colorScheme.primary);
+    // لون المحتوى فوق اللون الرسمي — من اللوحة (يتبع اللون المختار).
+    final onAccent = context.textColors.onAccent;
 
     final isEnabled = onPressed != null && !isLoading;
 
@@ -50,12 +53,12 @@ class AppButton extends StatelessWidget {
             height: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: type == ButtonType.ghost ? effectiveColor : Colors.white,
+              color: type == ButtonType.ghost ? effectiveColor : onAccent,
             ),
           )
         else ...[
           if (icon != null) ...[
-            Icon(icon, size: 20, color: _textColor(type, effectiveColor)),
+            Icon(icon, size: 20, color: _textColor(type, effectiveColor, onAccent)),
             const SizedBox(width: AppSpacing.sm),
           ],
           Text(
@@ -64,7 +67,7 @@ class AppButton extends StatelessWidget {
               fontFamily: AppTypography.fontFamily,
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: _textColor(type, effectiveColor),
+              color: _textColor(type, effectiveColor, onAccent),
             ),
           ),
         ],
@@ -123,7 +126,7 @@ class AppButton extends StatelessWidget {
         onPressed: isEnabled ? onPressed : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: effectiveColor,
-          foregroundColor: Colors.black,
+          foregroundColor: onAccent,
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.xl,
             vertical: AppSpacing.md,
@@ -139,12 +142,12 @@ class AppButton extends StatelessWidget {
     );
   }
 
-  Color _textColor(ButtonType type, Color color) {
+  Color _textColor(ButtonType type, Color color, Color onAccent) {
     // أولوية مطلقة للّون الصريح إن مُرِّر من الشاشة.
     if (textColor != null) return textColor!;
     if (isOutlined) return color;
-    if (type == ButtonType.primary) return Colors.white;
-    if (type == ButtonType.danger) return Colors.white;
+    if (type == ButtonType.primary) return onAccent;
+    if (type == ButtonType.danger) return onAccent;
     return color;
   }
 }

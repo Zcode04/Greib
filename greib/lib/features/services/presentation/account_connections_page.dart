@@ -5,6 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/models/account_model.dart';
 import '../../../core/models/service_model.dart';
 import '../../../core/theme/design_tokens.dart';
+import '../../../core/extensions/context_extensions.dart';
 import '../../../core/widgets/draggable_sheet_body.dart';
 import '../data/account_repository.dart';
 import '../data/services_repository.dart';
@@ -44,8 +45,7 @@ class AccountConnectionsPage extends StatefulWidget {
 class _AccountConnectionsPageState extends State<AccountConnectionsPage> {
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? AppColors.backgroundPrimary : AppColors.lightBackground;
+    final bg = context.backgroundColors.primary;
 
     final account = AccountRepository.instance.byId(widget.accountId);
     final service = account == null
@@ -80,13 +80,9 @@ Future<void> showAccountConnectionsSheet(
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black.withValues(alpha: 0.4),
-    builder: (sheetContext) {
-      final isDark =
-          Theme.of(sheetContext).brightness == Brightness.dark;
-      final bg = isDark
-          ? AppColors.backgroundPrimary
-          : AppColors.lightBackground;
-      return Directionality(
+      builder: (sheetContext) {
+        final bg = sheetContext.backgroundColors.primary;
+        return Directionality(
         textDirection: TextDirection.rtl,
         // ★ نفس ورقة التعليقات: تبدأ صغيرة، تتوسّع بالسحب، وتُغلق بالسحب لأسفل.
         child: DraggableSheetBody(
@@ -159,7 +155,7 @@ class _AccountConnectionsViewState extends State<AccountConnectionsView>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final bg = isDark ? AppColors.backgroundPrimary : AppColors.lightBackground;
+    final bg = context.backgroundColors.primary;
 
     final account = AccountRepository.instance.byId(widget.accountId);
     final service = account == null
@@ -340,11 +336,9 @@ class _MiniHeader extends StatelessWidget {
             PositionedDirectional(
               top: inSheet ? AppSpacing.sm : MediaQuery.of(context).padding.top + AppSpacing.sm,
               start: AppSpacing.md,
-              child: Container(
+                child: Container(
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.surfaceCard
-                      : AppColors.lightSurface,
+                  color: context.backgroundColors.surface.withValues(alpha: 0.9),
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: service.color.withValues(alpha: 0.45),
@@ -373,13 +367,11 @@ class _MiniHeader extends StatelessWidget {
               child: Container(
                 width: _avatarSize,
                 height: _avatarSize,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isDark
-                      ? AppColors.surfaceCard
-                      : AppColors.lightSurface,
-                  border: Border.all(color: bg, width: 4),
-                  boxShadow: AppShadows.brandGlow,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: context.backgroundColors.surface,
+                    border: Border.all(color: bg, width: 4),
+                    boxShadow: AppShadows.brandGlow,
                   image: account.avatarUrl != null
                       ? DecorationImage(
                           image: NetworkImage(account.avatarUrl!),
@@ -548,7 +540,7 @@ class _TabsStrip extends StatelessWidget {
         labelColor: accent,
         unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
         indicatorSize: TabBarIndicatorSize.tab,
-        dividerColor: isDark ? AppColors.outline : AppColors.lightOutline,
+        dividerColor: context.backgroundColors.outline,
         labelStyle: const TextStyle(fontWeight: FontWeight.w700),
         tabs: const [
           Tab(text: 'المتابِعون'),
@@ -600,7 +592,7 @@ class _RelationListState extends State<_RelationList> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final line = widget.isDark ? AppColors.outline : AppColors.lightOutline;
+    final line = context.backgroundColors.outline;
     final visible = widget.accounts.take(_visible).toList();
 
     if (widget.accounts.isEmpty) {
@@ -761,10 +753,10 @@ class _RelationRowState extends State<_RelationRow> {
           ),
           if (account.isVerified) ...[
             const SizedBox(width: 4),
-            const Icon(
+            Icon(
               LucideIcons.badgeCheck,
               size: 14,
-              color: AppColors.info,
+              color: context.iconColors.info,
             ),
           ],
         ],
@@ -858,18 +850,13 @@ class _NotFound extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: isDark
-            ? AppColors.backgroundPrimary
-            : AppColors.lightBackground,
+        backgroundColor: context.backgroundColors.primary,
         appBar: AppBar(
-          backgroundColor: isDark
-              ? AppColors.backgroundPrimary
-              : AppColors.lightBackground,
+          backgroundColor: context.backgroundColors.primary,
         ),
         body: Center(
           child: Text(

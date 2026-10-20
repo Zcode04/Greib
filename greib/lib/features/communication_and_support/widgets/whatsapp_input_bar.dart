@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../core/extensions/context_extensions.dart';
 import '../../../core/theme/chat_colors.dart';
 import 'whatsapp_voice_button.dart';
 import 'whatsapp_voice_recorder.dart';
@@ -66,10 +67,7 @@ class WhatsAppInputBar extends StatelessWidget {
     final chat = context.chatColors;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 6,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -93,7 +91,9 @@ class WhatsAppInputBar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.07),
+                      color: context.backgroundColors.scrim.withValues(
+                        alpha: 0.07,
+                      ),
                       blurRadius: 4,
                       offset: const Offset(0, 1.5),
                     ),
@@ -119,7 +119,7 @@ class WhatsAppInputBar extends StatelessWidget {
                         maxLines: 5,
                         minLines: 1,
                         textInputAction: TextInputAction.newline,
-                        cursorColor: const Color(0xFF1FA855),
+                        cursorColor: chat.sendButton,
                         cursorWidth: 2,
                         cursorRadius: const Radius.circular(2),
                         style: TextStyle(
@@ -184,19 +184,21 @@ class WhatsAppInputBar extends StatelessWidget {
               secondChild: Container(
                 height: 50,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF1F2C34)
+                  color: context.isDarkMode
+                      ? chat.recordingBackground
                       : chat.inputField,
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white.withValues(alpha: 0.08)
+                    color: context.isDarkMode
+                        ? context.textColors.primary.withValues(alpha: 0.08)
                         : Colors.transparent,
                     width: 0.8,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.25 : 0.07),
+                      color: context.backgroundColors.scrim.withValues(
+                        alpha: context.isDarkMode ? 0.25 : 0.07,
+                      ),
                       blurRadius: 4,
                       offset: const Offset(0, 1.5),
                     ),
@@ -214,9 +216,7 @@ class WhatsAppInputBar extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white
-                            : const Color(0xFF111B21),
+                        color: chat.recordingTimer,
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
@@ -229,13 +229,18 @@ class WhatsAppInputBar extends StatelessWidget {
                             child: CustomPaint(
                               painter: LiveWaveformPainter(
                                 waveform: liveWaveform!,
-                                liveBarColor: const Color(0xFF53BDEB),
-                                unplayedBarColor: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white.withValues(alpha: 0.25)
-                                    : const Color(0xFF8696A0).withValues(alpha: 0.35),
-                                playedBarColor: const Color(0xFF53BDEB),
+                                liveBarColor: chat.recordingWavePlayed,
+                                unplayedBarColor: chat.recordingWaveUnplayed,
+                                playedBarColor: chat.recordingWavePlayed,
                                 isPaused: false,
-                                isRTL: Directionality.of(context) == TextDirection.rtl,
+                                isRTL:
+                                    Directionality.of(context) ==
+                                    TextDirection.rtl,
+                                playheadShadowColor: context
+                                    .backgroundColors
+                                    .scrim
+                                    .withValues(alpha: 0.30),
+                                playheadCenterColor: context.textColors.onMedia,
                               ),
                               size: Size.infinite,
                             ),

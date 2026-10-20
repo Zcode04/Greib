@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../core/extensions/context_extensions.dart';
 import 'account_connections_page.dart';
 import '../../../core/mock_data/mock_data.dart';
 import '../../../core/models/account_model.dart';
@@ -12,7 +13,6 @@ import '../../../shared_widgets/service_post_card.dart';
 import '../../../shared_widgets/smart_image.dart';
 import '../data/account_repository.dart';
 import '../data/services_repository.dart';
-import '../../../shared_widgets/share_arrow_icon.dart';
 
 /// ============================================================================
 ///  AccountProfilePage — صفحة حساب المستخدم/المتجر (بروفايل مستقل).
@@ -66,7 +66,7 @@ class _AccountProfilePageState extends State<AccountProfilePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final bg = isDark ? AppColors.backgroundPrimary : AppColors.lightBackground;
+    final bg = context.backgroundColors.primary;
 
     // ★ المصدر الوحيد للحساب = AccountRepository.
     final account = AccountRepository.instance.byId(widget.accountId);
@@ -165,7 +165,7 @@ class _AccountHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bg = isDark ? AppColors.backgroundPrimary : AppColors.lightBackground;
+    final bg = context.backgroundColors.primary;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,9 +191,7 @@ class _AccountHeader extends StatelessWidget {
               start: AppSpacing.md,
               child: Container(
                 decoration: BoxDecoration(
-                  color:
-                      (isDark ? AppColors.surfaceCard : AppColors.lightSurface)
-                          .withValues(alpha: 0.9),
+                  color: context.backgroundColors.surface.withValues(alpha: 0.9),
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
@@ -213,9 +211,7 @@ class _AccountHeader extends StatelessWidget {
                 width: _avatarSize,
                 height: _avatarSize,
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.surfaceCard
-                      : AppColors.lightSurface,
+                  color: context.backgroundColors.surface,
                   shape: BoxShape.circle,
                   border: Border.all(color: bg, width: 4),
                   boxShadow: AppShadows.brandGlow,
@@ -263,14 +259,14 @@ class _AccountHeader extends StatelessWidget {
                   ),
                   if (account.isVerified) ...[
                     const SizedBox(width: 6),
-                    const Icon(
+                    Icon(
                       LucideIcons.badgeCheck,
                       size: 18,
-                      color: AppColors.info,
+                      color: context.iconColors.info,
                     ),
                   ],
                   const SizedBox(width: AppSpacing.sm),
-                  Icon(LucideIcons.star, size: 16, color: AppColors.warning),
+                  Icon(LucideIcons.star, size: 16,                   color: context.iconColors.warning),
                   const SizedBox(width: 4),
                   Text(
                     account.rating.toStringAsFixed(1),
@@ -291,7 +287,7 @@ class _AccountHeader extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: account.isOnline
-                          ? AppColors.success
+                          ? context.iconColors.success
                           : theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
@@ -587,7 +583,7 @@ class _AccountTabBarDelegate extends SliverPersistentHeaderDelegate {
         labelColor: accent,
         unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
         indicatorSize: TabBarIndicatorSize.tab,
-        dividerColor: isDark ? AppColors.outline : AppColors.lightOutline,
+        dividerColor: context.backgroundColors.outline,
         labelStyle: const TextStyle(fontWeight: FontWeight.w700),
         tabs: const [
           Tab(text: 'الأحدث'),
@@ -630,7 +626,7 @@ class _AccountPostsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final bg = isDark ? AppColors.backgroundPrimary : AppColors.lightBackground;
+    final bg = context.backgroundColors.primary;
 
     // ★ المصدر = AccountRepository.postsFor ⇒ منشورات الحساب المحدد فقط.
     final source = AccountRepository.instance.postsFor(accountId);
@@ -734,18 +730,13 @@ class _AccountNotFound extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: isDark
-            ? AppColors.backgroundPrimary
-            : AppColors.lightBackground,
+        backgroundColor: context.backgroundColors.primary,
         appBar: AppBar(
-          backgroundColor: isDark
-              ? AppColors.backgroundPrimary
-              : AppColors.lightBackground,
+          backgroundColor: context.backgroundColors.primary,
         ),
         body: Center(
           child: Padding(

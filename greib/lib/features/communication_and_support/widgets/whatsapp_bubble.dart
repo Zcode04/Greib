@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../core/extensions/context_extensions.dart';
 import '../../../core/theme/chat_colors.dart';
 import 'chat_whatsapp_ui.dart';
 
@@ -50,11 +51,12 @@ class _WhatsAppBubbleShellState extends State<WhatsAppBubbleShell>
       vsync: this,
       duration: const Duration(milliseconds: 240),
     );
-    _dragAnimation = Tween<double>(begin: 0.0, end: 0.0).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
-    )..addListener(() {
-        setState(() => _dragOffset = _dragAnimation.value);
-      });
+    _dragAnimation =
+        Tween<double>(begin: 0.0, end: 0.0).animate(
+          CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
+        )..addListener(() {
+          setState(() => _dragOffset = _dragAnimation.value);
+        });
   }
 
   @override
@@ -89,10 +91,7 @@ class _WhatsAppBubbleShellState extends State<WhatsAppBubbleShell>
       widget.onSwipeReply?.call();
     }
     _animController.reset();
-    _dragAnimation = Tween<double>(
-      begin: _dragOffset,
-      end: 0.0,
-    ).animate(
+    _dragAnimation = Tween<double>(begin: _dragOffset, end: 0.0).animate(
       CurvedAnimation(parent: _animController, curve: Curves.easeOutBack),
     );
     _animController.forward();
@@ -133,7 +132,9 @@ class _WhatsAppBubbleShellState extends State<WhatsAppBubbleShell>
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.12),
+                          color: context.backgroundColors.scrim.withValues(
+                            alpha: 0.12,
+                          ),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -181,7 +182,9 @@ class _WhatsAppBubbleShellState extends State<WhatsAppBubbleShell>
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
+                            color: context.backgroundColors.scrim.withValues(
+                              alpha: 0.05,
+                            ),
                             blurRadius: 3,
                             offset: const Offset(0, 1),
                           ),

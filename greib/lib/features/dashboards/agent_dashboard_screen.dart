@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
+import '../../core/extensions/context_extensions.dart';
 import '../../core/mock_data/mock_data.dart';
 import '../../core/models/order_model.dart';
 import '../../core/permissions/permissions.dart';
@@ -34,14 +35,18 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: AppColors.error.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppRadii.lg),
-                  ),
-                  child: const Icon(LucideIcons.lock, size: 32, color: AppColors.error),
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: context.iconColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppRadii.lg),
+                    ),
+                    child: Icon(
+                      LucideIcons.lock,
+                      size: 32,
+                      color: context.iconColors.error,
+                    ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
@@ -75,7 +80,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
           ),
         ],
       ),
-      body: _buildBody(theme),
+      body: _buildBody(context, theme),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedTab,
         onDestinationSelected: (index) => setState(() => _selectedTab = index),
@@ -88,20 +93,20 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
     );
   }
 
-  Widget _buildBody(ThemeData theme) {
+  Widget _buildBody(BuildContext context, ThemeData theme) {
     switch (_selectedTab) {
       case 0:
-        return _buildTasksTab(theme);
+        return _buildTasksTab(context, theme);
       case 1:
-        return _buildCompletedTab(theme);
+        return _buildCompletedTab(context, theme);
       case 2:
-        return _buildAgentChatTab(theme);
+        return _buildAgentChatTab(context, theme);
       default:
-        return _buildTasksTab(theme);
+        return _buildTasksTab(context, theme);
     }
   }
 
-  Widget _buildTasksTab(ThemeData theme) {
+  Widget _buildTasksTab(BuildContext context, ThemeData theme) {
     final tasks = MockData.demoOrders.where((o) => o.agentId == AuthService.instance.currentUser?.id || o.status == 'pending').toList();
 
     return ListView(
@@ -130,15 +135,15 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                 leading: Container(
                   width: 48,
                   height: 48,
-                  decoration: BoxDecoration(
-                    color: AppColors.info.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(AppRadii.md),
-                  ),
-                  child: Icon(
-                    MockData.getIconByName(task.serviceType),
-                    color: AppColors.info,
-                    size: 24,
-                  ),
+                    decoration: BoxDecoration(
+                      color: context.iconColors.info.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(AppRadii.md),
+                    ),
+                    child: Icon(
+                      MockData.getIconByName(task.serviceType),
+                      color: context.iconColors.info,
+                      size: 24,
+                    ),
                 ),
                 title: Text(task.description, style: theme.textTheme.titleSmall),
                 subtitle: Column(
@@ -154,13 +159,13 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                           child: AppButton(
                             label: 'قبول',
                             icon: LucideIcons.check,
-                            color: AppColors.success,
+                            color: context.iconColors.success,
                             isFullWidth: false,
                             onPressed: () {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
+                                SnackBar(
                                   content: Text('تم قبول المهمة ✅'),
-                                  backgroundColor: AppColors.success,
+                                  backgroundColor: context.iconColors.success,
                                 ),
                               );
                             },
@@ -171,7 +176,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                           child: AppButton(
                             label: 'تحديث الحالة',
                             icon: LucideIcons.refreshCw,
-                            color: AppColors.info,
+                            color: context.iconColors.info,
                             isFullWidth: false,
                             type: ButtonType.secondary,
                             onPressed: () {
@@ -193,7 +198,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
     );
   }
 
-  Widget _buildCompletedTab(ThemeData theme) {
+  Widget _buildCompletedTab(BuildContext context, ThemeData theme) {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
@@ -207,22 +212,22 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.08),
+                color: context.iconColors.success.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Icon(LucideIcons.checkCircle, color: AppColors.success, size: 24),
+              child: Icon(LucideIcons.checkCircle, color: context.iconColors.success, size: 24),
             ),
             title: const Text('توصيل طلب طعام'),
             subtitle: const Text('تم التسليم - ٢٠٢٤/١٢/١'),
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.1),
+                color: context.iconColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppRadii.sm),
               ),
-              child: const Text(
+              child: Text(
                 'مكتمل',
-                style: TextStyle(color: AppColors.success, fontSize: 12),
+                style: TextStyle(color: context.iconColors.success, fontSize: 12),
               ),
             ),
           ),
@@ -234,22 +239,22 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.08),
+                color: context.iconColors.success.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Icon(LucideIcons.checkCircle, color: AppColors.success, size: 24),
+              child: Icon(LucideIcons.checkCircle, color: context.iconColors.success, size: 24),
             ),
             title: const Text('توصيل أدوية'),
             subtitle: const Text('تم التسليم - ٢٠٢٤/١١/٣٠'),
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.1),
+                color: context.iconColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppRadii.sm),
               ),
-              child: const Text(
+              child: Text(
                 'مكتمل',
-                style: TextStyle(color: AppColors.success, fontSize: 12),
+                style: TextStyle(color: context.iconColors.success, fontSize: 12),
               ),
             ),
           ),
@@ -258,7 +263,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
     );
   }
 
-  Widget _buildAgentChatTab(ThemeData theme) {
+  Widget _buildAgentChatTab(BuildContext context, ThemeData theme) {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
@@ -272,22 +277,22 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.info.withValues(alpha: 0.08),
+                color: context.iconColors.info.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Icon(LucideIcons.shield, color: AppColors.info),
+              child: Icon(LucideIcons.shield, color: context.iconColors.info),
             ),
             title: const Text('الإدارة'),
             subtitle: const Text('التقرير اليومي جاهز'),
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
-                color: AppColors.info.withValues(alpha: 0.1),
+                color: context.iconColors.info.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppRadii.sm),
               ),
-              child: const Text(
+              child: Text(
                 'شاهد',
-                style: TextStyle(color: AppColors.info, fontSize: 12),
+                style: TextStyle(color: context.iconColors.info, fontSize: 12),
               ),
             ),
             onTap: () => context.push('/chat'),
@@ -300,22 +305,22 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.08),
+                color: context.iconColors.success.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Icon(LucideIcons.users, color: AppColors.success),
+              child: Icon(LucideIcons.users, color: context.iconColors.success),
             ),
             title: const Text('فريق التوصيل'),
             subtitle: const Text('تم تسليم طلب الممزر ✅'),
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.1),
+                color: context.iconColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppRadii.sm),
               ),
-              child: const Text(
+              child: Text(
                 'شاهد',
-                style: TextStyle(color: AppColors.success, fontSize: 12),
+                style: TextStyle(color: context.iconColors.success, fontSize: 12),
               ),
             ),
             onTap: () => context.push('/chat'),
@@ -341,7 +346,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
           AppButton(
             label: 'قيد التوصيل',
             icon: LucideIcons.bike,
-            color: AppColors.info,
+            color: context.iconColors.info,
             onPressed: () {
               context.pop();
               ScaffoldMessenger.of(context).showSnackBar(
@@ -353,7 +358,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
           AppButton(
             label: 'تم التسليم',
             icon: LucideIcons.checkCircle,
-            color: AppColors.success,
+            color: context.iconColors.success,
             onPressed: () {
               context.pop();
               ScaffoldMessenger.of(context).showSnackBar(
@@ -365,7 +370,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
           AppButton(
             label: 'تأخير',
             icon: LucideIcons.alertTriangle,
-            color: AppColors.warning,
+            color: context.iconColors.warning,
             onPressed: () {
               context.pop();
               ScaffoldMessenger.of(context).showSnackBar(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/design_tokens.dart';
+import '../../core/extensions/context_extensions.dart';
 import '../../core/mock_data/mock_data.dart';
 import '../../core/permissions/permissions.dart';
 import '../../features/auth/auth_service.dart';
@@ -32,14 +33,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: AppColors.error.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppRadii.lg),
-                  ),
-                  child: const Icon(LucideIcons.lock, size: 32, color: AppColors.error),
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: context.iconColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppRadii.lg),
+                    ),
+                    child: Icon(
+                      LucideIcons.lock,
+                      size: 32,
+                      color: context.iconColors.error,
+                    ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
@@ -73,7 +78,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ),
         ],
       ),
-      body: _buildBody(theme),
+      body: _buildBody(context, theme),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedTab,
         onDestinationSelected: (index) => setState(() => _selectedTab = index),
@@ -87,22 +92,22 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildBody(ThemeData theme) {
+  Widget _buildBody(BuildContext context, ThemeData theme) {
     switch (_selectedTab) {
       case 0:
-        return _buildDashboard(theme);
+        return _buildDashboard(context, theme);
       case 1:
-        return _buildOrdersTab(theme);
+        return _buildOrdersTab(context, theme);
       case 2:
-        return _buildUsersTab(theme);
+        return _buildUsersTab(context, theme);
       case 3:
-        return _buildGroupsTab(theme);
+        return _buildGroupsTab(context, theme);
       default:
-        return _buildDashboard(theme);
+        return _buildDashboard(context, theme);
     }
   }
 
-  Widget _buildDashboard(ThemeData theme) {
+  Widget _buildDashboard(BuildContext context, ThemeData theme) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
@@ -119,10 +124,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             mainAxisSpacing: AppSpacing.md,
             childAspectRatio: 1.5,
             children: [
-              _buildStatCard(theme, 'الطلبات', '12', LucideIcons.receipt, AppColors.info),
-              _buildStatCard(theme, 'المستخدمين', '1,234', LucideIcons.users, AppColors.success),
-              _buildStatCard(theme, 'الوكلاء', '18', LucideIcons.bike, AppColors.secondary),
-              _buildStatCard(theme, 'الإيرادات', '45,600', LucideIcons.coins, AppColors.info),
+              _buildStatCard(context, theme, 'الطلبات', '12', LucideIcons.receipt, context.iconColors.info),
+              _buildStatCard(context, theme, 'المستخدمين', '1,234', LucideIcons.users, context.iconColors.success),
+              _buildStatCard(context, theme, 'الوكلاء', '18', LucideIcons.bike, context.textColors.tertiary),
+              _buildStatCard(context, theme, 'الإيرادات', '45,600', LucideIcons.coins, context.iconColors.info),
             ],
           ),
           const SizedBox(height: AppSpacing.xl),
@@ -141,15 +146,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                   decoration: BoxDecoration(
                     color: order.status == 'pending'
-                        ? AppColors.warning.withValues(alpha: 0.1)
-                        : AppColors.success.withValues(alpha: 0.1),
+                        ? context.iconColors.warning.withValues(alpha: 0.1)
+                        : context.iconColors.success.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(AppRadii.sm),
                   ),
                   child: Text(
                     order.status == 'pending' ? 'قيد الانتظار' : 'قيد التنفيذ',
                     style: TextStyle(
                       fontSize: 12,
-                      color: order.status == 'pending' ? AppColors.warning : AppColors.success,
+                      color: order.status == 'pending' ? context.iconColors.warning : context.iconColors.success,
                     ),
                   ),
                 ),
@@ -161,7 +166,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildStatCard(ThemeData theme, String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(BuildContext context, ThemeData theme, String title, String value, IconData icon, Color color) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -187,7 +192,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildOrdersTab(ThemeData theme) {
+  Widget _buildOrdersTab(BuildContext context, ThemeData theme) {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
@@ -201,7 +206,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 label: 'كل الطلبات',
                 icon: LucideIcons.list,
                 type: ButtonType.secondary,
-                color: AppColors.info,
+                color: context.iconColors.info,
                 onPressed: () {},
               ),
             ),
@@ -210,7 +215,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               child: AppButton(
                 label: 'تعيين وكيل',
                 icon: LucideIcons.userPlus,
-                color: AppColors.info,
+                color: context.iconColors.info,
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('تم تعيين وكيل للطلبات المحددة ✅')),
@@ -228,7 +233,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             child: ExpansionTile(
               leading: Icon(
                 MockData.getIconByName(order.serviceType),
-                color: AppColors.info,
+                color: context.iconColors.info,
               ),
               title: Text(order.description),
               subtitle: Text('حالة: ${order.status}'),
@@ -249,7 +254,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               label: 'تعيين وكيل',
                               icon: LucideIcons.userCog,
                               type: ButtonType.secondary,
-                              color: AppColors.info,
+                              color: context.iconColors.info,
                               onPressed: () {},
                             ),
                           ),
@@ -259,7 +264,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               label: 'إلغاء',
                               icon: LucideIcons.xCircle,
                               type: ButtonType.secondary,
-                              color: AppColors.error,
+                              color: context.iconColors.error,
                               onPressed: () {},
                             ),
                           ),
@@ -276,7 +281,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildUsersTab(ThemeData theme) {
+  Widget _buildUsersTab(BuildContext context, ThemeData theme) {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
@@ -292,10 +297,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               leading: CircleAvatar(
                 backgroundColor: roleEnum != null
                     ? PermissionService.roleColor(roleEnum).withValues(alpha: 0.15)
-                    : AppColors.neutral300.withValues(alpha: 0.15),
+                    : context.textColors.tertiary.withValues(alpha: 0.15),
                 child: Icon(
                   roleEnum != null ? PermissionService.roleIcon(roleEnum) : LucideIcons.user,
-                  color: roleEnum != null ? PermissionService.roleColor(roleEnum) : AppColors.neutral500,
+                  color: roleEnum != null ? PermissionService.roleColor(roleEnum) : context.textColors.tertiary,
                 ),
               ),
               title: Text(user.name),
@@ -305,14 +310,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 decoration: BoxDecoration(
                   color: roleEnum != null
                       ? PermissionService.roleColor(roleEnum).withValues(alpha: 0.1)
-                      : AppColors.neutral300.withValues(alpha: 0.1),
+                      : context.textColors.tertiary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppRadii.sm),
                 ),
                 child: Text(
                   roleEnum != null ? PermissionService.roleLabel(roleEnum) : user.role,
                   style: TextStyle(
                     fontSize: 12,
-                    color: roleEnum != null ? PermissionService.roleColor(roleEnum) : AppColors.neutral500,
+                    color: roleEnum != null ? PermissionService.roleColor(roleEnum) : context.textColors.tertiary,
                   ),
                 ),
               ),
@@ -323,7 +328,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildGroupsTab(ThemeData theme) {
+  Widget _buildGroupsTab(BuildContext context, ThemeData theme) {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
@@ -334,7 +339,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             AppButton(
               label: 'مجموعة جديدة',
               icon: LucideIcons.plus,
-              color: AppColors.error,
+              color: context.iconColors.error,
               isFullWidth: false,
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -353,10 +358,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.info.withValues(alpha: 0.08),
+                color: context.iconColors.info.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Icon(LucideIcons.users, color: AppColors.info),
+              child: Icon(LucideIcons.users, color: context.iconColors.info),
             ),
             title: const Text('فريق التوصيل - دبي'),
             subtitle: const Text('٣ أعضاء'),
@@ -370,10 +375,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.08),
+                color: context.iconColors.success.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Icon(LucideIcons.users, color: AppColors.success),
+              child: Icon(LucideIcons.users, color: context.iconColors.success),
             ),
             title: const Text('خدمة العملاء'),
             subtitle: const Text('٥ أعضاء'),
@@ -387,10 +392,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.secondary.withValues(alpha: 0.08),
+                color: context.textColors.tertiary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: Icon(LucideIcons.users, color: AppColors.secondaryDark),
+              child: Icon(LucideIcons.users, color: context.accentColor),
             ),
             title: const Text('الإدارة العليا'),
             subtitle: const Text('٢ أعضاء'),

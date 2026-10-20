@@ -4,6 +4,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../core/extensions/context_extensions.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/widgets/user_avatar.dart';
 
@@ -125,7 +126,7 @@ class _HomeActionBarState extends State<HomeActionBar>
                   decoration: BoxDecoration(
                     // ★ ليلي: أسود باهت شفاف (زجاجي) — نهاري: كما كان
                     color: isDark
-                        ? const Color(0xFF111214).withValues(alpha: 0.72)
+                        ? context.backgroundColors.surface.withValues(alpha: 0.72)
                         : theme.colorScheme.surface.withValues(
                             alpha: _running ? 1.0 : 0.92,
                           ),
@@ -208,7 +209,7 @@ class _CircleAvatarButton extends StatelessWidget {
             decoration: BoxDecoration(
               // ★ ليلي: زجاجي داكن — نهاري: كما كان
               color: isDark
-                  ? const Color(0xFF111214).withValues(alpha: 0.72)
+                  ? context.backgroundColors.surface.withValues(alpha: 0.72)
                   : theme.colorScheme.surface.withValues(alpha: 0.92),
               shape: BoxShape.circle,
               border: Border.all(
@@ -256,14 +257,14 @@ class _CircleIconButton extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadii.full),
         onTap: onTap,
-        child: Tooltip(
+            child: Tooltip(
           message: tooltip,
           child: Container(
             width: 42,
             height: 42,
             decoration: BoxDecoration(
               color: isDark
-                  ? const Color(0xFF111214).withValues(alpha: 0.72)
+                  ? context.backgroundColors.surface.withValues(alpha: 0.72)
                   : theme.colorScheme.surface.withValues(alpha: 0.92),
               shape: BoxShape.circle,
               border: Border.all(

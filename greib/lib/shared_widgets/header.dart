@@ -228,7 +228,7 @@ class DashboardHeader extends StatelessWidget implements PreferredSizeWidget {
         style: const TextStyle(fontWeight: FontWeight.w700),
       ),
       backgroundColor: roleColor,
-      foregroundColor: Colors.black,
+      foregroundColor: context.textColors.inverse,
       actions: [
         IconButton(
           icon: const Icon(LucideIcons.logOut),

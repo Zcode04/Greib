@@ -5,7 +5,6 @@ import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/permissions/permissions.dart';
 import '../../core/extensions/context_extensions.dart';
-import '../../core/theme/app_colors.dart';
 import '../../features/auth/auth_service.dart';
 import '../../core/widgets/header_collapse_state.dart';
 import '../../shared_widgets/latest_products_carousel.dart';
@@ -203,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   index: 1,
                   child: SectionHeader(
                     title: 'الأحدث',
-                    iconColor: AppColors.accentFor(isDark),
+                    iconColor: context.accentColor,
                     showAction: false,
                   ),
                 ),
@@ -250,8 +249,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   index: 4,
                   child: SectionHeader(
                     title: 'تعرف على أطبائنا',
-                    icon: LucideIcons.stethoscope,
-                    iconColor: AppColors.info,
+                      icon: LucideIcons.stethoscope,
+                      iconColor: context.iconColors.info,
                     onActionTap: () => context.push('/doctors'),
                   ),
                 ),
@@ -265,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: SectionHeader(
                       title: 'صفحات سريعة',
                       icon: LucideIcons.settings,
-                      iconColor: AppColors.textSecondary,
+                      iconColor: context.textColors.secondary,
                       showAction: false,
                     ),
                   ),
