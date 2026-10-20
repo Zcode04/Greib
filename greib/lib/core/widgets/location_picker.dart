@@ -790,7 +790,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                       label: 'تفاصيل موقعي',
                       open: _detailsOpen,
                       plain: true,
-                      icon: LucideIcons.info,
+                      icon: LucideIcons.chevronDown,
                       showIcon: false,
                       onTap: () => setState(() => _detailsOpen = !_detailsOpen),
                     ),
