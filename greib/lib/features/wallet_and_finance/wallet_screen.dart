@@ -102,14 +102,6 @@ class _WalletScreenState extends State<WalletScreen> {
           colors: [context.accentColor, context.accentColor, context.backgroundColors.primary],
         ),
         borderRadius: BorderRadius.circular(AppRadii.xl),
-        boxShadow: [
-          BoxShadow(
-            color: context.accentColor.withValues(alpha: 0.4),
-            blurRadius: 28,
-            spreadRadius: 2.8,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
       child: Stack(
         children: [
