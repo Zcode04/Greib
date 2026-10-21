@@ -18,6 +18,7 @@ import '../../core/permissions/permissions.dart';
 import '../../core/theme/chat_colors.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/loading_states.dart';
+import 'contact_profile_screen.dart';
 import 'widgets/call_log_tile.dart';
 import 'widgets/chat_whatsapp_ui.dart';
 import 'widgets/conversation_search_filter.dart';
@@ -2069,11 +2070,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
         ),
         titleSpacing: 0,
         title: InkWell(
+          // ★ الضغط على الاسم أو صورة البروفايل ⇒ صفحة معلومات الحساب.
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(widget.phone),
-                duration: const Duration(seconds: 1),
+            Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute(
+                builder: (_) => ContactProfileScreen(
+                  name: widget.conversationTitle,
+                  avatar: widget.avatar,
+                  phone: widget.phone,
+                  activity: widget.activity,
+                  online: widget.online,
+                  isGroup: widget.isGroup,
+                ),
               ),
             );
           },
