@@ -138,8 +138,15 @@ class ConversationFilterChips extends StatelessWidget {
         color: selected ? chat.sendIcon : chat.inputText,
       ),
       selectedColor: chat.sendButton,
-      backgroundColor: chat.inputField,
-      side: BorderSide.none,
+     
+      // ★ بوردر رفيع حول خلفية الشيبس: المختار بحدّ أخضر والبقية حدّ باهت
+      //   خفيف (30%) يفصلها عن الخلفية دون تشويش.
+      side: BorderSide(
+        color: selected
+            ? chat.sendButton
+            : chat.composerBorder.withValues(alpha: 0.2),
+        width: 1,
+      ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadii.full),
       ),
