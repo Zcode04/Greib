@@ -926,7 +926,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                       ),
                     ),
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: 20),
             NearbyServicesSection(isDark: theme.brightness == Brightness.dark),
           ],
         ),
