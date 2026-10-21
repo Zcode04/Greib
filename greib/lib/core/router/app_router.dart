@@ -22,6 +22,7 @@ import '../../features/posts/create_post_screen.dart';
 // ★ مجلد agent-grab: صفحات انضمام مزودي الخدمة.
 import '../../agent-grab/join_provider_screen.dart';
 import '../../agent-grab/add_store_screen.dart';
+import '../../agent-grab/add_road_screen.dart';
 import '../../features/liveserver/liveserver_screen.dart';
 import '../../features/liveserver/publiveedit_screen.dart';
 import '../../features/services/presentation/account_connections_page.dart';
@@ -71,6 +72,8 @@ class AppRouter {
     '/join-provider',
     // ★ صفحة «إضافة محل» (Add Store) — تُفتح من ورقة الخدمات القادمة.
     '/add-store',
+    // ★ صفحة «إضافة طريق» — تُفتح من ورقة الخدمات القادمة.
+    '/add-road',
     '/chat',
     '/alhadheq',
     '/shopping',
@@ -217,6 +220,11 @@ class AppRouter {
       GoRoute(
         path: '/add-store',
         builder: (context, state) => const AddStoreScreen(),
+      ),
+      // ★ صفحة «إضافة طريق» — agent-grab.
+      GoRoute(
+        path: '/add-road',
+        builder: (context, state) => const AddRoadScreen(),
       ),
       // صفحات عامة مؤقتة: تمنع الكراش عند فتح أقسام ما زالت قيد التطوير.
       GoRoute(

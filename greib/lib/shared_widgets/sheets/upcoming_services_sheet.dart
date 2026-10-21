@@ -44,6 +44,7 @@ class UpcomingServicesSheet extends StatelessWidget {
     'إنشاء منشور': '/create-post',
     'الانضمام إلينا كمزود خدمة': '/join-provider',
     'إضافة محل': '/add-store',
+    'إضافة طريق': '/add-road',
   };
 
   @override
