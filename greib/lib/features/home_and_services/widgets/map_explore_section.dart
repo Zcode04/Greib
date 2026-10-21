@@ -638,6 +638,8 @@ class _NearbyServicesSectionState extends State<NearbyServicesSection> {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
+                  const SizedBox(width: 5),
+                  Icon(LucideIcons.chevronRight, size: 15, color: tint),
                 ],
               ),
             ),
