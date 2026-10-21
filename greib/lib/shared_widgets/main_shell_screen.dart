@@ -91,22 +91,25 @@ const List<_ShellTab> _tabs = [
   ),
 ];
 
-/// ★ مفتاح عام للوصول إلى حالة MainShellScreen من أي مكان في التطبيق
-///   للتبديل بين تبويبات Shell (مثل الدردشة) مع الحفاظ على الهيدر والشريط السفلي.
-final GlobalKey<_MainShellScreenState> _mainShellKey = GlobalKey();
-
-
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});
 
+  /// ★ حالة الهيكل النشطة — تُسجَّل عند بنائه للوصول إليها من أي مكان في
+  ///   التطبيق (مثل تبديل تبويب الدردشة) مع الحفاظ على الهيدر والشريط السفلي.
+  static _MainShellScreenState? _activeState;
+
   /// ★ التبديل إلى تبويب الدردشة من أي مكان في التطبيق مع الحفاظ على الهيدر والشريط السفلي.
   static void switchToChat(BuildContext context) {
-    final state = _mainShellKey.currentState;
-    if (state != null) {
-      state.switchToChatTab();
-    } else {
+    final state = _activeState;
+    if (state == null) {
+      // الهيكل غير مبني (صفحة مستقلة عميقة) ⇒ افتح الدردشة كصفحة مستقلة.
       context.push('/chat');
+      return;
     }
+    // ★ إغلاق أي طبقة مفتوحة فوق الهيكل (شيت الموقع أو صفحة مستقلة)
+    //   للعودة إليه قبل تبديل التبويب — وإلا بقي التبديل مخفياً خلفها.
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    state.switchToChatTab();
   }
 
   @override
@@ -146,6 +149,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
   @override
   void initState() {
     super.initState();
+    // ★ تسجيل الحالة النشطة ليصل إليها MainShellScreen.switchToChat من أي مكان.
+    MainShellScreen._activeState = this;
     // ★ المؤشر المحفوظ يقتصر على فهارس الـ Shell ⇒ لا يقف أبداً على تبويب
     //   مستقل («موقعي»/«الريلز») بعد إعادة فتح التطبيق.
     final saved = AppPrefs.lastTabIndex;
@@ -163,6 +168,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
   @override
   void dispose() {
+    // ★ إلغاء التسجيل فقط إذا كانت هذه هي الحالة المسجّلة فعلاً.
+    if (identical(MainShellScreen._activeState, this)) {
+      MainShellScreen._activeState = null;
+    }
     _pageController.dispose();
     super.dispose();
   }
@@ -270,7 +279,6 @@ class _MainShellScreenState extends State<MainShellScreen> {
     // ★ نُخفي العنوان في تبويب «الرئيسية» فقط (حيث يظهر شعار التطبيق بدله).
     final isHomeTab = _currentIndex == _homeTabIndex;
     return Scaffold(
-      key: _mainShellKey,
       backgroundColor: scaffoldBg,
       // ★ المحتوى يبدأ تحت الهيدر (مسافة عمودية) ولا يتداخل معه —
       // يمتد فقط خلف الشريط السفلي العائم.
