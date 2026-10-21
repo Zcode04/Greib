@@ -34,6 +34,12 @@ class LockedAndArchivedRows extends StatelessWidget {
           trailing: lockedCount > 0 ? '$lockedCount' : null,
           onTap: onLockedTap ?? () => _showLockedSheet(context, theme, chat),
         ),
+        // ★ صف «المميزة» — بين المقفلة والمؤرشفة، بنفس رسالة براو.
+        _WhatsAppMetaRow(
+          icon: LucideIcons.star,
+          title: 'المميزة',
+          onTap: () => _showStarredSheet(context, theme),
+        ),
         _WhatsAppMetaRow(
           icon: LucideIcons.archive,
           title: 'مؤرشفة',
@@ -68,6 +74,15 @@ class LockedAndArchivedRows extends StatelessWidget {
       theme: theme,
       icon: LucideIcons.archive,
       title: 'الدردشات المؤرشفة',
+    );
+  }
+
+  static void _showStarredSheet(BuildContext context, ThemeData theme) {
+    _showBrowOnlySheet(
+      context: context,
+      theme: theme,
+      icon: LucideIcons.star,
+      title: 'الدردشات المميزة',
     );
   }
 
