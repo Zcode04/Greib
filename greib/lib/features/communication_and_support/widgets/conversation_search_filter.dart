@@ -96,41 +96,57 @@ class ConversationFilterChips extends StatelessWidget {
     return SizedBox(
       // ★ 36 ارتفاع واتساب للشيبس — إيقاع 8/4 متناسق مع البحث 48.
       height: 36,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
+      child: Padding(
         // ★ 12 أفقي مثل البحث — محاذاة عمودية واحدة.
         padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: labels.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 6),
-        itemBuilder: (context, i) {
-          final selected = selectedIndex == i;
-          final isUnreadChip = labels[i].contains('غير مقروء');
-          final label = isUnreadChip && unreadCount > 0
-              ? '${labels[i]} $unreadCount'
-              : labels[i];
-          return ChoiceChip(
-            label: Text(label),
-            selected: selected,
-            onSelected: (_) => onSelected(i),
-            showCheckmark: false,
-            // ★ خط 12 مضغوط مثل واتساب بدل 13.
-            labelStyle: TextStyle(
-              fontSize: 12,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-              color: selected ? chat.sendIcon : chat.inputText,
-            ),
-            selectedColor: chat.sendButton,
-            backgroundColor: chat.inputField,
-            side: BorderSide.none,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadii.full),
-            ),
-            // ★ حشوة الشيبس مضغوطة: واتساب الشيبس صغيرة ومتلاصقة.
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-            labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-          );
-        },
+        // ★ التبويبات موزّعة على كامل العرض المتاح: المسافات بينها تتوسّع
+        //   أفقياً لتملأ المساحة (بدل التمرير الأفقي) — مظهر أكثر احترافية.
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            for (int i = 0; i < labels.length; i++)
+              // ★ Flexible بمرونة (loose): يمنع أي تجاوز على الشاشات الضيقة
+              //   مع الحفاظ على عرض الشيبس الطبيعي.
+              Flexible(child: _chip(context, chat, i)),
+          ],
+        ),
       ),
+    );
+  }
+
+  /// شيبس فلتر واحد — المختار يتلوّن باللون الرسمي.
+  Widget _chip(BuildContext context, AppChatColors chat, int i) {
+    final selected = selectedIndex == i;
+    final isUnreadChip = labels[i].contains('غير مقروء');
+    final label = isUnreadChip && unreadCount > 0
+        ? '${labels[i]} $unreadCount'
+        : labels[i];
+    return ChoiceChip(
+      label: Text(
+        label,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.ellipsis,
+      ),
+      selected: selected,
+      onSelected: (_) => onSelected(i),
+      showCheckmark: false,
+      // ★ خط 12 مضغوط مثل واتساب بدل 13.
+      labelStyle: TextStyle(
+        fontSize: 12,
+        fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+        color: selected ? chat.sendIcon : chat.inputText,
+      ),
+      selectedColor: chat.sendButton,
+      backgroundColor: chat.inputField,
+      side: BorderSide.none,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadii.full),
+      ),
+      // ★ حشوة الشيبس مضغوطة: واتساب الشيبس صغيرة ومتلاصقة.
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     );
   }
 }
