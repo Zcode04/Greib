@@ -294,8 +294,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
     // = max(شريط الحالة، ارتفاع الهيدر) أي أنها تتضمن الهيدر أصلاً
     // وتتبع انكماشه (64 ↔ 48) تلقائياً. لذلك لا نجمع 64 يدوياً أبداً —
     // أي +64 يضاعف الهيدر ويخلق الفراغ الكبير، وحذف كل شيء يسبب
-    // التداخل. الصحيح: padding.top الجاهزة + 8 تنفس فقط (مثل واتساب).
-    final topInset = MediaQuery.paddingOf(context).top + 8;
+    // التداخل. الصحيح: padding.top الجاهزة + 12 تنفس (مثل واتساب).
+    final topInset = MediaQuery.paddingOf(context).top + 12;
     final chat = context.chatColors;
     final visible = _visibleConversations;
     return Scaffold(
@@ -307,9 +307,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
         children: [
           Column(
             children: [
-              // ★ إيقاع عمودي موحد على شبكة 8px مثل واتساب:
-              //   هيدر → 8 → بحث (48) → 8 → شيبس (36) → 4
-              //   → مقفلة/مؤرشفة → 4 → قائمة. كل فجوة مضبوطة رقمياً.
+              // ★ إيقاع عمودي موحد مع تنفّس أوسع بين المكوّنات:
+              //   هيدر → 12 → بحث (48) → 16 → شيبس (36) → 16
+              //   → مقفلة/مميزة/مؤرشفة → 16 → قائمة. كل فجوة مضبوطة رقمياً.
               SizedBox(height: topInset),
               // ── ① Persistent Search Bar — شريط بحث ثابت مثل واتساب ──
               Padding(
@@ -321,8 +321,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   onChanged: (v) => setState(() => _query = v),
                 ),
               ),
-              // ★ 8 بين البحث والفلاتر — وحدة الشبكة الكاملة.
-              const SizedBox(height: 8),
+              // ★ 16 بين البحث والفلاتر — تنفّس أوسع.
+              const SizedBox(height: 16),
               // ── ② Filter Chips Row — فلاتر أفقية ──
               // ★ 4 فلاتر: الكل | غير مقروءة | المكالمات | المجموعات.
               ConversationFilterChips(
@@ -331,16 +331,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 unreadCount: _unreadCount,
                 onSelected: (i) => setState(() => _selectedFilter = i),
               ),
-              // ★ 4 قبل المقفلة/القائمة — فاصل تنفس صغير.
-              // ── ③ Locked + Archived — مثل واتساب 100% ──
+              // ★ 16 قبل المقفلة/القائمة — فاصل تنفّس واضح.
+              // ── ③ Locked + Starred + Archived — مثل واتساب 100% ──
               // ★ فوق القائمة مباشرة (بعد الفلاتر)، تُخفى في المكالمات
               //   وأثناء البحث/الفلترة.
               if (_query.isEmpty && _selectedFilter == 0) ...[
-                const SizedBox(height: 4),
-                const LockedAndArchivedRows(lockedCount: 0, archivedCount: 19),
-                const SizedBox(height: 4),
+                const SizedBox(height: 16),
+                const LockedAndArchivedRows(lockedCount: 0, archivedCount:0),
+                const SizedBox(height: 16),
               ] else
-                const SizedBox(height: 4),
+                const SizedBox(height: 16),
               Expanded(
                 // ★ تبويب المكالمات يعرض سجلاً مستقلاً بستايل واتساب،
                 //   وبقية التبويبات تعرض قائمة المحادثات.

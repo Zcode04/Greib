@@ -186,8 +186,9 @@ class _WhatsAppMetaRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        // ★ 12 أفقي مثل البحث/الشيبس — خط محاذاة عمودي واحد.
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        // ★ 12 أفقي مثل البحث/الشيبس، و12 رأسياً ⇒ مسافة واضحة بين الصفوف
+        //   (المقفلة/المميزة/المؤرشفة) — خط محاذاة عمودي واحد.
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         child: Row(
           children: [
             Icon(icon, size: 20, color: chat.composerIcon),
