@@ -18,6 +18,7 @@ import '../../features/location_and_tracking/maps_screen.dart';
 import '../../features/location_and_tracking/my_location_screen.dart';
 import '../../features/home_and_services/search_screen.dart';
 import '../../features/home_and_services/reels_screen.dart';
+import '../../features/posts/create_post_screen.dart';
 import '../../features/liveserver/liveserver_screen.dart';
 import '../../features/liveserver/publiveedit_screen.dart';
 import '../../features/services/presentation/account_connections_page.dart';
@@ -61,6 +62,8 @@ class AppRouter {
     '/wallet',
     '/favorites',
     '/profile',
+    // ★ صفحة «إنشاء منشور» — تُفتح من أيقونة داخل تبويب الملف الشخصي.
+    '/create-post',
     '/chat',
     '/alhadheq',
     '/shopping',
@@ -192,6 +195,11 @@ class AppRouter {
             body: AccountTabsPage(initialTab: openWallet ? 1 : 0),
           );
         },
+      ),
+      // ★ صفحة «إنشاء منشور» — تُفتح من أيقونة داخل تبويب الملف الشخصي.
+      GoRoute(
+        path: '/create-post',
+        builder: (context, state) => const CreatePostScreen(),
       ),
       // صفحات عامة مؤقتة: تمنع الكراش عند فتح أقسام ما زالت قيد التطوير.
       GoRoute(

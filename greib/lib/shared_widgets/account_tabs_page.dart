@@ -115,7 +115,7 @@ class _AccountTabBar extends StatelessWidget {
   }
 }
 
-/// محتوى تبويب الملف الشخصي: بطاقة البيانات + زر تسجيل الخروج.
+/// محتوى تبويب الملف الشخصي: زر إنشاء منشور + بطاقة البيانات + زر تسجيل الخروج.
 class _ProfileTab extends StatelessWidget {
   final AppUserProfile profile;
 
@@ -127,6 +127,23 @@ class _ProfileTab extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 110),
       child: Column(
         children: [
+          // ★ أيقونة «إنشاء منشور» — تفتح صفحة التحرير (نص + صورة + فيديو).
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.md,
+              AppSpacing.lg,
+              0,
+            ),
+            child: AppButton(
+              label: 'إنشاء منشور',
+              icon: LucideIcons.squarePen,
+              type: ButtonType.secondary,
+              color: context.accentColor.withValues(alpha: 0.12),
+              textColor: context.accentColor,
+              onPressed: () => context.push('/create-post'),
+            ),
+          ),
           ProfileWidget(profile: profile, includeTopInset: false),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/widgets/app_sheet.dart';
@@ -6,7 +7,8 @@ import '../../core/widgets/app_sheet.dart';
 /// ============================================================================
 ///  UpcomingServicesSheet — ورقة «خدمات قادمة» (زر + في الهيدر):
 ///  قائمة الخدمات التي ستُطوَّر لاحقاً — حالياً عرض فقط (أيقونة + نص).
-///  الضغط على أي بند يغلق الورقة ويعرض تنبيه «ستتوفر قريباً».
+///  الضغط على أي بند يغلق الورقة ويعرض تنبيه «ستتوفر قريباً»،
+///  باستثناء «إنشاء منشور» الذي يوجّه إلى صفحة التحرير /create-post.
 ///
 ///  الاستخدام:
 ///    await UpcomingServicesSheet.show(context);
@@ -77,9 +79,19 @@ class UpcomingServicesSheet extends StatelessWidget {
 
   Widget _tile(BuildContext context, {required String label}) {
     final sheetText = Theme.of(context).colorScheme.onSurface;
+    // ★ بند «إنشاء منشور» مفعّل فعلاً: يوجّه لصفحة التحرير /create-post.
+    final isCreatePost = label == 'إنشاء منشور';
     return InkWell(
       onTap: () {
+        // نحفظ الراوتر قبل إغلاق الورقة لضمان تنقّل سليم بعد الإغلاق.
+        final router = GoRouter.of(context);
         Navigator.of(context, rootNavigator: true).pop();
+
+        if (isCreatePost) {
+          router.push('/create-post');
+          return;
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('هذه الميزة ستتوفر قريباً بإذن الله'),
