@@ -813,7 +813,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                       open: _nearestOpen,
                       plain: true,
                       closedIcon: LucideIcons.mapPin,
-                      openIcon: LucideIcons.mapPin,
+                      openIcon: LucideIcons.chevronUp,
                       showIcon: false,
                       onTap: () => setState(() => _nearestOpen = !_nearestOpen),
                     ),
@@ -904,16 +904,14 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                                   onPressed: _showMore,
                                   icon: const Icon(LucideIcons.chevronDown,
                                       size: 18),
-                                  label: Text(
-                                    'عرض المزيد · ${_entries.length - _visibleCount} متبقٍ',
-                                  ),
+                                  label: const Text('عرض المزيد'),
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: ink,
                                     side: BorderSide.none,
                                     backgroundColor:
-                                        ink.withValues(alpha: 0.06),
+                                        ink.withValues(alpha: 0.08),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
+                                      borderRadius: BorderRadius.circular(99),
                                     ),
                                   ),
                                 ),
