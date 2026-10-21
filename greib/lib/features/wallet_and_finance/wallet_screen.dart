@@ -65,10 +65,20 @@ class _WalletScreenState extends State<WalletScreen> {
               child: _buildTabBar(context, theme),
             ),
 
-            // محتوى التبويب
-            SliverPadding(
-              padding: const EdgeInsets.only(top: AppSpacing.lg),
-              sliver: _buildTabContent(context, theme),
+            // محتوى التبويب — تبديل ناعم (تلاشٍ قصير) بدل القفزة المباشرة.
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.lg),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  switchInCurve: Curves.easeOut,
+                  switchOutCurve: Curves.easeIn,
+                  child: KeyedSubtree(
+                    key: ValueKey<int>(_selectedTab),
+                    child: _buildTabContent(context, theme),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -294,27 +304,18 @@ class _WalletScreenState extends State<WalletScreen> {
       child: GestureDetector(
         onTap: () => setState(() => _selectedTab = index),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOutCubic,
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
           decoration: BoxDecoration(
-            gradient: isSelected
-                ? LinearGradient(
-                    colors: [
-                      context.accentColor,
-                      context.accentColor,
-                    ],
-                  )
-                : null,
-            color: isSelected ? null : Colors.transparent,
+            color: isSelected ? context.accentColor : Colors.transparent,
             borderRadius: BorderRadius.circular(AppRadii.full),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: context.accentColor.withValues(alpha: 0.3),
-                      blurRadius: 16,
-                      spreadRadius: 1.6,
-                      offset: const Offset(0, 8),
+                      color: context.accentColor.withValues(alpha: 0.25),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
                   ]
                 : null,
@@ -346,7 +347,7 @@ class _WalletScreenState extends State<WalletScreen> {
       case 2:
         return _buildRedeemTab(context, theme);
       default:
-        return const SliverToBoxAdapter(child: SizedBox.shrink());
+        return const SizedBox.shrink();
     }
   }
 
@@ -386,24 +387,18 @@ class _WalletScreenState extends State<WalletScreen> {
       },
     ];
 
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final tx = transactions[index];
-          final isCredit = tx['type'] == 'credit';
-          final color = tx['color'] as Color;
-          final icon = tx['icon'] as IconData;
-          return _TransactionTile(
+    return Column(
+      children: [
+        for (final tx in transactions)
+          _TransactionTile(
             title: tx['title'] as String,
             subtitle: tx['subtitle'] as String,
             amount: tx['amount'] as String,
-            isCredit: isCredit,
-            icon: icon,
-            iconColor: color,
-          );
-        },
-        childCount: transactions.length,
-      ),
+            isCredit: tx['type'] == 'credit',
+            icon: tx['icon'] as IconData,
+            iconColor: tx['color'] as Color,
+          ),
+      ],
     );
   }
 
@@ -415,9 +410,8 @@ class _WalletScreenState extends State<WalletScreen> {
       {'title': 'استبدال نقاط', 'points': '-200', 'time': 'منذ أسبوع'},
     ];
 
-    return SliverList(
-      delegate: SliverChildListDelegate(
-        [
+    return Column(
+      children: [
           Container(
             margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             padding: const EdgeInsets.all(AppSpacing.lg),
@@ -511,8 +505,7 @@ class _WalletScreenState extends State<WalletScreen> {
               isPositive: isPositive,
             );
           }),
-        ],
-      ),
+      ],
     );
   }
 
@@ -524,33 +517,33 @@ class _WalletScreenState extends State<WalletScreen> {
       {'title': 'عضوية ذهبية', 'points': '2000', 'icon': LucideIcons.crown},
     ];
 
-    return SliverPadding(
+    return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      sliver: SliverGrid.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.82,
-          crossAxisSpacing: AppSpacing.md,
-          mainAxisSpacing: AppSpacing.md,
-        ),
-        itemCount: rewards.length,
-        itemBuilder: (context, index) {
-          final reward = rewards[index];
-          return _RewardCard(
-            title: reward['title'] as String,
-            points: reward['points'] as String,
-            icon: reward['icon'] as IconData,
-            onRedeem: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('تم استبدال المكافأة بنجاح ✅'),
-                  backgroundColor: context.iconColors.success,
-                ),
-              );
-            },
-          );
-        },
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.82,
+        crossAxisSpacing: AppSpacing.md,
+        mainAxisSpacing: AppSpacing.md,
       ),
+      itemCount: rewards.length,
+      itemBuilder: (context, index) {
+        final reward = rewards[index];
+        return _RewardCard(
+          title: reward['title'] as String,
+          points: reward['points'] as String,
+          icon: reward['icon'] as IconData,
+          onRedeem: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('تم استبدال المكافأة بنجاح ✅'),
+                backgroundColor: context.iconColors.success,
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
