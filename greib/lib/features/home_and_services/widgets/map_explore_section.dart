@@ -466,7 +466,7 @@ class _NearbyServicesSectionState extends State<NearbyServicesSection> {
             fontWeight: FontWeight.w700,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         _tabsBar(),
         const SizedBox(height: 14),
         _nearbyList(),
