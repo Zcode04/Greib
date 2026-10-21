@@ -23,6 +23,13 @@ import '../../features/posts/create_post_screen.dart';
 import '../../agent-grab/join_provider_screen.dart';
 import '../../agent-grab/add_store_screen.dart';
 import '../../agent-grab/add_road_screen.dart';
+import '../../agent-grab/add_restaurant_screen.dart';
+import '../../agent-grab/add_category_screen.dart';
+import '../../agent-grab/suggest_edit_screen.dart';
+import '../../agent-grab/report_issue_screen.dart';
+import '../../agent-grab/map_contributor_screen.dart';
+import '../../agent-grab/add_place_screen.dart';
+import '../../agent-grab/missing_map_details_screen.dart';
 import '../../features/liveserver/liveserver_screen.dart';
 import '../../features/liveserver/publiveedit_screen.dart';
 import '../../features/services/presentation/account_connections_page.dart';
@@ -74,6 +81,14 @@ class AppRouter {
     '/add-store',
     // ★ صفحة «إضافة طريق» — تُفتح من ورقة الخدمات القادمة.
     '/add-road',
+    // ★ بقية صفحات مجلد agent-grab (ورقة الخدمات القادمة).
+    '/add-restaurant',
+    '/add-category',
+    '/suggest-edit',
+    '/report-issue',
+    '/map-contributor',
+    '/add-place',
+    '/missing-map-details',
     '/chat',
     '/alhadheq',
     '/shopping',
@@ -225,6 +240,35 @@ class AppRouter {
       GoRoute(
         path: '/add-road',
         builder: (context, state) => const AddRoadScreen(),
+      ),
+      // ★ بقية صفحات مجلد agent-grab — تُفتح من ورقة الخدمات القادمة.
+      GoRoute(
+        path: '/add-restaurant',
+        builder: (context, state) => const AddRestaurantScreen(),
+      ),
+      GoRoute(
+        path: '/add-category',
+        builder: (context, state) => const AddCategoryScreen(),
+      ),
+      GoRoute(
+        path: '/suggest-edit',
+        builder: (context, state) => const SuggestEditScreen(),
+      ),
+      GoRoute(
+        path: '/report-issue',
+        builder: (context, state) => const ReportIssueScreen(),
+      ),
+      GoRoute(
+        path: '/map-contributor',
+        builder: (context, state) => const MapContributorScreen(),
+      ),
+      GoRoute(
+        path: '/add-place',
+        builder: (context, state) => const AddPlaceScreen(),
+      ),
+      GoRoute(
+        path: '/missing-map-details',
+        builder: (context, state) => const MissingMapDetailsScreen(),
       ),
       // صفحات عامة مؤقتة: تمنع الكراش عند فتح أقسام ما زالت قيد التطوير.
       GoRoute(

@@ -6,6 +6,7 @@ import '../core/extensions/context_extensions.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/widgets/super_header.dart';
 import '../shared_widgets/app_button.dart';
+import 'agent_grab_form.dart';
 
 /// ============================================================================
 ///  JoinProviderScreen — صفحة «الانضمام إلينا كمزود خدمة» (مجلد agent-grab).
@@ -82,33 +83,17 @@ class _JoinProviderScreenState extends State<JoinProviderScreen> {
           const SizedBox(height: AppSpacing.xl),
 
           // ---- حقل الاسم ----
-          const _FieldLabel('الاسم'),
-          const SizedBox(height: AppSpacing.sm),
-          _InputCard(
-            child: TextField(
-              controller: _nameController,
-              textInputAction: TextInputAction.done,
-              style: AppTypography.bodyLarge.copyWith(
-                color: context.textColors.primary,
-              ),
-              decoration: InputDecoration(
-                hintText: 'اكتب اسمك أو اسم النشاط',
-                hintStyle: AppTypography.bodyLarge.copyWith(
-                  color: context.textColors.tertiary,
-                ),
-                prefixIcon: Icon(
-                  LucideIcons.userRound,
-                  size: 20,
-                  color: context.textColors.tertiary,
-                ),
-                border: InputBorder.none,
-              ),
-            ),
+          AgField(
+            label: 'الاسم',
+            hint: 'اكتب اسمك أو اسم النشاط',
+            icon: LucideIcons.userRound,
+            controller: _nameController,
+            textInputAction: TextInputAction.done,
           ),
           const SizedBox(height: AppSpacing.xl),
 
           // ---- اختيار الخدمة المقدَّمة ----
-          const _FieldLabel('الخدمة التي تقدّمها'),
+          const AgFieldLabel('الخدمة التي تقدّمها'),
           const SizedBox(height: AppSpacing.md),
           Wrap(
             spacing: AppSpacing.sm,
@@ -134,43 +119,6 @@ class _JoinProviderScreenState extends State<JoinProviderScreen> {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// عنوان حقل داخل الصفحة.
-class _FieldLabel extends StatelessWidget {
-  final String label;
-
-  const _FieldLabel(this.label);
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: AppTypography.labelLarge.copyWith(
-        color: context.textColors.secondary,
-        fontWeight: FontWeight.w700,
-      ),
-    );
-  }
-}
-
-/// غلاف موحّد لحقول الإدخال (سطح + حدود دقيقة).
-class _InputCard extends StatelessWidget {
-  final Widget child;
-
-  const _InputCard({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.backgroundColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.xl),
-        border: Border.all(color: context.backgroundColors.outline),
-      ),
-      child: child,
     );
   }
 }

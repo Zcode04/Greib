@@ -45,6 +45,13 @@ class UpcomingServicesSheet extends StatelessWidget {
     'الانضمام إلينا كمزود خدمة': '/join-provider',
     'إضافة محل': '/add-store',
     'إضافة طريق': '/add-road',
+    'إضافة مطعم': '/add-restaurant',
+    'إضافة فئة': '/add-category',
+    'اقتراح تعديل': '/suggest-edit',
+    'الإبلاغ عن مشكلة': '/report-issue',
+    'مساهم في الخرائط': '/map-contributor',
+    'أضف مكان': '/add-place',
+    'أضف تفاصيل خريطة مفقودة': '/missing-map-details',
   };
 
   @override
