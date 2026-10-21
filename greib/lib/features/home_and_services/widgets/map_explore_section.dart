@@ -630,10 +630,8 @@ class _NearbyServicesSectionState extends State<NearbyServicesSection> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(LucideIcons.messageCircle, size: 15, color: tint),
-                  const SizedBox(width: 5),
                   Text(
-                    'تواصل الآن',
+                    'المراسلة',
                     style: TextStyle(
                       color: tint,
                       fontSize: 11.5,
