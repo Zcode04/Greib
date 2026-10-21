@@ -23,19 +23,19 @@ class UpcomingServicesSheet extends StatelessWidget {
     );
   }
 
-  /// البنود المطلوبة — كلها بأيقونة plus حالياً، تُخصَّص لاحقاً.
-  static const List<String> items = [
-    'إنشاء منشور',
-    'الانضمام إلينا كمزود خدمة',
-    'إضافة محل',
-    'إضافة طريق',
-    'إضافة مطعم',
-    'إضافة فئة',
-    'اقتراح تعديل',
-    'الإبلاغ عن مشكلة',
-    'مساهم في الخرائط',
-    'أضف مكان',
-    'أضف تفاصيل خريطة مفقودة',
+  /// بنود الخدمات القادمة — لكل بند أيقونته الخاصة الدالة عليه.
+  static const List<({String label, IconData icon})> items = [
+    (label: 'إنشاء منشور', icon: LucideIcons.squarePen),
+    (label: 'الانضمام إلينا كمزود خدمة', icon: LucideIcons.handshake),
+    (label: 'إضافة محل', icon: LucideIcons.store),
+    (label: 'إضافة طريق', icon: LucideIcons.route),
+    (label: 'إضافة مطعم', icon: LucideIcons.utensilsCrossed),
+    (label: 'إضافة فئة', icon: LucideIcons.shapes),
+    (label: 'اقتراح تعديل', icon: LucideIcons.filePen),
+    (label: 'الإبلاغ عن مشكلة', icon: LucideIcons.triangleAlert),
+    (label: 'مساهم في الخرائط', icon: LucideIcons.handHeart),
+    (label: 'أضف مكان', icon: LucideIcons.mapPinPlus),
+    (label: 'أضف تفاصيل خريطة مفقودة', icon: LucideIcons.mapPinPen),
   ];
 
   @override
@@ -68,8 +68,8 @@ class UpcomingServicesSheet extends StatelessWidget {
                 ],
               ),
             ),
-            for (final label in items)
-              _tile(context, label: label),
+            for (final item in items)
+              _tile(context, item: item),
             const SizedBox(height: 8),
           ],
         ),
@@ -77,10 +77,13 @@ class UpcomingServicesSheet extends StatelessWidget {
     );
   }
 
-  Widget _tile(BuildContext context, {required String label}) {
+  Widget _tile(
+    BuildContext context, {
+    required ({String label, IconData icon}) item,
+  }) {
     final sheetText = Theme.of(context).colorScheme.onSurface;
     // ★ بند «إنشاء منشور» مفعّل فعلاً: يوجّه لصفحة التحرير /create-post.
-    final isCreatePost = label == 'إنشاء منشور';
+    final isCreatePost = item.label == 'إنشاء منشور';
     return InkWell(
       onTap: () {
         // نحفظ الراوتر قبل إغلاق الورقة لضمان تنقّل سليم بعد الإغلاق.
@@ -104,11 +107,11 @@ class UpcomingServicesSheet extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         child: Row(
           children: [
-            Icon(LucideIcons.circlePlus, size: 22, color: sheetText),
+            Icon(item.icon, size: 22, color: sheetText),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
-                label,
+                item.label,
                 style: TextStyle(color: sheetText, fontSize: 15),
               ),
             ),
