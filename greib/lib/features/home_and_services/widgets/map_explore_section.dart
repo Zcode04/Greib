@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
@@ -14,6 +14,7 @@ import '../../../core/widgets/map_style_selector.dart';
 import '../../../core/widgets/place_search_sheet.dart';
 import '../../../core/widgets/real_map_view.dart';
 import '../../../shared_widgets/glass_container.dart';
+import '../../../shared_widgets/main_shell_screen.dart';
 
 /// ============================================================================
 ///  MapExploreSection — قسم «استكشف القريب منك».
@@ -52,7 +53,6 @@ class _MapExploreSectionState extends State<MapExploreSection> {
     );
   }
 
-
   // ---------- 1) شريط البحث — يفتح بحثاً حقيقياً ----------
   Widget _searchBar() {
     // ★ كل الألوان من اللوحة المركزية (Color Palette) عبر السياق.
@@ -67,9 +67,9 @@ class _MapExploreSectionState extends State<MapExploreSection> {
         if (!context.mounted) return;
         loc.confirmPlace(picked);
         // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('تم اختيار: ${picked.name}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('تم اختيار: ${picked.name}')));
       },
       child: GlassContainer(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -88,7 +88,8 @@ class _MapExploreSectionState extends State<MapExploreSection> {
               ),
             ),
             Container(
-              width: 30, height: 30,
+              width: 30,
+              height: 30,
               decoration: BoxDecoration(
                 color: tint.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
@@ -118,8 +119,14 @@ class _MapExploreSectionState extends State<MapExploreSection> {
           Row(
             children: [
               Expanded(
-                child: Text(useReal ? 'الخريطة الحية' : 'العالم',
-                  style: TextStyle(color: label, fontSize: 15, fontWeight: FontWeight.w700)),
+                child: Text(
+                  useReal ? 'الخريطة الحية' : 'العالم',
+                  style: TextStyle(
+                    color: label,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
               InkWell(
                 borderRadius: BorderRadius.circular(12),
@@ -132,18 +139,31 @@ class _MapExploreSectionState extends State<MapExploreSection> {
                   if (context.mounted) setState(() {});
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: tint.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(useReal ? LucideIcons.layers : LucideIcons.map,
-                        size: 13, color: tint),
+                      Icon(
+                        useReal ? LucideIcons.layers : LucideIcons.map,
+                        size: 13,
+                        color: tint,
+                      ),
                       const SizedBox(width: 4),
-                      Text(useReal ? 'نمط الخريطة' : 'الخريطة',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: tint)),
+                      Text(
+                        useReal ? 'نمط الخريطة' : 'الخريطة',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: tint,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -157,17 +177,27 @@ class _MapExploreSectionState extends State<MapExploreSection> {
                     if (context.mounted) setState(() {});
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: tint.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(LucideIcons.globe, size: 13, color: tint),
                         const SizedBox(width: 4),
-                        Text('كرة 3D',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: tint)),
+                        Text(
+                          'كرة 3D',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: tint,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -182,8 +212,10 @@ class _MapExploreSectionState extends State<MapExploreSection> {
               child: AbsorbPointer(
                 child: RealMapView(
                   initialCenter: loc.activeLatLng,
-                  initialZoom: 13, height: 200,
-                  interactive: false, showLocateButton: false,
+                  initialZoom: 13,
+                  height: 200,
+                  interactive: false,
+                  showLocateButton: false,
                   useStoredStyle: true,
                 ),
               ),
@@ -204,13 +236,22 @@ class _MapExploreSectionState extends State<MapExploreSection> {
         Row(
           children: [
             Expanded(
-              child: Text('العالم',
-                style: TextStyle(color: label, fontSize: 15, fontWeight: FontWeight.w700)),
+              child: Text(
+                'العالم',
+                style: TextStyle(
+                  color: label,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
-            Text('موقعك الحالي',
+            Text(
+              'موقعك الحالي',
               style: TextStyle(
                 color: context.textColors.secondary,
-                fontSize: 12)),
+                fontSize: 12,
+              ),
+            ),
             const SizedBox(width: 4),
             Icon(LucideIcons.locateFixed, size: 14, color: tint),
           ],
@@ -238,7 +279,10 @@ class _MapExploreSectionState extends State<MapExploreSection> {
                 IgnorePointer(
                   child: CustomPaint(
                     painter: _GlobeGridPainter(
-                      line: context.textColors.secondary.withValues(alpha: 0.28)),
+                      line: context.textColors.secondary.withValues(
+                        alpha: 0.28,
+                      ),
+                    ),
                   ),
                 ),
                 const Center(child: _SpinningGlobe()),
@@ -587,9 +631,7 @@ class _NearbyServicesSectionState extends State<NearbyServicesSection> {
                       height: 6,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: place.online
-                            ? AppColors.success
-                            : secondary,
+                        color: place.online ? AppColors.success : secondary,
                       ),
                     ),
                     const SizedBox(width: 5),
@@ -619,11 +661,10 @@ class _NearbyServicesSectionState extends State<NearbyServicesSection> {
           const SizedBox(width: 8),
           InkWell(
             borderRadius: BorderRadius.circular(999),
-            onTap: () => context.push('/chat'),
+            onTap: () => MainShellScreen.switchToChat(context),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: tint.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(999),
                 border: Border.all(color: tint.withValues(alpha: 0.35)),
               ),

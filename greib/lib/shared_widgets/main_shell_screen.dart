@@ -91,8 +91,23 @@ const List<_ShellTab> _tabs = [
   ),
 ];
 
+/// ★ مفتاح عام للوصول إلى حالة MainShellScreen من أي مكان في التطبيق
+///   للتبديل بين تبويبات Shell (مثل الدردشة) مع الحفاظ على الهيدر والشريط السفلي.
+final GlobalKey<_MainShellScreenState> _mainShellKey = GlobalKey();
+
+
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});
+
+  /// ★ التبديل إلى تبويب الدردشة من أي مكان في التطبيق مع الحفاظ على الهيدر والشريط السفلي.
+  static void switchToChat(BuildContext context) {
+    final state = _mainShellKey.currentState;
+    if (state != null) {
+      state.switchToChatTab();
+    } else {
+      context.push('/chat');
+    }
+  }
 
   @override
   State<MainShellScreen> createState() => _MainShellScreenState();
@@ -183,6 +198,14 @@ class _MainShellScreenState extends State<MainShellScreen> {
     }
   }
 
+  /// ★ التبديل العام لتبويب الدردشة (يُستدعى من MainShellScreen.switchToChat).
+  void switchToChatTab() {
+    final chatIndex = _tabs.indexWhere((t) => t.route == '/chat');
+    if (chatIndex >= 0) {
+      _onTabSelected(chatIndex);
+    }
+  }
+
   /// ★ سحب أفقي على الشريط: تبديل مباشر بين تبويبات Shell
   /// (الرئيسية ⇄ الدردشة) — أي سحبة تُبدّل للآخر، بسهولة سحب الستوري.
   /// (يستخدم نفس `_onTabSelected` ⇒ يحرّك الـ PageView تلقائياً.)
@@ -247,6 +270,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
     // ★ نُخفي العنوان في تبويب «الرئيسية» فقط (حيث يظهر شعار التطبيق بدله).
     final isHomeTab = _currentIndex == _homeTabIndex;
     return Scaffold(
+      key: _mainShellKey,
       backgroundColor: scaffoldBg,
       // ★ المحتوى يبدأ تحت الهيدر (مسافة عمودية) ولا يتداخل معه —
       // يمتد فقط خلف الشريط السفلي العائم.
