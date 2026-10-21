@@ -19,6 +19,13 @@ class ConversationSearchBar extends StatelessWidget {
     this.hintText = 'ابحث في المحادثات...',
   });
 
+  /// ★ حواف الحقل دائرية بالكامل (99) — تُعرَّف صراحةً لكل الحالات،
+  /// لأن ثيم التطبيق يفرض enabledBorder بزوايا 16 ويتجاهل `border`.
+  static const OutlineInputBorder _pillBorder = OutlineInputBorder(
+    borderRadius: BorderRadius.all(Radius.circular(99)),
+    borderSide: BorderSide.none,
+  );
+
   @override
   Widget build(BuildContext context) {
     final chat = context.chatColors;
@@ -59,10 +66,9 @@ class ConversationSearchBar extends StatelessWidget {
             horizontal: 12,
             vertical: 8,
           ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadii.full),
-            borderSide: BorderSide.none,
-          ),
+          border: _pillBorder,
+          enabledBorder: _pillBorder,
+          focusedBorder: _pillBorder,
         ),
       ),
     );
