@@ -299,6 +299,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final topInset = MediaQuery.paddingOf(context).top + 12;
     final chat = context.chatColors;
     final visible = _visibleConversations;
+    // ★ صفوف (المقفلة/المميزة/المؤرشفة) تُعرض كأول عنصر داخل قائمة المحادثات
+    //   نفسها ⇒ تتحرك مع التمرير (وتُخفى في المكالمات وأثناء البحث/الفلترة).
+    final showsMetaRows = _query.isEmpty && _selectedFilter == 0;
+    final listHeaderCount = showsMetaRows ? 1 : 0;
+    final listItemCount =
+        listHeaderCount + (visible.isEmpty ? 1 : visible.length);
     return Scaffold(
       // ★ لون الخلفية من اللوحة المركزية (Color Palette).
       backgroundColor: chat.conversationBackground,
@@ -332,40 +338,50 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 unreadCount: _unreadCount,
                 onSelected: (i) => setState(() => _selectedFilter = i),
               ),
-              // ★ 16 قبل المقفلة/القائمة — فاصل تنفّس واضح.
-              // ── ③ Locked + Starred + Archived — مثل واتساب 100% ──
-              // ★ فوق القائمة مباشرة (بعد الفلاتر)، تُخفى في المكالمات
-              //   وأثناء البحث/الفلترة.
-              if (_query.isEmpty && _selectedFilter == 0) ...[
-                const SizedBox(height: 16),
-                const LockedAndArchivedRows(lockedCount: 0, archivedCount:0),
-                const SizedBox(height: 16),
-              ] else
-                const SizedBox(height: 16),
+              // ★ 16 قبل القائمة — فاصل تنفّس واضح.
+              const SizedBox(height: 16),
               Expanded(
                 // ★ تبويب المكالمات يعرض سجلاً مستقلاً بستايل واتساب،
                 //   وبقية التبويبات تعرض قائمة المحادثات.
                 child: _isCallsTab
                     ? _buildCallsList(context, chat)
-                    : visible.isEmpty
-                    ? EmptyState(
-                        icon: _query.isNotEmpty
-                            ? LucideIcons.searchX
-                            : LucideIcons.messagesSquare,
-                        title: _query.isNotEmpty
-                            ? 'لا توجد نتائج لـ "$_query"'
-                            : 'لا توجد محادثات هنا',
-                        description: _query.isNotEmpty
-                            ? 'جرّب كلمة أخرى أو امسح البحث'
-                            : 'ستظهر محادثاتك هنا عند وصولها',
-                      )
                     : ListView.builder(
                         // ★ حشوة سفلية كبيرة: الشريط السفلي العائم (68+20)
                         //   + الزر العائم فوقه ⇒ آخر محادثة لا تختبئ خلفهما.
                         padding: const EdgeInsets.only(bottom: 190),
-                        itemCount: visible.length,
+                        // ★ صفوف (المقفلة/المميزة/المؤرشفة) هي العنصر الأول داخل
+                        //   القائمة نفسها ⇒ تتحرك مع التمرير وتختفي تماماً مثل
+                        //   بقية المحادثات (دعم گريب منك، فريق التوصيل - دبي...).
+                        //   وتُخفى في المكالمات وأثناء البحث/الفلترة.
+                        itemCount: listItemCount,
                         itemBuilder: (context, index) {
-                          final conv = visible[index];
+                          // ── رأس القائمة: الدردشات المقفلة/المميزة/المؤرشفة ──
+                          if (showsMetaRows && index == 0) {
+                            return const Padding(
+                              padding: EdgeInsets.only(bottom: 16),
+                              child: LockedAndArchivedRows(
+                                lockedCount: 0,
+                                archivedCount: 0,
+                              ),
+                            );
+                          }
+                          if (visible.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 60),
+                              child: EmptyState(
+                                icon: _query.isNotEmpty
+                                    ? LucideIcons.searchX
+                                    : LucideIcons.messagesSquare,
+                                title: _query.isNotEmpty
+                                    ? 'لا توجد نتائج لـ "$_query"'
+                                    : 'لا توجد محادثات هنا',
+                                description: _query.isNotEmpty
+                                    ? 'جرّب كلمة أخرى أو امسح البحث'
+                                    : 'ستظهر محادثاتك هنا عند وصولها',
+                              ),
+                            );
+                          }
+                          final conv = visible[index - listHeaderCount];
                           final online = conv['online'] as bool;
                           final isGroup = conv['type'] == 'group';
                           // ★ بلا خط فاصل أفقي بين المحادثات — كان يشوّش
