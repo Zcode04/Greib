@@ -299,10 +299,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final topInset = MediaQuery.paddingOf(context).top + 12;
     final chat = context.chatColors;
     final visible = _visibleConversations;
-    // ★ صفوف (المقفلة/المميزة/المؤرشفة) تُعرض كأول عنصر داخل قائمة المحادثات
-    //   نفسها ⇒ تتحرك مع التمرير (وتُخفى في المكالمات وأثناء البحث/الفلترة).
+    // ★ رأس القائمة أصبح داخل القائمة نفسها (لا مثبّتاً فوقها):
+    //   شيبس الفلاتر دائماً + صفوف (المقفلة/المميزة/المؤرشفة) عند اللزوم
+    //   ⇒ كلاهما يتحرك ويختفي مع التمرير مثل بقية المحادثات.
     final showsMetaRows = _query.isEmpty && _selectedFilter == 0;
-    final listHeaderCount = showsMetaRows ? 1 : 0;
+    final listHeaderCount = 1 + (showsMetaRows ? 1 : 0);
     final listItemCount =
         listHeaderCount + (visible.isEmpty ? 1 : visible.length);
     return Scaffold(
@@ -314,9 +315,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
         children: [
           Column(
             children: [
-              // ★ إيقاع عمودي موحد مع تنفّس أوسع بين المكوّنات:
-              //   هيدر → 12 → بحث (48) → 16 → شيبس (36) → 16
-              //   → مقفلة/مميزة/مؤرشفة → 16 → قائمة. كل فجوة مضبوطة رقمياً.
+              // ★ إيقاع عمودي: هيدر → 12 → بحث (48) ثابت → 16 → القائمة.
+              //   وداخل القائمة نفسها: شيبس الفلاتر → 16 → مقفلة/مميزة/مؤرشفة
+              //   → 16 → المحادثات. أي أن الشيبس والصفوف تتحرك مع التمرير.
               SizedBox(height: topInset),
               // ── ① Persistent Search Bar — شريط بحث ثابت مثل واتساب ──
               Padding(
@@ -328,17 +329,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   onChanged: (v) => setState(() => _query = v),
                 ),
               ),
-              // ★ 16 بين البحث والفلاتر — تنفّس أوسع.
-              const SizedBox(height: 16),
-              // ── ② Filter Chips Row — فلاتر أفقية ──
-              // ★ 4 فلاتر: الكل | غير مقروءة | المكالمات | المجموعات.
-              ConversationFilterChips(
-                labels: _filterLabels,
-                selectedIndex: _selectedFilter,
-                unreadCount: _unreadCount,
-                onSelected: (i) => setState(() => _selectedFilter = i),
-              ),
-              // ★ 16 قبل القائمة — فاصل تنفّس واضح.
+              // ★ 16 بين البحث والقائمة — تنفّس واضح.
               const SizedBox(height: 16),
               Expanded(
                 // ★ تبويب المكالمات يعرض سجلاً مستقلاً بستايل واتساب،
@@ -355,8 +346,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
                         //   وتُخفى في المكالمات وأثناء البحث/الفلترة.
                         itemCount: listItemCount,
                         itemBuilder: (context, index) {
-                          // ── رأس القائمة: الدردشات المقفلة/المميزة/المؤرشفة ──
-                          if (showsMetaRows && index == 0) {
+                          // ── ① شيبس الفلاتر: أول عنصر داخل القائمة (قابل للتمرير) ──
+                          if (index == 0) return _filterChipsRow();
+                          // ── ② الدردشات المقفلة/المميزة/المؤرشفة ──
+                          if (showsMetaRows && index == 1) {
                             return const Padding(
                               padding: EdgeInsets.only(bottom: 16),
                               child: LockedAndArchivedRows(
@@ -451,25 +444,48 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
+  /// ★ شيبس الفلاتر (الكل | غير مقروءة | المكالمات | المجموعات) — يُعرض كأول
+  ///   عنصر داخل القائمة (المحادثات والمكالمات) ⇒ يتحرك مع التمرير بدل
+  ///   أن يكون مثبّتاً فوق القائمة.
+  Widget _filterChipsRow() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: ConversationFilterChips(
+        labels: _filterLabels,
+        selectedIndex: _selectedFilter,
+        unreadCount: _unreadCount,
+        onSelected: (i) => setState(() => _selectedFilter = i),
+      ),
+    );
+  }
+
   /// ★ قائمة سجل المكالمات بستايل واتساب — نفس الشبكة والفواصل.
   Widget _buildCallsList(BuildContext context, dynamic chat) {
     final calls = _visibleCalls;
-    if (calls.isEmpty) {
-      return EmptyState(
-        icon: _query.isNotEmpty ? LucideIcons.searchX : LucideIcons.phoneMissed,
-        title: _query.isNotEmpty
-            ? 'لا توجد نتائج لـ "$_query"'
-            : 'لا توجد مكالمات',
-        description: _query.isNotEmpty
-            ? 'جرّب كلمة أخرى أو امسح البحث'
-            : 'ستظهر مكالماتك هنا عند وصولها',
-      );
-    }
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: 190),
-      itemCount: calls.length,
+      // ★ 1 = شيبس الفلاتر في المقدمة، ثم المكالمات (أو حالة الفراغ).
+      itemCount: 1 + (calls.isEmpty ? 1 : calls.length),
       itemBuilder: (context, index) {
-        final call = calls[index];
+        // ── ① شيبس الفلاتر: أول عنصر داخل القائمة (قابل للتمرير) ──
+        if (index == 0) return _filterChipsRow();
+        if (calls.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.only(top: 60),
+            child: EmptyState(
+              icon: _query.isNotEmpty
+                  ? LucideIcons.searchX
+                  : LucideIcons.phoneMissed,
+              title: _query.isNotEmpty
+                  ? 'لا توجد نتائج لـ "$_query"'
+                  : 'لا توجد مكالمات',
+              description: _query.isNotEmpty
+                  ? 'جرّب كلمة أخرى أو امسح البحث'
+                  : 'ستظهر مكالماتك هنا عند وصولها',
+            ),
+          );
+        }
+        final call = calls[index - 1];
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
