@@ -904,7 +904,12 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                                   onPressed: _showMore,
                                   icon: const Icon(LucideIcons.chevronDown,
                                       size: 18),
-                                  label: const Text('عرض المزيد'),
+                                  label: Text(
+                                    'عرض المزيد',
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: ink,
                                     side: BorderSide.none,
