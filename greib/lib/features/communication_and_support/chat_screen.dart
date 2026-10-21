@@ -367,28 +367,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           final conv = visible[index];
                           final online = conv['online'] as bool;
                           final isGroup = conv['type'] == 'group';
-                          return Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ConversationTile(
-                                name: conv['name'] as String,
-                                lastMessage: conv['lastMessage'] as String,
-                                time: conv['time'] as String,
-                                avatar: conv['avatar'] as String,
-                                unread: conv['unread'] as int,
-                                online: online,
-                                onTap: () =>
-                                    _openConversation(conv, online, isGroup),
-                              ),
-                              // ★ فاصل واتساب: رفيع + يبدأ بعد الأفاتار (12+52+12=76).
-                              Divider(
-                                height: 1,
-                                thickness: 0.5,
-                                indent: 76,
-                                endIndent: 12,
-                                color: chat.composerBorder,
-                              ),
-                            ],
+                          // ★ بلا خط فاصل أفقي بين المحادثات — كان يشوّش
+                          //   الرؤية البصرية بين عناصر القائمة (خاصة الحسابات).
+                          return ConversationTile(
+                            name: conv['name'] as String,
+                            lastMessage: conv['lastMessage'] as String,
+                            time: conv['time'] as String,
+                            avatar: conv['avatar'] as String,
+                            unread: conv['unread'] as int,
+                            online: online,
+                            onTap: () => _openConversation(conv, online, isGroup),
                           );
                         },
                       ),
