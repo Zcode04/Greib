@@ -8,7 +8,8 @@ import '../../core/widgets/app_sheet.dart';
 ///  UpcomingServicesSheet — ورقة «خدمات قادمة» (زر + في الهيدر):
 ///  قائمة الخدمات التي ستُطوَّر لاحقاً — حالياً عرض فقط (أيقونة + نص).
 ///  الضغط على أي بند يغلق الورقة ويعرض تنبيه «ستتوفر قريباً»،
-///  باستثناء «إنشاء منشور» الذي يوجّه إلى صفحة التحرير /create-post.
+///  باستثناء البنود المفعّلة (مثل «إنشاء منشور» و«الانضمام كمزود خدمة»)
+///  التي توجّه إلى صفحاتها.
 ///
 ///  الاستخدام:
 ///    await UpcomingServicesSheet.show(context);
@@ -37,6 +38,13 @@ class UpcomingServicesSheet extends StatelessWidget {
     (label: 'أضف مكان', icon: LucideIcons.mapPinPlus),
     (label: 'أضف تفاصيل خريطة مفقودة', icon: LucideIcons.mapPinPen),
   ];
+
+  /// البنود المفعّلة فعلياً: نص البند ← مسار الصفحة المقصودة.
+  static const Map<String, String> activeRoutes = {
+    'إنشاء منشور': '/create-post',
+    'الانضمام إلينا كمزود خدمة': '/join-provider',
+    'إضافة محل': '/add-store',
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -82,16 +90,16 @@ class UpcomingServicesSheet extends StatelessWidget {
     required ({String label, IconData icon}) item,
   }) {
     final sheetText = Theme.of(context).colorScheme.onSurface;
-    // ★ بند «إنشاء منشور» مفعّل فعلاً: يوجّه لصفحة التحرير /create-post.
-    final isCreatePost = item.label == 'إنشاء منشور';
+    // ★ البنود المفعّلة (مثل «إنشاء منشور») توجّه لصفحتها، والبقية «قريباً».
+    final route = activeRoutes[item.label];
     return InkWell(
       onTap: () {
         // نحفظ الراوتر قبل إغلاق الورقة لضمان تنقّل سليم بعد الإغلاق.
         final router = GoRouter.of(context);
         Navigator.of(context, rootNavigator: true).pop();
 
-        if (isCreatePost) {
-          router.push('/create-post');
+        if (route != null) {
+          router.push(route);
           return;
         }
 
