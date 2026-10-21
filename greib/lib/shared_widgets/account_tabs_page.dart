@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/extensions/context_extensions.dart';
 import '../core/mock_data/mock_data.dart';
@@ -8,7 +6,6 @@ import '../core/models/user_model.dart';
 import '../core/theme/design_tokens.dart';
 import '../features/auth/auth_service.dart';
 import '../features/wallet_and_finance/wallet_screen.dart';
-import '../shared_widgets/app_button.dart';
 import 'profile_widget.dart';
 
 // ============================================================================
@@ -115,7 +112,7 @@ class _AccountTabBar extends StatelessWidget {
   }
 }
 
-/// محتوى تبويب الملف الشخصي: زر إنشاء منشور + بطاقة البيانات + زر تسجيل الخروج.
+/// محتوى تبويب الملف الشخصي: بطاقة البروفايل (غلاف + معلومات + أزرار).
 class _ProfileTab extends StatelessWidget {
   final AppUserProfile profile;
 
@@ -125,37 +122,7 @@ class _ProfileTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 110),
-      child: Column(
-        children: [
-          // ★ أيقونة «إنشاء منشور» — تفتح صفحة التحرير (نص + صورة + فيديو).
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.md,
-              AppSpacing.lg,
-              0,
-            ),
-            child: AppButton(
-              label: 'إنشاء منشور',
-              icon: LucideIcons.squarePen,
-              type: ButtonType.secondary,
-              color: context.accentColor.withValues(alpha: 0.12),
-              textColor: context.accentColor,
-              onPressed: () => context.push('/create-post'),
-            ),
-          ),
-          ProfileWidget(profile: profile, includeTopInset: false),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-            child: AppButton(
-              label: 'تسجيل الخروج',
-              icon: LucideIcons.logOut,
-              color: AppColors.error,
-              onPressed: () => context.go('/login'),
-            ),
-          ),
-        ],
-      ),
+      child: ProfileWidget(profile: profile, includeTopInset: false),
     );
   }
 }

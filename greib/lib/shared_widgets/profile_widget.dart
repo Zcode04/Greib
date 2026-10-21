@@ -10,13 +10,15 @@ import '../../shared_widgets/app_button.dart';
 import '../../shared_widgets/smart_image.dart';
 
 /// ============================================================================
-///  ProfileWidget — الملف الشخصي بروح KIMI: هادئ، خفيف، راقٍ.
+///  ProfileWidget — الملف الشخصي بطراز فيسبوك (Facebook-like Profile).
 ///
-///  القواعد:
-///    - أسطح مستوية (flat) بلا تدرجات، حدود شعرية 1px، ظلال شبه معدومة.
-///    - الألوان من نظام التطبيق (surface / outline / muted) — لا ألوان صارخة.
-///    - الأفاتار صغير (72) بجانب الاسم — لا غلاف ملوّن ولا توهج.
-///    - الإحصائيات صف نصي هادئ بفواصل رفيعة.
+///  التكوين من الأعلى للأسفل:
+///    ① غلاف (Cover) بعرض كامل + أفاتار دائري متداخل + اسم المستخدم.
+///    ② معلومات التواصل: الهاتف، البريد الإلكتروني، الموقع.
+///    ③ الأزرار: إنشاء منشور | تعديل البيانات | تسجيل الدخول.
+///
+///  ★ بلا تبويبات سريعة (إعدادات/إشعارات/دعم/طلبات)، وبلا إحصائيات أو تقييم،
+///    وبلا فواصل بين صفوف المعلومات — أسطح مستوية وحدّ شعري واحد فقط.
 /// ============================================================================
 class ProfileWidget extends StatefulWidget {
   final AppUserProfile profile;
@@ -80,7 +82,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
 
     final content = Column(
       children: [
-        _IdentityCard(
+        _ProfileHeaderCard(
           profile: widget.profile,
           nameController: _nameController,
           isEditingName: _isEditing,
@@ -92,13 +94,16 @@ class _ProfileWidgetState extends State<ProfileWidget> {
           phoneController: _phoneController,
           emailController: _emailController,
           addressController: _addressController,
-          onEdit: () => setState(() => _isEditing = true),
           onSave: () => setState(() => _isEditing = false),
           onCancel: () => setState(() {
             _resetFields();
             _isEditing = false;
           }),
+        ),
+        _ProfileActions(
+          isEditing: _isEditing,
           isEditable: widget.isEditable,
+          onEdit: () => setState(() => _isEditing = true),
         ),
       ],
     );
@@ -113,23 +118,27 @@ class _ProfileWidgetState extends State<ProfileWidget> {
 }
 
 /// ============================================================================
-///  _IdentityCard — بطاقة الهوية بروح KIMI.
+///  _ProfileHeaderCard — ترويسة البروفايل بطراز فيسبوك.
 ///
-///  أفاتار صغير يسار الاسم، شارة دور نصية خافتة، وصف إحصائيات نصي بفواصل.
-///  بلا غلاف ملوّن، بلا توهج، بلا تدرجات — سطح مستوٍ وحدّ شعري فقط.
+///  غلاف (Cover) بتدرّج لون التمييز يعلو البطاقة، وأفاتار دائري متداخل مع
+///  حدّه السفلي، ثم الاسم وشارة الدور/العضوية. بلا تبويبات سريعة وبلا إحصائيات.
 /// ============================================================================
-class _IdentityCard extends StatelessWidget {
+class _ProfileHeaderCard extends StatelessWidget {
   final AppUserProfile profile;
   final TextEditingController nameController;
   final bool isEditingName;
   final bool isEditable;
 
-  const _IdentityCard({
+  const _ProfileHeaderCard({
     required this.profile,
     required this.nameController,
     required this.isEditingName,
     this.isEditable = true,
   });
+
+  /// ارتفاع الغلاف، ونصف قطر الأفاتار (يتداخل نصفه مع الغلاف).
+  static const double _coverHeight = 132;
+  static const double _avatarSize = 96;
 
   String get _tierLabel {
     switch (profile.membershipTier) {
@@ -159,179 +168,245 @@ class _IdentityCard extends StatelessWidget {
         AppSpacing.lg,
         AppSpacing.md,
         AppSpacing.lg,
-        AppSpacing.md,
+        AppSpacing.sm,
       ),
-      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: surface,
         borderRadius: BorderRadius.circular(AppRadii.xl),
         border: Border.all(color: hairline),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Stack(
-                children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: hairline, width: 1.5),
-                    ),
-                    padding: const EdgeInsets.all(2.5),
-                    child: ClipOval(
-                      child: SmartImage(
-                        src: profile.avatarUrl,
-                        fit: BoxFit.cover,
-                        placeholder: _AvatarInitials(
-                          name: profile.name,
-                          accent: accent,
-                          textColor: muted,
+          // ① الغلاف + الأفاتار المتداخل معه.
+          SizedBox(
+            height: _coverHeight + _avatarSize / 2,
+            child: Stack(
+              children: [
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: SizedBox(
+                    height: _coverHeight,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topRight,
+                          end: Alignment.bottomLeft,
+                          colors: [
+                            accent.withValues(alpha: 0.85),
+                            accent.withValues(alpha: 0.30),
+                          ],
+                        ),
+                      ),
+                      // لمسة ضوئية ناعمة تعطي الغلاف عمقاً بلا صور ولا أيقونات.
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: RadialGradient(
+                            center: const Alignment(-0.7, -0.9),
+                            radius: 1.4,
+                            colors: [
+                              Colors.white.withValues(alpha: 0.22),
+                              Colors.transparent,
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                  if (isEditable)
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        width: 26,
-                        height: 26,
+                ),
+                Positioned(
+                  right: AppSpacing.lg,
+                  top: _coverHeight - _avatarSize / 2,
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: _avatarSize,
+                        height: _avatarSize,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: accent,
-                          border: Border.all(color: surface, width: 2),
+                          color: surface,
+                          border: Border.all(color: surface, width: 4),
                         ),
-                        child: const Icon(
-                          LucideIcons.camera,
-                          size: 13,
-                          color: Colors.white,
+                        padding: const EdgeInsets.all(2),
+                        child: ClipOval(
+                          child: SmartImage(
+                            src: profile.avatarUrl,
+                            fit: BoxFit.cover,
+                            placeholder: _AvatarInitials(
+                              name: profile.name,
+                              accent: accent,
+                              textColor: muted,
+                            ),
+                          ),
                         ),
+                      ),
+                      if (isEditable)
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: accent,
+                              border: Border.all(color: surface, width: 2),
+                            ),
+                            child: const Icon(
+                              LucideIcons.camera,
+                              size: 13,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // ② الاسم + الدور والعضوية.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.sm,
+              AppSpacing.lg,
+              AppSpacing.lg,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (isEditingName)
+                  TextField(
+                    controller: nameController,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: onSurface,
+                    ),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.xs,
+                      ),
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: hairline),
+                      ),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: accent),
                       ),
                     ),
-                ],
-              ),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  )
+                else
+                  Text(
+                    nameController.text.isEmpty
+                        ? profile.name
+                        : nameController.text,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: onSurface,
+                    ),
+                  ),
+                const SizedBox(height: 4),
+                Row(
                   children: [
-                    if (isEditingName)
-                      TextField(
-                        controller: nameController,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: onSurface,
-                        ),
-                        decoration: InputDecoration(
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: AppSpacing.xs,
-                          ),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: hairline),
-                          ),
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: accent),
-                          ),
-                        ),
-                      )
-                    else
-                      Text(
-                        nameController.text.isEmpty
-                            ? profile.name
-                            : nameController.text,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: onSurface,
-                        ),
+                    Text(
+                      roleEnum != null
+                          ? PermissionService.roleLabel(roleEnum)
+                          : profile.role,
+                      style: theme.textTheme.bodySmall?.copyWith(color: muted),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      width: 4,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: muted,
                       ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Text(
-                          roleEnum != null
-                              ? PermissionService.roleLabel(roleEnum)
-                              : profile.role,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: muted,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          width: 4,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: muted,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'عضوية $_tierLabel',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: accent,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'عضوية $_tierLabel',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: accent,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// ============================================================================
+///  _ProfileActions — أزرار أسفل معلومات التواصل:
+///  «إنشاء منشور» و«تعديل البيانات» في صف واحد، و«تسجيل الدخول» بعرض كامل.
+/// ============================================================================
+class _ProfileActions extends StatelessWidget {
+  final bool isEditing;
+  final bool isEditable;
+  final VoidCallback onEdit;
+
+  const _ProfileActions({
+    required this.isEditing,
+    required this.isEditable,
+    required this.onEdit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = context.accentColor;
+    final canEdit = isEditable && !isEditing;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.xs,
+        AppSpacing.lg,
+        AppSpacing.sm,
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  label: 'إنشاء منشور',
+                  icon: LucideIcons.squarePen,
+                  onPressed: () => context.push('/create-post'),
+                ),
               ),
+              if (canEdit) ...[
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: AppButton(
+                    label: 'تعديل البيانات',
+                    icon: LucideIcons.pencil,
+                    type: ButtonType.secondary,
+                    color: accent.withValues(alpha: 0.12),
+                    textColor: accent,
+                    onPressed: onEdit,
+                  ),
+                ),
+              ],
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            clipBehavior: Clip.none,
-            child: Row(
-              children: [
-                _QuickPill(
-                  icon: LucideIcons.settings,
-                  label: 'الإعدادات',
-                  onTap: () => context.push('/settings'),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                _QuickPill(
-                  icon: LucideIcons.bell,
-                  label: 'الإشعارات',
-                  onTap: () => context.push('/notifications'),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                _QuickPill(
-                  icon: LucideIcons.headphones,
-                  label: 'الدعم',
-                  onTap: () => context.push('/support'),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                _QuickPill(
-                  icon: LucideIcons.package,
-                  label: 'طلباتي',
-                  onTap: () => context.push('/orders'),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-            decoration: BoxDecoration(
-              border: Border(top: BorderSide(color: hairline)),
-            ),
-            child: Row(
-              children: [
-                _Stat(value: '${profile.loyaltyPoints}', label: 'نقطة'),
-                _StatDivider(),
-                _Stat(value: '${MockData.demoOrders.length}', label: 'طلبات'),
-                _StatDivider(),
-                const _Stat(value: '4.8', label: 'التقييم'),
-              ],
-            ),
+          const SizedBox(height: AppSpacing.md),
+          AppButton(
+            label: 'تسجيل الدخول',
+            icon: LucideIcons.logIn,
+            type: ButtonType.secondary,
+            isOutlined: true,
+            color: accent,
+            onPressed: () => context.go('/login'),
           ),
         ],
       ),
@@ -383,107 +458,11 @@ class _AvatarInitials extends StatelessWidget {
 }
 
 
-class _QuickPill extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _QuickPill({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final onSurface = theme.colorScheme.onSurface;
-    final hairline = onSurface.withValues(alpha: 0.12);
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadii.full),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
-          decoration: BoxDecoration(
-            color: onSurface.withValues(alpha: 0.03),
-            borderRadius: BorderRadius.circular(AppRadii.full),
-            border: Border.all(color: hairline),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: 15, color: onSurface.withValues(alpha: 0.7)),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: onSurface.withValues(alpha: 0.8),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// خلية إحصائية نصية هادئة (قيمة + تسمية خافتة).
-class _Stat extends StatelessWidget {
-  final String value;
-  final String label;
-
-  const _Stat({required this.value, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final onSurface = theme.colorScheme.onSurface;
-    return Expanded(
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: onSurface,
-            ),
-          ),
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: onSurface.withValues(alpha: 0.5),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatDivider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    return Container(
-      width: 1,
-      height: 28,
-      color: onSurface.withValues(alpha: 0.1),
-    );
-  }
-}
-
 /// ============================================================================
-///  _ContactCard — بطاقة معلومات التواصل بروح KIMI.
+///  _ContactCard — بطاقة معلومات التواصل بطراز فيسبوك.
 ///
-///  صفوف مفصولة بفواصل شعرية، أيقونات أحادية هادئة، ووضع تحرير سلس
-///  (حقول + زرّا «حفظ» و«إلغاء»). الأسطح مستوية والظلال شبه معدومة.
+///  ثلاث معلومات: الهاتف، البريد الإلكتروني، الموقع — كل واحدة بأيقونة داخل
+///  قرص ملوّن خفيف، بلا فواصل، مع وضع تحرير سلس (حقول + زرّا «حفظ» و«إلغاء»).
 /// ============================================================================
 class _ContactCard extends StatelessWidget {
   final AppUserProfile profile;
@@ -491,10 +470,8 @@ class _ContactCard extends StatelessWidget {
   final TextEditingController phoneController;
   final TextEditingController emailController;
   final TextEditingController addressController;
-  final VoidCallback onEdit;
   final VoidCallback onSave;
   final VoidCallback onCancel;
-  final bool isEditable;
 
   const _ContactCard({
     required this.profile,
@@ -502,19 +479,15 @@ class _ContactCard extends StatelessWidget {
     required this.phoneController,
     required this.emailController,
     required this.addressController,
-    required this.onEdit,
     required this.onSave,
     required this.onCancel,
-    required this.isEditable,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accent = context.accentColor;
     final surface = theme.colorScheme.surface;
     final onSurface = theme.colorScheme.onSurface;
-    final muted = onSurface.withValues(alpha: 0.55);
     final hairline = onSurface.withValues(alpha: 0.1);
 
     return Container(
@@ -531,23 +504,12 @@ class _ContactCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Text(
-                'معلومات التواصل',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: onSurface,
-                ),
-              ),
-              const Spacer(),
-              if (isEditable && !isEditing)
-                _SmallIconBtn(
-                  icon: LucideIcons.pencil,
-                  tooltip: 'تعديل البيانات',
-                  onTap: onEdit,
-                ),
-            ],
+          Text(
+            'معلومات التواصل',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: onSurface,
+            ),
           ),
           const SizedBox(height: AppSpacing.sm),
           if (isEditing) ...[
@@ -600,38 +562,21 @@ class _ContactCard extends StatelessWidget {
               value: phoneController.text.isEmpty
                   ? profile.phone
                   : phoneController.text,
-              iconColor: muted,
               forceLtr: true,
             ),
-            _InfoDivider(),
             _InfoRow(
               icon: LucideIcons.mail,
               value: emailController.text.isEmpty
                   ? profile.email
                   : emailController.text,
-              iconColor: muted,
               forceLtr: true,
             ),
-            _InfoDivider(),
             _InfoRow(
               icon: LucideIcons.mapPin,
               value: addressController.text.isEmpty
                   ? (profile.address ?? 'غير محدد')
                   : addressController.text,
-              iconColor: muted,
-              isLast: true,
             ),
-            if (isEditable) ...[
-              const SizedBox(height: AppSpacing.lg),
-              AppButton(
-                label: 'تعديل البيانات',
-                icon: LucideIcons.pencil,
-                type: ButtonType.secondary,
-                onPressed: onEdit,
-                color: accent.withValues(alpha: 0.12),
-                textColor: accent,
-              ),
-            ],
           ],
         ],
       ),
@@ -639,25 +584,10 @@ class _ContactCard extends StatelessWidget {
   }
 }
 
-/// فاصل شعري رفيع بين صفوف المعلومات.
-class _InfoDivider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    return Divider(
-      height: 1,
-      thickness: 1,
-      color: onSurface.withValues(alpha: 0.08),
-    );
-  }
-}
-
-/// صف معلومة واحد: أيقونة أحادية هادئة + القيمة.
+/// صف معلومة واحد: أيقونة داخل قرص بلون التمييز + القيمة.
 class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String value;
-  final Color iconColor;
-  final bool isLast;
 
   /// تثبيت اتجاه النص LTR (للأرقام/البريد) حتى لا يقلب محرك BiDi العلامات.
   final bool forceLtr;
@@ -665,32 +595,41 @@ class _InfoRow extends StatelessWidget {
   const _InfoRow({
     required this.icon,
     required this.value,
-    required this.iconColor,
-    this.isLast = false,
     this.forceLtr = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final accent = context.accentColor;
     final onSurface = theme.colorScheme.onSurface;
-    final text = Text(
-      value,
-      // LTR فقط لتصحيح ترتيب العلامات (BiDi) — المحاذاة تبقى start
-      // أي ملاصقة للأيقونة في RTL دون فجوة بصرية.
-      textDirection: forceLtr ? TextDirection.ltr : null,
-      style: theme.textTheme.bodyMedium?.copyWith(
-        color: onSurface.withValues(alpha: 0.85),
-        fontWeight: FontWeight.w500,
-      ),
-    );
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: iconColor),
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: accent.withValues(alpha: 0.10),
+            ),
+            child: Icon(icon, size: 17, color: accent),
+          ),
           const SizedBox(width: AppSpacing.md),
-          Expanded(child: text),
+          Expanded(
+            child: Text(
+              value,
+              // LTR فقط لتصحيح ترتيب العلامات (BiDi) — المحاذاة تبقى start
+              // أي ملاصقة للأيقونة في RTL دون فجوة بصرية.
+              textDirection: forceLtr ? TextDirection.ltr : null,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: onSurface.withValues(alpha: 0.85),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -752,44 +691,6 @@ class _EditField extends StatelessWidget {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadii.lg),
           borderSide: BorderSide(color: accent, width: 1.5),
-        ),
-      ),
-    );
-  }
-}
-
-/// زر أيقونة دائري صغير (تحرير سريع) — هادئ بحدّ شعري.
-class _SmallIconBtn extends StatelessWidget {
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onTap;
-
-  const _SmallIconBtn({
-    required this.icon,
-    required this.tooltip,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = context.accentColor;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadii.full),
-        onTap: onTap,
-        child: Tooltip(
-          message: tooltip,
-          child: Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: accent.withValues(alpha: 0.08),
-              border: Border.all(color: accent.withValues(alpha: 0.18)),
-            ),
-            child: Icon(icon, size: 15, color: accent),
-          ),
         ),
       ),
     );
