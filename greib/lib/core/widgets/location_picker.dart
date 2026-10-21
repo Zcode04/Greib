@@ -802,9 +802,9 @@ class _LocationPickerSheetState extends State<LocationPickerSheet>
                     ),
                     const SizedBox(width: AppSpacing.md),
                     Container(
-                      width: 1.3,
-                      height: 22,
-                      color: theme.dividerColor.withValues(alpha: 0.7),
+                      width: 1.0,
+                      height: 6,
+                      color: theme.dividerColor.withValues(alpha: 0.4),
                     ),
                     const SizedBox(width: AppSpacing.md),
                     _pillButton(

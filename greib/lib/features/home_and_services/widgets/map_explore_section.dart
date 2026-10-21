@@ -462,8 +462,8 @@ class _NearbyServicesSectionState extends State<NearbyServicesSection> {
           '${_tabs[_tab].label} الأقرب إليك',
           style: TextStyle(
             color: primary,
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
           ),
         ),
         const SizedBox(height: 8),
