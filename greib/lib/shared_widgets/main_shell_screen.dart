@@ -63,7 +63,7 @@ const List<_ShellTab> _tabs = [
   _ShellTab(
     route: '/live-mode',
     title: 'البث المباشر',
-    icon: LucideIcons.tvMinimal,
+    icon: LucideIcons.tv,
     label: 'البث المباشر',
   ),
   // ★ زر الكاميرا: نفس هوية بقية الأيقونات — يفتح صفحة البحث المستقلة
