@@ -1,15 +1,17 @@
 // features/liveserver/liveserver_screen.dart
 //
-// شاشة «الاتصال المباشر بالتاجر» — محاكاة مكالمة مباشرة (المسار /liveserver).
+// شاشة «الاتصال المباشر بالتاجر» — فيد بثوث مباشرة عمودي (المسار /liveserver).
 //
 // ★ تُفتح من قائمة التجار الذين يبثّون الآن (LiveMerchantsScreen) مع تمرير
-//   معرّف التاجر، فتظهر بياناته (الصورة/الاسم) كطرف المكالمة.
+//   معرّف التاجر، فيبدأ الفيد من بثّه ثم يكمل المستخدم التمرير للأسفل لمشاهدة
+//   بقية بثوث التجار — بنفس فكرة فيد الصفحة الرئيسية (تمرير طبيعي متصل).
 // ★ زر الرجوع يعتمد على هيدر SuperHeader الموجود أعلى الصفحة فقط (لا تكرار).
 // ★ هذه محاكاة واجهة (UI Mock) — سيتم تطويرها لاحقاً بربط بث/قنوات حقيقية.
 
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/extensions/context_extensions.dart';
@@ -18,12 +20,12 @@ import '../../core/widgets/super_header.dart';
 import '../services/data/account_repository.dart';
 
 /// ============================================================================
-///  LiveserverScreen — محاكاة اتصال مباشر مع تاجر (المسار /liveserver).
+///  LiveserverScreen — فيد البثوث المباشرة للتجار (المسار /liveserver).
 /// ============================================================================
 class LiveserverScreen extends StatefulWidget {
   const LiveserverScreen({super.key, this.storeId});
 
-  /// ★ معرّف التاجر المتّصل به (من قائمة التجار في البث).
+  /// ★ معرّف التاجر الذي يبدأ منه الفيد (من قائمة التجار في البث).
   final String? storeId;
 
   @override
@@ -31,22 +33,49 @@ class LiveserverScreen extends StatefulWidget {
 }
 
 class _LiveserverScreenState extends State<LiveserverScreen> {
+  /// ★ عدد البثوث المتاحة في الفيد (نفس عدد التجار في شاشة القائمة).
+  static const int _liveCount = 8;
+
+  /// ★ المسافة بين بثّين متتاليين في الفيد.
+  static const double _gap = 14;
+
   // ★ حالات أزرار التحكّم السفلية (تفاعلية).
   bool _micOn = true;
   bool _camOn = true;
 
-  // ★ مؤقّت مدة البث (يُحتسب أثناء وجود الصفحة).
+  // ★ مؤقّت مدة البث الظاهر (يُصفّر عند الانتقال لبثّ آخر).
   late int _seconds = 0;
   Timer? _timer;
 
-  /// ★ التاجر المتّصل به (null = محاكاة بلا بيانات متجر).
-  AccountProfile? get _store => widget.storeId == null
-      ? null
-      : AccountRepository.instance.byId(widget.storeId!);
+  /// ★ قائمة البثوث في الفيد العمودي (بنفس ترتيب شاشة التجار).
+  late final List<AccountProfile> _stores;
+
+  /// ★ متحكّم التمرير العمودي — تمرير طبيعي متصل مثل فيد الصفحة الرئيسية.
+  final ScrollController _controller = ScrollController();
+
+  /// ★ فهرس البث الظاهر حالياً.
+  int _index = 0;
+
+  /// ★ ارتفاع البث الواحد — يُحسب من مساحة العرض أثناء البناء.
+  double _itemExtent = 0;
+
+  /// ★ هل انتقلنا تلقائياً إلى بثّ التاجر المختار (مرة واحدة بعد أول بناء)؟
+  bool _autoJumped = false;
 
   @override
   void initState() {
     super.initState();
+    _stores = AccountRepository.instance.all
+        .take(_liveCount)
+        .toList(growable: false);
+
+    // ★ نبدأ من التاجر المختار (إن وُجد) ثم يكمل المستخدم التمرير.
+    final found = widget.storeId == null
+        ? -1
+        : _stores.indexWhere((s) => s.id == widget.storeId);
+    _index = found >= 0 ? found : 0;
+
+    _controller.addListener(_onScroll);
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() => _seconds++);
     });
@@ -55,7 +84,23 @@ class _LiveserverScreenState extends State<LiveserverScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _controller
+      ..removeListener(_onScroll)
+      ..dispose();
     super.dispose();
+  }
+
+  /// ★ تحديث البث النشط حسب موضع التمرير (تمرير طبيعي متصل، بلا قفزات).
+  void _onScroll() {
+    if (_itemExtent <= 0 || _stores.isEmpty) return;
+    final raw = (_controller.offset / _itemExtent).round();
+    final i = raw < 0 ? 0 : (raw >= _stores.length ? _stores.length - 1 : raw);
+    if (i == _index) return;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _index = i;
+      _seconds = 0;
+    });
   }
 
   String get _formattedTime {
@@ -66,61 +111,119 @@ class _LiveserverScreenState extends State<LiveserverScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final store = _store;
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F17), // خلفية داكنة تناسب البث
-      extendBody: true,
-      extendBodyBehindAppBar: true,
       // ★ زر الرجوع يأتي من الهيدر فقط (SuperHeader) — بدون أي تكرار.
-      appBar: SuperHeader(
-        title: store == null ? 'البث المباشر' : 'مكالمة مباشرة',
-        showBackButton: true,
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
-          child: Column(
-            children: [
-              // --- الشاشة الرئيسية: التاجر المتّصل به ---
-              Expanded(
-                flex: 3,
-                child: _PersonFeed(
-                  name: store?.name ?? 'المُذيع',
-                  role: 'التاجر • يبثّ الآن',
-                  avatarUrl: store?.avatarUrl,
-                  gradient: const [Color(0xFF1E3A8A), Color(0xFF0EA5E9)],
-                  micOn: _micOn,
-                  camOn: _camOn,
-                ),
-              ),
-              const SizedBox(height: 12),
-              // --- شاشة الضيف (الشخص الثاني) — أصغر ---
-              Expanded(
-                flex: 2,
-                child: _PersonFeed(
-                  name: 'أنت',
-                  role: 'معاينة الكاميرا',
-                  gradient: const [Color(0xFF6D28D9), Color(0xFFDB2777)],
-                  micOn: true,
-                  camOn: true,
-                ),
-              ),
-              const SizedBox(height: 16),
-              // --- شريط المعلومات (مشاهدون + المؤقّت) + شارة LIVE ---
-              _LiveInfoBar(time: _formattedTime, viewers: 128),
-              const SizedBox(height: 16),
-              // --- أزرار التحكّم ---
-              _ControlBar(
+      appBar: SuperHeader(title: 'البث المباشر', showBackButton: true),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          // ★ ارتفاع البث الواحد: يملأ معظم الشاشة وتظهر حافة البث التالي
+          //   أسفله ⇒ يدرك المستخدم أن هناك بثوثاً أخرى بالتمرير.
+          _itemExtent = (constraints.maxHeight * 0.88).clamp(300.0, 1000.0);
+
+          // ★ الانتقال مرة واحدة إلى بثّ التاجر المختار (بلا أنميشن).
+          if (!_autoJumped) {
+            _autoJumped = true;
+            if (_index > 0) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted && _controller.hasClients) {
+                  _controller.jumpTo((_itemExtent + _gap) * _index);
+                }
+              });
+            }
+          }
+
+          return ListView.separated(
+            controller: _controller,
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
+            itemCount: _stores.length,
+            separatorBuilder: (_, _) => const SizedBox(height: _gap),
+            itemBuilder: (context, i) => SizedBox(
+              height: _itemExtent,
+              child: _LiveStreamCard(
+                store: _stores[i],
                 micOn: _micOn,
                 camOn: _camOn,
+                time: i == _index ? _formattedTime : '00:00',
+                viewers: 96 + i * 43,
                 onToggleMic: () => setState(() => _micOn = !_micOn),
                 onToggleCam: () => setState(() => _camOn = !_camOn),
                 onEnd: () => Navigator.of(context).maybePop(),
               ),
-            ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// ============================================================================
+///  بطاقة بثّ واحد داخل الفيد: شاشة التاجر (أكبر) + شاشة الضيف (أنت)
+///  + شريط المعلومات + أزرار التحكّم — بنفس تصميم محادثة الاتصال الهاتفي.
+/// ============================================================================
+class _LiveStreamCard extends StatelessWidget {
+  final AccountProfile? store;
+  final bool micOn;
+  final bool camOn;
+  final String time;
+  final int viewers;
+  final VoidCallback onToggleMic;
+  final VoidCallback onToggleCam;
+  final VoidCallback onEnd;
+
+  const _LiveStreamCard({
+    required this.store,
+    required this.micOn,
+    required this.camOn,
+    required this.time,
+    required this.viewers,
+    required this.onToggleMic,
+    required this.onToggleCam,
+    required this.onEnd,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // --- الشاشة الرئيسية: التاجر الذي يبثّ الآن ---
+        Expanded(
+          flex: 3,
+          child: _PersonFeed(
+            name: store?.name ?? 'المُذيع',
+            role: 'التاجر • يبثّ الآن',
+            avatarUrl: store?.avatarUrl,
+            gradient: const [Color(0xFF1E3A8A), Color(0xFF0EA5E9)],
+            micOn: micOn,
+            camOn: camOn,
           ),
         ),
-      ),
+        const SizedBox(height: 10),
+        // --- شاشة الضيف (الشخص الثاني) — أصغر ---
+        const Expanded(
+          flex: 2,
+          child: _PersonFeed(
+            name: 'أنت',
+            role: 'معاينة الكاميرا',
+            gradient: [Color(0xFF6D28D9), Color(0xFFDB2777)],
+            micOn: true,
+            camOn: true,
+          ),
+        ),
+        const SizedBox(height: 12),
+        // --- شريط المعلومات (مشاهدون + المؤقّت) + شارة LIVE ---
+        _LiveInfoBar(time: time, viewers: viewers),
+        const SizedBox(height: 12),
+        // --- أزرار التحكّم ---
+        _ControlBar(
+          micOn: micOn,
+          camOn: camOn,
+          onToggleMic: onToggleMic,
+          onToggleCam: onToggleCam,
+          onEnd: onEnd,
+        ),
+      ],
     );
   }
 }
@@ -173,7 +276,7 @@ class _PersonFeed extends StatelessWidget {
                 ),
               ),
             ),
-            // ★ الصورة الرمزية في المنتصف.
+            // ★ الصورة الرمزية في المنتصف (صورة التاجر إن وُجدت).
             Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -181,11 +284,16 @@ class _PersonFeed extends StatelessWidget {
                   CircleAvatar(
                     radius: 40,
                     backgroundColor: Colors.white.withValues(alpha: 0.18),
-                    child: Icon(
-                      LucideIcons.circleUser,
-                      size: 48,
-                      color: Colors.white.withValues(alpha: 0.95),
-                    ),
+                    backgroundImage: avatarUrl == null
+                        ? null
+                        : NetworkImage(avatarUrl!),
+                    child: avatarUrl == null
+                        ? Icon(
+                            LucideIcons.circleUser,
+                            size: 48,
+                            color: Colors.white.withValues(alpha: 0.95),
+                          )
+                        : null,
                   ),
                   const SizedBox(height: 10),
                   Text(
@@ -239,7 +347,6 @@ class _PersonFeed extends StatelessWidget {
     );
   }
 }
-
 
 /// ============================================================================
 ///  شارة «مباشر LIVE» نابضة + عدّاد المشاهدين + المؤقّت.
@@ -364,7 +471,6 @@ class _InfoChip extends StatelessWidget {
   }
 }
 
-
 /// ============================================================================
 ///  أزرار التحكّم السفلية (مايك / كاميرا / إنهاء).
 /// ============================================================================
@@ -460,4 +566,3 @@ class _CircleControl extends StatelessWidget {
     );
   }
 }
-
