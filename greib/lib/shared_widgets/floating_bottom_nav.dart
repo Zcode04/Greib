@@ -199,7 +199,7 @@ class _NavTile extends StatelessWidget {
     //   ★ استثناء: في الوضع الليلي الأيقونة المحددة (house/message) بيضاء
     //   لتباين أوضح على الخلفية الداكنة.
     final iconColor = selected
-        ? (isDark ? context.textColors.inverse : activeColor)
+        ? (isDark ? Colors.white : activeColor)
         : inactiveColor;
 
     return Semantics(
