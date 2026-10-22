@@ -10,6 +10,7 @@ import 'core/theme/theme_controller.dart';
 import 'core/user/user_data.dart';
 import 'core/router/app_router.dart';
 import 'core/widgets/location_gate.dart';
+import 'core/widgets/theme_transition_overlay.dart';
 import 'features/auth/auth_service.dart';
 import 'features/services/data/account_repository.dart';
 import 'features/services/data/services_repository.dart';
@@ -81,10 +82,14 @@ class GreibMenkApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       routerConfig: AppRouter.router,
+      // ★ تبديل الثيم فوري (بلا `ThemeData.lerp` على كل إطار) ⇒ لا تقطّع.
+      //   الأنيميشن الناعم يتولّاه ThemeTransitionOverlay أدناه بحجاب متلاشٍ.
+      themeAnimationStyle: AnimationStyle.noAnimation,
       // ★ بوابة إذن الموقع الدقيق عند أول فتح — داخل MaterialApp
       // حتى تتوفر Directionality وTheme لشاشة الإذن.
-      builder: (context, child) =>
-          LocationGate(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => ThemeTransitionOverlay(
+        child: LocationGate(child: child ?? const SizedBox.shrink()),
+      ),
     );
   }
 }

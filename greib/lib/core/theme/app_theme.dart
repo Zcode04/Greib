@@ -16,10 +16,31 @@ import 'design_tokens.dart';
 
 class AppTheme {
   // =========================================================================
+  //  ★ ذاكرة مؤقتة (Memoization)
+  //
+  //  بناء ThemeData ضخم (ColorScheme + 14 نمط نصي عبر GoogleFonts + أكثر من
+  //  10 ثيمات فرعية) كان يُنفَّذ من الصفر في كل مرة يُبنى فيها التطبيق — أي عند
+  //  كل تبديل للوضع الليلي/النهاري (مرتين: فاتح + داكن) ⇒ تقطّع ملحوظ.
+  //  الآن: نفس اللوحة ⇒ نفس الكائن بلا أي إعادة بناء.
+  // =========================================================================
+  static AppColorPalette? _lightKey;
+  static ThemeData? _lightCached;
+  static AppColorPalette? _darkKey;
+  static ThemeData? _darkCached;
+
+  // =========================================================================
   //  LIGHT THEME
   // =========================================================================
   static ThemeData lightTheme([AppColorPalette? palette]) {
     final p = palette ?? AppColorPalette.light();
+    if (identical(p, _lightKey) && _lightCached != null) return _lightCached!;
+    final theme = _buildLight(p);
+    _lightKey = p;
+    _lightCached = theme;
+    return theme;
+  }
+
+  static ThemeData _buildLight(AppColorPalette p) {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
@@ -195,6 +216,14 @@ class AppTheme {
   // =========================================================================
   static ThemeData darkTheme([AppColorPalette? palette]) {
     final p = palette ?? AppColorPalette.dark();
+    if (identical(p, _darkKey) && _darkCached != null) return _darkCached!;
+    final theme = _buildDark(p);
+    _darkKey = p;
+    _darkCached = theme;
+    return theme;
+  }
+
+  static ThemeData _buildDark(AppColorPalette p) {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
