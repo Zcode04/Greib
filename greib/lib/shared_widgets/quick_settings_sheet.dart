@@ -81,8 +81,6 @@ class _QuickSettingsSheetState extends State<QuickSettingsSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // ★ نُبقي الورقة متجاوبة مع تبديل النمط أثناء فتحها.
-    context.watch<ThemeController>();
 
     return DraggableSheetBody(
       initialExtent: 0.45,
