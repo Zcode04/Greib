@@ -36,19 +36,13 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
     'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=1000&q=80',
   ];
 
-  /// ★ صور خلفية «ممتدة» (مشاهد طبيعية/سماء/أرض) تملأ كامل الشاشة خلف كل شيء.
-  static const List<String> _backgrounds = [
-    'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600&q=80',
-    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1600&q=80',
-    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1600&q=80',
-    'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1600&q=80',
-    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=80',
-    'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=1600&q=80',
-  ];
+  /// ★ صورة الخلفية الثابتة — تملأ كامل الشاشة ولا تتغيّر مع الكاروسيل.
+  static const String _backgroundImage =
+      'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600&q=80';
 
   final PageController _carousel = PageController(viewportFraction: 0.34);
 
-  /// الصورة النشطة (المعروضة كخلفية كاملة).
+  /// فهرس الصورة النشطة في الكاروسيل.
   int _index = 0;
 
   /// حالة التفاعل: 0 = بلا، 1 = إعجاب، -1 = عدم إعجاب.
@@ -101,30 +95,21 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // ★ الخلفية: صورة خلفية ممتدة تملأ كامل الشاشة خلف جميع المكونات.
-          //   (نستخدم layoutBuilder ليمتدّ الطفل على كامل المساحة، وإلا تُقاس
-          //    الصورة بأبعادها الأصلية فتظهر في جزء فقط من الشاشة.)
+          // ★ الخلفية الثابتة: صورة ممتدة تملأ كامل الشاشة خلف جميع المكونات
+          //   ولا تتغيّر عند تمرير الكاروسيل.
           Positioned.fill(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 420),
-              layoutBuilder: (currentChild, previousChildren) => Stack(
-                fit: StackFit.expand,
-                children: [...previousChildren, ?currentChild],
-              ),
-              child: Image.network(
-                _backgrounds[_index],
-                key: ValueKey(_index),
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: double.infinity,
-                errorBuilder: (_, _, _) => const ColoredBox(
-                  color: Color(0xFF141A24),
-                  child: Center(
-                    child: Icon(
-                      LucideIcons.image,
-                      size: 64,
-                      color: Colors.white24,
-                    ),
+            child: Image.network(
+              _backgroundImage,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+              errorBuilder: (_, _, _) => const ColoredBox(
+                color: Color(0xFF141A24),
+                child: Center(
+                  child: Icon(
+                    LucideIcons.image,
+                    size: 64,
+                    color: Colors.white24,
                   ),
                 ),
               ),
@@ -304,44 +289,32 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
                             ),
                           ),
                         ),
-                        // شارة «معاينة» على الصورة النشطة داخل الطبقة.
-                        if (active)
-                          PositionedDirectional(
-                            bottom: 8,
-                            start: 8,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 9,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.55),
-                                borderRadius: BorderRadius.circular(999),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.25),
-                                ),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    LucideIcons.maximize2,
-                                    size: 12,
-                                    color: Colors.white,
-                                  ),
-                                  SizedBox(width: 5),
-                                  Text(
-                                    'معاينة',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
+                        // تدرّج سفلي بسيط لإبراز زر المعاينة فوق الصورة.
+                        PositionedDirectional(
+                          start: 0,
+                          end: 0,
+                          bottom: 0,
+                          height: 66,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withValues(alpha: 0.55),
                                 ],
                               ),
                             ),
                           ),
+                        ),
+                        // ★ زر «معاينة» — يظهر بجانب كل صورة داخل الكاروسيل.
+                        PositionedDirectional(
+                          start: 8,
+                          end: 8,
+                          bottom: 8,
+                          child: _PreviewButton(onTap: () => _openPreview(i)),
+                        ),
                       ],
                     ),
                   ),
@@ -389,6 +362,49 @@ class _ReactionIconButton extends StatelessWidget {
             LucideIcons.heart,
             size: 24,
             color: active ? const Color(0xFFE5484D) : Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// ★ زر «معاينة» — يظهر أسفل كل صورة داخل الكاروسيل، والضغط عليه يفتح
+///   صفحة المعاينة المستقلة لتلك الصورة تحديداً.
+class _PreviewButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _PreviewButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          height: 30,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.55),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.55)),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(LucideIcons.maximize2, size: 13, color: Colors.white),
+              SizedBox(width: 5),
+              Text(
+                'معاينة',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
         ),
       ),
