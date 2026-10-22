@@ -95,16 +95,24 @@ class AppPrefs {
     }
   }
 
+  /// حفظ/تحديث عدة حقول دفعة واحدة (حفظ كل التغييرات أو تطبيق ثيم جاهز).
+  static Future<void> setPaletteOverrides(
+    Map<String, int> values, {
+    required bool isDark,
+  }) async {
+    if (values.isEmpty) return;
+    final map = Map<String, int>.from(paletteOverrides(isDark: isDark))
+      ..addAll(values);
+    await _prefs?.setString(_paletteKeyFor(isDark), jsonEncode(map));
+  }
+
   /// حفظ/تحديث لون حقل واحد (يُستعاد تلقائياً عند إعادة التشغيل).
   static Future<void> setPaletteOverride(
     String field,
     int argb, {
     required bool isDark,
-  }) async {
-    final map = Map<String, int>.from(paletteOverrides(isDark: isDark));
-    map[field] = argb;
-    await _prefs?.setString(_paletteKeyFor(isDark), jsonEncode(map));
-  }
+  }) =>
+      setPaletteOverrides({field: argb}, isDark: isDark);
 
   // -------------------- صورة البروفايل (مسار ملف محلي) --------------------
   /// مسار صورة البروفايل المختارة (null = لا توجد ⇒ الأفاتار الافتراضي).

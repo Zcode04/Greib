@@ -36,10 +36,7 @@ class ColorPaletteController extends ChangeNotifier {
 
   /// ★ يبني المتحكم مع تطبيق تخصيصات المستخدم المحفوظة محلياً (AppPrefs)
   ///   فوق اللوحات الافتراضية — فتُستعاد ألوانه المختارة بعد إعادة التشغيل.
-  ///
-  ///   ★ معلومة: ميزة «التحكم في الألوان» معطّلة حالياً (المطلوب اعتماد
-  ///   اللوحة الافتراضية)، فالتطبيق يستخدم المُنشئ العادي. هذا المُنشئ
-  ///   محفوظ كما هو لتفعيل الميزة لاحقاً.
+  ///   (التطبيق يستخدم هذا المُنشئ في `main.dart`.)
   factory ColorPaletteController.withStored() {
     final controller = ColorPaletteController();
     controller._applyStoredOverrides();
@@ -47,35 +44,25 @@ class ColorPaletteController extends ChangeNotifier {
   }
 
   /// يطبّق كل الألوان المحفوظة (لكل وضع) فوق اللوحة الحالية.
+  /// ★ يمرّ عبر [AppColorPalette.withField] ⇒ أي حقل محفوظ (من أصل ~31) يُستعاد
+  ///   تلقائياً بلا `switch` مكرّر هنا.
   void _applyStoredOverrides() {
     for (final isDark in const [true, false]) {
       final stored = AppPrefs.paletteOverrides(isDark: isDark);
       if (stored.isEmpty) continue;
-      final base = paletteFor(isDark);
-      var text = base.text;
-      var background = base.background;
-      var icon = base.icon;
+
+      var palette = paletteFor(isDark);
+
+      // اللون الرسمي أولاً (لأنه يُغذّي الأيقونات/الرابط المشتقّة)، ثم البقية.
+      final accentArgb = stored[PaletteFieldKeys.accent];
+      if (accentArgb != null) palette = palette.withAccent(Color(accentArgb));
+
       stored.forEach((field, argb) {
-        final color = Color(argb);
-        switch (field) {
-          case PaletteFieldKeys.backgroundPrimary:
-            background = background.copyWith(primary: color);
-          case PaletteFieldKeys.backgroundSurface:
-            background = background.copyWith(surface: color);
-          case PaletteFieldKeys.textPrimary:
-            text = text.copyWith(primary: color);
-          case PaletteFieldKeys.textSecondary:
-            text = text.copyWith(secondary: color);
-          case PaletteFieldKeys.iconPrimary:
-            icon = icon.copyWith(primary: color);
-          case PaletteFieldKeys.iconActive:
-            icon = icon.copyWith(active: color);
-        }
+        if (field == PaletteFieldKeys.accent) return;
+        palette = palette.withField(field, Color(argb));
       });
-      _replace(
-        isDark: isDark,
-        palette: base.copyWith(text: text, background: background, icon: icon),
-      );
+
+      _replace(isDark: isDark, palette: palette);
     }
   }
 
@@ -113,6 +100,32 @@ class ColorPaletteController extends ChangeNotifier {
   // ==========================================================================
   //  3) اختصارات لتعديل حقول مفردة (سهّل الاستخدام من واجهات الإعدادات)
   // ==========================================================================
+
+  /// ★ يحدّث أي حقل عبر مفتاحه من [PaletteFieldKeys] — عقد موحّد واحد
+  ///   تستخدمه شاشة التخصيص والحفظ والاستعادة معاً (بدل switch متكرّر).
+  void updateField(String field, Color color, {required bool isDark}) => _replace(
+        isDark: isDark,
+        palette: paletteFor(isDark).withField(field, color),
+      );
+
+  /// ★ يبني اللوحة كاملة من القرارات الثلاثة (خلفية + نص + اللون الرسمي)
+  ///   ويشتق بقية الحقول آلياً ⇒ تعديل سريع ومتماسك بلا إرهاق.
+  void applyBaseColors({
+    required Color background,
+    required Color text,
+    required Color accent,
+    required bool isDark,
+  }) =>
+      _replace(
+        isDark: isDark,
+        palette: AppColorPalette.deriveFrom(
+          background: background,
+          text: text,
+          accent: accent,
+          isDark: isDark,
+        ),
+      );
+
   void updateTextPrimary(Color color, {required bool isDark}) =>
       updateText(paletteFor(isDark).text.copyWith(primary: color),
           isDark: isDark);

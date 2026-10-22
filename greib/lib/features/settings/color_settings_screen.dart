@@ -7,20 +7,24 @@ import '../../core/storage/app_prefs.dart';
 import '../../core/theme/app_color_palette.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/theme_controller.dart';
+import '../../core/theme/theme_presets.dart';
 import '../../core/widgets/super_header.dart';
+import '../../shared_widgets/app_button.dart';
+import 'widgets/color_field_meta.dart';
+import 'widgets/color_picker_sheet.dart';
+import 'widgets/color_role_row.dart';
 
 /// ============================================================================
-///  ColorSettingsScreen — صفحة «التحكم في الألوان»
+///  ColorSettingsScreen — صفحة «التحكم في الألوان» (النسخة المختصرة والمتماسكة)
 ///
-///  ★ تتيح للمستخدم تخصيص ثلاثة عناصر من اللوحة المركزية (Color Palette):
-///      • لون الخلفية (الشاشة + الأسطح)
-///      • لون النصوص (أساسي + ثانوي)
-///      • لون الأيقونات (أساسية + نشطة)
-///
-///  ◆ كل نقرة على لون تُطبّق **فوراً** عبر [ColorPaletteController] ⇒ يسري
-///    التغيير لحظياً على كل صفحات التطبيق (اللوحة ThemeExtension واحدة).
-///  ◆ «حفظ» يثبّت التخصيص في AppPrefs فيبقى بعد إعادة تشغيل التطبيق.
-///  ◆ «استعادة الافتراضي» يُرجع لوحة الوضع الحالي لقيمها الأصلية.
+///  ★ المشكلة القديمة: 22 لوناً × 6 صفوف = 132 دائرة في صفحة واحدة ⇒ إرهاق.
+///  ◆ الحل:
+///     1) **ثيمات جاهزة** بنقرة واحدة (تطبق مظهراً كاملاً مشتقاً).
+///     2) **3 تبويبات** (خلفيات / نصوص / أيقونات) ⇒ صف واحد لكل دور.
+///     3) **شيت اختيار** فيه 6 ألوان فقط لكل فئة + «لون مخصص».
+///     4) **تحكم متقدم** يُخفي الحقول الدقيقة (الطبقات/الحالات) افتراضياً.
+///     5) **حفظ** يثبّت التخصيص في AppPrefs، و**استعادة** تُرجع الافتراضي.
+///  ⇒ المستخدم يعدّل 3 قرارات، ويشتق [AppColorPalette.deriveFrom] البقية.
 /// ============================================================================
 class ColorSettingsScreen extends StatefulWidget {
   const ColorSettingsScreen({super.key});
@@ -29,132 +33,92 @@ class ColorSettingsScreen extends StatefulWidget {
   State<ColorSettingsScreen> createState() => _ColorSettingsScreenState();
 }
 
-/// وصف صف اختيار لون واحد داخل قسم.
-class _ColorRow {
-  final String field;
-  final String title;
-  final IconData icon;
-  const _ColorRow(this.field, this.title, this.icon);
-}
-
-/// لون متاح للاختيار + اسمه العربي (للإتاحة والتمييز).
-class _Swatch {
-  final Color color;
-  final String name;
-  const _Swatch(this.color, this.name);
-}
-
 class _ColorSettingsScreenState extends State<ColorSettingsScreen> {
+  /// الفئة المعروضة حالياً (تبويب).
+  ColorGroup _group = ColorGroup.backgrounds;
+
+  /// إظهار الحقول الدقيقة (الطبقات، الحالات الدلالية، فوق-اللون…).
+  bool _advanced = false;
+
   /// تغييرات مطبَّقة حالياً لكن غير محفوظة بعد (مفتاح الحقل ← اللون).
   final Map<String, Color> _pending = {};
 
   bool get _isDark => context.isDarkMode;
 
-  // --------------------------------------------------------------------------
-  //  الألوان المتاحة لكل عنصر
-  // --------------------------------------------------------------------------
-  static const List<_Swatch> _swatches = [
-    _Swatch(Color(0xFFFFFFFF), 'أبيض'),
-    _Swatch(Color(0xFFF1F5F9), 'رمادي فاتح'),
-    _Swatch(Color(0xFF94A3B8), 'رمادي'),
-    _Swatch(Color(0xFF475569), 'رمادي داكن'),
-    _Swatch(Color(0xFF1B2537), 'كحلي'),
-    _Swatch(Color(0xFF0F172A), 'كحلي غامق'),
-    _Swatch(Color(0xFF000000), 'أسود'),
-    _Swatch(Color(0xFF3B82F6), 'أزرق'),
-    _Swatch(Color(0xFF1D4ED8), 'أزرق داكن'),
-    _Swatch(Color(0xFF06B6D4), 'سماوي'),
-    _Swatch(Color(0xFF14B8A6), 'أخضر مائي'),
-    _Swatch(Color(0xFF10B981), 'أخضر'),
-    _Swatch(Color(0xFF84CC16), 'ليموني'),
-    _Swatch(Color(0xFFEAB308), 'أصفر'),
-    _Swatch(Color(0xFFF59E0B), 'عَنْبري'),
-    _Swatch(Color(0xFFF97316), 'برتقالي'),
-    _Swatch(Color(0xFFEF4444), 'أحمر'),
-    _Swatch(Color(0xFFEC4899), 'وردي'),
-    _Swatch(Color(0xFFA855F7), 'بنفسجي'),
-    _Swatch(Color(0xFF8B5CF6), 'بنفسجي فاتح'),
-    _Swatch(Color(0xFF6366F1), 'نيلي'),
-    _Swatch(Color(0xFF78716C), 'بُنّي'),
+  /// كل الحقول القابلة للتخصيص — تُستخدم لحفظ الثيم الجاهز كاملاً.
+  static final List<String> _allFields = [
+    PaletteFieldKeys.accent,
+    ...PaletteFieldKeys.backgroundFields,
+    ...PaletteFieldKeys.textFields,
+    ...PaletteFieldKeys.iconFields,
   ];
 
   // --------------------------------------------------------------------------
-  //  أقسام الصفحة الثلاثة (خلفية / نصوص / أيقونات)
+  //  التطبيق الفوري
   // --------------------------------------------------------------------------
-  static const List<_ColorRow> _backgroundRows = [
-    _ColorRow(PaletteFieldKeys.backgroundPrimary, 'خلفية الشاشة', LucideIcons.house),
-    _ColorRow(PaletteFieldKeys.backgroundSurface, 'الأسطح والبطاقات', LucideIcons.layoutGrid),
-  ];
-
-  static const List<_ColorRow> _textRows = [
-    _ColorRow(PaletteFieldKeys.textPrimary, 'النص الأساسي', LucideIcons.textQuote),
-    _ColorRow(PaletteFieldKeys.textSecondary, 'النص الثانوي', LucideIcons.pencil),
-  ];
-
-  static const List<_ColorRow> _iconRows = [
-    _ColorRow(PaletteFieldKeys.iconPrimary, 'أيقونة أساسية', LucideIcons.sparkles),
-    _ColorRow(PaletteFieldKeys.iconActive, 'أيقونة نشطة', LucideIcons.star),
-  ];
-
-  // --------------------------------------------------------------------------
-  //  القراءة والتطبيق الفوري
-  // --------------------------------------------------------------------------
-
-  /// لون الحقل الحالي من اللوحة المركزية (يتحدّث لحظياً مع كل تغيير).
-  Color _currentColor(String field) {
-    final p = context.palette;
-    switch (field) {
-      case PaletteFieldKeys.backgroundPrimary:
-        return p.background.primary;
-      case PaletteFieldKeys.backgroundSurface:
-        return p.background.surface;
-      case PaletteFieldKeys.textPrimary:
-        return p.text.primary;
-      case PaletteFieldKeys.textSecondary:
-        return p.text.secondary;
-      case PaletteFieldKeys.iconPrimary:
-        return p.icon.primary;
-      case PaletteFieldKeys.iconActive:
-        return p.icon.active;
-    }
-    return context.accentColor;
-  }
 
   /// يطبّق اللون فوراً على كل التطبيق عبر متحكم اللوحة المركزية.
   void _apply(String field, Color color) {
-    final controller = context.paletteController;
-    switch (field) {
-      case PaletteFieldKeys.backgroundPrimary:
-        controller.updateBackgroundPrimary(color, isDark: _isDark);
-      case PaletteFieldKeys.backgroundSurface:
-        controller.updateSurface(color, isDark: _isDark);
-      case PaletteFieldKeys.textPrimary:
-        controller.updateTextPrimary(color, isDark: _isDark);
-      case PaletteFieldKeys.textSecondary:
-        controller.updateTextSecondary(color, isDark: _isDark);
-      case PaletteFieldKeys.iconPrimary:
-        controller.updateIconPrimary(color, isDark: _isDark);
-      case PaletteFieldKeys.iconActive:
-        controller.updateIconActive(color, isDark: _isDark);
-    }
+    context.paletteController.updateField(field, color, isDark: _isDark);
     setState(() => _pending[field] = color);
   }
+
+  /// يفتح شيت اختيار اللون للدور المطلوب، ثم يطبّق المختار.
+  Future<void> _pickField(String field) async {
+    final meta = metaFor(field);
+    final picked = await showColorPickerSheet(
+      context,
+      title: meta.title,
+      icon: meta.icon,
+      current: context.palette.colorFor(field),
+      options: choicesForField(field, _group),
+    );
+    if (picked == null || !mounted) return;
+    _apply(field, picked);
+  }
+
+  /// شفاء التباين: يجعل النص الأساسي الأكثر قراءةً على الخلفية الحالية.
+  void _fixContrast() => _apply(
+        PaletteFieldKeys.textPrimary,
+        AppColorPalette.bestTextOn(context.palette.background.primary),
+      );
+
+  // --------------------------------------------------------------------------
+  //  الثيمات الجاهزة
+  // --------------------------------------------------------------------------
+
+  /// ★ نقرة واحدة = مظهر كامل: تُشتق كل الحقول من القرارات الثلاثة وتُحفظ.
+  Future<void> _applyPreset(ThemePreset preset) async {
+    final derived = preset.paletteFor(preset.prefersDark);
+    context.paletteController.applyPalette(derived, isDark: preset.prefersDark);
+    context.read<ThemeController>().setDarkMode(preset.prefersDark);
+    await AppPrefs.setPaletteOverrides(
+      _mapOf(derived),
+      isDark: preset.prefersDark,
+    );
+    if (!mounted) return;
+    setState(() => _pending.clear());
+    context.showSnackBar('تم تطبيق ثيم «${preset.name}»');
+  }
+
+  /// يحوّل اللوحة كاملة إلى خريطة (مفتاح الحقل ← ARGB) للحفظ.
+  static Map<String, int> _mapOf(AppColorPalette palette) => {
+        for (final field in _allFields) field: palette.colorFor(field).toARGB32(),
+      };
 
   // --------------------------------------------------------------------------
   //  الحفظ / الاستعادة
   // --------------------------------------------------------------------------
+
   Future<void> _save() async {
     if (_pending.isEmpty) return;
-    for (final entry in _pending.entries) {
-      await AppPrefs.setPaletteOverride(
-        entry.key,
-        entry.value.toARGB32(),
-        isDark: _isDark,
-      );
-    }
+    await AppPrefs.setPaletteOverrides(
+      {for (final e in _pending.entries) e.key: e.value.toARGB32()},
+      isDark: _isDark,
+    );
     if (!mounted) return;
     setState(() => _pending.clear());
-    context.showSnackBar('تم حفظ الألوان ✨ — ستظهر بنفس الشكل بعد إعادة التشغيل');
+    context.showSnackBar('تم حفظ الألوان — تبقى كما هي بعد إعادة التشغيل');
   }
 
   Future<void> _reset() async {
@@ -166,170 +130,400 @@ class _ColorSettingsScreenState extends State<ColorSettingsScreen> {
   }
 
   // --------------------------------------------------------------------------
-  //  أدوات مساعدة
+  //  البناء
   // --------------------------------------------------------------------------
-  static String _hex(Color c) => '#'
-      '${[
-        (c.r * 255).round(),
-        (c.g * 255).round(),
-        (c.b * 255).round(),
-      ].map((v) => v.toRadixString(16).padLeft(2, '0')).join().toUpperCase()}';
 
   @override
   Widget build(BuildContext context) {
     // ★ إعادة البناء عند تبديل الوضع الليلي/النهاري.
     context.watch<ThemeController>();
 
-    final topInset = MediaQuery.paddingOf(context).top + 16;
     final palette = context.palette;
+    final hasPending = _pending.isNotEmpty;
 
     return Scaffold(
       backgroundColor: context.backgroundColors.primary,
       appBar: const SuperHeader(showBackButton: true),
       body: ListView(
-        padding: EdgeInsets.fromLTRB(
+        padding: const EdgeInsets.fromLTRB(
           AppSpacing.lg,
-          topInset,
+          AppSpacing.md,
           AppSpacing.lg,
-          AppSpacing.xl,
+          AppSpacing.xxl,
         ),
         children: [
-          // ---- شريط معلومات: أي وضع يتم تعديله ----
+          // ---- أي وضع يتم تعديله + عدد التغييرات غير المحفوظة ----
           _ModeBanner(isDark: _isDark, pendingCount: _pending.length),
-          const SizedBox(height: AppSpacing.md),
-
-          // ---- معاينة حيّة ----
-          _LivePreview(palette: palette),
           const SizedBox(height: AppSpacing.lg),
 
-          // ---- القسم 1: لون الخلفية ----
-          _SectionCard(
-            icon: LucideIcons.layers,
-            title: 'لون الخلفية',
-            subtitle: 'خلفية الشاشة والبطاقات',
-            children: [
-              for (final row in _backgroundRows) ...[
-                _buildRow(row),
-                if (row != _backgroundRows.last)
-                  const SizedBox(height: AppSpacing.lg),
-              ],
-            ],
+          // ---- ① ثيمات جاهزة ----
+          const _SectionTitle(
+            icon: LucideIcons.swatchBook,
+            title: 'ثيمات جاهزة',
+            subtitle: 'مظهر كامل بنقرة واحدة',
           ),
-          const SizedBox(height: AppSpacing.md),
-
-          // ---- القسم 2: لون النصوص ----
-          _SectionCard(
-            icon: LucideIcons.textQuote,
-            title: 'لون النصوص',
-            subtitle: 'النصوص الأساسية والثانوية',
-            children: [
-              for (final row in _textRows) ...[
-                _buildRow(row),
-                if (row != _textRows.last) const SizedBox(height: AppSpacing.lg),
-              ],
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-
-          // ---- القسم 3: لون الأيقونات ----
-          _SectionCard(
-            icon: LucideIcons.sparkles,
-            title: 'لون الأيقونات',
-            subtitle: 'ألوان الأيقونات الرئيسية والنشطة',
-            children: [
-              for (final row in _iconRows) ...[
-                _buildRow(row),
-                if (row != _iconRows.last) const SizedBox(height: AppSpacing.lg),
-              ],
-            ],
-          ),
+          const SizedBox(height: AppSpacing.sm),
+          _PresetStrip(current: palette, onTap: _applyPreset),
           const SizedBox(height: AppSpacing.lg),
 
-          // ---- الأزرار ----
-          FilledButton.icon(
-            onPressed: _pending.isEmpty ? null : _save,
-            icon: const Icon(LucideIcons.save, size: 18),
-            label: Text(
-              _pending.isEmpty
-                  ? 'لا توجد تغييرات غير محفوظة'
-                  : 'حفظ التغييرات (${_pending.length})',
+          // ---- ② معاينة حيّة ----
+          _LivePreview(palette: palette, onFixContrast: _fixContrast),
+          const SizedBox(height: AppSpacing.lg),
+
+          // ---- ③ تبويبات الفئات ----
+          _GroupTabs(
+            value: _group,
+            onChanged: (g) => setState(() => _group = g),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+
+          // ---- ④ تحكم متقدم ----
+          _AdvancedRow(
+            value: _advanced,
+            onChanged: (v) => setState(() => _advanced = v),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+
+          // ---- ⑤ صفوف الأدوار ----
+          Container(
+            decoration: BoxDecoration(
+              color: context.backgroundColors.surface,
+              borderRadius: BorderRadius.circular(AppRadii.xl),
+              border: Border.all(color: context.backgroundColors.outline),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+            child: Column(
+              children: [
+                for (final field in _visibleFields())
+                  ColorRoleRow(
+                    title: metaFor(field).title,
+                    icon: metaFor(field).icon,
+                    color: palette.colorFor(field),
+                    hint: _pending.containsKey(field)
+                        ? '${AppColorPalette.hexOf(palette.colorFor(field))} • غير محفوظ'
+                        : AppColorPalette.hexOf(palette.colorFor(field)),
+                    onTap: () => _pickField(field),
+                  ),
+              ],
             ),
           ),
-          const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: AppSpacing.lg),
+
+          // ---- ⑥ الأزرار (Pill) ----
+          AppButton(
+            label: hasPending
+                ? 'حفظ التغييرات (${_pending.length})'
+                : 'لا توجد تغييرات غير محفوظة',
+            icon: LucideIcons.save,
+            onPressed: hasPending ? _save : null,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          AppButton(
+            label: 'استعادة الألوان الافتراضية',
+            icon: LucideIcons.refreshCw,
+            type: ButtonType.secondary,
+            onPressed: _reset,
+          ),
+          const SizedBox(height: AppSpacing.md),
           Text(
-            'التغييرات تظهر فوراً على كل الصفحات — «حفظ» يثبّتها بعد إعادة التشغيل.',
+            'التغييرات تظهر فوراً على كل الصفحات، و«حفظ» يثبّتها بعد إعادة التشغيل.',
             textAlign: TextAlign.center,
             style: AppTypography.bodySmall.copyWith(
               color: context.textColors.tertiary,
             ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          OutlinedButton.icon(
-            onPressed: _reset,
-            icon: const Icon(LucideIcons.refreshCw, size: 18),
-            label: const Text('استعادة الألوان الافتراضية'),
           ),
         ],
       ),
     );
   }
 
-  /// صف اختيار لون: العنوان + اللون الحالي + شبكة الألوان المتاحة.
-  Widget _buildRow(_ColorRow row) {
-    final current = _currentColor(row.field);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  /// حقول الفئة الحالية — تُخفي الحقول المتقدّمة إلا عند تفعيل المفتاح.
+  List<String> _visibleFields() => _group.fields
+      .where((field) => _advanced || !metaFor(field).advanced)
+      .toList();
+}
+
+// ============================================================================
+//  مكوّنات الواجهة
+// ============================================================================
+
+/// عنوان قسم صغير: أيقونة + عنوان + وصف.
+class _SectionTitle extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  const _SectionTitle({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
       children: [
-        Row(
-          children: [
-            Icon(row.icon, size: 16, color: context.iconColors.primary),
-            const SizedBox(width: AppSpacing.sm),
-            Text(
-              row.title,
-              style: AppTypography.titleMedium.copyWith(
-                color: context.textColors.primary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const Spacer(),
-            // شريحة اللون الحالي + قيمته السداسية.
-            Container(
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                color: current,
-                shape: BoxShape.circle,
-                border: Border.all(color: context.backgroundColors.outline),
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              _hex(current),
-              style: AppTypography.bodySmall.copyWith(
-                color: context.textColors.tertiary,
-              ),
-            ),
-          ],
+        Icon(icon, size: 17, color: context.accentColor),
+        const SizedBox(width: AppSpacing.sm),
+        Text(
+          title,
+          style: AppTypography.titleMedium.copyWith(
+            color: context.textColors.primary,
+            fontWeight: FontWeight.w800,
+          ),
         ),
-        const SizedBox(height: AppSpacing.sm),
-        Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
-          children: [
-            for (final swatch in _swatches)
-              _SwatchButton(
-                swatch: swatch,
-                selected: swatch.color.toARGB32() == current.toARGB32(),
-                onTap: () => _apply(row.field, swatch.color),
-              ),
-          ],
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(
+            subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.bodySmall.copyWith(
+              color: context.textColors.tertiary,
+            ),
+          ),
         ),
       ],
     );
   }
 }
 
-/// شريط أعلى الصفحة: الوضع الذي يتم تعديله + عدد التغييرات غير المحفوظة.
+/// شريط الثيمات الجاهزة (تمرير أفقي) — كل شريحة تعرض ألوانها الثلاثة.
+class _PresetStrip extends StatelessWidget {
+  final AppColorPalette current;
+  final Future<void> Function(ThemePreset preset) onTap;
+
+  const _PresetStrip({required this.current, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 88,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.zero,
+        itemCount: ThemePresets.all.length,
+        separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
+        itemBuilder: (context, index) {
+          final preset = ThemePresets.all[index];
+          return _PresetChip(
+            preset: preset,
+            selected: preset.matches(current),
+            onTap: () => onTap(preset),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// شريحة ثيم: ثلاث دوائر (خلفية/نص/لون رسمي) + الاسم + الأيقونة.
+class _PresetChip extends StatelessWidget {
+  final ThemePreset preset;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _PresetChip({
+    required this.preset,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: preset.name,
+      selected: selected,
+      button: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadii.lg),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          width: 108,
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          decoration: BoxDecoration(
+            color: context.backgroundColors.surface,
+            borderRadius: BorderRadius.circular(AppRadii.lg),
+            border: Border.all(
+              color: selected
+                  ? context.accentColor
+                  : context.backgroundColors.outline,
+              width: selected ? 1.6 : 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ---- معاينة الألوان الثلاثة ----
+              Row(
+                children: [
+                  _dot(preset.background),
+                  const SizedBox(width: 4),
+                  _dot(preset.text),
+                  const SizedBox(width: 4),
+                  _dot(preset.accent),
+                ],
+              ),
+              const Spacer(),
+              Row(
+                children: [
+                  Icon(
+                    preset.icon,
+                    size: 14,
+                    color: selected
+                        ? context.accentColor
+                        : context.iconColors.muted,
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      preset.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: selected
+                            ? context.accentColor
+                            : context.textColors.secondary,
+                        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _dot(Color color) => Container(
+        width: 18,
+        height: 18,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+        ),
+      );
+}
+
+/// تبويبات الفئات الثلاث — تتوسّع أفقياً بحدود خفيفة مثل شيبس الفلاتر.
+class _GroupTabs extends StatelessWidget {
+  final ColorGroup value;
+  final ValueChanged<ColorGroup> onChanged;
+
+  const _GroupTabs({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 38,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          for (final group in ColorGroup.values)
+            Flexible(child: _tab(context, group)),
+        ],
+      ),
+    );
+  }
+
+  Widget _tab(BuildContext context, ColorGroup group) {
+    final selected = group == value;
+    return ChoiceChip(
+      label: Text(
+        group.label,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.ellipsis,
+      ),
+      avatar: Icon(
+        group.icon,
+        size: 14,
+        color: selected ? context.accentColor : context.iconColors.muted,
+      ),
+      selected: selected,
+      onSelected: (_) => onChanged(group),
+      showCheckmark: false,
+      labelStyle: AppTypography.bodySmall.copyWith(
+        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+        color: selected ? context.accentColor : context.textColors.secondary,
+      ),
+      selectedColor: context.accentColor.withValues(alpha: 0.14),
+      backgroundColor: Colors.transparent,
+      // ★ حدّ خفيف (30%) لغير المختار، ولون التمييز للمختار.
+      side: BorderSide(
+        color: selected
+            ? context.accentColor
+            : context.backgroundColors.outline.withValues(alpha: 0.3),
+        width: 1,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadii.full),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+      labelPadding: const EdgeInsets.symmetric(horizontal: 2),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+  }
+}
+
+/// صف «تحكم متقدم» — يُظهر/يُخفي الحقول الدقيقة.
+class _AdvancedRow extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _AdvancedRow({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => onChanged(!value),
+      borderRadius: BorderRadius.circular(AppRadii.lg),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              LucideIcons.slidersHorizontal,
+              size: 17,
+              color: context.iconColors.secondary,
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'تحكم متقدم',
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: context.textColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    'إظهار الطبقات والحالات وألوان فوق-الوسائط',
+                    style: AppTypography.bodySmall.copyWith(
+                      color: context.textColors.tertiary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Switch(value: value, onChanged: onChanged),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// شريط معلومات: أي وضع يتم تعديله + عدد التغييرات غير المحفوظة.
 class _ModeBanner extends StatelessWidget {
   final bool isDark;
   final int pendingCount;
@@ -387,14 +581,21 @@ class _ModeBanner extends StatelessWidget {
   }
 }
 
-/// معاينة حيّة تُظهر شكل الألوان المختارة على بطاقة نموذجية.
+/// معاينة حيّة + تحذير التباين (WCAG) مع «تصحيح تلقائي».
 class _LivePreview extends StatelessWidget {
   final AppColorPalette palette;
+  final VoidCallback onFixContrast;
 
-  const _LivePreview({required this.palette});
+  const _LivePreview({required this.palette, required this.onFixContrast});
 
   @override
   Widget build(BuildContext context) {
+    final ratio = AppColorPalette.contrastRatio(
+      palette.text.primary,
+      palette.background.primary,
+    );
+    final lowContrast = ratio < 4.5;
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
@@ -405,11 +606,25 @@ class _LivePreview extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'معاينة مباشرة',
-            style: AppTypography.labelMedium.copyWith(
-              color: palette.text.tertiary,
-            ),
+          Row(
+            children: [
+              Text(
+                'معاينة مباشرة',
+                style: AppTypography.labelMedium.copyWith(
+                  color: palette.text.tertiary,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                'التباين ${ratio.toStringAsFixed(1)}:1',
+                style: AppTypography.bodySmall.copyWith(
+                  color: lowContrast
+                      ? palette.icon.warning
+                      : palette.text.tertiary,
+                  fontWeight: lowContrast ? FontWeight.w700 : FontWeight.w400,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
@@ -440,127 +655,58 @@ class _LivePreview extends StatelessWidget {
               Icon(LucideIcons.star, size: 20, color: palette.icon.active),
             ],
           ),
-        ],
-      ),
-    );
-  }
-}
-
-/// بطاقة قسم (خلفية/نصوص/أيقونات) تحتوي صفوف اختيار الألوان.
-class _SectionCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final List<Widget> children;
-
-  const _SectionCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.children,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: context.backgroundColors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.xl),
-        border: Border.all(color: context.backgroundColors.outline),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: context.accentColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppRadii.sm),
-                ),
-                child: Icon(icon, size: 18, color: context.accentColor),
+          if (lowContrast) ...[
+            const SizedBox(height: AppSpacing.md),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
               ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: AppTypography.titleMedium.copyWith(
-                        color: context.textColors.primary,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    Text(
-                      subtitle,
+              decoration: BoxDecoration(
+                color: palette.icon.warning.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppRadii.md),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    LucideIcons.contrast,
+                    size: 16,
+                    color: palette.icon.warning,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      'تباين النص مع الخلفية ضعيف — قد يصعب القراءة.',
                       style: AppTypography.bodySmall.copyWith(
-                        color: context.textColors.tertiary,
+                        color: palette.text.primary,
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          ...children,
-        ],
-      ),
-    );
-  }
-}
-
-/// زر لون واحد من الألوان المتاحة (دائرة قابلة للنقر).
-class _SwatchButton extends StatelessWidget {
-  final _Swatch swatch;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _SwatchButton({
-    required this.swatch,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // علامة الصح داكنة أو فاتحة حسب سطوع اللون (لقراءة مريحة).
-    final checkColor =
-        ThemeData.estimateBrightnessForColor(swatch.color) == Brightness.light
-            ? Colors.black
-            : Colors.white;
-    return Tooltip(
-      message: swatch.name,
-      child: Semantics(
-        label: swatch.name,
-        selected: selected,
-        button: true,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(AppRadii.full),
-          onTap: onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: swatch.color,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: selected
-                    ? context.textColors.primary
-                    : context.backgroundColors.outline,
-                width: selected ? 2.5 : 1,
+                  ),
+                  TextButton(
+                    onPressed: onFixContrast,
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                      ),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppRadii.full),
+                      ),
+                    ),
+                    child: Text(
+                      'تصحيح تلقائي',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: palette.icon.warning,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: selected
-                ? Icon(LucideIcons.check, size: 18, color: checkColor)
-                : null,
-          ),
-        ),
+          ],
+        ],
       ),
     );
   }

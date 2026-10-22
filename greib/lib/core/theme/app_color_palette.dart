@@ -241,6 +241,40 @@ class AppColorPalette extends ThemeExtension<AppColorPalette> {
     return hsl.withLightness(lightness).toColor();
   }
 
+  /// نفس اللون بشفافية محدّدة — لبناء النصوص الثانوية والحدود من لون واحد.
+  static Color _fade(Color color, double alpha) =>
+      color.withValues(alpha: alpha);
+
+  /// لون مقروء فوق [color] (أبيض أو أسود) حسب سطوعه — لضمان قراءة النص.
+  static Color _readableOn(Color color) =>
+      ThemeData.estimateBrightnessForColor(color) == Brightness.dark
+          ? Colors.white
+          : const Color(0xFF0B0D0B);
+
+  /// ★ نسبة التباين (WCAG) بين لونين — تُستخدم للتحذير إذا صار النص غير مقروء
+  ///   على الخلفية المختارة (الحدّ الموصى به للنص العادي: 4.5).
+  static double contrastRatio(Color a, Color b) {
+    final la = a.computeLuminance();
+    final lb = b.computeLuminance();
+    final lighter = la > lb ? la : lb;
+    final darker = la > lb ? lb : la;
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  /// التمثيل السداسي للون (بلا شفافية) — لعرضه في واجهة التخصيص.
+  static String hexOf(Color color) => '#${[
+        (color.r * 255).round(),
+        (color.g * 255).round(),
+        (color.b * 255).round(),
+      ].map((v) => v.toRadixString(16).padLeft(2, '0')).join().toUpperCase()}';
+
+  /// اللون الأكثر تبايناً مع [background] (أبيض أو أسود ناعم) — للتصحيح التلقائي.
+  static Color bestTextOn(Color background) =>
+      contrastRatio(Colors.white, background) >=
+              contrastRatio(const Color(0xFF0B0D0B), background)
+          ? Colors.white
+          : const Color(0xFF0B0D0B);
+
   // --------------------------------------------------------------------------
   //  اللوحات الافتراضية (مشتقة من AppColors — توافق هوية بصري كامل)
   // --------------------------------------------------------------------------
@@ -336,6 +370,69 @@ class AppColorPalette extends ThemeExtension<AppColorPalette> {
     );
   }
 
+  // --------------------------------------------------------------------------
+  //  ★ الاشتقاق التلقائي — لوحة كاملة متماسكة من ثلاثة قرارات فقط
+  // --------------------------------------------------------------------------
+
+  /// يبني لوحة كاملة من: [background] (الخلفية الأساسية) + [text] (النص
+  /// الأساسي) + [accent] (اللون الرسمي)، ويشتق آلياً بقية الحقول:
+  ///   • الطبقات (secondary/surface/surfaceElevated/overlay) ← إزاحة إضاءة الخلفية
+  ///   • الحدود ← النص الأساسي بشفافية خفيفة (تعمل في الوضعين)
+  ///   • النصوص الثانوية/الباهتة/المعطّلة ← النص الأساسي بشفافيات متدرّجة
+  ///   • الأيقونات ← اللون الرسمي + النص الأساسي
+  ///   ⇒ المستخدم يعدّل 3 قرارات بدل 30+ حقلاً، والنتيجة متماسكة دائماً.
+  factory AppColorPalette.deriveFrom({
+    required Color background,
+    required Color text,
+    required Color accent,
+    required bool isDark,
+  }) {
+    // اللون الرسمي المقروء على الخلفية الفاتحة يُغمَّق قليلاً.
+    final accentForIcons = isDark ? accent : _shiftLightness(accent, -0.12);
+    final onAccent = _readableOn(accent);
+
+    return AppColorPalette(
+      accent: accent,
+      isDark: isDark,
+      text: AppTextColors(
+        primary: text,
+        secondary: _fade(text, 0.72),
+        tertiary: _fade(text, 0.50),
+        inverse: background,
+        onAccent: onAccent,
+        disabled: _fade(text, 0.35),
+        link: _shiftLightness(accent, isDark ? 0.18 : -0.12),
+        onMedia: Colors.white,
+      ),
+      background: AppBackgroundColors(
+        primary: background,
+        secondary: _shiftLightness(background, 0.03),
+        surface: _shiftLightness(background, 0.06),
+        surfaceElevated: _shiftLightness(background, 0.11),
+        overlay: _shiftLightness(background, 0.11),
+        scrim: _shiftLightness(background, -0.05),
+        accent: accent,
+        outline: _fade(text, 0.12),
+        mediaScrim: _fade(Colors.black, 0.55),
+      ),
+      icon: AppIconColors(
+        primary: accentForIcons,
+        active: accentForIcons,
+        secondary: _fade(text, 0.72),
+        muted: _fade(text, 0.45),
+        inactive: _fade(text, 0.50),
+        onBackground: text,
+        onAccent: onAccent,
+        disabled: _fade(text, 0.30),
+        onMedia: Colors.white,
+        success: AppColors.success,
+        warning: AppColors.warning,
+        error: AppColors.error,
+        info: AppColors.info,
+      ),
+    );
+  }
+
 
   // --------------------------------------------------------------------------
   //  أدوات التعديل الديناميكي
@@ -361,18 +458,171 @@ class AppColorPalette extends ThemeExtension<AppColorPalette> {
 
   /// يطبّق لوناً رسمياً (Brand) جديداً على كامل اللوحة بشكل متّسق.
   AppColorPalette withAccent(Color accent) {
+    final accentForIcons = isDark ? accent : _shiftLightness(accent, -0.12);
+    final onAccent = _readableOn(accent);
     return copyWith(
       accent: accent,
       background: background.copyWith(accent: accent),
       icon: icon.copyWith(
-        primary: isDark ? accent : _shiftLightness(accent, -0.12),
-        active: isDark ? accent : _shiftLightness(accent, -0.12),
+        primary: accentForIcons,
+        active: accentForIcons,
+        onAccent: onAccent,
       ),
       text: text.copyWith(
-        onAccent: AppColors.onAccentPrimary,
-        link: isDark ? _shiftLightness(accent, 0.18) : _shiftLightness(accent, -0.12),
+        onAccent: onAccent,
+        link: _shiftLightness(accent, isDark ? 0.18 : -0.12),
       ),
     );
+  }
+
+  // --------------------------------------------------------------------------
+  //  الوصول الموحّد بالمفتاح — عقد واحد بين الواجهة والمتحكم والتخزين
+  // --------------------------------------------------------------------------
+
+  /// يقرأ لون أي حقل عبر مفتاحه من [PaletteFieldKeys].
+  /// ★ واجهة التخصيص لا تحتاج `switch` خاصاً بها ⇒ مصدر واحد للحقيقة.
+  Color colorFor(String field) {
+    switch (field) {
+      case PaletteFieldKeys.accent:
+        return accent;
+
+      case PaletteFieldKeys.backgroundPrimary:
+        return background.primary;
+      case PaletteFieldKeys.backgroundSecondary:
+        return background.secondary;
+      case PaletteFieldKeys.backgroundSurface:
+        return background.surface;
+      case PaletteFieldKeys.backgroundSurfaceElevated:
+        return background.surfaceElevated;
+      case PaletteFieldKeys.backgroundOverlay:
+        return background.overlay;
+      case PaletteFieldKeys.backgroundOutline:
+        return background.outline;
+      case PaletteFieldKeys.backgroundScrim:
+        return background.scrim;
+      case PaletteFieldKeys.backgroundMediaScrim:
+        return background.mediaScrim;
+
+      case PaletteFieldKeys.textPrimary:
+        return text.primary;
+      case PaletteFieldKeys.textSecondary:
+        return text.secondary;
+      case PaletteFieldKeys.textTertiary:
+        return text.tertiary;
+      case PaletteFieldKeys.textInverse:
+        return text.inverse;
+      case PaletteFieldKeys.textOnAccent:
+        return text.onAccent;
+      case PaletteFieldKeys.textLink:
+        return text.link;
+      case PaletteFieldKeys.textDisabled:
+        return text.disabled;
+      case PaletteFieldKeys.textOnMedia:
+        return text.onMedia;
+
+      case PaletteFieldKeys.iconPrimary:
+        return icon.primary;
+      case PaletteFieldKeys.iconActive:
+        return icon.active;
+      case PaletteFieldKeys.iconSecondary:
+        return icon.secondary;
+      case PaletteFieldKeys.iconMuted:
+        return icon.muted;
+      case PaletteFieldKeys.iconInactive:
+        return icon.inactive;
+      case PaletteFieldKeys.iconOnBackground:
+        return icon.onBackground;
+      case PaletteFieldKeys.iconOnAccent:
+        return icon.onAccent;
+      case PaletteFieldKeys.iconDisabled:
+        return icon.disabled;
+      case PaletteFieldKeys.iconOnMedia:
+        return icon.onMedia;
+      case PaletteFieldKeys.iconSuccess:
+        return icon.success;
+      case PaletteFieldKeys.iconWarning:
+        return icon.warning;
+      case PaletteFieldKeys.iconError:
+        return icon.error;
+      case PaletteFieldKeys.iconInfo:
+        return icon.info;
+
+      default:
+        return accent;
+    }
+  }
+
+  /// نسخة جديدة مع تعديل حقل واحد عبر مفتاحه.
+  /// ★ تعديل [PaletteFieldKeys.accent] يمرّ عبر [withAccent] فيبقى المشتق
+  ///   (الأيقونات/الرابط/الخلفية الملوّنة/نص فوق اللون الرسمي) متماسكاً.
+  AppColorPalette withField(String field, Color color) {
+    if (field == PaletteFieldKeys.accent) return withAccent(color);
+
+    switch (field) {
+      case PaletteFieldKeys.backgroundPrimary:
+        return copyWith(background: background.copyWith(primary: color));
+      case PaletteFieldKeys.backgroundSecondary:
+        return copyWith(background: background.copyWith(secondary: color));
+      case PaletteFieldKeys.backgroundSurface:
+        return copyWith(background: background.copyWith(surface: color));
+      case PaletteFieldKeys.backgroundSurfaceElevated:
+        return copyWith(background: background.copyWith(surfaceElevated: color));
+      case PaletteFieldKeys.backgroundOverlay:
+        return copyWith(background: background.copyWith(overlay: color));
+      case PaletteFieldKeys.backgroundOutline:
+        return copyWith(background: background.copyWith(outline: color));
+      case PaletteFieldKeys.backgroundScrim:
+        return copyWith(background: background.copyWith(scrim: color));
+      case PaletteFieldKeys.backgroundMediaScrim:
+        return copyWith(background: background.copyWith(mediaScrim: color));
+
+      case PaletteFieldKeys.textPrimary:
+        return copyWith(text: text.copyWith(primary: color));
+      case PaletteFieldKeys.textSecondary:
+        return copyWith(text: text.copyWith(secondary: color));
+      case PaletteFieldKeys.textTertiary:
+        return copyWith(text: text.copyWith(tertiary: color));
+      case PaletteFieldKeys.textInverse:
+        return copyWith(text: text.copyWith(inverse: color));
+      case PaletteFieldKeys.textOnAccent:
+        return copyWith(text: text.copyWith(onAccent: color));
+      case PaletteFieldKeys.textLink:
+        return copyWith(text: text.copyWith(link: color));
+      case PaletteFieldKeys.textDisabled:
+        return copyWith(text: text.copyWith(disabled: color));
+      case PaletteFieldKeys.textOnMedia:
+        return copyWith(text: text.copyWith(onMedia: color));
+
+      case PaletteFieldKeys.iconPrimary:
+        return copyWith(icon: icon.copyWith(primary: color));
+      case PaletteFieldKeys.iconActive:
+        return copyWith(icon: icon.copyWith(active: color));
+      case PaletteFieldKeys.iconSecondary:
+        return copyWith(icon: icon.copyWith(secondary: color));
+      case PaletteFieldKeys.iconMuted:
+        return copyWith(icon: icon.copyWith(muted: color));
+      case PaletteFieldKeys.iconInactive:
+        return copyWith(icon: icon.copyWith(inactive: color));
+      case PaletteFieldKeys.iconOnBackground:
+        return copyWith(icon: icon.copyWith(onBackground: color));
+      case PaletteFieldKeys.iconOnAccent:
+        return copyWith(icon: icon.copyWith(onAccent: color));
+      case PaletteFieldKeys.iconDisabled:
+        return copyWith(icon: icon.copyWith(disabled: color));
+      case PaletteFieldKeys.iconOnMedia:
+        return copyWith(icon: icon.copyWith(onMedia: color));
+      case PaletteFieldKeys.iconSuccess:
+        return copyWith(icon: icon.copyWith(success: color));
+      case PaletteFieldKeys.iconWarning:
+        return copyWith(icon: icon.copyWith(warning: color));
+      case PaletteFieldKeys.iconError:
+        return copyWith(icon: icon.copyWith(error: color));
+      case PaletteFieldKeys.iconInfo:
+        return copyWith(icon: icon.copyWith(info: color));
+
+      default:
+        return this;
+    }
   }
 
   /// مزج سلس بين لوحتين — يُستخدم في انتقالات/أنيميشن الثيم.
@@ -441,19 +691,109 @@ class AppColorPalette extends ThemeExtension<AppColorPalette> {
 /// ---------------------------------------------------------------------------
 ///  ★ عقد مشترك بين: شاشة التخصيص (كتابة/حفظ) و[ColorPaletteController.withStored]
 ///    (استعادة عند الإقلاع) ⇒ أي تغيير في المفاتيح يظهر في المكانين معاً.
+///  ★ الترتيب هنا هو ترتيب العرض في واجهة التخصيص (أساس ⇒ طبقات ⇒ حالات)،
+///    والقوائم في نهاية الفئة تُغذّي الواجهة مباشرةً بلا تكرار.
 class PaletteFieldKeys {
   PaletteFieldKeys._();
 
-  // الخلفيات
-  static const String backgroundPrimary = 'background.primary';
-  static const String backgroundSurface = 'background.surface';
+  // ------------------------------- اللون الرسمي -------------------------------
+  static const String accent = 'accent';
 
-  // النصوص
+  // --------------------------- الخلفيات والطبقات ---------------------------
+  static const String backgroundPrimary = 'background.primary';
+  static const String backgroundSecondary = 'background.secondary';
+  static const String backgroundSurface = 'background.surface';
+  static const String backgroundSurfaceElevated = 'background.surfaceElevated';
+  static const String backgroundOverlay = 'background.overlay';
+  static const String backgroundOutline = 'background.outline';
+  static const String backgroundScrim = 'background.scrim';
+  static const String backgroundMediaScrim = 'background.mediaScrim';
+
+  // --------------------------------- النصوص ---------------------------------
   static const String textPrimary = 'text.primary';
   static const String textSecondary = 'text.secondary';
+  static const String textTertiary = 'text.tertiary';
+  static const String textInverse = 'text.inverse';
+  static const String textOnAccent = 'text.onAccent';
+  static const String textLink = 'text.link';
+  static const String textDisabled = 'text.disabled';
+  static const String textOnMedia = 'text.onMedia';
 
-  // الأيقونات
+  // -------------------------------- الأيقونات --------------------------------
   static const String iconPrimary = 'icon.primary';
   static const String iconActive = 'icon.active';
+  static const String iconSecondary = 'icon.secondary';
+  static const String iconMuted = 'icon.muted';
+  static const String iconInactive = 'icon.inactive';
+  static const String iconOnBackground = 'icon.onBackground';
+  static const String iconOnAccent = 'icon.onAccent';
+  static const String iconDisabled = 'icon.disabled';
+  static const String iconOnMedia = 'icon.onMedia';
+
+  // ---------------------------- ألوان الحالات (متقدّم) ----------------------------
+  static const String iconSuccess = 'icon.success';
+  static const String iconWarning = 'icon.warning';
+  static const String iconError = 'icon.error';
+  static const String iconInfo = 'icon.info';
+
+  // ==========================================================================
+  //  قوائم مجمّعة — تُستخدم في واجهة التخصيص والاشتقاق
+  // ==========================================================================
+
+  /// ★ القرارات الثلاثة الأساسية — بقية الحقول تُشتق منها تلقائياً.
+  static const List<String> baseFields = [
+    backgroundPrimary,
+    textPrimary,
+    accent,
+  ];
+
+  /// كل حقول الخلفيات والطبقات (بالترتيب المعروض).
+  static const List<String> backgroundFields = [
+    backgroundPrimary,
+    backgroundSecondary,
+    backgroundSurface,
+    backgroundSurfaceElevated,
+    backgroundOverlay,
+    backgroundOutline,
+    backgroundScrim,
+    backgroundMediaScrim,
+  ];
+
+  /// كل حقول النصوص (بالترتيب المعروض).
+  static const List<String> textFields = [
+    textPrimary,
+    textSecondary,
+    textTertiary,
+    textInverse,
+    textOnAccent,
+    textLink,
+    textDisabled,
+    textOnMedia,
+  ];
+
+  /// كل حقول الأيقونات: الأساسية أولاً ثم الحالات.
+  static const List<String> iconFields = [
+    iconPrimary,
+    iconActive,
+    iconSecondary,
+    iconMuted,
+    iconInactive,
+    iconOnBackground,
+    iconOnAccent,
+    iconDisabled,
+    iconOnMedia,
+    iconSuccess,
+    iconWarning,
+    iconError,
+    iconInfo,
+  ];
+
+  /// حقول الحالات الدلالية وحدها (تُعرض تحت «تحكم متقدم»).
+  static const List<String> stateFields = [
+    iconSuccess,
+    iconWarning,
+    iconError,
+    iconInfo,
+  ];
 }
 
