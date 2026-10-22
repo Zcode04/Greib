@@ -2,10 +2,12 @@
 //
 // صفحة «عرض منتجات التاجر» (المسار /live-products).
 // ★ تُفتح من صفحة اختيار الوضع (LiveModeScreen).
-// ★ صورة خلفية ممتدة تملأ كامل الشاشة خلف كل المكونات، وفوقها طبقة كاروسيل
-//   عائمة قابلة للتمرير أفقياً (الضغط يفتح صفحة معاينة مستقلة) + زر «اطلب الآن»
-//   + أيقونة تفاعل تفتح شيت بسيط (تفاعل + متابعة + مشاركة).
-// ★ هذه محاكاة واجهة (UI Mock) بصور وهمية من الإنترنت — ستُطوَّر لاحقاً.
+// ★ تحاكي بثاً مباشراً يقوم به **متجر حقيقي من متاجر التطبيق** (AccountRepository):
+//   غلاف المتجر يملأ الشاشة، وشريطه العلوي يعرض صورة المتجر واسمه وشارة التوثيق.
+// ★ فوق البث: عنوان «المنتجات المتوفرة الآن» + طبقة كاروسيل عائمة قابلة للتمرير
+//   أفقياً (زر «معاينة» يفتح صفحة معاينة مستقلة) + زر «اطلب الآن» + أيقونة تفاعل.
+// ★ «اطلب الآن» يفتح محادثة الطلب بنفس آلية ميزة المنشورات (ChatPostPreview).
+// ★ هذه محاكاة واجهة (UI Mock) — ستُطوَّر لاحقاً بربط بث/طلبات حقيقية.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,8 +16,15 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../core/extensions/context_extensions.dart';
+import '../../core/models/account_model.dart';
+import '../../core/models/service_model.dart';
 import '../../core/widgets/app_sheet.dart';
 import '../../shared_widgets/app_button.dart';
+import '../../shared_widgets/post_sheets.dart';
+import '../communication_and_support/chat_screen.dart';
+import '../services/data/account_repository.dart';
+import '../services/data/commerce_aggregator_service.dart';
+import '../services/data/services_repository.dart';
 
 /// LiveProductsScreen — عرض منتجات التاجر أثناء البث (المسار /live-products).
 class LiveProductsScreen extends StatefulWidget {
@@ -26,48 +35,100 @@ class LiveProductsScreen extends StatefulWidget {
 }
 
 class _LiveProductsScreenState extends State<LiveProductsScreen> {
-  /// ★ صور وهمية من الإنترنت (نفس أسلوب باقي التطبيق) — منتجات الكاروسيل.
-  static const List<String> _images = [
-    'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1000&q=80',
-    'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1000&q=80',
-    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1000&q=80',
-    'https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=1000&q=80',
-    'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1000&q=80',
-    'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=1000&q=80',
-  ];
-
-  /// ★ صورة الخلفية الثابتة — تملأ كامل الشاشة ولا تتغيّر مع الكاروسيل.
-  static const String _backgroundImage =
+  /// ★ صورة احتياطية للخلفية — تُستخدم فقط إن لم يتوفر غلاف المتجر.
+  static const String _fallbackCover =
       'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600&q=80';
+
+  /// ★ المتجر الباثّ — من متاجر التطبيق الحقيقية (AccountRepository).
+  late final AccountProfile? _store;
+
+  /// خدمة المتجر (اللون + المعرّف + الأيقونة) — تُستخدم في محادثة الطلب.
+  late final ServiceCategory _service;
+
+  /// ★ المنتجات المتوفرة الآن من كتالوج التطبيق (CommerceAggregatorService).
+  late final List<AggregatedProduct> _products;
+
+  /// ★ نواة الأوراق المشتركة ⇒ نفس سلوك «طلب الآن» المستخدم في المنشورات.
+  PostSheetsController? _sheets;
 
   final PageController _carousel = PageController(viewportFraction: 0.34);
 
-  /// فهرس الصورة النشطة في الكاروسيل.
+  /// فهرس المنتج النشط في الكاروسيل.
   int _index = 0;
 
   /// حالة التفاعل: 0 = بلا، 1 = إعجاب، -1 = عدم إعجاب.
   int _reaction = 0;
   bool _following = false;
 
+  String get _storeName => _store?.name ?? 'متجر گريب';
+
+  @override
+  void initState() {
+    super.initState();
+    // ★ المتجر الباثّ: أول متجر من متاجرنا (اختيار ثابت في كل مرة).
+    final stores = AccountRepository.instance.all;
+    _store = stores.isEmpty ? null : stores.first;
+    _service =
+        ServicesRepository.instance.byId(_store?.serviceId ?? '') ??
+        ServicesRepository.instance.all.first;
+    // ★ المنتجات المتوفرة الآن (المتاح فقط من الكتالوج).
+    _products = CommerceAggregatorService.instance
+        .getProductsForCategorySync('all')
+        .where((p) => p.inStock)
+        .take(8)
+        .toList(growable: false);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (_sheets == null || _sheets!.isDark != isDark) {
+      _sheets?.dispose();
+      _sheets = PostSheetsController(isDark: isDark);
+    }
+  }
+
   @override
   void dispose() {
     _carousel.dispose();
+    _sheets?.dispose();
     super.dispose();
   }
+
+  /// صور المنتجات — تُستخدم في صفحة المعاينة المستقلة.
+  List<String> get _productImages =>
+      _products.map((p) => p.imageUrl).toList(growable: false);
 
   /// ★ فتح صفحة معاينة مستقلة تعرض الصورة بشكل أكبر (تمرير بين الصور + تكبير).
   void _openPreview(int index) {
     HapticFeedback.selectionClick();
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => _ImagePreview(images: _images, initialIndex: index),
+        builder: (_) =>
+            _ImagePreview(images: _productImages, initialIndex: index),
       ),
     );
   }
 
+  /// ★ «اطلب الآن»: نفس آلية المنشورات — فتح محادثة الطلب مع التاجر ومعاينة
+  ///   المنتج المحدد كـمرفق جاهز للإرسال.
   void _orderNow() {
+    if (_products.isEmpty) return;
     HapticFeedback.mediumImpact();
-    context.showSnackBar('تم إرسال طلبك إلى التاجر، سيتم التواصل معك.');
+    final product = _products[_index.clamp(0, _products.length - 1)];
+    _sheets!.openServiceChat(
+      context,
+      service: _service,
+      conversationTitle: _storeName,
+      preview: ChatPostPreview(
+        title: product.name,
+        subtitle:
+            '${product.customPrice.toStringAsFixed(0)} ${product.currency} • متوفر الآن',
+        imageUrl: product.imageUrl,
+        color: _service.color,
+      ),
+    );
   }
 
   /// ★ فتح شيت التفاعل البسيط (تفاعل + متابعة/إلغاء + مشاركة).
@@ -76,6 +137,7 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
     showAppSheet(
       context,
       builder: (_) => _LiveInteractionSheet(
+        storeName: _storeName,
         reaction: _reaction,
         following: _following,
         onReaction: (value) {
@@ -95,11 +157,10 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // ★ الخلفية الثابتة: صورة ممتدة تملأ كامل الشاشة خلف جميع المكونات
-          //   ولا تتغيّر عند تمرير الكاروسيل.
+          // ★ خلفية البث: غلاف المتجر يملأ كامل الشاشة ولا يتغيّر مع الكاروسيل.
           Positioned.fill(
             child: Image.network(
-              _backgroundImage,
+              _store?.coverUrl ?? _fallbackCover,
               fit: BoxFit.cover,
               width: double.infinity,
               height: double.infinity,
@@ -146,8 +207,9 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
     );
   }
 
-  // ─── الشريط العلوي: رجوع + اسم التاجر + شارة «مباشر» ───
+  // ─── الشريط العلوي: رجوع + المتجر الباثّ + شارة «مباشر» ───
   Widget _buildTopBar(BuildContext context) {
+    final avatarUrl = _store?.avatarUrl;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 14, 0),
       child: Row(
@@ -165,27 +227,40 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
               borderRadius: BorderRadius.circular(999),
               border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 CircleAvatar(
                   radius: 12,
                   backgroundColor: Colors.white24,
-                  child: Icon(
-                    LucideIcons.store,
-                    size: 13,
-                    color: Colors.white,
-                  ),
+                  backgroundImage: avatarUrl == null
+                      ? null
+                      : NetworkImage(avatarUrl),
+                  child: avatarUrl == null
+                      ? const Icon(
+                          LucideIcons.store,
+                          size: 13,
+                          color: Colors.white,
+                        )
+                      : null,
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(
-                  'متجر الأناقة',
-                  style: TextStyle(
+                  _storeName,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+                if (_store?.isVerified ?? false) ...[
+                  const SizedBox(width: 4),
+                  Icon(
+                    LucideIcons.badgeCheck,
+                    size: 14,
+                    color: context.iconColors.info,
+                  ),
+                ],
               ],
             ),
           ),
@@ -196,7 +271,7 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
     );
   }
 
-  // ─── اللوحة السفلية: طبقة الكاروسيل العائمة + (اطلب الآن + أيقونة التفاعل) ───
+  // ─── اللوحة السفلية: عنوان المنتجات + الكاروسيل + (اطلب الآن + التفاعل) ───
   Widget _buildBottomPanel(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
@@ -204,7 +279,25 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ★ طبقة الكاروسيل العائمة فوق البث (صور يمكن تمريرها أفقياً).
+          // ★ عنوان القسم: منتجات المتجر المتوفرة الآن.
+          const Text(
+            'المنتجات المتوفرة الآن',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'يمكنكم الطلب الآن مباشرة من البث',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.75),
+              fontSize: 12.5,
+            ),
+          ),
+          const SizedBox(height: 12),
+          // ★ طبقة الكاروسيل العائمة فوق البث (منتجات يمكن تمريرها أفقياً).
           _buildFloatingCarouselLayer(),
           const SizedBox(height: 16),
           Row(
@@ -231,15 +324,16 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
     );
   }
 
-  /// ★ طبقة الكاروسيل العائمة فوق البث: صور عائمة كبيرة يمكن تمريرها أفقياً
-  ///   من اليمين لليسار، والضغط على أي صورة يفتح صفحة المعاينة المستقلة.
+  /// ★ طبقة الكاروسيل العائمة فوق البث: صور المنتجات المتوفرة الآن يمكن
+  ///   تمريرها أفقياً من اليمين لليسار، وزر «معاينة» يفتح صفحة المعاينة.
   Widget _buildFloatingCarouselLayer() {
+    if (_products.isEmpty) return const SizedBox.shrink();
     return SizedBox(
       height: 156,
       child: PageView.builder(
         controller: _carousel,
         padEnds: false,
-        itemCount: _images.length,
+        itemCount: _products.length,
         onPageChanged: (i) => setState(() => _index = i),
         itemBuilder: (context, i) {
           final active = i == _index;
@@ -278,7 +372,7 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
                       fit: StackFit.expand,
                       children: [
                         Image.network(
-                          _images[i],
+                          _products[i].imageUrl,
                           fit: BoxFit.cover,
                           errorBuilder: (_, _, _) => Container(
                             color: Colors.white.withValues(alpha: 0.08),
@@ -308,7 +402,7 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
                             ),
                           ),
                         ),
-                        // ★ زر «معاينة» — يظهر بجانب كل صورة داخل الكاروسيل.
+                        // ★ زر «معاينة» — يظهر بجانب كل منتج داخل الكاروسيل.
                         PositionedDirectional(
                           start: 8,
                           end: 8,
@@ -508,11 +602,15 @@ class _PulsingLiveBadgeState extends State<_PulsingLiveBadge>
 /// ============================================================================
 class _LiveInteractionSheet extends StatefulWidget {
   const _LiveInteractionSheet({
+    required this.storeName,
     required this.reaction,
     required this.following,
     required this.onReaction,
     required this.onFollow,
   });
+
+  /// اسم المتجر الباثّ (يظهر في نص المشاركة).
+  final String storeName;
 
   /// 0 = بلا، 1 = إعجاب، -1 = عدم إعجاب.
   final int reaction;
@@ -546,7 +644,7 @@ class _LiveInteractionSheetState extends State<_LiveInteractionSheet> {
     final origin = box != null ? box.localToGlobal(Offset.zero) & box.size : null;
     try {
       await Share.share(
-        'شاهد منتجات «متجر الأناقة» على تطبيق گريب منك:\n'
+        'شاهد منتجات «${widget.storeName}» على تطبيق گريب منك:\n'
         'https://greib.app/live/products',
         subject: 'عرض المنتجات المباشر',
         sharePositionOrigin: origin,

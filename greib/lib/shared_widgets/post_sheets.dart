@@ -190,27 +190,36 @@ class PostSheetsController extends ChangeNotifier {
     );
   }
 
-  /// فتح محادثة مباشرة مع مقدّم الخدمة.
+  /// فتح محادثة مباشرة مع مقدّم الخدمة («طلب الآن»).
+  ///
+  /// ★ القيم الاختيارية تتيح إعادة استخدام نفس المحادثة بمرفق طلب مختلف
+  ///   (مثل البث المباشر: المتجر الباثّ + المنتج المطلوب) بلا تكرار منطق.
+  ///   تركها فارغة ⇒ نفس السلوك الأصلي في المنشورات تماماً.
   void openServiceChat(
     BuildContext context, {
     required ServiceCategory service,
+    String? conversationTitle,
+    String? avatar,
+    ChatPostPreview? preview,
   }) {
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
         builder: (context) => ChatDetailScreen(
-          conversationTitle: service.title,
+          conversationTitle: conversationTitle ?? service.title,
           conversationId: 'service_${service.id}',
-          avatar: service.iconName,
+          avatar: avatar ?? service.iconName,
           phone: '',
           online: true,
           activity: 'متصل الآن',
           isGroup: false,
-          postPreview: ChatPostPreview(
-            title: service.title,
-            subtitle: service.subtitle,
-            imageUrl: service.coverImage,
-            color: service.color,
-          ),
+          postPreview:
+              preview ??
+              ChatPostPreview(
+                title: service.title,
+                subtitle: service.subtitle,
+                imageUrl: service.coverImage,
+                color: service.color,
+              ),
         ),
       ),
     );
