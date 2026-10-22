@@ -2,13 +2,17 @@
 //
 // صفحة «عرض منتجات التاجر» (المسار /live-products).
 // ★ تُفتح من صفحة اختيار الوضع (LiveModeScreen).
-// ★ تحاكي بثاً مباشراً يقوم به **متجر حقيقي من متاجر التطبيق** (AccountRepository):
-//   غلاف المتجر يملأ الشاشة، وشريطه العلوي يعرض صورة المتجر واسمه وشارة التوثيق.
+// ★ فيد عمودي حقيقي: كل بثّ يشغل صفحة كاملة لتاجر حقيقي من متاجر التطبيق
+//   (AccountRepository)، والسحب لأعلى/أسفل ينقل المستخدم إلى بثّ التاجر التالي
+//   — بنفس إحساس فيد الصفحة الرئيسية.
 // ★ فوق البث: عنوان «المنتجات المتوفرة الآن» + طبقة كاروسيل عائمة قابلة للتمرير
 //   أفقياً (زر «معاينة» يفتح صفحة معاينة مستقلة) + زر «اطلب الآن» + أيقونة تفاعل.
+// ★ التمرير «حسّاس»: نقبل السحب باللمس والماوس واللوحة اللمسية معاً، ولا يوجد
+//   أي عنصر يستهلك السحب العمودي داخل البثّ (كل ما بداخله أفقي) ⇒ لا تعارض.
 // ★ «اطلب الآن» يفتح محادثة الطلب بنفس آلية ميزة المنشورات (ChatPostPreview).
 // ★ هذه محاكاة واجهة (UI Mock) — ستُطوَّر لاحقاً بربط بث/طلبات حقيقية.
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -27,7 +31,7 @@ import '../services/data/account_repository.dart';
 import '../services/data/commerce_aggregator_service.dart';
 import '../services/data/services_repository.dart';
 
-/// LiveProductsScreen — عرض منتجات التاجر أثناء البث (المسار /live-products).
+/// LiveProductsScreen — فيد البثوث العمودي: كل بثّ لتاجر مستقل (المسار /live-products).
 class LiveProductsScreen extends StatefulWidget {
   const LiveProductsScreen({super.key});
 
@@ -36,17 +40,89 @@ class LiveProductsScreen extends StatefulWidget {
 }
 
 class _LiveProductsScreenState extends State<LiveProductsScreen> {
+  /// ★ عدد البثوث في الفيد (نفس عدد التجار في شاشة «التجار في البث الآن»).
+  static const int _liveCount = 8;
+
+  /// ★ التجار الباثّون في الفيد العمودي (بنفس ترتيب شاشة التجار).
+  late final List<AccountProfile> _stores;
+
+  /// ★ متحكّم الفيد العمودي — تمرير طبيعي متصل مثل فيد الصفحة الرئيسية.
+  final PageController _feed = PageController();
+
+  @override
+  void initState() {
+    super.initState();
+    _stores = AccountRepository.instance.all
+        .take(_liveCount)
+        .toList(growable: false);
+  }
+
+  @override
+  void dispose() {
+    _feed.dispose();
+    super.dispose();
+  }
+
+  /// ★ اهتزاز خفيف عند الانتقال إلى بثّ آخر — بلا `setState` إطلاقاً
+  ///   ⇒ لا إعادة بناء أثناء السحب ⇒ تمرير سلس بلا تقطع.
+  void _onPageChanged(int index) => HapticFeedback.selectionClick();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0B0F17),
+      // ★ ★ جعل السحب «حسّاساً» لكل أدوات الإدخال: اللمس والماوس واللوحة
+      //   اللمسية والقلم — لأن الإعداد الافتراضي لا يقبل السحب بالماوس.
+      body: ScrollConfiguration(
+        behavior: ScrollConfiguration.of(context).copyWith(
+          dragDevices: const {
+            PointerDeviceKind.touch,
+            PointerDeviceKind.mouse,
+            PointerDeviceKind.trackpad,
+            PointerDeviceKind.stylus,
+            PointerDeviceKind.invertedStylus,
+            PointerDeviceKind.unknown,
+          },
+        ),
+        child: PageView.builder(
+          controller: _feed,
+          scrollDirection: Axis.vertical,
+          // ★ يستجيب دائماً مع فيزياء كرة مطاطية ناعمة ⇒ إحساس تمرير سلس.
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
+          itemCount: _stores.length,
+          onPageChanged: _onPageChanged,
+          itemBuilder: (context, i) => _StoreLivePage(store: _stores[i]),
+        ),
+      ),
+    );
+  }
+}
+
+/// ============================================================================
+///  بثّ تاجر واحد داخل الفيد العمودي: غلاف المتجر يملأ الشاشة، وفوقه شريط علوي
+///  (المتجر الباثّ + شارة مباشر) ولوحة سفلية عائمة بالمنتجات وخدمات التوصيل.
+/// ============================================================================
+class _StoreLivePage extends StatefulWidget {
+  const _StoreLivePage({required this.store});
+
+  /// ★ التاجر الباثّ في هذا البثّ.
+  final AccountProfile store;
+
+  @override
+  State<_StoreLivePage> createState() => _StoreLivePageState();
+}
+
+class _StoreLivePageState extends State<_StoreLivePage> {
   /// ★ صورة احتياطية للخلفية — تُستخدم فقط إن لم يتوفر غلاف المتجر.
   static const String _fallbackCover =
       'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600&q=80';
 
-  /// ★ المتجر الباثّ — من متاجر التطبيق الحقيقية (AccountRepository).
-  late final AccountProfile? _store;
-
   /// خدمة المتجر (اللون + المعرّف + الأيقونة) — تُستخدم في محادثة الطلب.
   late final ServiceCategory _service;
 
-  /// ★ المنتجات المتوفرة الآن من كتالوج التطبيق (CommerceAggregatorService).
+  /// ★ المنتجات المتوفرة الآن لهذا التاجر (CommerceAggregatorService).
   late final List<AggregatedProduct> _products;
 
   /// ★ خدمات التوصيل المتاحة — من خدمات التطبيق (ServicesRepository).
@@ -64,23 +140,29 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
   int _reaction = 0;
   bool _following = false;
 
-  String get _storeName => _store?.name ?? 'متجر گريب';
+  String get _storeName => widget.store.name;
 
   @override
   void initState() {
     super.initState();
-    // ★ المتجر الباثّ: أول متجر من متاجرنا (اختيار ثابت في كل مرة).
-    final stores = AccountRepository.instance.all;
-    _store = stores.isEmpty ? null : stores.first;
+    final store = widget.store;
     _service =
-        ServicesRepository.instance.byId(_store?.serviceId ?? '') ??
+        ServicesRepository.instance.byId(store.serviceId) ??
         ServicesRepository.instance.all.first;
-    // ★ المنتجات المتوفرة الآن (المتاح فقط من الكتالوج).
-    _products = CommerceAggregatorService.instance
-        .getProductsForCategorySync('all')
+    // ★ منتجات هذا التاجر (فئة خدمته)، وإن لم تتوفر منتجات في فئته نعرض
+    //   الكتالوج العام ⇒ لا يظهر بثّ بلا منتجات.
+    final own = CommerceAggregatorService.instance
+        .getProductsForCategorySync(store.serviceId)
         .where((p) => p.inStock)
         .take(8)
         .toList(growable: false);
+    _products = own.isNotEmpty
+        ? own
+        : CommerceAggregatorService.instance
+              .getProductsForCategorySync('all')
+              .where((p) => p.inStock)
+              .take(8)
+              .toList(growable: false);
     // ★ خدمات التوصيل المتاحة (أول 4 خدمات).
     _services = ServicesRepository.instance.all.take(4).toList(growable: false);
   }
@@ -166,7 +248,7 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
           // ★ خلفية البث: غلاف المتجر يملأ كامل الشاشة ولا يتغيّر مع الكاروسيل.
           Positioned.fill(
             child: Image.network(
-              _store?.coverUrl ?? _fallbackCover,
+              widget.store.coverUrl ?? _fallbackCover,
               fit: BoxFit.cover,
               width: double.infinity,
               height: double.infinity,
@@ -215,7 +297,7 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
 
   // ─── الشريط العلوي: رجوع + المتجر الباثّ + شارة «مباشر» ───
   Widget _buildTopBar(BuildContext context) {
-    final avatarUrl = _store?.avatarUrl;
+    final avatarUrl = widget.store.avatarUrl;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 14, 0),
       child: Row(
@@ -259,7 +341,7 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                if (_store?.isVerified ?? false) ...[
+                if (widget.store.isVerified) ...[
                   const SizedBox(width: 4),
                   Icon(
                     LucideIcons.badgeCheck,

@@ -1,15 +1,18 @@
 // features/liveserver/liveserver_screen.dart
 //
-// شاشة «الاتصال المباشر بالتاجر» — فيد بثوث مباشرة عمودي (المسار /liveserver).
+// شاشة «البث المباشر» — فيد بثوث مباشرة عمودي (المسار /liveserver).
 //
 // ★ تُفتح من قائمة التجار الذين يبثّون الآن (LiveMerchantsScreen) مع تمرير
 //   معرّف التاجر، فيبدأ الفيد من بثّه ثم يكمل المستخدم التمرير للأسفل لمشاهدة
 //   بقية بثوث التجار — بنفس فكرة فيد الصفحة الرئيسية (تمرير طبيعي متصل).
+// ★ التمرير «حسّاس»: يقبل السحب باللمس والماوس واللوحة (Trackpad) معاً،
+//   ولا يُعاد بناء الفيد أثناء السحب (المؤقّت ودجت مستقل) ⇒ تمرير سلس بلا تقطع.
 // ★ زر الرجوع يعتمد على هيدر SuperHeader الموجود أعلى الصفحة فقط (لا تكرار).
 // ★ هذه محاكاة واجهة (UI Mock) — سيتم تطويرها لاحقاً بربط بث/قنوات حقيقية.
 
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -43,18 +46,14 @@ class _LiveserverScreenState extends State<LiveserverScreen> {
   bool _micOn = true;
   bool _camOn = true;
 
-  // ★ مؤقّت مدة البث الظاهر (يُصفّر عند الانتقال لبثّ آخر).
-  late int _seconds = 0;
-  Timer? _timer;
-
   /// ★ قائمة البثوث في الفيد العمودي (بنفس ترتيب شاشة التجار).
   late final List<AccountProfile> _stores;
 
   /// ★ متحكّم التمرير العمودي — تمرير طبيعي متصل مثل فيد الصفحة الرئيسية.
   final ScrollController _controller = ScrollController();
 
-  /// ★ فهرس البث الظاهر حالياً.
-  int _index = 0;
+  /// ★ فهرس البث الظاهر حالياً — يُستخدم للاهتزاز عند تغييره فقط.
+  int _activeIndex = 0;
 
   /// ★ ارتفاع البث الواحد — يُحسب من مساحة العرض أثناء البناء.
   double _itemExtent = 0;
@@ -73,40 +72,31 @@ class _LiveserverScreenState extends State<LiveserverScreen> {
     final found = widget.storeId == null
         ? -1
         : _stores.indexWhere((s) => s.id == widget.storeId);
-    _index = found >= 0 ? found : 0;
+    _activeIndex = found >= 0 ? found : 0;
 
     _controller.addListener(_onScroll);
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() => _seconds++);
-    });
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
     _controller
       ..removeListener(_onScroll)
       ..dispose();
     super.dispose();
   }
 
-  /// ★ تحديث البث النشط حسب موضع التمرير (تمرير طبيعي متصل، بلا قفزات).
+  /// ★ تحديث البث النشط حسب موضع التمرير.
+  ///   ملاحظة: لا نستدعي `setState` هنا إطلاقاً ⇒ لا إعادة بناء أثناء السحب
+  ///   ⇒ تمرير سلس تماماً (الاهتزاز وحده يتغيّر).
   void _onScroll() {
-    if (_itemExtent <= 0 || _stores.isEmpty) return;
+    if (_itemExtent <= 0 || _stores.length < 2) return;
     final raw = (_controller.offset / _itemExtent).round();
-    final i = raw < 0 ? 0 : (raw >= _stores.length ? _stores.length - 1 : raw);
-    if (i == _index) return;
+    final i = raw < 0
+        ? 0
+        : (raw >= _stores.length ? _stores.length - 1 : raw);
+    if (i == _activeIndex) return;
+    _activeIndex = i;
     HapticFeedback.selectionClick();
-    setState(() {
-      _index = i;
-      _seconds = 0;
-    });
-  }
-
-  String get _formattedTime {
-    final m = (_seconds ~/ 60).toString().padLeft(2, '0');
-    final s = (_seconds % 60).toString().padLeft(2, '0');
-    return '$m:$s';
   }
 
   @override
@@ -119,36 +109,53 @@ class _LiveserverScreenState extends State<LiveserverScreen> {
         builder: (context, constraints) {
           // ★ ارتفاع البث الواحد: يملأ معظم الشاشة وتظهر حافة البث التالي
           //   أسفله ⇒ يدرك المستخدم أن هناك بثوثاً أخرى بالتمرير.
-          _itemExtent = (constraints.maxHeight * 0.88).clamp(300.0, 1000.0);
+          _itemExtent = (constraints.maxHeight * 0.86).clamp(280.0, 1000.0);
 
           // ★ الانتقال مرة واحدة إلى بثّ التاجر المختار (بلا أنميشن).
           if (!_autoJumped) {
             _autoJumped = true;
-            if (_index > 0) {
+            if (_activeIndex > 0) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted && _controller.hasClients) {
-                  _controller.jumpTo((_itemExtent + _gap) * _index);
+                  _controller.jumpTo((_itemExtent + _gap) * _activeIndex);
                 }
               });
             }
           }
 
-          return ListView.separated(
-            controller: _controller,
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
-            itemCount: _stores.length,
-            separatorBuilder: (_, _) => const SizedBox(height: _gap),
-            itemBuilder: (context, i) => SizedBox(
-              height: _itemExtent,
-              child: _LiveStreamCard(
-                store: _stores[i],
-                micOn: _micOn,
-                camOn: _camOn,
-                time: i == _index ? _formattedTime : '00:00',
-                viewers: 96 + i * 43,
-                onToggleMic: () => setState(() => _micOn = !_micOn),
-                onToggleCam: () => setState(() => _camOn = !_camOn),
-                onEnd: () => Navigator.of(context).maybePop(),
+          // ★ ★ جعل التمرير «حسّاساً»: نسمح بالسحب بكل أدوات الإدخال
+          //   (لمس / ماوس / لوحة لمس / قلم) بدل اللمس وحده.
+          return ScrollConfiguration(
+            behavior: ScrollConfiguration.of(context).copyWith(
+              dragDevices: const {
+                PointerDeviceKind.touch,
+                PointerDeviceKind.mouse,
+                PointerDeviceKind.trackpad,
+                PointerDeviceKind.stylus,
+                PointerDeviceKind.invertedStylus,
+                PointerDeviceKind.unknown,
+              },
+            ),
+            child: ListView.separated(
+              controller: _controller,
+              // ★ يستجيب دائماً مع فيزياء كرة مطاطية ناعمة ⇒ إحساس تمرير سلس.
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
+              itemCount: _stores.length,
+              separatorBuilder: (_, _) => const SizedBox(height: _gap),
+              itemBuilder: (context, i) => SizedBox(
+                height: _itemExtent,
+                child: _LiveStreamCard(
+                  store: _stores[i],
+                  micOn: _micOn,
+                  camOn: _camOn,
+                  viewers: 96 + i * 43,
+                  onToggleMic: () => setState(() => _micOn = !_micOn),
+                  onToggleCam: () => setState(() => _camOn = !_camOn),
+                  onEnd: () => Navigator.of(context).maybePop(),
+                ),
               ),
             ),
           );
@@ -166,7 +173,6 @@ class _LiveStreamCard extends StatelessWidget {
   final AccountProfile? store;
   final bool micOn;
   final bool camOn;
-  final String time;
   final int viewers;
   final VoidCallback onToggleMic;
   final VoidCallback onToggleCam;
@@ -176,7 +182,6 @@ class _LiveStreamCard extends StatelessWidget {
     required this.store,
     required this.micOn,
     required this.camOn,
-    required this.time,
     required this.viewers,
     required this.onToggleMic,
     required this.onToggleCam,
@@ -213,7 +218,7 @@ class _LiveStreamCard extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         // --- شريط المعلومات (مشاهدون + المؤقّت) + شارة LIVE ---
-        _LiveInfoBar(time: time, viewers: viewers),
+        _LiveInfoBar(viewers: viewers),
         const SizedBox(height: 12),
         // --- أزرار التحكّم ---
         _ControlBar(
@@ -352,10 +357,9 @@ class _PersonFeed extends StatelessWidget {
 ///  شارة «مباشر LIVE» نابضة + عدّاد المشاهدين + المؤقّت.
 /// ============================================================================
 class _LiveInfoBar extends StatelessWidget {
-  final String time;
   final int viewers;
 
-  const _LiveInfoBar({required this.time, required this.viewers});
+  const _LiveInfoBar({required this.viewers});
 
   @override
   Widget build(BuildContext context) {
@@ -365,18 +369,46 @@ class _LiveInfoBar extends StatelessWidget {
         // ★ شارة LIVE النابضة.
         const _PulsingLiveBadge(),
         // ★ عدّاد المشاهدات.
-        _InfoChip(
-          icon: LucideIcons.eye,
-          text: '$viewers',
-        ),
-        // ★ مؤقّت مدة البث.
-        _InfoChip(
-          icon: LucideIcons.dot,
-          text: time,
-          ltr: true,
-        ),
+        _InfoChip(icon: LucideIcons.eye, text: '$viewers'),
+        // ★ مؤقّت مدة البث — ودجت مستقل (لا يُعيد بناء الفيد).
+        const _StreamTimer(),
       ],
     );
+  }
+}
+
+/// ★ مؤقّت البث كودجت مستقل: يُحدّث نفسه كل ثانية فقط، فلا يُعيد بناء الفيد
+///   أثناء التمرير ⇒ يبقى السحب سلساً بلا تقطع.
+class _StreamTimer extends StatefulWidget {
+  const _StreamTimer();
+
+  @override
+  State<_StreamTimer> createState() => _StreamTimerState();
+}
+
+class _StreamTimerState extends State<_StreamTimer> {
+  Timer? _timer;
+  int _seconds = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _seconds++);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final m = (_seconds ~/ 60).toString().padLeft(2, '0');
+    final s = (_seconds % 60).toString().padLeft(2, '0');
+    return _InfoChip(icon: LucideIcons.dot, text: '$m:$s', ltr: true);
   }
 }
 
@@ -545,11 +577,13 @@ class _CircleControl extends StatelessWidget {
             ? Colors.white.withValues(alpha: 0.16)
             : Colors.white.withValues(alpha: 0.08));
 
+    // ★ GestureDetector بدل InkWell: لا يستهلك إيماءات السحب العمودي إطلاقاً
+    //   ⇒ التمرير يبقى حسّاساً حتى فوق أزرار التحكّم.
     return Tooltip(
       message: tooltip,
-      child: InkWell(
+      child: GestureDetector(
         onTap: onTap,
-        customBorder: const CircleBorder(),
+        behavior: HitTestBehavior.opaque,
         child: Container(
           width: 58,
           height: 58,
