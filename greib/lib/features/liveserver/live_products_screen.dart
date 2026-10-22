@@ -2,7 +2,8 @@
 //
 // صفحة «عرض منتجات التاجر» (المسار /live-products).
 // ★ تُفتح من صفحة اختيار الوضع (LiveModeScreen).
-// ★ صورة تملأ الصفحة + كاروسيل صور أفقي (تمرير/معاينة) + زر «اطلب الآن»
+// ★ صورة تملأ كامل الشاشة (أساس البث) + طبقة كاروسيل عائمة فوقها قابلة
+//   للتمرير أفقياً (الضغط يفتح صفحة معاينة مستقلة) + زر «اطلب الآن»
 //   + أيقونة تفاعل تفتح شيت بسيط (تفاعل + متابعة + مشاركة).
 // ★ هذه محاكاة واجهة (UI Mock) بصور وهمية من الإنترنت — ستُطوَّر لاحقاً.
 
@@ -35,7 +36,7 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
     'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=1000&q=80',
   ];
 
-  final PageController _carousel = PageController(viewportFraction: 0.30);
+  final PageController _carousel = PageController(viewportFraction: 0.34);
 
   /// الصورة النشطة (المعروضة كخلفية كاملة).
   int _index = 0;
@@ -50,19 +51,12 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
     super.dispose();
   }
 
-  /// ★ معاينة الصورة فقط على شاشة كاملة (تمرير بين الصور + إغلاق).
+  /// ★ فتح صفحة معاينة مستقلة تعرض الصورة بشكل أكبر (تمرير بين الصور + تكبير).
   void _openPreview(int index) {
     HapticFeedback.selectionClick();
     Navigator.of(context).push(
-      PageRouteBuilder(
-        opaque: false,
-        barrierColor: Colors.black87,
-        transitionDuration: const Duration(milliseconds: 220),
-        reverseTransitionDuration: const Duration(milliseconds: 180),
-        pageBuilder: (_, _, _) =>
-            _ImagePreview(images: _images, initialIndex: index),
-        transitionsBuilder: (_, animation, _, child) =>
-            FadeTransition(opacity: animation, child: child),
+      MaterialPageRoute(
+        builder: (_) => _ImagePreview(images: _images, initialIndex: index),
       ),
     );
   }
@@ -197,7 +191,7 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
     );
   }
 
-  // ─── اللوحة السفلية: الكاروسيل + (اطلب الآن + أيقونة التفاعل) ───
+  // ─── اللوحة السفلية: طبقة الكاروسيل العائمة + (اطلب الآن + أيقونة التفاعل) ───
   Widget _buildBottomPanel(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
@@ -205,7 +199,8 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildCarousel(),
+          // ★ طبقة الكاروسيل العائمة فوق البث (صور يمكن تمريرها أفقياً).
+          _buildFloatingCarouselLayer(),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -231,52 +226,103 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
     );
   }
 
-  Widget _buildCarousel() {
+  /// ★ طبقة الكاروسيل العائمة فوق البث: صور عائمة كبيرة يمكن تمريرها أفقياً
+  ///   من اليمين لليسار، والضغط على أي صورة يفتح صفحة المعاينة المستقلة.
+  Widget _buildFloatingCarouselLayer() {
     return SizedBox(
-      height: 88,
+      height: 156,
       child: PageView.builder(
         controller: _carousel,
+        padEnds: false,
         itemCount: _images.length,
         onPageChanged: (i) => setState(() => _index = i),
         itemBuilder: (context, i) {
           final active = i == _index;
-          return GestureDetector(
-            onTap: () => _openPreview(i),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeOut,
-              margin: EdgeInsets.symmetric(
-                horizontal: 6,
-                vertical: active ? 0 : 10,
-              ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: active
-                      ? Colors.white
-                      : Colors.white.withValues(alpha: 0.25),
-                  width: active ? 2.5 : 1,
-                ),
-                boxShadow: [
-                  if (active)
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.4),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+          return Padding(
+            padding: const EdgeInsetsDirectional.only(end: 12),
+            child: GestureDetector(
+              onTap: () => _openPreview(i),
+              child: AnimatedScale(
+                scale: active ? 1.0 : 0.9,
+                duration: const Duration(milliseconds: 240),
+                curve: Curves.easeOut,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 240),
+                  curve: Curves.easeOut,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: active
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.28),
+                      width: active ? 2.5 : 1,
                     ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Image.network(
-                  _images[i],
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => Container(
-                    color: Colors.white.withValues(alpha: 0.08),
-                    child: const Icon(
-                      LucideIcons.image,
-                      size: 22,
-                      color: Colors.white38,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                          alpha: active ? 0.45 : 0.28,
+                        ),
+                        blurRadius: active ? 18 : 10,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.network(
+                          _images[i],
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => Container(
+                            color: Colors.white.withValues(alpha: 0.08),
+                            child: const Icon(
+                              LucideIcons.image,
+                              size: 26,
+                              color: Colors.white38,
+                            ),
+                          ),
+                        ),
+                        // شارة «معاينة» على الصورة النشطة داخل الطبقة.
+                        if (active)
+                          PositionedDirectional(
+                            bottom: 8,
+                            start: 8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 9,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.55),
+                                borderRadius: BorderRadius.circular(999),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.25),
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    LucideIcons.maximize2,
+                                    size: 12,
+                                    color: Colors.white,
+                                  ),
+                                  SizedBox(width: 5),
+                                  Text(
+                                    'معاينة',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ),
@@ -630,7 +676,7 @@ class _ReactionTile extends StatelessWidget {
 }
 
 /// ============================================================================
-///  معاينة الصورة على شاشة كاملة (الصورة فقط + إغلاق).
+///  صفحة معاينة مستقلة تعرض الصورة بشكل أكبر (الصورة فقط + تكبير + إغلاق).
 /// ============================================================================
 class _ImagePreview extends StatefulWidget {
   const _ImagePreview({required this.images, required this.initialIndex});
@@ -658,7 +704,7 @@ class _ImagePreviewState extends State<_ImagePreview> {
   Widget build(BuildContext context) {
     final many = widget.images.length > 1;
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.black,
       body: Stack(
         children: [
           PageView.builder(
