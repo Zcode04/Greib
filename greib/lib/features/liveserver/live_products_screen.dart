@@ -308,51 +308,48 @@ class _StoreLivePageState extends State<_StoreLivePage> {
             onTap: () => context.pop(),
           ),
           const SizedBox(width: 10),
-          Container(
-            padding: const EdgeInsets.fromLTRB(6, 5, 12, 5),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.35),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-            ),
+          // ★ بلا خلفية ولا بوردر: صورة المتجر واسمه مباشرة فوق البث،
+          //   وظل خفيف يضمن وضوح الاسم على أي صورة.
+          CircleAvatar(
+            radius: 17,
+            backgroundColor: Colors.white.withValues(alpha: 0.16),
+            backgroundImage: avatarUrl == null ? null : NetworkImage(avatarUrl),
+            child: avatarUrl == null
+                ? const Icon(LucideIcons.store, size: 17, color: Colors.white)
+                : null,
+          ),
+          const SizedBox(width: 10),
+          // ★ الاسم يأخذ كل المساحة المتبقية بعد الأفاتار وشارة «مباشر»:
+          //   بلا اختصار (لا نقاط) وبلا فيض — يلتفّ لسطر ثانٍ فقط إن طال الاسم.
+          Expanded(
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircleAvatar(
-                  radius: 12,
-                  backgroundColor: Colors.white24,
-                  backgroundImage: avatarUrl == null
-                      ? null
-                      : NetworkImage(avatarUrl),
-                  child: avatarUrl == null
-                      ? const Icon(
-                          LucideIcons.store,
-                          size: 13,
-                          color: Colors.white,
-                        )
-                      : null,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  _storeName,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
+                Flexible(
+                  child: Text(
+                    _storeName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      shadows: [
+                        Shadow(color: Colors.black87, blurRadius: 10),
+                      ],
+                    ),
                   ),
                 ),
                 if (widget.store.isVerified) ...[
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 5),
                   Icon(
                     LucideIcons.badgeCheck,
-                    size: 14,
+                    size: 17,
                     color: context.iconColors.info,
                   ),
                 ],
               ],
             ),
           ),
-          const Spacer(),
+          const SizedBox(width: 10),
           const _PulsingLiveBadge(),
         ],
       ),
