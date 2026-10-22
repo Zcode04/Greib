@@ -136,19 +136,6 @@ class _HomeActionBarState extends State<HomeActionBar>
                       color: accent.withValues(alpha: _running ? 0.9 : 0.45),
                       width: _running ? 1.5 : 1.0,
                     ),
-                    // ★ توهج أزرق ناعم حول الزر (Glass glow) — ليلي فقط
-                    boxShadow: isDark
-                        ? [
-                            BoxShadow(
-                              color: accent.withValues(
-                                alpha: _running ? 0.35 : 0.18,
-                              ),
-                              blurRadius: _running ? 16 : 12,
-                              spreadRadius: 0,
-                              offset: const Offset(0, 0),
-                            ),
-                          ]
-                        : null,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -216,15 +203,6 @@ class _CircleAvatarButton extends StatelessWidget {
                 // ★ stroke أزرق زجاجي خفيف
                 color: accent.withValues(alpha: isDark ? 0.45 : 0.25),
               ),
-              boxShadow: isDark
-                  ? [
-                      BoxShadow(
-                        color: accent.withValues(alpha: 0.18),
-                        blurRadius: 12,
-                        spreadRadius: 0,
-                      ),
-                    ]
-                  : null,
             ),
             padding: const EdgeInsets.all(3),
             child: const UserAvatar(size: 36, iconSize: 18),
@@ -270,15 +248,6 @@ class _CircleIconButton extends StatelessWidget {
               border: Border.all(
                 color: accent.withValues(alpha: isDark ? 0.45 : 0.25),
               ),
-              boxShadow: isDark
-                  ? [
-                      BoxShadow(
-                        color: accent.withValues(alpha: 0.18),
-                        blurRadius: 12,
-                        spreadRadius: 0,
-                      ),
-                    ]
-                  : null,
             ),
             child: Icon(icon, size: 18, color: accent),
           ),
