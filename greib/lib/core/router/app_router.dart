@@ -33,6 +33,7 @@ import '../../agent-grab/missing_map_details_screen.dart';
 import '../../features/liveserver/liveserver_screen.dart';
 import '../../features/liveserver/publiveedit_screen.dart';
 import '../../features/liveserver/live_mode_screen.dart';
+import '../../features/liveserver/live_products_screen.dart';
 import '../../features/services/presentation/account_connections_page.dart';
 import '../../features/services/presentation/account_profile_page.dart';
 import '../../features/services/presentation/service_details_page.dart';
@@ -177,14 +178,10 @@ class AppRouter {
         path: '/live-mode',
         builder: (context, state) => const LiveModeScreen(),
       ),
-      // ★ صفحة «عرض منتجات التاجر» — ميزة قيد التطوير (مؤقتة).
+      // ★ صفحة «عرض منتجات التاجر» — صورة تملأ الصفحة + كاروسيل + اطلب الآن.
       GoRoute(
         path: '/live-products',
-        builder: (context, state) => const ComingSoonScreen(
-          title: 'عرض المنتجات',
-          subtitle: 'واجهة عرض منتجات التاجر أثناء البث ستتوفر قريباً.',
-          route: '/live-products',
-        ),
+        builder: (context, state) => const LiveProductsScreen(),
       ),
       // ★ صفحة «البث المباشر» (Live Server) — تُفتح من تبويب الشريط السفلي.
       GoRoute(
