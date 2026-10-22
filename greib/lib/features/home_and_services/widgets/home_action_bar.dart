@@ -213,7 +213,7 @@ class _CircleAvatarButton extends StatelessWidget {
   }
 }
 
-/// زر أيقونة دائري بنفس هوية أزرار التطبيق (سطح + حد + ظل).
+/// زر أيقونة بسيط: الأيقونة فقط بلا خلفية ولا حد.
 class _CircleIconButton extends StatelessWidget {
   const _CircleIconButton({
     required this.icon,
@@ -227,28 +227,18 @@ class _CircleIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final accent = theme.colorScheme.primary;
-    final isDark = theme.brightness == Brightness.dark;
+    final accent = Theme.of(context).colorScheme.primary;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadii.full),
         onTap: onTap,
-            child: Tooltip(
+        child: Tooltip(
           message: tooltip,
-          child: Container(
+          // ★ مساحة لمس مريحة (42×42) مع إظهار الأيقونة فقط.
+          child: SizedBox(
             width: 42,
             height: 42,
-            decoration: BoxDecoration(
-              color: isDark
-                  ? context.backgroundColors.surface.withValues(alpha: 0.72)
-                  : theme.colorScheme.surface.withValues(alpha: 0.92),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: accent.withValues(alpha: isDark ? 0.45 : 0.25),
-              ),
-            ),
             child: Icon(icon, size: 18, color: accent),
           ),
         ),
