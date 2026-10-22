@@ -2,8 +2,8 @@
 //
 // صفحة «عرض منتجات التاجر» (المسار /live-products).
 // ★ تُفتح من صفحة اختيار الوضع (LiveModeScreen).
-// ★ صورة تملأ كامل الشاشة (أساس البث) + طبقة كاروسيل عائمة فوقها قابلة
-//   للتمرير أفقياً (الضغط يفتح صفحة معاينة مستقلة) + زر «اطلب الآن»
+// ★ صورة خلفية ممتدة تملأ كامل الشاشة خلف كل المكونات، وفوقها طبقة كاروسيل
+//   عائمة قابلة للتمرير أفقياً (الضغط يفتح صفحة معاينة مستقلة) + زر «اطلب الآن»
 //   + أيقونة تفاعل تفتح شيت بسيط (تفاعل + متابعة + مشاركة).
 // ★ هذه محاكاة واجهة (UI Mock) بصور وهمية من الإنترنت — ستُطوَّر لاحقاً.
 
@@ -26,7 +26,7 @@ class LiveProductsScreen extends StatefulWidget {
 }
 
 class _LiveProductsScreenState extends State<LiveProductsScreen> {
-  /// ★ صور وهمية من الإنترنت (نفس أسلوب باقي التطبيق).
+  /// ★ صور وهمية من الإنترنت (نفس أسلوب باقي التطبيق) — منتجات الكاروسيل.
   static const List<String> _images = [
     'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1000&q=80',
     'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1000&q=80',
@@ -34,6 +34,16 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
     'https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=1000&q=80',
     'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1000&q=80',
     'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=1000&q=80',
+  ];
+
+  /// ★ صور خلفية «ممتدة» (مشاهد طبيعية/سماء/أرض) تملأ كامل الشاشة خلف كل شيء.
+  static const List<String> _backgrounds = [
+    'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600&q=80',
+    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1600&q=80',
+    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1600&q=80',
+    'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1600&q=80',
+    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=80',
+    'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=1600&q=80',
   ];
 
   final PageController _carousel = PageController(viewportFraction: 0.34);
@@ -91,38 +101,48 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // ★ الخلفية: صورة المنتج الحالية تملأ الصفحة.
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 320),
-            child: Image.network(
-              _images[_index],
-              key: ValueKey(_index),
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => const ColoredBox(
-                color: Color(0xFF141A24),
-                child: Center(
-                  child: Icon(
-                    LucideIcons.image,
-                    size: 64,
-                    color: Colors.white24,
+          // ★ الخلفية: صورة خلفية ممتدة تملأ كامل الشاشة خلف جميع المكونات.
+          //   (نستخدم layoutBuilder ليمتدّ الطفل على كامل المساحة، وإلا تُقاس
+          //    الصورة بأبعادها الأصلية فتظهر في جزء فقط من الشاشة.)
+          Positioned.fill(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 420),
+              layoutBuilder: (currentChild, previousChildren) => Stack(
+                fit: StackFit.expand,
+                children: [...previousChildren, ?currentChild],
+              ),
+              child: Image.network(
+                _backgrounds[_index],
+                key: ValueKey(_index),
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                errorBuilder: (_, _, _) => const ColoredBox(
+                  color: Color(0xFF141A24),
+                  child: Center(
+                    child: Icon(
+                      LucideIcons.image,
+                      size: 64,
+                      color: Colors.white24,
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-          // ★ تظليل علوي/سفلي لضمان قراءة العناصر فوق الصورة.
+          // ★ تظليل علوي/سفلي + تظليل خفيف عام لضمان قراءة العناصر فوق الصورة.
           DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withValues(alpha: 0.55),
-                  Colors.transparent,
-                  Colors.transparent,
-                  Colors.black.withValues(alpha: 0.88),
+                  Colors.black.withValues(alpha: 0.60),
+                  Colors.black.withValues(alpha: 0.18),
+                  Colors.black.withValues(alpha: 0.18),
+                  Colors.black.withValues(alpha: 0.90),
                 ],
-                stops: const [0.0, 0.22, 0.45, 1.0],
+                stops: const [0.0, 0.22, 0.5, 1.0],
               ),
             ),
           ),
