@@ -31,9 +31,9 @@ import '../../agent-grab/map_contributor_screen.dart';
 import '../../agent-grab/add_place_screen.dart';
 import '../../agent-grab/missing_map_details_screen.dart';
 import '../../features/liveserver/liveserver_screen.dart';
-import '../../features/liveserver/publiveedit_screen.dart';
 import '../../features/liveserver/live_mode_screen.dart';
 import '../../features/liveserver/live_products_screen.dart';
+import '../../features/liveserver/live_merchants_screen.dart';
 import '../../features/services/presentation/account_connections_page.dart';
 import '../../features/services/presentation/account_profile_page.dart';
 import '../../features/services/presentation/service_details_page.dart';
@@ -64,12 +64,12 @@ class AppRouter {
     '/reels',
     // ★ صفحة «البث المباشر» (Live Server) — تُفتح من تبويب الشريط السفلي.
     '/liveserver',
-    // ★ صفحة «Publiveedit» — البوابة التعريفية قبل البث (تُفتح من الأيقونة).
-    '/publiveedit',
-    // ★ صفحة «اختيار وضع البث» — تُفتح بعد مؤقّت Publiveedit (زرّان للاختيار).
+    // ★ صفحة «اختيار وضع البث» — أول ما يظهر للمستخدم عند الضغط على أيقونة البث.
     '/live-mode',
     // ★ صفحة «عرض منتجات التاجر» — ميزة قيد التطوير (من صفحة اختيار الوضع).
     '/live-products',
+    // ★ صفحة «التجار في البث الآن» — تُفتح عند اختيار «الاتصال المباشر بالتاجر».
+    '/live-merchants',
     '/settings',
     '/doctors',
     '/support',
@@ -166,14 +166,8 @@ class AppRouter {
         builder: (context, state) => const SearchScreen(),
       ),
       GoRoute(path: '/reels', builder: (context, state) => const ReelsScreen()),
-      // ★ بوابة «Publiveedit» — تُفتح من أيقونة البث ثم تحوّل تلقائياً
-      //   إلى /live-mode بعد 5 ثوانٍ (أو بالضغط على «تخطي»).
-      GoRoute(
-        path: '/publiveedit',
-        builder: (context, state) => const PubliveeditScreen(),
-      ),
-      // ★ صفحة «اختيار وضع البث» — تعرض زرّين: الاتصال المباشر بالتاجر /
-      //   عرض منتجات التاجر.
+      // ★ صفحة «اختيار وضع البث» — أول ما يظهر عند الضغط على أيقونة البث:
+      //   زرّان (الاتصال المباشر بالتاجر / عرض منتجات التاجر).
       GoRoute(
         path: '/live-mode',
         builder: (context, state) => const LiveModeScreen(),
@@ -183,10 +177,19 @@ class AppRouter {
         path: '/live-products',
         builder: (context, state) => const LiveProductsScreen(),
       ),
-      // ★ صفحة «البث المباشر» (Live Server) — تُفتح من تبويب الشريط السفلي.
+      // ★ صفحة «التجار في البث الآن» — تُفتح عند اختيار «الاتصال المباشر بالتاجر»
+      //   من صفحة اختيار وضع البث؛ يعرض قائمة التجار الذين يبثّون الآن للاتصال بهم.
+      GoRoute(
+        path: '/live-merchants',
+        builder: (context, state) => const LiveMerchantsScreen(),
+      ),
+      // ★ صفحة «البث المباشر» (Live Server) — شاشة الاتصال بالتاجر المختار.
+      //   تستقبل معرّف التاجر عبر ?store=<id> لعرض اسمه وصورته خلال المكالمة.
       GoRoute(
         path: '/liveserver',
-        builder: (context, state) => const LiveserverScreen(),
+        builder: (context, state) => LiveserverScreen(
+          storeId: state.uri.queryParameters['store'],
+        ),
       ),
       GoRoute(
         path: '/notifications',

@@ -57,11 +57,11 @@ const List<_ShellTab> _tabs = [
     filledAsset: 'message-square',
     label: 'الدردشة',
   ),
-  // ★ البث المباشر: الأيقونة تفتح بوابة «Publiveedit» التعريفية أولاً،
-  //   وهي تحوّل تلقائياً إلى صفحة البث (/liveserver) بعد 5 ثوانٍ أو بالتخطي.
+  // ★ البث المباشر: الأيقونة تفتح مباشرةً صفحة «اختيار وضع البث» (/live-mode)
+  //   حيث يختار المستخدم طريقة المتابعة (الاتصال المباشر / عرض المنتجات).
   //   بلا نسخة ممتلئة — يبقى Lucide مفرّغاً دائماً (الامتلاء للرئيسية والدردشة فقط).
   _ShellTab(
-    route: '/publiveedit',
+    route: '/live-mode',
     title: 'البث المباشر',
     icon: LucideIcons.tvMinimal,
     label: 'البث المباشر',
@@ -135,7 +135,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
     '/reels',
     '/my_location',
     '/liveserver',
-    '/publiveedit',
+    '/live-mode',
   };
 
   /// ★ فهارس التبويبات التي تبني محتوى الـ Shell (فهارس داخل `_tabs`).

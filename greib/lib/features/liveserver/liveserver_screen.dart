@@ -1,8 +1,9 @@
 // features/liveserver/liveserver_screen.dart
 //
-// صفحة «البث المباشر» (Live Server) — محاكاة واجهة بث مباشر بين شخصين.
+// شاشة «الاتصال المباشر بالتاجر» — محاكاة مكالمة مباشرة (المسار /liveserver).
 //
-// ★ تُفتح من أيقونة «البث المباشر» في الشريط السفلي (المسار /liveserver).
+// ★ تُفتح من قائمة التجار الذين يبثّون الآن (LiveMerchantsScreen) مع تمرير
+//   معرّف التاجر، فتظهر بياناته (الصورة/الاسم) كطرف المكالمة.
 // ★ زر الرجوع يعتمد على هيدر SuperHeader الموجود أعلى الصفحة فقط (لا تكرار).
 // ★ هذه محاكاة واجهة (UI Mock) — سيتم تطويرها لاحقاً بربط بث/قنوات حقيقية.
 
@@ -12,13 +13,18 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/extensions/context_extensions.dart';
+import '../../core/models/account_model.dart';
 import '../../core/widgets/super_header.dart';
+import '../services/data/account_repository.dart';
 
 /// ============================================================================
-///  LiveserverScreen — محاكاة بث مباشر بين شخصين (المسار /liveserver).
+///  LiveserverScreen — محاكاة اتصال مباشر مع تاجر (المسار /liveserver).
 /// ============================================================================
 class LiveserverScreen extends StatefulWidget {
-  const LiveserverScreen({super.key});
+  const LiveserverScreen({super.key, this.storeId});
+
+  /// ★ معرّف التاجر المتّصل به (من قائمة التجار في البث).
+  final String? storeId;
 
   @override
   State<LiveserverScreen> createState() => _LiveserverScreenState();
@@ -32,6 +38,11 @@ class _LiveserverScreenState extends State<LiveserverScreen> {
   // ★ مؤقّت مدة البث (يُحتسب أثناء وجود الصفحة).
   late int _seconds = 0;
   Timer? _timer;
+
+  /// ★ التاجر المتّصل به (null = محاكاة بلا بيانات متجر).
+  AccountProfile? get _store => widget.storeId == null
+      ? null
+      : AccountRepository.instance.byId(widget.storeId!);
 
   @override
   void initState() {
@@ -55,13 +66,14 @@ class _LiveserverScreenState extends State<LiveserverScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final store = _store;
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F17), // خلفية داكنة تناسب البث
       extendBody: true,
       extendBodyBehindAppBar: true,
       // ★ زر الرجوع يأتي من الهيدر فقط (SuperHeader) — بدون أي تكرار.
-      appBar: const SuperHeader(
-        title: 'البث المباشر',
+      appBar: SuperHeader(
+        title: store == null ? 'البث المباشر' : 'مكالمة مباشرة',
         showBackButton: true,
       ),
       body: SafeArea(
@@ -69,12 +81,13 @@ class _LiveserverScreenState extends State<LiveserverScreen> {
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
           child: Column(
             children: [
-              // --- الشاشة الرئيسية (الشخص الأول) ---
+              // --- الشاشة الرئيسية: التاجر المتّصل به ---
               Expanded(
                 flex: 3,
                 child: _PersonFeed(
-                  name: 'المُذيع',
-                  role: 'يبثّ الآن',
+                  name: store?.name ?? 'المُذيع',
+                  role: 'التاجر • يبثّ الآن',
+                  avatarUrl: store?.avatarUrl,
                   gradient: const [Color(0xFF1E3A8A), Color(0xFF0EA5E9)],
                   micOn: _micOn,
                   camOn: _camOn,
@@ -85,8 +98,8 @@ class _LiveserverScreenState extends State<LiveserverScreen> {
               Expanded(
                 flex: 2,
                 child: _PersonFeed(
-                  name: 'الضيف',
-                  role: 'انضم إلى البث',
+                  name: 'أنت',
+                  role: 'معاينة الكاميرا',
                   gradient: const [Color(0xFF6D28D9), Color(0xFFDB2777)],
                   micOn: true,
                   camOn: true,
@@ -122,12 +135,16 @@ class _PersonFeed extends StatelessWidget {
   final bool micOn;
   final bool camOn;
 
+  /// ★ صورة الطرف (إن وُجدت) — تُعرض بدل الأيقونة الرمزية.
+  final String? avatarUrl;
+
   const _PersonFeed({
     required this.name,
     required this.role,
     required this.gradient,
     required this.micOn,
     required this.camOn,
+    this.avatarUrl,
   });
 
   @override

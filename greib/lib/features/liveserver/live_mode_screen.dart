@@ -1,6 +1,6 @@
 // features/liveserver/live_mode_screen.dart
 //
-// صفحة «اختيار وضع البث» — تُفتح بعد انتهاء مؤقّت Publiveedit.
+// صفحة «اختيار وضع البث» — أول ما يظهر للمستخدم عند الضغط على أيقونة البث.
 // ★ تعرض زرّين للاختيار بينهما:
 //   1) الاتصال المباشر بالتاجر  ⇒ /liveserver (ميزة الاتصال/البث).
 //   2) التاجر يعرض منتجاته       ⇒ /live-products (ميزة قيد التطوير).
@@ -57,7 +57,7 @@ class LiveModeScreen extends StatelessWidget {
                 title: 'الاتصال المباشر بالتاجر',
                 subtitle: 'ابدأ مكالمة مباشرة وتفاعل مع التاجر لحظة بلحظة.',
                 gradient: const [Color(0xFF1E3A8A), Color(0xFF0EA5E9)],
-                onTap: () => context.push('/liveserver'),
+                onTap: () => context.push('/live-merchants'),
               ),
               const SizedBox(height: 16),
               _ModeCard(
@@ -169,7 +169,7 @@ class _ModeCard extends StatelessWidget {
   }
 }
 
-/// شارة «مباشر LIVE» نابضة (بنفس هوية شاشة Publiveedit).
+/// شارة «مباشر LIVE» نابضة.
 class _PulsingLiveBadge extends StatefulWidget {
   const _PulsingLiveBadge();
 
