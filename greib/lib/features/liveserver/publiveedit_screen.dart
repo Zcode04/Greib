@@ -2,7 +2,7 @@
 //
 // صفحة «Publiveedit» — شاشة تعريفية قبل الدخول إلى البث المباشر.
 // ★ تُفتح من أيقونة «البث المباشر» (المسار /publiveedit).
-// ★ مؤقّت 5 ثوانٍ + تخطي يدوي/تلقائي نحو /liveserver.
+// ★ مؤقّت 5 ثوانٍ + تخطي يدوي/تلقائي نحو صفحة اختيار وضع البث (/live-mode).
 // ★ الضغط المستمر على الصفحة يُوقف المؤقّت للقراءة، ورفع الإصبع يستأنفه.
 
 import 'dart:async';
@@ -52,12 +52,13 @@ class _PubliveeditScreenState extends State<PubliveeditScreen> {
     super.dispose();
   }
 
-  /// الدخول إلى البث مع استبدال الصفحة (حتى لا يعود زر الرجوع إلى هنا).
+  /// ★ الانتقال إلى صفحة اختيار وضع البث (زرّان) مع استبدال الصفحة
+  ///   حتى لا يعود زر الرجوع إلى هذه البوابة التعريفية.
   void _goLive() {
     if (_navigated || !mounted) return;
     _navigated = true;
     _timer?.cancel();
-    context.pushReplacement('/liveserver');
+    context.pushReplacement('/live-mode');
   }
 
   Widget _buildTitle() {
@@ -172,7 +173,7 @@ class _PubliveeditScreenState extends State<PubliveeditScreen> {
           // ★ نص الحالة يتبدّل حسب الضغط: توقف للقراءة / عدّ تنازلي.
           _holding
               ? 'المؤقت متوقف — ارفع اصبعك للمتابعة'
-              : 'سيتم تحويلك تلقائيا الى البث خلال $_remaining ثوان',
+              : 'سيتم تحويلك تلقائياً خلال $_remaining ثوان',
           textAlign: TextAlign.center,
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.6),

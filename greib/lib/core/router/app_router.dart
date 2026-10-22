@@ -32,6 +32,7 @@ import '../../agent-grab/add_place_screen.dart';
 import '../../agent-grab/missing_map_details_screen.dart';
 import '../../features/liveserver/liveserver_screen.dart';
 import '../../features/liveserver/publiveedit_screen.dart';
+import '../../features/liveserver/live_mode_screen.dart';
 import '../../features/services/presentation/account_connections_page.dart';
 import '../../features/services/presentation/account_profile_page.dart';
 import '../../features/services/presentation/service_details_page.dart';
@@ -64,6 +65,10 @@ class AppRouter {
     '/liveserver',
     // ★ صفحة «Publiveedit» — البوابة التعريفية قبل البث (تُفتح من الأيقونة).
     '/publiveedit',
+    // ★ صفحة «اختيار وضع البث» — تُفتح بعد مؤقّت Publiveedit (زرّان للاختيار).
+    '/live-mode',
+    // ★ صفحة «عرض منتجات التاجر» — ميزة قيد التطوير (من صفحة اختيار الوضع).
+    '/live-products',
     '/settings',
     '/doctors',
     '/support',
@@ -161,10 +166,25 @@ class AppRouter {
       ),
       GoRoute(path: '/reels', builder: (context, state) => const ReelsScreen()),
       // ★ بوابة «Publiveedit» — تُفتح من أيقونة البث ثم تحوّل تلقائياً
-      //   إلى /liveserver بعد 5 ثوانٍ (أو بالضغط على «تخطي»).
+      //   إلى /live-mode بعد 5 ثوانٍ (أو بالضغط على «تخطي»).
       GoRoute(
         path: '/publiveedit',
         builder: (context, state) => const PubliveeditScreen(),
+      ),
+      // ★ صفحة «اختيار وضع البث» — تعرض زرّين: الاتصال المباشر بالتاجر /
+      //   عرض منتجات التاجر.
+      GoRoute(
+        path: '/live-mode',
+        builder: (context, state) => const LiveModeScreen(),
+      ),
+      // ★ صفحة «عرض منتجات التاجر» — ميزة قيد التطوير (مؤقتة).
+      GoRoute(
+        path: '/live-products',
+        builder: (context, state) => const ComingSoonScreen(
+          title: 'عرض المنتجات',
+          subtitle: 'واجهة عرض منتجات التاجر أثناء البث ستتوفر قريباً.',
+          route: '/live-products',
+        ),
       ),
       // ★ صفحة «البث المباشر» (Live Server) — تُفتح من تبويب الشريط السفلي.
       GoRoute(
