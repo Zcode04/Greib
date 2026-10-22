@@ -48,10 +48,14 @@ class UserAvatar extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(
-          color: borderColor ?? accent.withValues(alpha: 0.35),
-          width: borderWidth,
-        ),
+        // ★ borderWidth = 0 ⇒ بلا إطار (لتجنّب إطارين متداخلين عندما يكون
+        //   الأفاتار داخل زر له إطاره الخاص).
+        border: borderWidth > 0
+            ? Border.all(
+                color: borderColor ?? accent.withValues(alpha: 0.35),
+                width: borderWidth,
+              )
+            : null,
       ),
       padding: const EdgeInsets.all(1.5),
       child: ClipOval(

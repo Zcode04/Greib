@@ -205,7 +205,9 @@ class _CircleAvatarButton extends StatelessWidget {
               ),
             ),
             padding: const EdgeInsets.all(3),
-            child: const UserAvatar(size: 36, iconSize: 18),
+            // ★ بلا إطار داخلي للأفاتار: الإطار الظاهر هو إطار الزر وحده
+            //   (كانا يظهران كإطارين متداخلين) + أيقونة أكبر.
+            child: const UserAvatar(size: 36, iconSize: 24, borderWidth: 0),
           ),
         ),
       ),
