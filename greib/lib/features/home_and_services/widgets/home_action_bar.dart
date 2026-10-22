@@ -200,8 +200,10 @@ class _CircleAvatarButton extends StatelessWidget {
                   : theme.colorScheme.surface.withValues(alpha: 0.92),
               shape: BoxShape.circle,
               border: Border.all(
-                // ★ stroke أزرق زجاجي خفيف
-                color: accent.withValues(alpha: isDark ? 0.45 : 0.25),
+                // ★ أبيض في الوضع الليلي، ولون التمييز في النهاري (لتبقى ظاهرة).
+                color: isDark
+                    ? Colors.white
+                    : accent.withValues(alpha: 0.25),
               ),
             ),
             padding: const EdgeInsets.all(3),
