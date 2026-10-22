@@ -16,6 +16,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../core/extensions/context_extensions.dart';
+import '../../core/mock_data/mock_data.dart';
 import '../../core/models/account_model.dart';
 import '../../core/models/service_model.dart';
 import '../../core/widgets/app_sheet.dart';
@@ -48,6 +49,9 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
   /// ★ المنتجات المتوفرة الآن من كتالوج التطبيق (CommerceAggregatorService).
   late final List<AggregatedProduct> _products;
 
+  /// ★ خدمات التوصيل المتاحة — من خدمات التطبيق (ServicesRepository).
+  late final List<ServiceCategory> _services;
+
   /// ★ نواة الأوراق المشتركة ⇒ نفس سلوك «طلب الآن» المستخدم في المنشورات.
   PostSheetsController? _sheets;
 
@@ -77,6 +81,8 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
         .where((p) => p.inStock)
         .take(8)
         .toList(growable: false);
+    // ★ خدمات التوصيل المتاحة (أول 4 خدمات).
+    _services = ServicesRepository.instance.all.take(4).toList(growable: false);
   }
 
   @override
@@ -299,6 +305,9 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
           const SizedBox(height: 12),
           // ★ طبقة الكاروسيل العائمة فوق البث (منتجات يمكن تمريرها أفقياً).
           _buildFloatingCarouselLayer(),
+          const SizedBox(height: 18),
+          // ★ طبقة «خدمات التوصيل المتاحة» أسفل كاروسيل المنتجات.
+          _buildDeliveryServicesLayer(),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -321,6 +330,43 @@ class _LiveProductsScreenState extends State<LiveProductsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// ★ طبقة «خدمات التوصيل المتاحة» أسفل كاروسيل المنتجات: عنوان + أفاتار
+  ///   دائري لكل خدمة، قابلة للتمرير أفقياً (نفس أسلوب طبقة المنتجات).
+  Widget _buildDeliveryServicesLayer() {
+    if (_services.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'خدمات التوصيل المتاحة',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 88,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            padding: EdgeInsets.zero,
+            itemCount: _services.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 14),
+            itemBuilder: (context, i) => _ServiceAvatarButton(
+              service: _services[i],
+              onTap: () {
+                HapticFeedback.selectionClick();
+                context.push('/service/${_services[i].id}');
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -458,6 +504,75 @@ class _ReactionIconButton extends StatelessWidget {
             color: active ? const Color(0xFFE5484D) : Colors.white,
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// ★ أفاتار دائري لخدمة توصيل (صورة الخدمة أو أيقونتها) + اسمها أسفلها.
+class _ServiceAvatarButton extends StatelessWidget {
+  const _ServiceAvatarButton({required this.service, required this.onTap});
+
+  final ServiceCategory service;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cover = service.coverImage;
+    return SizedBox(
+      width: 68,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              customBorder: const CircleBorder(),
+              child: Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withValues(alpha: 0.35),
+                  border: Border.all(
+                    color: service.color.withValues(alpha: 0.9),
+                    width: 2,
+                  ),
+                ),
+                child: ClipOval(
+                  child: cover == null
+                      ? Icon(
+                          MockData.getIconByName(service.iconName),
+                          size: 24,
+                          color: Colors.white,
+                        )
+                      : Image.network(
+                          cover,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => Icon(
+                            MockData.getIconByName(service.iconName),
+                            size: 24,
+                            color: Colors.white,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            service.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }
