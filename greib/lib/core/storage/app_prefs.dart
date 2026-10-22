@@ -95,6 +95,7 @@ class AppPrefs {
     }
   }
 
+
   /// حفظ/تحديث عدة حقول دفعة واحدة (حفظ كل التغييرات أو تطبيق ثيم جاهز).
   static Future<void> setPaletteOverrides(
     Map<String, int> values, {

@@ -82,9 +82,8 @@ class FloatingBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    // ★ الأسطح والحدود واللون الرسمي من اللوحة الديناميكية.
+    // ★ الأسطح واللون الرسمي من اللوحة الديناميكية.
     final surface = context.backgroundColors.surface;
-    final outline = context.backgroundColors.outline;
     final accent = context.accentColor;
 
     return Padding(
@@ -127,12 +126,6 @@ class FloatingBottomNav extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: surface.withValues(alpha: 0.85),
                             borderRadius: BorderRadius.circular(36),
-                            border: Border.all(
-                              color: isDark
-                                  ? outline.withValues(alpha: 0.6)
-                                  : outline,
-                              width: 1,
-                            ),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(
