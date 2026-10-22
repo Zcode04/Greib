@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../core/extensions/context_extensions.dart';
 import '../../core/models/service_model.dart';
 import '../../core/theme/design_tokens.dart';
 import '../smart_image.dart';
@@ -89,7 +90,7 @@ class _PostShareSheetState extends State<PostShareSheet> {
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF10B981),
+        backgroundColor: context.iconColors.success,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
         shape: RoundedRectangleBorder(
@@ -138,7 +139,7 @@ class _PostShareSheetState extends State<PostShareSheet> {
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF2563EB),
+        backgroundColor: context.accentColor,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
         shape: RoundedRectangleBorder(
@@ -151,15 +152,10 @@ class _PostShareSheetState extends State<PostShareSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textPrimary = theme.colorScheme.onSurface;
-    final textSecondary = theme.colorScheme.onSurface.withValues(alpha: 0.6);
-    final cardBg = widget.isDark
-        ? const Color(0xFF1E293B)
-        : const Color(0xFFF1F5F9);
-    final borderColor = widget.isDark
-        ? Colors.white.withValues(alpha: 0.08)
-        : Colors.black.withValues(alpha: 0.06);
+    final textPrimary = context.textColors.primary;
+    final textSecondary = context.textColors.secondary;
+    final cardBg = context.backgroundColors.surfaceElevated;
+    final borderColor = context.backgroundColors.outline;
 
     return SafeArea(
       top: false,
@@ -265,7 +261,7 @@ class _PostShareSheetState extends State<PostShareSheet> {
                 borderRadius: BorderRadius.circular(AppRadii.xl),
                 border: Border.all(
                   color: _copied
-                      ? const Color(0xFF10B981).withValues(alpha: 0.5)
+                      ? context.iconColors.success.withValues(alpha: 0.5)
                       : borderColor,
                   width: _copied ? 1.5 : 1,
                 ),
@@ -275,7 +271,7 @@ class _PostShareSheetState extends State<PostShareSheet> {
                   Icon(
                     LucideIcons.link,
                     size: 18,
-                    color: _copied ? const Color(0xFF10B981) : textSecondary,
+                    color: _copied ? context.iconColors.success : textSecondary,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -299,20 +295,20 @@ class _PostShareSheetState extends State<PostShareSheet> {
                       icon: Icon(
                         _copied ? LucideIcons.check : LucideIcons.copy,
                         size: 15,
-                        color: Colors.white,
+                        color: context.textColors.onAccent,
                       ),
                       label: Text(
                         _copied ? 'تم النسخ!' : 'نسخ الرابط',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12.5,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: context.textColors.onAccent,
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _copied
-                            ? const Color(0xFF10B981)
-                            : theme.colorScheme.primary,
+                            ? context.iconColors.success
+                            : context.accentColor,
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
@@ -447,12 +443,10 @@ class _PostShareSheetState extends State<PostShareSheet> {
                   // تطبيقات الهاتف / المزيد
                   _AppShareItem(
                     name: 'المزيد',
-                    bgColor: widget.isDark
-                        ? const Color(0xFF334155)
-                        : const Color(0xFFE2E8F0),
+                    bgColor: context.backgroundColors.secondary,
                     icon: Icon(
                       LucideIcons.share2,
-                      color: widget.isDark ? Colors.white : const Color(0xFF0F172A),
+                      color: context.textColors.primary,
                       size: 22,
                     ),
                     onTap: () => _shareWithSystem(appName: 'تطبيقات الهاتف'),
@@ -482,7 +476,7 @@ class _PostShareSheetState extends State<PostShareSheet> {
               iconWidget: Icon(
                 LucideIcons.messageSquare,
                 size: 20,
-                color: theme.colorScheme.primary,
+                color: context.accentColor,
               ),
               title: 'إرسال في رسالة خاصة',
               subtitle: 'محادثة مباشرة مع مقدّم الخدمة',
@@ -499,7 +493,7 @@ class _PostShareSheetState extends State<PostShareSheet> {
               iconWidget: Icon(
                 _isSaved ? LucideIcons.bookmarkCheck : LucideIcons.bookmark,
                 size: 20,
-                color: _isSaved ? const Color(0xFFF59E0B) : textSecondary,
+                color: _isSaved ? context.iconColors.warning : textSecondary,
               ),
               title: _isSaved ? 'إزالة من المحفوظات' : 'حفظ في المفضلة',
               subtitle: _isSaved
@@ -538,9 +532,7 @@ class _PostShareSheetState extends State<PostShareSheet> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: widget.isDark
-                    ? const Color(0xFF1E293B)
-                    : const Color(0xFFF1F5F9),
+                color: context.backgroundColors.surfaceElevated,
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
@@ -628,7 +620,7 @@ class _AppShareItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.onSurface,
+                color: context.textColors.primary,
               ),
             ),
           ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
+import '../extensions/context_extensions.dart';
 import '../location/location_controller.dart';
 import '../location/location_service.dart';
 import '../theme/design_tokens.dart';
@@ -121,10 +122,11 @@ class _PermissionSheet extends StatelessWidget {
               FilledButton.icon(
                 onPressed: requesting ? null : onAllow,
                 icon: requesting
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 18, height: 18,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
+                            strokeWidth: 2,
+                            color: context.textColors.onAccent))
                     : const Icon(LucideIcons.locateFixed, size: 20),
                 label: Text(requesting
                     ? 'جارٍ طلب الإذن…'

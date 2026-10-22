@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../core/extensions/context_extensions.dart';
 import '../../../core/theme/design_tokens.dart';
 
 /// ============================================================================
@@ -28,38 +29,42 @@ class SuperAppGrid extends StatelessWidget {
 
   // ملاحظة: خدمات التطبيق تمر عبر المسار الواحد /service/:id
   // (Parameterized Route)، أما /wallet و /shopping فهي شاشات ثابتة.
-  static const List<_QuickTile> _tiles = [
-    _QuickTile(
+  //
+  // ★ ألوان الفئات (طعام/صيدلية/...) هوية بصرية ثابتة لكل خدمة.
+  //   أما خانتا «المحفظة» و«كل الخدمات» فتتبعان اللون الرسمي الديناميكي
+  //   (⇒ تُبنى وقت التشغيل من اللوحة المركزية عبر [context]).
+  List<_QuickTile> _tiles(BuildContext context) => [
+    const _QuickTile(
       label: 'طعام',
       icon: LucideIcons.utensils,
       color: AppColors.serviceFood,
       route: '/service/food',
     ),
-    _QuickTile(
+    const _QuickTile(
       label: 'الصيدلية',
       icon: LucideIcons.pill,
       color: AppColors.servicePharmacy,
       route: '/service/pharmacy',
     ),
-    _QuickTile(
+    const _QuickTile(
       label: 'المواصلات',
       icon: LucideIcons.car,
       color: AppColors.serviceRide,
       route: '/service/ride',
     ),
-    _QuickTile(
+    const _QuickTile(
       label: 'التسوق',
       icon: LucideIcons.shoppingCart,
       color: AppColors.serviceShopping,
       route: '/shopping',
     ),
-    _QuickTile(
+    const _QuickTile(
       label: 'السياحة',
       icon: LucideIcons.palmtree,
       color: AppColors.serviceTourism,
       route: '/service/tourism',
     ),
-    _QuickTile(
+    const _QuickTile(
       label: 'السفر',
       icon: LucideIcons.plane,
       color: AppColors.serviceTravel,
@@ -68,30 +73,31 @@ class SuperAppGrid extends StatelessWidget {
     _QuickTile(
       label: 'المحفظة',
       icon: LucideIcons.wallet,
-      color: AppColors.accentPrimary,
+      color: context.accentColor,
       route: '/profile?tab=wallet',
     ),
     _QuickTile(
       label: 'كل الخدمات',
       icon: LucideIcons.layoutGrid,
-      color: AppColors.accentPrimaryDark,
+      color: context.accentDarkColor,
       route: '/service/food',
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final tiles = _tiles(context);
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: _tiles.length,
+      itemCount: tiles.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
         mainAxisSpacing: AppSpacing.md,
         crossAxisSpacing: AppSpacing.sm,
         childAspectRatio: 0.82,
       ),
-      itemBuilder: (context, index) => _QuickTileView(tile: _tiles[index]),
+      itemBuilder: (context, index) => _QuickTileView(tile: tiles[index]),
     );
   }
 }
@@ -132,9 +138,7 @@ class _QuickTileView extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
             style: theme.textTheme.labelMedium?.copyWith(
-              color: isDark
-                  ? AppColors.textSecondary
-                  : AppColors.lightTextSecondary,
+              color: context.textColors.secondary,
               fontWeight: FontWeight.w600,
               fontSize: 11,
             ),

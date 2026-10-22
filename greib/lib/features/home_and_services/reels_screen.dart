@@ -152,7 +152,7 @@ class _ReelsScreenState extends State<ReelsScreen> {
       subtitle: reel.audioTitle,
       description: reel.caption,
       iconName: 'play',
-      color: AppColors.accentPrimary,
+      color: context.accentColor,
       colorHex: '3B82F6',
     );
   }
@@ -177,7 +177,7 @@ class _ReelsScreenState extends State<ReelsScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: context.backgroundColors.mediaScrim,
         body: Stack(
           children: [
             PageView.builder(
@@ -238,9 +238,9 @@ class _ReelsScreenState extends State<ReelsScreen> {
           IconButton(
             onPressed: () => context.pop(),
             tooltip: 'رجوع',
-            icon: const Icon(
+            icon: Icon(
               LucideIcons.chevronRight,
-              color: Colors.white,
+              color: context.textColors.onMedia,
               size: 26,
             ),
           ),
@@ -253,7 +253,7 @@ class _ReelsScreenState extends State<ReelsScreen> {
             tooltip: _muted ? 'تشغيل الصوت' : 'كتم الصوت',
             icon: Icon(
               _muted ? LucideIcons.volumeX : LucideIcons.volume2,
-              color: Colors.white,
+              color: context.textColors.onMedia,
               size: 21,
             ),
           ),
@@ -337,9 +337,9 @@ class _ReelPage extends StatelessWidget {
             child: AnimatedOpacity(
               opacity: isActive ? 0.0 : 1.0,
               duration: const Duration(milliseconds: 250),
-              child: const Icon(
+              child: Icon(
                 LucideIcons.volumeX,
-                color: Colors.white54,
+                color: context.textColors.onMedia.withValues(alpha: 0.54),
                 size: 56,
               ),
             ),
@@ -454,7 +454,7 @@ class _VideoBackdropState extends State<_VideoBackdrop>
                 widget.reel.coverUrl,
                 fit: BoxFit.cover,
                 errorBuilder: (context, _, _) =>
-                    const ColoredBox(color: Color(0xFF1B1B2B)),
+                    ColoredBox(color: context.backgroundColors.mediaScrim),
               ),
               // توهج متحرك أسفل الصفحة يحاكي إضاءة الفيديو.
               DecoratedBox(
@@ -496,7 +496,7 @@ class _EdgeScrim extends StatelessWidget {
             begin: top ? Alignment.topCenter : Alignment.bottomCenter,
             end: top ? Alignment.bottomCenter : Alignment.topCenter,
             colors: [
-              Colors.black.withValues(alpha: 0.55),
+              context.backgroundColors.mediaScrim.withValues(alpha: 0.55),
               Colors.transparent,
             ],
             stops: const [0.0, 0.42],
@@ -570,7 +570,7 @@ class _HeartBurstState extends State<_HeartBurst>
             scale: scale,
             child: Icon(
               LucideIcons.thumbsUp,
-              color: _likeColor,
+              color: _likeColor(context),
               size: 116,
             ),
           ),
@@ -606,7 +606,11 @@ class _ReelMeta extends StatelessWidget {
                 errorBuilder: (context, _, _) => CircleAvatar(
                   radius: 17,
                   backgroundColor: context.backgroundColors.surface,
-                  child: Icon(LucideIcons.user, size: 18, color: Colors.white70),
+                  child: Icon(
+                    LucideIcons.user,
+                    size: 18,
+                    color: context.textColors.onMedia.withValues(alpha: 0.70),
+                  ),
                 ),
               ),
             ),
@@ -620,8 +624,8 @@ class _ReelMeta extends StatelessWidget {
                       reel.authorHandle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: context.textColors.onMedia,
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
                       ),
@@ -629,10 +633,10 @@ class _ReelMeta extends StatelessWidget {
                   ),
                   if (reel.verified) ...[
                     const SizedBox(width: 4),
-                    const Icon(
+                    Icon(
                       LucideIcons.badgeCheck,
                       size: 15,
-                      color: Color(0xFF3DA5FF),
+                      color: context.accentColor,
                     ),
                   ],
                 ],
@@ -647,7 +651,7 @@ class _ReelMeta extends StatelessWidget {
           reel.caption,
           maxLines: 3,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: Colors.white, fontSize: 13.5, height: 1.5),
+          style: TextStyle(color: context.textColors.onMedia, fontSize: 13.5, height: 1.5),
         ),
         if (reel.tags.isNotEmpty) ...[
           const SizedBox(height: 4),
@@ -655,8 +659,8 @@ class _ReelMeta extends StatelessWidget {
             reel.tags.map((tag) => '#$tag').join('  '),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Color(0xFFBFC4D6),
+            style: TextStyle(
+              color: context.textColors.onMedia.withValues(alpha: 0.75),
               fontSize: 12.5,
               fontWeight: FontWeight.w600,
             ),
@@ -665,10 +669,10 @@ class _ReelMeta extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         Row(
           children: [
-            const Icon(
+            Icon(
               LucideIcons.music2,
               size: 14,
-              color: Colors.white,
+              color: context.textColors.onMedia,
             ),
             const SizedBox(width: 6),
             Expanded(
@@ -676,7 +680,7 @@ class _ReelMeta extends StatelessWidget {
                 reel.audioTitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Colors.white, fontSize: 12.5),
+                style: TextStyle(color: context.textColors.onMedia, fontSize: 12.5),
               ),
             ),
           ],
@@ -689,17 +693,20 @@ class _ReelMeta extends StatelessWidget {
               vertical: 4,
             ),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.14),
+              color: context.textColors.onMedia.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(AppRadii.full),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(LucideIcons.thumbsUp, size: 12, color: _likeColor),
+                Icon(LucideIcons.thumbsUp, size: 12, color: _likeColor(context)),
                 const SizedBox(width: 4),
-                const Text(
+                Text(
                   'أعجبك الريل',
-                  style: TextStyle(color: Colors.white, fontSize: 11),
+                  style: TextStyle(
+                    color: context.textColors.onMedia,
+                    fontSize: 11,
+                  ),
                 ),
               ],
             ),
@@ -718,13 +725,19 @@ class _FollowPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.18),
+        color: context.textColors.onMedia.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(AppRadii.full),
-        border: Border.all(color: Colors.white38),
+        border: Border.all(
+          color: context.textColors.onMedia.withValues(alpha: 0.38),
+        ),
       ),
-      child: const Text(
+      child: Text(
         'متابعة',
-        style: TextStyle(color: Colors.white, fontSize: 11.5, height: 1.3),
+        style: TextStyle(
+          color: context.textColors.onMedia,
+          fontSize: 11.5,
+          height: 1.3,
+        ),
       ),
     );
   }
@@ -767,7 +780,7 @@ class _ActionRail extends StatelessWidget {
         //   إعجاب = thumbsUp، مشاركة = ShareArrowIcon (سهم إعادة النشر).
         _RailButton(
           icon: LucideIcons.thumbsUp,
-          iconColor: liked ? _likeColor : Colors.white,
+          iconColor: liked ? _likeColor(context) : context.textColors.onMedia,
           filled: liked,
           count: reel.likes + (liked ? 1 : 0),
           tooltip: 'إعجاب',
@@ -781,14 +794,18 @@ class _ActionRail extends StatelessWidget {
         ),
         _RailButton(
           icon: LucideIcons.bookmark,
-          iconColor: saved ? Colors.amberAccent : Colors.white,
+          iconColor:
+              saved ? context.iconColors.warning : context.textColors.onMedia,
           filled: saved,
           count: reel.saves + (saved ? 1 : 0),
           tooltip: 'حفظ',
           onTap: onSave,
         ),
         _RailButton(
-          iconWidget: ShareArrowIcon(size: 26, color: Colors.white),
+          iconWidget: ShareArrowIcon(
+            size: 26,
+            color: context.textColors.onMedia,
+          ),
           count: reel.shares,
           tooltip: 'مشاركة',
           onTap: onShare,
@@ -812,7 +829,7 @@ class _RailButton extends StatelessWidget {
   /// أيقونة SVG جاهزة (مثل سهم المشاركة) — لها الأولوية على [icon].
   final Widget? iconWidget;
 
-  final Color iconColor;
+  final Color? iconColor;
   final bool filled;
 
   /// العدّاد أسفل الأيقونة — null يعني زر بلا عدّاد (مثل «المزيد»).
@@ -827,7 +844,7 @@ class _RailButton extends StatelessWidget {
     this.count,
     this.icon,
     this.iconWidget,
-    this.iconColor = Colors.white,
+    this.iconColor,
     this.filled = false,
   });
 
@@ -850,15 +867,15 @@ class _RailButton extends StatelessWidget {
                     Icon(
                       icon ?? LucideIcons.circle,
                       size: 30,
-                      color: iconColor,
+                      color: iconColor ?? context.textColors.onMedia,
                     ),
               ),
               const SizedBox(height: 3),
               if (count != null)
                 Text(
                   _format(count!),
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: context.textColors.onMedia,
                     fontSize: 11.5,
                     fontWeight: FontWeight.w700,
                   ),
@@ -893,7 +910,10 @@ class _AvatarStackButton extends StatelessWidget {
             height: 42,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 1.6),
+              border: Border.all(
+                color: context.textColors.onMedia,
+                width: 1.6,
+              ),
             ),
             child: ClipOval(
               child: Image.network(
@@ -901,7 +921,10 @@ class _AvatarStackButton extends StatelessWidget {
                 fit: BoxFit.cover,
                 errorBuilder: (context, _, _) => CircleAvatar(
                   backgroundColor: context.backgroundColors.surface,
-                  child: Icon(LucideIcons.user, color: Colors.white70),
+                  child: Icon(
+                    LucideIcons.user,
+                    color: context.textColors.onMedia.withValues(alpha: 0.70),
+                  ),
                 ),
               ),
             ),
@@ -914,7 +937,10 @@ class _AvatarStackButton extends StatelessWidget {
               decoration: BoxDecoration(
                 color: context.accentColor,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.black, width: 1.6),
+                border: Border.all(
+                  color: context.backgroundColors.mediaScrim,
+                  width: 1.6,
+                ),
               ),
               child: isActive
                   ? Icon(
@@ -987,8 +1013,10 @@ class _ProgressBarState extends State<_ProgressBar>
           animation: _controller,
           builder: (context, _) => LinearProgressIndicator(
             value: _controller.value,
-            backgroundColor: Colors.white24,
-            valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+            backgroundColor: context.textColors.onMedia.withValues(alpha: 0.24),
+            valueColor: AlwaysStoppedAnimation<Color>(
+              context.textColors.onMedia,
+            ),
           ),
         ),
       ),
@@ -1030,8 +1058,8 @@ class _TopTitleState extends State<_TopTitle>
       opacity: Tween<double>(begin: 0.55, end: 1).animate(_controller),
       child: Text(
         widget.label,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: context.textColors.onMedia,
           fontSize: 16,
           fontWeight: FontWeight.w800,
         ),
@@ -1104,10 +1132,10 @@ class _MockSheet extends StatelessWidget {
   }
 }
 
-/// ★ لون «الإعجاب» — مأخوذ من تفاعل البوست نفسه (AppColors.info) حتى
+/// ★ لون «الإعجاب» — مأخوذ من تفاعل البوست نفسه (لون أيقونة المعلومات) حتى
 ///   يبقى الزران متطابقين بين الريلز وبطاقة المنشور.
-Color get _likeColor =>
-    PostReaction.byValue(1)?.color ?? AppColors.info;
+Color _likeColor(BuildContext context) =>
+    PostReaction.byValue(1)?.color ?? context.iconColors.info;
 
 /// اختصار الأعداد (12.4K / 3.1M) بنفس أسلوب المنصات الاجتماعية.
 String _format(int value) {

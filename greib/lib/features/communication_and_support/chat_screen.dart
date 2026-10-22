@@ -2949,7 +2949,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
 
   /// بديل صورة المنشور داخل الفقاعة عند فشل التحميل (أيقونة بلون الخدمة).
   Widget _postFallback(Map<String, dynamic> msg, bool isMine) {
-    final color = Color(msg['postColor'] as int? ?? 0xFF888888);
+    // ★ لون الخدمة من البيانات إن وُجد، وإلا لون باهت مشتق من اللوحة المركزية.
+    final color = Color(
+      msg['postColor'] as int? ?? context.textColors.tertiary.toARGB32(),
+    );
     return Container(
       color: color.withValues(alpha: isMine ? 0.25 : 0.15),
       child: Center(

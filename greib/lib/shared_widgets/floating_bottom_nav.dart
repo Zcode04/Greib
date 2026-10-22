@@ -128,8 +128,8 @@ class FloatingBottomNav extends StatelessWidget {
                             borderRadius: BorderRadius.circular(36),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(
-                                    alpha: isDark ? 0.5 : 0.12),
+                                color: context.backgroundColors.scrim
+                                    .withValues(alpha: isDark ? 0.5 : 0.12),
                                 blurRadius: 32,
                                 offset: const Offset(0, 12),
                               ),
@@ -199,7 +199,7 @@ class _NavTile extends StatelessWidget {
     //   ★ استثناء: في الوضع الليلي الأيقونة المحددة (house/message) بيضاء
     //   لتباين أوضح على الخلفية الداكنة.
     final iconColor = selected
-        ? (isDark ? Colors.white : activeColor)
+        ? (isDark ? context.textColors.inverse : activeColor)
         : inactiveColor;
 
     return Semantics(
@@ -264,7 +264,7 @@ class _NavTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
         constraints: const BoxConstraints(minWidth: 16),
         decoration: BoxDecoration(
-          color: AppColors.error,
+          color: context.iconColors.error,
           borderRadius: BorderRadius.circular(AppRadii.full),
           border: Border.all(
             color: context.backgroundColors.surface,
@@ -274,11 +274,11 @@ class _NavTile extends StatelessWidget {
         child: Text(
           count > 9 ? '+9' : '$count',
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 9,
             height: 1.2,
             fontWeight: FontWeight.w800,
-            color: Colors.white,
+            color: context.textColors.onAccent,
           ),
         ),
       ),

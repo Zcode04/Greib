@@ -3,97 +3,17 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/extensions/context_extensions.dart';
-import '../../core/theme/app_colors.dart';
 import 'auth_service.dart';
 
 // ==========================================
-// 1. ثيمات الألوان العالمية للبدائل البصرية
+// 1. الشاشة الرئيسية لتسجيل الدخول
 // ==========================================
-enum AppThemeStyle { iceBlueGray, careemEmerald, midnightObsidian, royalIndigo }
-
-class AppPalette {
-  final Color primary;
-  final Color backgroundLight;
-  final Color backgroundDark;
-  final Color cardLight;
-  final Color cardDark;
-  final Color textPrimary;
-
-  const AppPalette({
-    required this.primary,
-    required this.backgroundLight,
-    required this.backgroundDark,
-    required this.cardLight,
-    required this.cardDark,
-    required this.textPrimary,
-  });
-
-  /// ★ الهوية الرسمية للتطبيق: خلفية Slate 900 + لون رسمي Sapphire #3B82F6
-  /// ★ القيم مأخوذة من النظام المركزي (AppColors ← AppColorPalette) — بلا ألوان صلبة.
-  static const iceBlueGray = AppPalette(
-    primary: AppColors.accentPrimary, // ★ Sapphire — اللون الرسمي
-    backgroundLight: AppColors.lightBackground, // slate-100
-    backgroundDark: AppColors.backgroundPrimary, // ★ slate-900 — خلفية التطبيق الرسمية
-    cardLight: AppColors.lightSurface,
-    cardDark: AppColors.surfaceCard, // slate-800
-    textPrimary: AppColors.lightText, // slate-900
-  );
-
-  // ★ كل الخيارات تستخدم نفس الهوية: خلفية Slate 900 + لون واحد Sapphire
-  static const careemEmerald = AppPalette(
-    primary: AppColors.accentPrimary,
-    backgroundLight: AppColors.lightBackground,
-    backgroundDark: AppColors.backgroundPrimary,
-    cardLight: AppColors.lightSurface,
-    cardDark: AppColors.surfaceCard,
-    textPrimary: AppColors.lightText,
-  );
-
-  static const midnightObsidian = AppPalette(
-    primary: AppColors.accentPrimary,
-    backgroundLight: AppColors.lightBackground,
-    backgroundDark: AppColors.backgroundPrimary,
-    cardLight: AppColors.lightSurface,
-    cardDark: AppColors.surfaceCard,
-    textPrimary: AppColors.lightText,
-  );
-
-  static const royalIndigo = AppPalette(
-    primary: AppColors.accentPrimary,
-    backgroundLight: AppColors.lightBackground,
-    backgroundDark: AppColors.backgroundPrimary,
-    cardLight: AppColors.lightSurface,
-    cardDark: AppColors.surfaceCard,
-    textPrimary: AppColors.lightText,
-  );
-
-  /// المحتوى (نص/أيقونة) فوق اللون الأساسي — داكن إذا كان اللون فاتحاً.
-  Color get onPrimary => primary.computeLuminance() > 0.5
-      ? AppColors.lightText
-      : AppColors.onAccentPrimary;
-
-  /// اللون الأساسي بدرجة تُقرأ على الخلفية الفاتحة (للنصوص والأيقونات).
-  Color get primaryOnLight => primary.computeLuminance() > 0.5
-      ? HSLColor.fromColor(primary).withLightness(0.36).toColor()
-      : primary;
-
-  /// اللون الأساسي للنص/الأيقونة حسب الوضع الحالي (داكن في الوضع النهاري).
-  Color primaryForeground(bool isDark) => isDark ? primary : primaryOnLight;
-}
-
-// ==========================================
-// 2. الشاشة الرئيسية لتسجيل الدخول
-// ==========================================
+// ★ كل الألوان تُقرأ من اللوحة المركزية (AppColorPalette) عبر السياق —
+//   لا توجد ثيمات صلبة مكتوبة يدوياً في هذه الصفحة.
 enum AuthTab { login, signup }
 
 class LoginScreen extends StatefulWidget {
-  final AppThemeStyle currentThemeStyle;
-
-  const LoginScreen({
-    super.key,
-    this.currentThemeStyle =
-        AppThemeStyle.iceBlueGray, // ★ الهوية الرسمية (slate-900 + #3B82F6)
-  });
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -157,7 +77,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     // ★ كل الألوان من اللوحة المركزية (Color Palette) عبر السياق.
     final bgColor = context.backgroundColors.primary;
     final cardColor = context.backgroundColors.surface;
@@ -250,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 28),
 
                 // 2. التبويبات المدمجة الذكية (Segmented Control Slider)
-                _buildModernTabSegment(isDark, cardColor),
+                _buildModernTabSegment(cardColor),
 
                 const SizedBox(height: 24),
 
@@ -273,8 +192,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           label: 'الاسم الكامل',
                           hint: 'أدخل اسمك كما في الهوية',
                           icon: LucideIcons.user,
-                          isDark: isDark,
-                          cardColor: cardColor,
                         ),
                         const SizedBox(height: 14),
                       ],
@@ -289,8 +206,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             : '05xxxxxxxx',
                         icon: LucideIcons.phone,
                         keyboardType: TextInputType.emailAddress,
-                        isDark: isDark,
-                        cardColor: cardColor,
                       ),
 
                       if (_activeTab == AuthTab.login) ...[
@@ -301,8 +216,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           hint: '••••••••',
                           icon: LucideIcons.lock,
                           isPassword: true,
-                          isDark: isDark,
-                          cardColor: cardColor,
                         ),
                         Align(
                           alignment: Alignment.centerLeft,
@@ -362,12 +275,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
 
                 // خيارات تسجيل الدخول الاجتماعي عبر SVG
-                _buildSocialLoginSection(isDark),
+                _buildSocialLoginSection(),
 
                 const SizedBox(height: 28),
 
                 // 4. كارت الانضمام كـ وكيل (شريك/كابتن) المميز
-                _buildAgentJoinCard(isDark),
+                _buildAgentJoinCard(),
 
                 const SizedBox(height: 16),
               ],
@@ -383,7 +296,7 @@ class _LoginScreenState extends State<LoginScreen> {
   // ==========================================
 
   // تبويب محاكي لتصميم أبل وكريم مع حركة التبديل
-  Widget _buildModernTabSegment(bool isDark, Color cardColor) {
+  Widget _buildModernTabSegment(Color cardColor) {
     final isLogin = _activeTab == AuthTab.login;
 
     return Container(
@@ -475,8 +388,6 @@ class _LoginScreenState extends State<LoginScreen> {
     required IconData icon,
     bool isPassword = false,
     TextInputType? keyboardType,
-    required bool isDark,
-    required Color cardColor,
   }) {
     // ★ ألوان الحقول من اللوحة المركزية (Color Palette) — لا ألوان صلبة.
     final fillColor = context.backgroundColors.surfaceElevated;
@@ -557,7 +468,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   // خيارات التسجيل بـ Google و Apple بملفات SVG حقيقية
-  Widget _buildSocialLoginSection(bool isDark) {
+  Widget _buildSocialLoginSection() {
     return Column(
       children: [
         Row(
@@ -587,7 +498,6 @@ class _LoginScreenState extends State<LoginScreen> {
               child: _buildSocialButton(
                 label: 'Google',
                 svgIcon: _googleSvg,
-                isDark: isDark,
                 onTap: () {},
               ),
             ),
@@ -596,7 +506,6 @@ class _LoginScreenState extends State<LoginScreen> {
               child: _buildSocialButton(
                 label: 'Apple',
                 svgIcon: _appleSvg,
-                isDark: isDark,
                 onTap: () {},
               ),
             ),
@@ -609,7 +518,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildSocialButton({
     required String label,
     required String svgIcon,
-    required bool isDark,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -644,7 +552,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   // 4. كارت الانضمام كـ وكيل (شريك / كابتن)
-  Widget _buildAgentJoinCard(bool isDark) {
+  Widget _buildAgentJoinCard() {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(

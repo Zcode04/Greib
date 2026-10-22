@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../../core/extensions/context_extensions.dart';
 import '../../../../shared_widgets/glass_container.dart';
-import '../../../../core/theme/app_colors.dart';
 
 class HeroBanner extends StatelessWidget {
   final bool isDark;
@@ -17,7 +17,7 @@ class HeroBanner extends StatelessWidget {
     return GlassContainer.frosted(
       padding: const EdgeInsets.all(24),
       borderRadius: BorderRadius.circular(28),
-      color: isDark ? AppColors.accentPrimaryDark : AppColors.accentPrimary,
+      color: isDark ? context.accentDarkColor : context.accentColor,
       opacity: 0.2,
       child: Row(
         children: [
@@ -29,7 +29,7 @@ class HeroBanner extends StatelessWidget {
                 Text(
                   'اكتشف خدماتنا\nالجديدة',
                   style: TextStyle(
-                    color: isDark ? Colors.white : AppColors.lightText,
+                    color: context.textColors.primary,
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
                     height: 1.3,
@@ -39,8 +39,8 @@ class HeroBanner extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () => context.push('/search'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accentPrimary,
-                    foregroundColor: AppColors.onAccentPrimary,
+                    backgroundColor: context.accentColor,
+                    foregroundColor: context.textColors.onAccent,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
@@ -57,7 +57,7 @@ class HeroBanner extends StatelessWidget {
             flex: 2,
             child: Icon(
               LucideIcons.sparkles,
-              color: isDark ? AppColors.accentPrimary : AppColors.accentPrimaryDark,
+              color: isDark ? context.accentColor : context.accentDarkColor,
               size: 72,
             ),
           ),

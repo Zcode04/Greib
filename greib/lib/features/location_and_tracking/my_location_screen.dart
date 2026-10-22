@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import '../../core/theme/app_colors.dart';
+import '../../core/extensions/context_extensions.dart';
 import '../../core/widgets/super_header.dart';
 import '../home_and_services/widgets/map_explore_section.dart';
 
@@ -20,9 +20,7 @@ class MyLocationScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark
-          ? AppColors.background
-          : AppColors.lightBackground,
+      backgroundColor: context.backgroundColors.primary,
       appBar: SuperHeader(showBackButton: true),
       body: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(

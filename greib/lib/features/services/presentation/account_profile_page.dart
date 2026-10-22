@@ -513,14 +513,18 @@ class _ActionButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 18, color: filled ? Colors.white : color),
+              Icon(
+                icon,
+                size: 18,
+                color: filled ? context.textColors.onAccent : color,
+              ),
               const SizedBox(width: 6),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: filled ? Colors.white : color,
+                  color: filled ? context.textColors.onAccent : color,
                 ),
               ),
             ],

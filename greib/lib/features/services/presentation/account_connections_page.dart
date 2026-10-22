@@ -276,7 +276,8 @@ class _MiniHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bg = isDark ? AppColors.backgroundPrimary : AppColors.lightBackground;
+    // ★ خلفية من اللوحة المركزية (تتبع الثيم والوضع والتخصيص).
+    final bg = context.backgroundColors.primary;
 
     // ★★ في الـ Sheet: بلا غلاف ولا بروفايل ولا اسم — شريط عنوان صغير فقط
     //    (مقبض السحب + عنوان التبويب + زر إغلاق) ثم التبويبات مباشرة،
@@ -794,7 +795,7 @@ class _FollowPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = isFollowing ? color : Colors.white;
+    final fg = isFollowing ? color : context.textColors.onAccent;
     return Material(
       color: isFollowing ? color.withValues(alpha: 0.12) : color,
       borderRadius: _radius,

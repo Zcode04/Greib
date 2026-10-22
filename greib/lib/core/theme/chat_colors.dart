@@ -95,92 +95,91 @@ class AppChatColors extends ThemeExtension<AppChatColors> {
     required this.onlineDot,
   });
 
-  /// يبني ألوان الدردشة من اللوحة المركزية — المصدر الوحيد للحقيقة.
-  /// ★ مطابقة واتساب (Dark Mode) بنسبة 100% — قيم مأخوذة من واتساب الحقيقي:
-  ///   - خلفية المحادثة (#0B141A) — أسود مزرق مطفي وليس أسود خالص.
-  ///   - فقاعة مرسّلة (#005C4B) — أخضر واتساب الداكن المطفي.
-  ///   - فقاعة مستلمة (#1F2C34) — رمادي مزرق داكن.
-  ///   - زر الإرسال (#00A884) — أخضر واتساب الداكن.
-  ///   - التوقيت والميتا (#8696A0) — رمادي واتساب الرسمي.
-  ///   - علامة القراءة الزرقاء (#53BDEB) — أزرق واتساب الرسمي.
+  /// ★ يبني ألوان الدردشة كاملةً من اللوحة المركزية [AppColorPalette] —
+  ///   بلا أي لون مكتوب يدوياً ⇒ أي تغيير في الثيم (الوضع، الثيم الجاهز،
+  ///   اللون الرسمي، الخلفية) يسري فوراً على صفحة الدردشة كلها.
+  ///
+  ///   ◆ منطق الاشتقاق:
+  ///     • خلفية المحادثة ← خلفية التطبيق + مسحة خفيفة من اللون الرسمي.
+  ///     • فقاعتي ← سطح اللوحة مصبوغاً باللون الرسمي (هويتي = أنا).
+  ///     • فقاعة الطرف الآخر ← سطح اللوحة كما هو (محايد).
+  ///     • نصوص الفقاعات ← نص اللوحة مع تصحيح تلقائي للتباين (WCAG ≥ 4.5).
+  ///     • حالات (قراءة/متصل/حذف) ← ألوان الحالة الدلالية في اللوحة.
   factory AppChatColors.fromPalette(AppColorPalette p) {
     final bool isDark = p.isDark;
-    // ★ ألوان واتساب الرسمية — داكن وفاتح (القيم الرسمية من واتساب):
-    //  داكن: خلفية #0B141A ، مرسّلة #005C4B ، مستلمة #1F2C34.
-    //  فاتح: خلفية #EFEAE2 ، مرسّلة #D9FDD3 ، مستلمة #FFFFFF.
-    const Color waBgDark = Color(0xFF0B141A);
-    const Color waMineDark = Color(0xFF005C4B);
-    const Color waTheirsDark = Color(0xFF1F2C34);
-    const Color waSendDark = Color(0xFF1FA855); // أخضر واتساب الرسمي
-    const Color waBgLight = Color(0xFFEFEAE2);
-    const Color waMineLight = Color(0xFFD9FDD3);
-    const Color waTheirsLight = Color(0xFFFFFFFF);
-    const Color waSendLight = Color(0xFF1FA855);
-    const Color waTick = Color(0xFF53BDEB); // علامة القراءة الزرقاء الرسمية
-    const Color waTrash = Color(0xFFE53956); // أحمر واتساب الرسمي للإلغاء/الحذف
-    final Color waBg = isDark ? waBgDark : waBgLight;
-    final Color waBubbleMine = isDark ? waMineDark : waMineLight;
-    final Color waBubbleTheirs = isDark ? waTheirsDark : waTheirsLight;
-    final Color waSend = isDark ? waSendDark : waSendLight;
-    const Color waOnline = Color(0xFF1FA855); // نقطة الاتصال
-    final Color waTime = isDark
-        ? const Color(0xFF8696A0)
-        : const Color(0xFF667781); // التوقيت الرسمي
-    final Color waSurface = isDark
-        ? const Color(0xFF1F2C34)
-        : const Color(0xFFF0F2F5); // سطح حقل الإدخال
-    final Color waText = isDark ? Colors.white : const Color(0xFF111B21);
-    final Color waMuted = isDark
-        ? const Color(0xFF8696A0)
-        : const Color(0xFF667781);
+
+    /// مسحة من [overlay] فوق [base] — أساس اشتقاق الأسطح المميّزة.
+    Color tint(Color base, Color overlay, double alpha) =>
+        Color.alphaBlend(overlay.withValues(alpha: alpha), base);
+
+    /// لون مقروء فوق [background]: يفضّل [preferred] ويصحّحه إن قلّ تباينه.
+    Color readable(Color background, Color preferred) =>
+        AppColorPalette.contrastRatio(preferred, background) >= 4.5
+            ? preferred
+            : AppColorPalette.bestTextOn(background);
+
+    // ★ خلفية المحادثة: خلفية التطبيق مع مسحة بسيطة من اللون الرسمي.
+    final Color wallpaper =
+        tint(p.background.primary, p.accent, isDark ? 0.05 : 0.035);
+    // ★ فقاعة المرسَل: سطح اللوحة مصبوغاً باللون الرسمي.
+    final Color bubbleMine =
+        tint(p.background.surface, p.accent, isDark ? 0.32 : 0.26);
+    // ★ فقاعة المستلَم: أفتح من خلفية المحادثة دائماً ليبقى التمييز واضحاً
+    //   (في الداكن نرفع إضاءتها بنص الثيم، وفي النهاري بسطح الثيم).
+    final Color bubbleTheirs = isDark
+        ? tint(wallpaper, p.text.primary, 0.10)
+        : tint(wallpaper, p.background.surface, 0.85);
+    final Color mineText = readable(bubbleMine, p.text.primary);
+    final Color theirsText = readable(bubbleTheirs, p.text.primary);
+    // ★ أشرطة (الكتابة/المرفقات/التسجيل) من السطح المرتفع، وحقولها من السطح.
+    final Color barSurface = p.background.surfaceElevated;
+    final Color fieldSurface = p.background.surface;
 
     return AppChatColors(
-      // ★ خلفية المحادثة طبيعية صلبة (#000000) — بدون نقش/خلفية خاصة.
-      conversationBackground: waBg,
-      // إلغاء النقوش تمامًا (شفاف) ليصبح الخلفية لونًا طبيعيًا واحدًا.
+      conversationBackground: wallpaper,
+      // ★ بلا نقش: خلفية نظيفة مشتقة من الثيم.
       doodleColor: Colors.transparent,
-      bubbleMine: waBubbleMine,
-      bubbleTheirs: waBubbleTheirs,
-      bubbleMineText: waText,
-      bubbleTheirsText: waText,
-      bubbleMineTime: waTime,
-      bubbleTheirsTime: waTime,
-      senderName: waText,
-      quotedBackgroundMine: waBubbleMine.withValues(alpha: 0.12),
-      quotedBackgroundTheirs: waSurface,
-      quotedBar: waSend,
-      quotedTitle: waSend,
-      quotedBodyMine: waText.withValues(alpha: 0.75),
-      quotedBodyTheirs: waMuted,
-      composerBackground: waSurface,
-      composerBorder: waMuted.withValues(alpha: 0.3),
-      inputField: waSurface,
-      inputHint: waMuted,
-      inputText: waText,
-      composerIcon: waMuted,
-      micButton: waSurface,
-      micIcon: waText,
-      sendButton: waSend,
-      sendIcon: Colors.white,
-      attachmentSheet: waSurface,
-      attachmentSheetHandle: waMuted,
-      attachmentIconBackground: waSurface,
-      attachmentLabel: waText,
-      recordingBackground: waSurface,
-      recordingTimer: waText,
-      // ★ لون الموجة المشغَّلة = الأزرق الرسمي لواتساب (#53BDEB) — نفس لون علامة القراءة.
-      recordingWavePlayed: waTick,
-      // ★ الموجة غير المشغَّلة: باهتة في الوضع الداكن، ورمادية مقروءة في النهاري.
-      recordingWaveUnplayed: isDark
-          ? Colors.white.withValues(alpha: 0.25)
-          : const Color(0xFF8696A0).withValues(alpha: 0.35),
-      // ★ لون نص/أيقونة باهتة عام داخل المحادثة (ليس خاصاً بالموجة).
-      mutedText: waMuted,
-      recordingTrash: waTrash,
-      recordingCancelBackground: waTrash.withValues(alpha: 0.1),
-      tickRead: waTick,
-      tickSent: waMuted,
-      onlineDot: waOnline,
+      bubbleMine: bubbleMine,
+      bubbleTheirs: bubbleTheirs,
+      bubbleMineText: mineText,
+      bubbleTheirsText: theirsText,
+      bubbleMineTime: mineText.withValues(alpha: 0.65),
+      bubbleTheirsTime: theirsText.withValues(alpha: 0.6),
+      // ★ اسم المرسل في المجموعات = اللون الرسمي للثيم.
+      senderName: p.accent,
+      quotedBackgroundMine: tint(bubbleMine, mineText, 0.10),
+      quotedBackgroundTheirs: fieldSurface,
+      quotedBar: p.accent,
+      quotedTitle: p.accent,
+      quotedBodyMine: mineText.withValues(alpha: 0.78),
+      quotedBodyTheirs: p.text.secondary,
+      composerBackground: barSurface,
+      composerBorder: p.background.outline,
+      inputField: fieldSurface,
+      inputHint: p.text.tertiary,
+      inputText: p.text.primary,
+      composerIcon: p.text.secondary,
+      micButton: fieldSurface,
+      micIcon: p.text.primary,
+      sendButton: p.accent,
+      sendIcon: readable(p.accent, p.text.onAccent),
+      attachmentSheet: barSurface,
+      attachmentSheetHandle: p.text.tertiary,
+      attachmentIconBackground: fieldSurface,
+      attachmentLabel: p.text.primary,
+      recordingBackground: barSurface,
+      recordingTimer: p.text.primary,
+      // ★ الموجة المشغَّلة = اللون الرسمي، وغير المشغَّلة = نص باهت من الثيم.
+      recordingWavePlayed: p.accent,
+      recordingWaveUnplayed: p.text.tertiary,
+      // ★ نص/أيقونة باهتة عام داخل المحادثة.
+      mutedText: p.text.secondary,
+      recordingTrash: p.icon.error,
+      recordingCancelBackground: p.icon.error.withValues(alpha: 0.12),
+      // ★ الحالات: القراءة (معلومات)، المُرسَل (باهت)، المتصل (نجاح).
+      tickRead: p.icon.info,
+      tickSent: p.text.tertiary,
+      onlineDot: p.icon.success,
     );
   }
 

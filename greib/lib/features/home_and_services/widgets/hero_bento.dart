@@ -34,14 +34,14 @@ class HeroBento extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         // ★ تدرّج الهوية من اللوحة المركزية: اللون الرسمي (ديناميكي) +
-        //   درجته الفاتحة (لا يوجد لها حقل مخصّص في اللوحة ⇒ من المصدر المركزي).
+        //   درجته الفاتحة (مشتقة وقت التشغيل ⇒ تتبع أي ثيم يختاره المستخدم).
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [context.accentColor, AppColors.accentPrimaryLight],
+          colors: [context.accentColor, context.accentLightColor],
         ),
         borderRadius: BorderRadius.circular(AppRadii.xxl + 4),
-        boxShadow: AppColors.violetGlow(blur: 28, alpha: 0.35),
+        boxShadow: context.brandGlow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

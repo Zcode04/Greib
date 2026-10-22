@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 
 import '../../../core/location/location_controller.dart';
 import '../../../core/storage/app_prefs.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/widgets/confirm_location_sheet.dart';
 import '../../../core/widgets/map_style_selector.dart';
@@ -631,7 +630,9 @@ class _NearbyServicesSectionState extends State<NearbyServicesSection> {
                       height: 6,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: place.online ? AppColors.success : secondary,
+                        color: place.online
+                            ? context.iconColors.success
+                            : secondary,
                       ),
                     ),
                     const SizedBox(width: 5),
@@ -808,6 +809,7 @@ class _SpinningGlobeState extends State<_SpinningGlobe>
             turns: _spin.value,
             brand: context.accentColor,
             background: context.backgroundColors.primary,
+            pinColor: context.iconColors.success,
           ),
         ),
       ),
@@ -828,10 +830,14 @@ class _GlobePainter extends CustomPainter {
   /// ★ لون الخلفية من اللوحة المركزية.
   final Color background;
 
+  /// ★ لون نقاط المواقع من اللوحة المركزية (حالة النجاح).
+  final Color pinColor;
+
   const _GlobePainter({
     required this.turns,
     required this.brand,
     required this.background,
+    required this.pinColor,
   });
 
   @override
@@ -906,7 +912,7 @@ class _GlobePainter extends CustomPainter {
       final p = center.translate(x, y);
       // نقلة فقط داخل قرص الكرة.
       if ((p - center).distance > radius * 0.94) continue;
-      canvas.drawCircle(p, 2.4, Paint()..color = AppColors.success);
+      canvas.drawCircle(p, 2.4, Paint()..color = pinColor);
     }
   }
 
@@ -914,5 +920,6 @@ class _GlobePainter extends CustomPainter {
   bool shouldRepaint(_GlobePainter oldDelegate) =>
       oldDelegate.turns != turns ||
       oldDelegate.brand != brand ||
-      oldDelegate.background != background;
+      oldDelegate.background != background ||
+      oldDelegate.pinColor != pinColor;
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/theme/design_tokens.dart';
 
 class RatingStars extends StatelessWidget {
@@ -18,8 +19,9 @@ class RatingStars extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = color ?? Colors.amber;
-    final inactiveColor = Colors.grey.withValues(alpha: 0.3);
+    // ★ اللون النشط افتراضياً من اللوحة المركزية، مع إمكانية تمرير لون مخصّص.
+    final activeColor = color ?? context.iconColors.warning;
+    final inactiveColor = context.textColors.tertiary.withValues(alpha: 0.3);
 
     return Row(
       mainAxisSize: MainAxisSize.min,

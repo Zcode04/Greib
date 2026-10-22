@@ -208,7 +208,9 @@ class _ProfileHeaderCard extends StatelessWidget {
                             center: const Alignment(-0.7, -0.9),
                             radius: 1.4,
                             colors: [
-                              Colors.white.withValues(alpha: 0.22),
+                              context.textColors.onMedia.withValues(
+                                alpha: 0.22,
+                              ),
                               Colors.transparent,
                             ],
                           ),
@@ -255,10 +257,10 @@ class _ProfileHeaderCard extends StatelessWidget {
                               color: accent,
                               border: Border.all(color: surface, width: 2),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               LucideIcons.camera,
                               size: 13,
-                              color: Colors.white,
+                              color: context.textColors.onAccent,
                             ),
                           ),
                         ),

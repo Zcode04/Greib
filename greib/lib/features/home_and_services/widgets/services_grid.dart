@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared_widgets/glass_container.dart';
 import '../../../../shared_widgets/smart_image.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/mock_data/mock_data.dart';
 import '../../../../core/models/service_model.dart';
 import '../../services/data/services_repository.dart';
@@ -111,7 +111,7 @@ class ServicesGridSection extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: isDark ? AppColors.textPrimary : AppColors.lightText,
+                color: context.textColors.primary,
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
               ),

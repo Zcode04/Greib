@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../core/extensions/context_extensions.dart';
-import '../core/theme/app_colors.dart';
 import '../features/services/data/commerce_aggregator_service.dart';
 import 'store_category_tabs.dart';
 
@@ -162,9 +161,9 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
                   begin: Alignment.centerRight,
                   end: Alignment.centerLeft,
                   colors: [
-                    Colors.black.withValues(alpha: 0.88),
-                    Colors.black.withValues(alpha: 0.52),
-                    Colors.black.withValues(alpha: 0.04),
+                    context.backgroundColors.mediaScrim.withValues(alpha: 0.88),
+                    context.backgroundColors.mediaScrim.withValues(alpha: 0.52),
+                    context.backgroundColors.mediaScrim.withValues(alpha: 0.04),
                   ],
                   stops: const [0.0, 0.55, 1.0],
                 ),
@@ -179,11 +178,11 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: isHotel ? const Color(0xFF1E6B3C) : AppColors.error,
+                      color: isHotel ? const Color(0xFF1E6B3C) : context.iconColors.error,
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: (isHotel ? const Color(0xFF1E6B3C) : AppColors.error)
+                          color: (isHotel ? const Color(0xFF1E6B3C) : context.iconColors.error)
                               .withValues(alpha: 0.4),
                           blurRadius: 8,
                           offset: const Offset(0, 3),
@@ -196,13 +195,13 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
                         Icon(
                           isHotel ? LucideIcons.hotel : LucideIcons.sparkles,
                           size: 11,
-                          color: Colors.white,
+                          color: context.textColors.onMedia,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           isHotel ? 'إقامة عائلية' : 'الأحدث',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: context.textColors.onMedia,
                             fontSize: 11,
                             fontWeight: FontWeight.w800,
                           ),
@@ -215,7 +214,7 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: context.textColors.onMedia,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
@@ -237,22 +236,22 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.55),
+                  color: context.backgroundColors.mediaScrim.withValues(alpha: 0.55),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: context.textColors.onMedia.withValues(alpha: 0.15),
                     width: 0.8,
                   ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(LucideIcons.store, size: 10, color: Colors.white70),
+                    Icon(LucideIcons.store, size: 10, color: context.textColors.onMedia.withValues(alpha: 0.70)),
                     const SizedBox(width: 4),
                     Text(
                       p.sourceStore,
-                      style: const TextStyle(
-                        color: Colors.white70,
+                      style: TextStyle(
+                        color: context.textColors.onMedia.withValues(alpha: 0.70),
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
                       ),
@@ -276,15 +275,15 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.18),
+                            color: context.textColors.onMedia.withValues(alpha: 0.18),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             isHotel
                                 ? (p.tags.isNotEmpty ? p.tags[0] : 'إقامة فاخرة')
                                 : 'وصل حديثاً',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: context.textColors.onMedia,
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
                             ),
@@ -295,8 +294,8 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
                           p.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: context.textColors.onMedia,
                             fontWeight: FontWeight.w900,
                             fontSize: 17,
                           ),
@@ -318,8 +317,8 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
                               const SizedBox(width: 8),
                               Text(
                                 '${p.oldPrice!.toStringAsFixed(0)} ${p.currency}',
-                                style: const TextStyle(
-                                  color: Colors.white60,
+                                style: TextStyle(
+                                  color: context.textColors.onMedia.withValues(alpha: 0.60),
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                   decoration: TextDecoration.lineThrough,
@@ -327,12 +326,12 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
                               ),
                             ],
                             const SizedBox(width: 8),
-                            const Icon(LucideIcons.star, size: 12, color: AppColors.warning),
+                            Icon(LucideIcons.star, size: 12, color: context.iconColors.warning),
                             const SizedBox(width: 3),
                             Text(
                               p.rating.toStringAsFixed(1),
-                              style: const TextStyle(
-                                color: Colors.white70,
+                              style: TextStyle(
+                                color: context.textColors.onMedia.withValues(alpha: 0.70),
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -341,8 +340,8 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
                               const SizedBox(width: 4),
                               Text(
                                 '(${p.reviewsCount})',
-                                style: const TextStyle(
-                                  color: Colors.white54,
+                                style: TextStyle(
+                                  color: context.textColors.onMedia.withValues(alpha: 0.54),
                                   fontSize: 10,
                                 ),
                               ),
@@ -440,13 +439,13 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
                       fit: BoxFit.cover,
                       errorBuilder: (ctx, _, _) => Container(
                         color: isDark
-                            ? Colors.white.withValues(alpha: 0.06)
-                            : Colors.black.withValues(alpha: 0.04),
+                            ? context.textColors.onMedia.withValues(alpha: 0.06)
+                            : context.backgroundColors.mediaScrim.withValues(alpha: 0.04),
                         child: Icon(LucideIcons.image, size: 22, color: accent),
                       ),
                     ),
                     Container(
-                      color: Colors.black.withValues(
+                      color: context.backgroundColors.mediaScrim.withValues(
                         alpha: isActive ? 0.2 : 0.45,
                       ),
                     ),
@@ -456,7 +455,7 @@ class _LatestProductsCarouselState extends State<LatestProductsCarousel> {
                       right: 0,
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 3),
-                        color: Colors.black.withValues(alpha: 0.6),
+                        color: context.backgroundColors.mediaScrim.withValues(alpha: 0.6),
                         child: Text(
                           p.customPrice.toStringAsFixed(0),
                           textAlign: TextAlign.center,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../core/extensions/context_extensions.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
 import '../../shared_widgets/header.dart';
@@ -146,13 +147,13 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: (isOpen ? AppColors.primary : AppColors.neutral400)
+                color: (isOpen ? context.accentColor : context.textColors.tertiary)
                     .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
               child: Icon(
                 isOpen ? LucideIcons.headphones : LucideIcons.checkCircle,
-                color: isOpen ? AppColors.primary : AppColors.neutral400,
+                color: isOpen ? context.accentColor : context.textColors.tertiary,
                 size: 24,
               ),
             ),
@@ -178,14 +179,14 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
               ),
               decoration: BoxDecoration(
                 color: isOpen
-                    ? AppColors.success.withValues(alpha: 0.1)
-                    : AppColors.neutral400.withValues(alpha: 0.1),
+                    ? context.iconColors.success.withValues(alpha: 0.1)
+                    : context.textColors.tertiary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppRadii.sm),
               ),
               child: Text(
                 isOpen ? 'مفتوحة' : 'مغلقة',
                 style: TextStyle(
-                  color: isOpen ? AppColors.success : AppColors.neutral400,
+                  color: isOpen ? context.iconColors.success : context.textColors.tertiary,
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                 ),
@@ -255,9 +256,9 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
 
               context.pop();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('تم إنشاء تذكرة الدعم بنجاح ✅'),
-                  backgroundColor: AppColors.success,
+                SnackBar(
+                  content: const Text('تم إنشاء تذكرة الدعم بنجاح ✅'),
+                  backgroundColor: context.iconColors.success,
                 ),
               );
             },
@@ -281,17 +282,17 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.1),
+                color: context.iconColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppRadii.sm),
               ),
               child: Row(
                 children: [
-                  const Icon(LucideIcons.headphones, color: AppColors.success, size: 20),
+                  Icon(LucideIcons.headphones, color: context.iconColors.success, size: 20),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       'فريق الدعم يرد خلال ٢٤ ساعة',
-                      style: TextStyle(color: AppColors.success, fontSize: 13),
+                      style: TextStyle(color: context.iconColors.success, fontSize: 13),
                     ),
                   ),
                 ],

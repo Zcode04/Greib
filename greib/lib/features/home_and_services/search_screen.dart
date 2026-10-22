@@ -325,7 +325,6 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildSearchField(BuildContext context, ThemeData theme) {
-    final isDark = theme.brightness == Brightness.dark;
     final focused = _focusNode.hasFocus;
     final canSend =
         _searchController.text.trim().isNotEmpty || _attachment != null;
@@ -340,7 +339,7 @@ class _SearchScreenState extends State<SearchScreen> {
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
           color: focused
-              ? (isDark ? Colors.white24 : Colors.black26)
+              ? context.accentColor
               : context.backgroundColors.outline,
         ),
       ),
@@ -394,7 +393,6 @@ class _SearchScreenState extends State<SearchScreen> {
                 const Spacer(),
                 _ActionCircle(
                   canSend: canSend,
-                  isDark: isDark,
                   iconColor: muted,
                   onSend: _submit,
                   onVoice: _startVoiceSearch,
@@ -512,14 +510,13 @@ class _SearchScreenState extends State<SearchScreen> {
     Widget? trailing,
   }) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(
           icon,
           size: 20,
-          color: isDark ? Colors.white : theme.colorScheme.onSurface,
+          color: context.textColors.primary,
         ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
@@ -557,9 +554,7 @@ class _SearchScreenState extends State<SearchScreen> {
             Icon(
               LucideIcons.searchX,
               size: 40,
-              color: theme.brightness == Brightness.dark
-                  ? Colors.white
-                  : theme.colorScheme.onSurface,
+              color: context.textColors.primary,
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
@@ -877,14 +872,12 @@ class _BarIconButton extends StatelessWidget {
 /// ★ الدائرة الأخيرة في الصف السفلي: موجة صوتية، أو سهم إرسال.
 class _ActionCircle extends StatelessWidget {
   final bool canSend;
-  final bool isDark;
   final Color iconColor;
   final VoidCallback onSend;
   final VoidCallback onVoice;
 
   const _ActionCircle({
     required this.canSend,
-    required this.isDark,
     required this.iconColor,
     required this.onSend,
     required this.onVoice,
@@ -892,9 +885,8 @@ class _ActionCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = canSend
-        ? (isDark ? Colors.white : Colors.black)
-        : Colors.transparent;
+    // ★ الدائرة الممتلئة تتبع اللون المقابل للخلفية (تتكيّف مع الوضع تلقائياً).
+    final bg = canSend ? context.textColors.primary : Colors.transparent;
     return Tooltip(
       message: canSend ? 'إرسال' : 'وضع الصوت',
       child: Material(
@@ -913,7 +905,7 @@ class _ActionCircle extends StatelessWidget {
                       LucideIcons.arrowUp,
                       key: const ValueKey('send'),
                       size: 20,
-                      color: isDark ? Colors.black : Colors.white,
+                      color: context.backgroundColors.primary,
                     )
                   : Center(
                       key: const ValueKey('wave'),
@@ -929,13 +921,15 @@ class _ActionCircle extends StatelessWidget {
 
 /// أيقونة موجة صوتية (audio-lines) مرسومة يدوياً.
 class _WaveformIcon extends StatelessWidget {
-  final Color color;
+  final Color? color;
 
-  const _WaveformIcon({this.color = const Color(0xFF2F9BFF)});
+  const _WaveformIcon({this.color});
 
   @override
-  Widget build(BuildContext context) =>
-      CustomPaint(size: const Size(22, 18), painter: _WaveformPainter(color));
+  Widget build(BuildContext context) => CustomPaint(
+        size: const Size(22, 18),
+        painter: _WaveformPainter(color ?? context.accentColor),
+      );
 }
 
 class _WaveformPainter extends CustomPainter {
@@ -980,8 +974,7 @@ class _QuickChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final fg = isDark ? Colors.white : theme.colorScheme.onSurface;
+    final fg = context.textColors.primary;
     return Material(
       color: context.backgroundColors.surface,
       borderRadius: BorderRadius.circular(AppRadii.full),
@@ -1049,11 +1042,15 @@ class _AttachmentPreview extends StatelessWidget {
               width: 22,
               height: 22,
               decoration: BoxDecoration(
-                color: Colors.black87,
+                color: context.backgroundColors.mediaScrim,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white24),
+                border: Border.all(color: context.backgroundColors.outline),
               ),
-              child: const Icon(LucideIcons.x, size: 13, color: Colors.white),
+              child: Icon(
+                LucideIcons.x,
+                size: 13,
+                color: context.textColors.onMedia,
+              ),
             ),
           ),
         ),
@@ -1070,8 +1067,7 @@ class _ServiceResultTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final fg = isDark ? Colors.white : theme.colorScheme.onSurface;
+    final fg = context.textColors.primary;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: Row(
@@ -1259,9 +1255,8 @@ class _AiThinkingState extends State<_AiThinking>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final bg = context.backgroundColors.primary;
-    final fg = isDark ? Colors.white : theme.colorScheme.onSurface;
+    final fg = context.textColors.primary;
     final muted = theme.colorScheme.onSurfaceVariant;
     final steps = _steps;
     final title = _step == 0

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../core/extensions/context_extensions.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/notifications/notification_manager.dart';
 import '../../shared_widgets/app_button.dart';
@@ -121,8 +122,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               : Container(
                                   width: 8,
                                   height: 8,
-                                  decoration: const BoxDecoration(
-                                    color: AppColors.primary,
+                                  decoration: BoxDecoration(
+                                    color: context.accentColor,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -142,7 +143,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       label: 'مسح الكل',
                       icon: LucideIcons.trash2,
                       isOutlined: true,
-                      color: AppColors.error,
+                      color: context.iconColors.error,
                       onPressed: () {
                         notifManager.clearAll();
                         setState(() {});

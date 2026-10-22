@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/extensions/context_extensions.dart';
 import '../core/theme/design_tokens.dart';
 
 /// ============================================================================
@@ -36,27 +37,27 @@ class OrderStatusBadge extends StatelessWidget {
     }
   }
 
-  /// لون الحالة (يتبع الوضع الليلي/النهاري).
-  static Color colorFor(String status, bool isDark) {
+  /// لون الحالة (مشتق من اللوحة المركزية — يتحدّث فوراً مع الوضع والتخصيص).
+  static Color colorFor(BuildContext context, String status) {
     switch (status) {
       case 'pending':
-        return AppColors.warning;
+        return context.iconColors.warning;
       case 'assigned':
-        return AppColors.info;
+        return context.iconColors.info;
       case 'in_transit':
-        return isDark ? AppColors.accentPrimary : AppColors.accentPrimaryDark;
+        return context.isDarkMode ? context.accentColor : context.accentDarkColor;
       case 'delivered':
-        return AppColors.success;
+        return context.iconColors.success;
       case 'cancelled':
-        return AppColors.error;
+        return context.iconColors.error;
       default:
-        return isDark ? AppColors.textMuted : AppColors.lightTextTertiary;
+        return context.textColors.tertiary;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final color = colorFor(status, isDark);
+    final color = colorFor(context, status);
 
     return Container(
       padding: const EdgeInsets.symmetric(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../core/extensions/context_extensions.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/super_header.dart';
 import 'search_history_store.dart';
@@ -23,8 +24,8 @@ class SearchHistoryScreen extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor:
-            isDark ? AppColors.background : AppColors.lightBackground,
+        // ★ خلفية من اللوحة المركزية (تتبع الثيم والوضع والتخصيص).
+        backgroundColor: context.backgroundColors.primary,
         appBar: const SuperHeader(title: 'سجل البحث', showBackButton: true),
         body: SafeArea(
           child: ValueListenableBuilder<List<String>>(

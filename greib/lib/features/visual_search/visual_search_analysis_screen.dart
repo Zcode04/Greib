@@ -112,12 +112,15 @@ class _Preview extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: Colors.black54,
+                color: context.backgroundColors.mediaScrim,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 sourceLabel != null ? 'من $sourceLabel' : 'بحث بالنص',
-                style: const TextStyle(color: Colors.white, fontSize: 11),
+                style: TextStyle(
+                  color: context.textColors.onMedia,
+                  fontSize: 11,
+                ),
               ),
             ),
           ),
@@ -138,7 +141,10 @@ class _Preview extends StatelessWidget {
                 ),
                 child: Text(
                   textQuery!,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  style: TextStyle(
+                    color: context.textColors.primary,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ),
@@ -228,7 +234,11 @@ class _Detected extends StatelessWidget {
           Row(
             children: [
               // ★ أيقونة حرة بلا خلفية — مظهر احترافي نظيف.
-              Icon(LucideIcons.sparkles, size: 18, color: Colors.white),
+              Icon(
+                LucideIcons.sparkles,
+                size: 18,
+                color: context.textColors.primary,
+              ),
               const SizedBox(width: 6),
               const Text(
                 'الصورة تحتوي على:',
@@ -310,7 +320,11 @@ class _Matches extends StatelessWidget {
             child: Row(
               children: [
                 // ★ أيقونة حرة بلا خلفية — مظهر احترافي نظيف.
-                Icon(LucideIcons.store, size: 22, color: Colors.white),
+                Icon(
+                  LucideIcons.store,
+                  size: 22,
+                  color: context.textColors.primary,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -347,15 +361,15 @@ class _Matches extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.12),
+                    color: context.iconColors.success.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
                     scores[i],
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
-                      color: Colors.green,
+                      color: context.iconColors.success,
                     ),
                   ),
                 ),

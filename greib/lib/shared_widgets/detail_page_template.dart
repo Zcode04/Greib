@@ -113,7 +113,7 @@ class DetailPageTemplate extends StatelessWidget {
                               color: accentColor.withValues(alpha: 0.3),
                               width: 1.5,
                             ),
-                            boxShadow: AppShadows.glowGreen,
+                            boxShadow: context.brandGlow,
                           ),
                           child: Icon(icon, size: 56, color: accentColor),
                         ),
@@ -164,7 +164,7 @@ class DetailPageTemplate extends StatelessWidget {
                                 _DetailChip(
                                   icon: LucideIcons.clock,
                                   label: deliveryTime!,
-                                  color: AppColors.info,
+                                  color: context.iconColors.info,
                                 ),
                               ],
                               if (rating != null) ...[
@@ -172,7 +172,7 @@ class DetailPageTemplate extends StatelessWidget {
                                 _DetailChip(
                                   icon: LucideIcons.star,
                                   label: rating!,
-                                  color: AppColors.warning,
+                                  color: context.iconColors.warning,
                                 ),
                               ],
                             ],

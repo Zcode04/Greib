@@ -520,7 +520,7 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
         postTitle: item.title,
         postSubtitle: 'طلب من ستوري · ${item.category}',
         postImageUrl: item.storyPages[page],
-        postColor: const Color(0xFF3B82F6).toARGB32(),
+        postColor: context.accentColor.toARGB32(),
       ),
     );
     if (!context.mounted) return;
@@ -725,13 +725,13 @@ class _CenterSentToastState extends State<_CenterSentToast>
               ),
             ],
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.check_circle_rounded,
-                  color: Color(0xFF22C55E), size: 22),
-              SizedBox(width: 10),
-              Text(
+                  color: context.iconColors.success, size: 22),
+              const SizedBox(width: 10),
+              const Text(
                 'تم الإرسال',
                 style: TextStyle(
                   color: Colors.white,

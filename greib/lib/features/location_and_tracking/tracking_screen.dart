@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../core/extensions/context_extensions.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../shared_widgets/app_button.dart';
 import '../../shared_widgets/header.dart';
@@ -67,19 +68,22 @@ class _TrackingScreenState extends State<TrackingScreen>
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppColors.primary.withValues(alpha: 0.05),
-                    AppColors.primaryLight.withValues(alpha: 0.02),
+                    context.accentColor.withValues(alpha: 0.05),
+                    context.accentLightColor.withValues(alpha: 0.02),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(AppRadii.lg),
-                border: Border.all(color: AppColors.lightOutline),
+                border: Border.all(color: context.backgroundColors.outline),
               ),
               child: Stack(
                 children: [
                   Center(
                     child: CustomPaint(
                       size: const Size(300, 180),
-                      painter: RoutePainter(progress: _animation.value),
+                      painter: RoutePainter(
+                        progress: _animation.value,
+                        color: context.accentColor,
+                      ),
                     ),
                   ),
                   AnimatedBuilder(
@@ -94,13 +98,13 @@ class _TrackingScreenState extends State<TrackingScreen>
                           width: 28,
                           height: 28,
                           decoration: BoxDecoration(
-                            color: AppColors.primary,
+                            color: context.accentColor,
                             borderRadius: BorderRadius.circular(AppRadii.full),
                             boxShadow: AppShadows.md,
                           ),
-                          child: const Icon(
+                          child: Icon(
                             LucideIcons.bike,
-                            color: Colors.white,
+                            color: context.iconColors.onAccent,
                             size: 16,
                           ),
                         ),
@@ -138,12 +142,12 @@ class _TrackingScreenState extends State<TrackingScreen>
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
+                            color: context.accentColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(AppRadii.sm),
                           ),
                           child: Icon(
                             LucideIcons.receipt,
-                            color: AppColors.primary,
+                            color: context.accentColor,
                             size: 20,
                           ),
                         ),
@@ -166,7 +170,7 @@ class _TrackingScreenState extends State<TrackingScreen>
                         Text(
                           'AED 45.00',
                           style: theme.textTheme.titleMedium?.copyWith(
-                            color: AppColors.primary,
+                            color: context.accentColor,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -195,20 +199,22 @@ class _TrackingScreenState extends State<TrackingScreen>
                         height: 32,
                         decoration: BoxDecoration(
                           color: isActive
-                              ? AppColors.primary
-                              : AppColors.neutral200,
+                              ? context.accentColor
+                              : context.textColors.tertiary,
                           borderRadius: BorderRadius.circular(AppRadii.full),
                           border: Border.all(
                             color: isActive
-                                ? AppColors.primary
-                                : AppColors.neutral300,
+                                ? context.accentColor
+                                : context.textColors.tertiary,
                             width: 2,
                           ),
                         ),
                         child: Icon(
                           isActive ? LucideIcons.check : LucideIcons.circle,
                           size: 16,
-                          color: isActive ? Colors.white : AppColors.neutral400,
+                          color: isActive
+                              ? context.textColors.onAccent
+                              : context.textColors.tertiary,
                         ),
                       ),
                       if (!isLast)
@@ -216,8 +222,8 @@ class _TrackingScreenState extends State<TrackingScreen>
                           width: 2,
                           height: 40,
                           color: isActive
-                              ? AppColors.primary
-                              : AppColors.neutral200,
+                              ? context.accentColor
+                              : context.textColors.tertiary,
                         ),
                     ],
                   ),
@@ -256,7 +262,7 @@ class _TrackingScreenState extends State<TrackingScreen>
             AppButton(
               label: 'تواصل مع السائق',
               icon: LucideIcons.phone,
-              color: AppColors.primary,
+              color: context.accentColor,
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -283,13 +289,13 @@ class _MapMarker extends StatelessWidget {
       width: 24,
       height: 24,
       decoration: BoxDecoration(
-        color: isOrigin ? AppColors.success : AppColors.error,
+        color: isOrigin ? context.iconColors.success : context.iconColors.error,
         borderRadius: BorderRadius.circular(AppRadii.full),
         boxShadow: AppShadows.sm,
       ),
       child: Icon(
         isOrigin ? LucideIcons.mapPin : LucideIcons.flag,
-        color: Colors.white,
+        color: context.textColors.onAccent,
         size: 14,
       ),
     );
@@ -298,13 +304,14 @@ class _MapMarker extends StatelessWidget {
 
 class RoutePainter extends CustomPainter {
   final double progress;
+  final Color color;
 
-  RoutePainter({required this.progress});
+  RoutePainter({required this.progress, required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.primary.withValues(alpha: 0.2)
+      ..color = color.withValues(alpha: 0.2)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
@@ -327,7 +334,7 @@ class RoutePainter extends CustomPainter {
     canvas.drawPath(path, paint);
 
     final dashPaint = Paint()
-      ..color = AppColors.primary
+      ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;

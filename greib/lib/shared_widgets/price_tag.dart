@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/theme/design_tokens.dart';
 
 class PriceTag extends StatelessWidget {
@@ -50,7 +51,7 @@ class PriceTag extends StatelessWidget {
                 oldPriceStyle ??
                 Theme.of(context).textTheme.bodySmall?.copyWith(
                   decoration: TextDecoration.lineThrough,
-                  color: Colors.grey,
+                  color: context.textColors.tertiary,
                 ),
           ),
         ],

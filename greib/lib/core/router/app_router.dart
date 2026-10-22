@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../permissions/permissions.dart';
-import '../theme/app_colors.dart';
+import '../extensions/context_extensions.dart';
 import '../widgets/super_header.dart';
 import '../../shared_widgets/account_tabs_page.dart';
 import '../../features/auth/auth_service.dart';
@@ -213,9 +213,8 @@ class AppRouter {
           // ★ الهيدر عادي (غير شفاف) — المحتوى يبدأ تحته مباشرة بلا
           //   فراغ احتياطي، وشريط التبويب جزء من نفس الصفحة لا طبقاً عائماً.
           return Scaffold(
-            backgroundColor: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.background
-                : AppColors.lightBackground,
+            // ★ خلفية من اللوحة المركزية (تتبع الثيم والوضع والتخصيص).
+            backgroundColor: context.backgroundColors.primary,
             appBar: SuperHeader(showBackButton: true),
             body: AccountTabsPage(initialTab: openWallet ? 1 : 0),
           );

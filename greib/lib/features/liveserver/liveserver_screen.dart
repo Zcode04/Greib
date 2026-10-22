@@ -11,7 +11,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import '../../core/theme/app_colors.dart';
+import '../../core/extensions/context_extensions.dart';
 import '../../core/widgets/super_header.dart';
 
 /// ============================================================================
@@ -212,7 +212,7 @@ class _PersonFeed extends StatelessWidget {
                 child: Icon(
                   micOn ? LucideIcons.mic : LucideIcons.micOff,
                   size: 16,
-                  color: micOn ? Colors.white : AppColors.error,
+                  color: micOn ? Colors.white : context.iconColors.error,
                 ),
               ),
             ),
@@ -288,7 +288,7 @@ class _PulsingLiveBadgeState extends State<_PulsingLiveBadge>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.error,
+        color: context.iconColors.error,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -417,7 +417,7 @@ class _CircleControl extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bg = isDestructive
-        ? AppColors.error
+        ? context.iconColors.error
         : (active
             ? Colors.white.withValues(alpha: 0.16)
             : Colors.white.withValues(alpha: 0.08));

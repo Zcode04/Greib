@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../core/extensions/context_extensions.dart';
 import '../../../core/theme/chat_colors.dart';
-import '../../../core/theme/design_tokens.dart';
 
 /// ============================================================================
 ///  CallLogTile — صف مكالمة واحد بستايل واتساب.
@@ -51,8 +51,8 @@ class CallLogTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final chat = context.chatColors;
-    // ★ الفائتة حمراء مثل واتساب، والبقية بلون التطبيق.
-    final statusColor = _isMissed ? AppColors.error : chat.sendButton;
+    // ★ الفائتة حمراء (من لوحة الثيم)، والبقية باللون الرسمي للثيم.
+    final statusColor = _isMissed ? context.iconColors.error : chat.sendButton;
 
     return InkWell(
       onTap: onTap,
@@ -84,8 +84,8 @@ class CallLogTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontSize: 15,
-                      // ★ الفائتة بلون مميز مثل واتساب.
-                      color: _isMissed ? AppColors.error : null,
+                      // ★ الفائتة بلون الخطأ من الثيم (يتكيّف مع الوضع واللوحة).
+                      color: _isMissed ? context.iconColors.error : null,
                       fontWeight: _isMissed ? FontWeight.w700 : FontWeight.w500,
                     ),
                   ),

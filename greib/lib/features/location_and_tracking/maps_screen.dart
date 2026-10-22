@@ -9,7 +9,6 @@ import '../../core/location/location_service.dart';
 import '../../core/location/map_config.dart';
 import '../../core/location/place_model.dart';
 import '../../core/storage/app_prefs.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/extensions/context_extensions.dart';
 import '../../core/widgets/location_permission_prompt.dart';
 import '../../core/widgets/globe_3d.dart';
@@ -146,7 +145,7 @@ class _MapsScreenState extends State<MapsScreen>
         point: picked.latLng,
         width: 48,
         height: 48,
-        child: const Icon(LucideIcons.mapPin, size: 44, color: AppColors.error),
+        child: Icon(LucideIcons.mapPin, size: 44, color: context.iconColors.error),
       );
     });
     _move(picked.latLng, 16);
@@ -329,10 +328,10 @@ class _MapsScreenState extends State<MapsScreen>
               children: [
                 _MapFab(
                   icon: _locating
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20, height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onAccentPrimary))
-                      : const Icon(LucideIcons.locateFixed, size: 20, color: AppColors.onAccentPrimary),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: context.textColors.onAccent))
+                      : Icon(LucideIcons.locateFixed, size: 20, color: context.textColors.onAccent),
                   color: tint,
                   onTap: _locateMe,
                   tooltip: 'موقعي',
@@ -410,8 +409,10 @@ class _MapsScreenState extends State<MapsScreen>
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: CircleAvatar(
-                      backgroundColor: AppColors.info.withValues(alpha: 0.2),
-                      child: const Icon(LucideIcons.briefcase, color: AppColors.info),
+                      backgroundColor: context.iconColors.info
+                          .withValues(alpha: 0.2),
+                      child: Icon(LucideIcons.briefcase,
+                          color: context.iconColors.info),
                     ),
                     title: const Text('العمل',
                         style: TextStyle(fontWeight: FontWeight.bold)),
@@ -508,7 +509,7 @@ class _MapsScreenState extends State<MapsScreen>
   };
 
   Color _kindColor(MapProviderKind k) => switch (k) {
-    MapProviderKind.satellite => AppColors.success,
+    MapProviderKind.satellite => context.iconColors.success,
     MapProviderKind.osmDark   => const Color(0xFF8B5CF6), // لون نمط الخريطة الداكنة (outside the palette)
     MapProviderKind.osm       => context.accentColor,
   };
