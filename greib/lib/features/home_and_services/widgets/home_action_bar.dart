@@ -227,7 +227,7 @@ class _CircleIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = Theme.of(context).colorScheme.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -235,11 +235,16 @@ class _CircleIconButton extends StatelessWidget {
         onTap: onTap,
         child: Tooltip(
           message: tooltip,
-          // ★ مساحة لمس مريحة (42×42) مع إظهار الأيقونة فقط.
+          // ★ مساحة لمس مريحة (46×46) مع إظهار الأيقونة فقط.
           child: SizedBox(
-            width: 42,
-            height: 42,
-            child: Icon(icon, size: 18, color: accent),
+            width: 46,
+            height: 46,
+            child: Icon(
+              icon,
+              size: 26,
+              // ★ أبيض في الوضع الليلي (تباين أوضح)، ونص أساسي في النهاري.
+              color: isDark ? Colors.white : context.textColors.primary,
+            ),
           ),
         ),
       ),
