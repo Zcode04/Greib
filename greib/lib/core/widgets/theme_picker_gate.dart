@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
@@ -10,14 +11,7 @@ import '../theme/theme_controller.dart';
 import '../theme/theme_presets.dart';
 import '../../shared_widgets/app_button.dart';
 
-/// ============================================================================
-///  ThemePickerGate — بوابة اختيار الثيم عند أول فتح للتطبيق.
-///
-///  ★ تُعرض **قبل** بوابة إذن الموقع (LocationGate)، أي قبل أن يرى المستخدم
-///    أي شاشة أخرى: يختار مظهره المناسب أولاً، ثم يُطلب منه تحديد موقعه.
-///  ★ تُعرض مرة واحدة فقط (تُحفظ في AppPrefs) فلا تظهر مجدداً بعد الاختيار.
-///  ★ التحويل بين البوابتين يتم بتلاشٍ متقاطع ناعم (AnimatedSwitcher).
-/// ============================================================================
+/// ThemePickerGate — بوابة اختيار الثيم عند أول فتح (قبل LocationGate، مرة واحدة).
 class ThemePickerGate extends StatefulWidget {
   final Widget child;
   const ThemePickerGate({super.key, required this.child});
@@ -48,12 +42,7 @@ class _ThemePickerGateState extends State<ThemePickerGate> {
   }
 }
 
-/// ============================================================================
-///  ThemePickerScreen — كاروسيل الثيمات الجاهزة (شاشة أول فتح).
-///
-///  ★ الثيم يُطبَّق **لحظياً** أثناء التنقّل في الكاروسيل ⇒ المستخدم يرى مظهره
-///    الحقيقي على الشاشة نفسها قبل أن يقرّر.
-/// ============================================================================
+/// ThemePickerScreen — كاروسيل الثيمات. الثيم يُطبَّق لحظياً أثناء التنقّل.
 class ThemePickerScreen extends StatefulWidget {
   final VoidCallback onDone;
   const ThemePickerScreen({super.key, required this.onDone});
@@ -63,7 +52,6 @@ class ThemePickerScreen extends StatefulWidget {
 }
 
 class _ThemePickerScreenState extends State<ThemePickerScreen> {
-  /// كل حقول اللوحة — تُحفظ عند التثبيت كي يُستعاد الثيم بنفس الشكل.
   static final List<String> _allFields = [
     PaletteFieldKeys.accent,
     ...PaletteFieldKeys.backgroundFields,
@@ -75,34 +63,55 @@ class _ThemePickerScreenState extends State<ThemePickerScreen> {
     for (final field in _allFields) field: palette.colorFor(field).toARGB32(),
   };
 
-  // ★ نفس مقاسات كاروسيل منتجات البث المباشر (LiveProductsScreen):
-  //   عرض البطاقة 34% من الشاشة، ارتفاع 156، إزاحة 12 بين البطاقات.
-  final PageController _page = PageController(viewportFraction: 0.34);
-  int _index = 0;
+  /// نسبة أبعاد الهاتف المصغّر.
+  static const double _aspect = 190 / 300;
 
-  /// هل تنقّل المستخدم في الكاروسيل واختار ثيماً بنفسه؟ (يُحفظ عند التثبيت فقط).
+  /// الهامش الأفقي حول كل هاتف داخل الصفحة.
+  static const double _slidePad = 8;
+
+  PageController? _pageCtrl;
+  PageController get _page => _pageCtrl!;
+  int _index = 0;
   bool _touched = false;
 
+  /// ارتفاع الهاتف نسبةً لارتفاع الشاشة (بين 340 و 420).
+  double _phoneHeight = 380;
+
   @override
-  void initState() {
-    super.initState();
-    // نُبرز الثيم المطابق للمظهر الحالي (مهم للفروع النشِطة)، بلا فرض أي تغيير.
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_pageCtrl != null) return;
+
+    final size = MediaQuery.sizeOf(context);
+    _phoneHeight = (size.height * 0.46).clamp(340.0, 420.0);
+
+    // ★ عرض الصفحة يُحسب من حجم الهاتف نفسه كي يكبر الهاتف فعلاً
+    //   ويظهر جزء من الهاتف المجاور على الجانبين.
+    final phoneWidth = _phoneHeight * _aspect;
+    final fraction = ((phoneWidth + _slidePad * 2) / size.width).clamp(
+      0.45,
+      0.80,
+    );
+    _pageCtrl = PageController(viewportFraction: fraction);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final active = ThemePresets.activeFor(context.palette);
       if (active == null) return;
       final i = ThemePresets.all.indexOf(active);
-      if (i > 0) _page.jumpToPage(i);
+      if (i > 0) {
+        _page.jumpToPage(i);
+        setState(() => _index = i);
+      }
     });
   }
 
   @override
   void dispose() {
-    _page.dispose();
+    _pageCtrl?.dispose();
     super.dispose();
   }
 
-  /// يطبّق الثيم رقم [index] لحظياً على كامل التطبيق (قبل الحفظ).
   void _applyTheme(int index) {
     final preset = ThemePresets.all[index];
     context.paletteController.applyPalette(
@@ -113,6 +122,7 @@ class _ThemePickerScreenState extends State<ThemePickerScreen> {
   }
 
   void _onPageChanged(int index) {
+    HapticFeedback.selectionClick();
     setState(() {
       _index = index;
       _touched = true;
@@ -120,9 +130,16 @@ class _ThemePickerScreenState extends State<ThemePickerScreen> {
     _applyTheme(index);
   }
 
-  /// يثبّت الثيم المختار: يحفظه محلياً ثم يعبُر لبوابة الموقع.
+  void _jumpTo(int i) {
+    _page.animateToPage(
+      i,
+      duration: const Duration(milliseconds: 380),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
   Future<void> _confirm() async {
-    // نحفظ فقط إذا اختار المستخدم ثيماً صراحةً — فلا نُطمس تخصيص قائم بلا داعٍ.
+    HapticFeedback.mediumImpact();
     if (_touched) {
       final preset = ThemePresets.all[_index];
       final derived = preset.paletteFor(preset.prefersDark);
@@ -143,20 +160,20 @@ class _ThemePickerScreenState extends State<ThemePickerScreen> {
       backgroundColor: context.backgroundColors.primary,
       body: Stack(
         children: [
-          // ---- توهّج علوي ناعم بلون الثيم الحالي ----
+          // توهّج علوي خفيف
           Positioned(
-            top: -140,
-            left: 0,
-            right: 0,
-            height: 340,
+            top: -160,
+            left: -40,
+            right: -40,
+            height: 420,
             child: IgnorePointer(
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: RadialGradient(
                     center: Alignment.topCenter,
-                    radius: 0.9,
+                    radius: 0.85,
                     colors: [
-                      context.accentColor.withValues(alpha: 0.22),
+                      context.accentColor.withValues(alpha: 0.20),
                       Colors.transparent,
                     ],
                   ),
@@ -167,34 +184,69 @@ class _ThemePickerScreenState extends State<ThemePickerScreen> {
           SafeArea(
             child: Column(
               children: [
-                _Header(index: _index, total: total),
-                // ★ ارتفاع الكاروسيل مضبوط ليطابق كاروسيل منتجات البث المباشر:
-                //   156 ارتفاعاً، حافة 16، إزاحة 12 بين البطاقات — مع تمركزه
-                //   رأسياً كي يبقى الحجم ثابتاً ولا يتمدّد على كامل الشاشة.
+                // ★ الكتلة الوسطى: عنوان + هاتف + مؤشر بمسافات صغيرة ثابتة،
+                //   متمركزة رأسياً ⇒ لا فراغات كبيرة بينها.
                 Expanded(
                   child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: SizedBox(
-                        height: 156,
-                        child: PageView.builder(
-                          controller: _page,
-                          padEnds: false,
-                          itemCount: total,
-                          onPageChanged: _onPageChanged,
-                          itemBuilder: (context, i) {
-                            return _ThemeSlide(
-                              preset: ThemePresets.all[i],
-                              active: i == _index,
-                            );
-                          },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'اختر الثيم الذي يناسبك',
+                          textAlign: TextAlign.center,
+                          style: AppTypography.headlineMedium.copyWith(
+                            color: context.textColors.primary,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'اسحب لاستعراض المظاهر',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: context.textColors.secondary,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        SizedBox(
+                          height: _phoneHeight,
+                          child: AnimatedBuilder(
+                            animation: _page,
+                            builder: (context, _) {
+                              final page =
+                                  (_page.hasClients &&
+                                      _page.position.haveDimensions)
+                                  ? (_page.page ?? _index.toDouble())
+                                  : _index.toDouble();
+                              return PageView.builder(
+                                controller: _page,
+                                itemCount: total,
+                                onPageChanged: _onPageChanged,
+                                clipBehavior: Clip.none,
+                                itemBuilder: (context, i) {
+                                  final t = (1 - (page - i).abs()).clamp(
+                                    0.0,
+                                    1.0,
+                                  );
+                                  return GestureDetector(
+                                    onTap: () => _jumpTo(i),
+                                    child: _ThemeSlide(
+                                      preset: ThemePresets.all[i],
+                                      t: t,
+                                      aspect: _aspect,
+                                      padding: _slidePad,
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        _Dots(count: total, index: _index),
+                      ],
                     ),
                   ),
                 ),
-                _Dots(count: total, index: _index),
-                const SizedBox(height: AppSpacing.lg),
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.xl,
@@ -215,191 +267,66 @@ class _ThemePickerScreenState extends State<ThemePickerScreen> {
   }
 }
 
-/// ترويسة الشاشة: رسالة الترحيب + طلب اختيار الثيم.
-class _Header extends StatelessWidget {
-  final int index;
-  final int total;
-
-  const _Header({required this.index, required this.total});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xl,
-        AppSpacing.lg,
-        AppSpacing.xl,
-        AppSpacing.md,
-      ),
-      child: Column(
-        children: [
-          Text(
-            'مرحباً بك في گريب منك',
-            textAlign: TextAlign.center,
-            style: AppTypography.bodySmall.copyWith(
-              color: context.accentColor,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'اختر الثيم الذي يناسبك',
-            textAlign: TextAlign.center,
-            style: AppTypography.headlineMedium.copyWith(
-              color: context.textColors.primary,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'اسحب لاستعراض المظاهر — التطبيق يتغيّر أمامك مباشرة. '
-            'يمكنك تغييره لاحقاً من الإعدادات.',
-            textAlign: TextAlign.center,
-            style: AppTypography.bodySmall.copyWith(
-              color: context.textColors.secondary,
-              height: 1.6,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            '${index + 1} / $total',
-            style: AppTypography.bodySmall.copyWith(
-              color: context.textColors.tertiary,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// بطاقة ثيم واحدة داخل الكاروسيل: معاينة حقيقية + الاسم والوصف.
-/// ★ بنفس هندسة بطاقة منتج البث المباشر: إزاحة 12، تصغير 0.9 للبطاقات
-///   الجانبية، وحد بارز للنشطة مقابل حد خفيف لغيرها.
+/// هاتف واحد: بلا نصوص ولا شارات — الحدّ البارز يكفي للدلالة على الاختيار.
 class _ThemeSlide extends StatelessWidget {
   final ThemePreset preset;
-  final bool active;
+  final double t;
+  final double aspect;
+  final double padding;
 
-  const _ThemeSlide({required this.preset, required this.active});
+  const _ThemeSlide({
+    required this.preset,
+    required this.t,
+    required this.aspect,
+    required this.padding,
+  });
 
   @override
   Widget build(BuildContext context) {
     final p = preset.palette;
+    final scale = 0.86 + 0.14 * t;
+    final opacity = 0.5 + 0.5 * t;
 
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(end: 12),
-      child: AnimatedScale(
-        scale: active ? 1.0 : 0.9,
-        duration: const Duration(milliseconds: 240),
-        curve: Curves.easeOut,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 240),
-          curve: Curves.easeOut,
-          decoration: BoxDecoration(
-            color: p.background.primary,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: active ? context.accentColor : p.background.outline,
-              width: active ? 2.5 : 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: p.background.primary.withValues(
-                  alpha: active ? 0.45 : 0.28,
-                ),
-                blurRadius: active ? 18 : 10,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            children: [
-              Expanded(
-                child: Stack(
-                  children: [
-                    // ★ نحاكي هاتفاً مصغّراً على لوحة مرجعية ثابتة ثم نُقلّصه
-                    //   لتناسب المساحة المتاحة ⇒ لا سحق ولا تجاوز أي كان حجم البطاقة.
-                    Positioned.fill(
-                      child: FittedBox(
-                        fit: BoxFit.contain,
-                        child: SizedBox(
-                          width: 190,
-                          height: 300,
-                          child: _ThemeMock(palette: p),
-                        ),
-                      ),
-                    ),
-                    // ---- شارة الثيم النشط فوق المعاينة (توفّر عرض النص) ----
-                    if (active)
-                      Positioned(
-                        top: 5,
-                        left: 5,
-                        child: Container(
-                          width: 16,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            color: p.accent,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            LucideIcons.check,
-                            size: 10,
-                            color: p.text.onAccent,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: 6,
-                ),
+    return Center(
+      child: Opacity(
+        opacity: opacity,
+        child: Transform.scale(
+          scale: scale,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: padding),
+            child: AspectRatio(
+              aspectRatio: aspect,
+              child: Container(
                 decoration: BoxDecoration(
-                  color: p.background.surface,
-                  border: Border(top: BorderSide(color: p.background.outline)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(preset.icon, size: 12, color: p.accent),
-                        const SizedBox(width: 5),
-                        Expanded(
-                          child: Text(
-                            preset.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.bodySmall.copyWith(
-                              color: p.text.primary,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      preset.description,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.bodySmall.copyWith(
-                        color: p.text.tertiary,
-                        fontSize: 10,
-                      ),
+                  color: p.background.primary,
+                  borderRadius: BorderRadius.circular(26),
+                  boxShadow: [
+                    BoxShadow(
+                      color: p.accent.withValues(alpha: 0.28 * t),
+                      blurRadius: 28,
+                      offset: const Offset(0, 12),
                     ),
                   ],
                 ),
+                // ★ الحدّ يُرسم فوق المحتوى فلا يُقصّ عند الزوايا
+                foregroundDecoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(26),
+                  border: Border.all(
+                    color: Color.lerp(p.background.outline, p.accent, t)!,
+                    width: 1 + 1.5 * t,
+                  ),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: FittedBox(
+                  fit: BoxFit.cover,
+                  child: SizedBox(
+                    width: 190,
+                    height: 300,
+                    child: _ThemeMock(palette: p),
+                  ),
+                ),
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -407,10 +334,9 @@ class _ThemeSlide extends StatelessWidget {
   }
 }
 
-/// معاينة حقيقية لمظهر الثيم — شاشة مصغّرة مبنية من لوحة الثيم نفسه.
+/// معاينة مبسّطة: شريط علوي + بطاقة رئيسية + بطاقة واحدة + شريط تنقّل.
 class _ThemeMock extends StatelessWidget {
   final AppColorPalette palette;
-
   const _ThemeMock({required this.palette});
 
   @override
@@ -418,12 +344,16 @@ class _ThemeMock extends StatelessWidget {
     final p = palette;
 
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.sm),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.lg,
+        AppSpacing.md,
+        AppSpacing.md,
+      ),
       color: p.background.primary,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ---- شريط علوي: أفاتار + عنوان + أيقونة ----
           Row(
             children: [
               _dot(p.accent, 20),
@@ -438,12 +368,9 @@ class _ThemeMock extends StatelessWidget {
                   ],
                 ),
               ),
-              _dot(p.background.surfaceElevated, 20),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-
-          // ---- بطاقة رئيسية بتدرّج اللون الرسمي ----
+          const SizedBox(height: AppSpacing.md),
           Expanded(
             flex: 3,
             child: Container(
@@ -467,9 +394,7 @@ class _ThemeMock extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 6),
-
-          // ---- بطاقة سطح بنصين ----
+          const SizedBox(height: AppSpacing.sm),
           Container(
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
@@ -491,17 +416,14 @@ class _ThemeMock extends StatelessWidget {
                     ],
                   ),
                 ),
-                _dot(p.background.surfaceElevated, 20),
               ],
             ),
           ),
-          const SizedBox(height: 6),
-
-          // ---- شريط تنقّل سفلي مع عنصر نشط ----
+          const SizedBox(height: AppSpacing.sm),
           Container(
             padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm,
-              vertical: 5,
+              horizontal: AppSpacing.md,
+              vertical: 6,
             ),
             decoration: BoxDecoration(
               color: p.background.surface,
@@ -529,7 +451,6 @@ class _ThemeMock extends StatelessWidget {
     decoration: BoxDecoration(color: color, shape: BoxShape.circle),
   );
 
-  /// شريط نصّي وهمي بعرض نسبي من مساحة الأب.
   Widget _bar(Color color, double widthFactor, double height) =>
       FractionallySizedBox(
         alignment: Alignment.centerRight,
@@ -544,7 +465,7 @@ class _ThemeMock extends StatelessWidget {
       );
 }
 
-/// مؤشّر الصفحات: نقاط بسيطة، النقطة النشطة تتحوّل إلى شريط بلون الثيم.
+/// مؤشّر الصفحات.
 class _Dots extends StatelessWidget {
   final int count;
   final int index;
@@ -558,15 +479,15 @@ class _Dots extends StatelessWidget {
       children: [
         for (var i = 0; i < count; i++)
           AnimatedContainer(
-            duration: const Duration(milliseconds: 240),
-            curve: Curves.easeOut,
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeOutCubic,
             margin: const EdgeInsets.symmetric(horizontal: 3),
-            width: i == index ? 22 : 7,
+            width: i == index ? 24 : 7,
             height: 7,
             decoration: BoxDecoration(
               color: i == index
                   ? context.accentColor
-                  : context.backgroundColors.outline,
+                  : context.textColors.tertiary.withValues(alpha: 0.35),
               borderRadius: BorderRadius.circular(AppRadii.full),
             ),
           ),
