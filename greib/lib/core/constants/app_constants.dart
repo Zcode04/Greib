@@ -29,4 +29,7 @@ class AppConstants {
 
   // ★ صورة البروفايل (مسار ملف محلي) — تُعرض في الحساب وهيدر الصفحات.
   static const String keyAvatarPath = 'avatar_path';
+
+  // ★ اختيار الثيم عند أول فتح (كاروسيل الثيمات قبل طلب إذن الموقع).
+  static const String keyThemePickerSeen = 'theme_picker_seen';
 }

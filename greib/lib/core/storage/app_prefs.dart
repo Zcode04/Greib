@@ -48,6 +48,14 @@ class AppPrefs {
   static Future<void> setSeenOnboarding(bool value) =>
       _setBool(AppConstants.keyIsFirstTime, value);
 
+  // --------------------- اختيار الثيم عند أول فتح ---------------------
+  /// هل شاهد المستخدم كاروسيل اختيار الثيم؟ (يُعرض مرة واحدة عند أول فتح).
+  static bool get themePickerSeen =>
+      _getBool(AppConstants.keyThemePickerSeen, fallback: false);
+
+  static Future<void> setThemePickerSeen(bool value) =>
+      _setBool(AppConstants.keyThemePickerSeen, value);
+
   // ------------------------- آخر تبويب كان مفتوحاً -------------------------
   /// 2 = تبويب «الرئيسية» في FloatingBottomNav.
   static int get lastTabIndex => _prefs?.getInt(AppConstants.keyLastTab) ?? 2;
