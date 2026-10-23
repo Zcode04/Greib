@@ -112,11 +112,16 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
               offset: collapsed ? const Offset(0, -0.6) : Offset.zero,
               child: IgnorePointer(
                 ignoring: collapsed,
+                // ★ إذا مُرِّر عنوان للصفحة يُعرض مكان الشعار (بحجم أصغر
+                //   يناسب عناوين الشاشات)، وإلا يبقى شعار «گريب منك».
                 child: Text(
-                  'گريب منك',
+                  title ?? 'گريب منك',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleLarge!.copyWith(
-                    fontWeight: FontWeight.w900,
-                    fontSize: logoSize,
+                    fontWeight:
+                        title != null ? FontWeight.w800 : FontWeight.w900,
+                    fontSize: title != null ? 20 : logoSize,
                     color: context.textColors.primary,
                   ),
                 ),
