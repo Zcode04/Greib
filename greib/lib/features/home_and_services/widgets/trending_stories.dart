@@ -145,21 +145,20 @@ class _TrendingStoriesSectionState extends State<TrendingStoriesSection>
       height: 240,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        reverse: Directionality.of(context) == TextDirection.rtl,
+        // ★ بلا reverse: نعتمد الاتجاه الطبيعي للغة، فيبدأ العنصر الأول من
+        //   جهة القراءة (اليمين في العربية، اليسار في الإنجليزية) — فيظهر
+        //   أولاً عند فتح التطبيق في جميع اللغات.
         padding: EdgeInsets.zero,
-        // +1 لبطاقة المستخدم
+        // +1 لبطاقة المستخدم (تأتي أولاً)
         itemCount: _kItems.length + 1,
         separatorBuilder: (_, _) => const SizedBox(width: 10),
         itemBuilder: (context, i) {
-          // البطاقة الأخيرة: بطاقة المستخدم (تظهر في اليسار في RTL)
-          if (i == _kItems.length) {
+          // ★ البطاقة الأولى: بطاقة المستخدم (الرائج / اطلب الآن) — تُعرض
+          //   دائماً في المقدمة من جهة قراءة اللغة، مثل «إنشاء قصة» في فيسبوك.
+          if (i == 0) {
             final anim = CurvedAnimation(
               parent: _controller,
-              curve: Interval(
-                (_kItems.length * 0.1).clamp(0.0, 0.9),
-                1.0,
-                curve: Curves.easeOutBack,
-              ),
+              curve: const Interval(0.0, 0.5, curve: Curves.easeOutBack),
             );
             return AnimatedBuilder(
               animation: anim,
@@ -174,7 +173,8 @@ class _TrendingStoriesSectionState extends State<TrendingStoriesSection>
             );
           }
 
-          // باقي البطاقات
+          // باقي البطاقات الرائجة (i - 1 لمطابقة فهرس _kItems)
+          final index = i - 1;
           final delay = i * 0.1;
           final anim = CurvedAnimation(
             parent: _controller,
@@ -191,8 +191,8 @@ class _TrendingStoriesSectionState extends State<TrendingStoriesSection>
               child: Opacity(opacity: anim.value.clamp(0.0, 1.0), child: child),
             ),
             child: _StoryCard(
-              item: _kItems[i],
-              isPressed: _pressedIndex == i,
+              item: _kItems[index],
+              isPressed: _pressedIndex == index,
               onTap: () {
                 setState(() => _pressedIndex = null);
                 Navigator.of(context).push(
@@ -201,13 +201,13 @@ class _TrendingStoriesSectionState extends State<TrendingStoriesSection>
                     barrierColor: Colors.transparent,
                     transitionDuration: const Duration(milliseconds: 260),
                     pageBuilder: (_, _, _) =>
-                        StoryViewerPage(items: _kItems, initialIndex: i),
+                        StoryViewerPage(items: _kItems, initialIndex: index),
                     transitionsBuilder: (_, animation, _, child) =>
                         FadeTransition(opacity: animation, child: child),
                   ),
                 );
               },
-              onTapDown: () => setState(() => _pressedIndex = i),
+              onTapDown: () => setState(() => _pressedIndex = index),
               onTapUp: () => setState(() => _pressedIndex = null),
             ),
           );
