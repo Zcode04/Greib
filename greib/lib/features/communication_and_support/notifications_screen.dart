@@ -61,6 +61,8 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       appBar: const SuperHeader(
         title: 'الإشعارات',
         showBackButton: true,
+        // ★ جرس الهيدر يظهر بنسخته الممتلئة داخل هذه الصفحة (مفعّل).
+        notificationsActive: true,
       ),
       body: ListenableBuilder(
         listenable: notifManager,

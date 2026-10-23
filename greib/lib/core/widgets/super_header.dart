@@ -8,6 +8,7 @@ import '../extensions/context_extensions.dart';
 import '../theme/design_tokens.dart';
 import '../../shared_widgets/quick_settings_sheet.dart';
 import '../../shared_widgets/sheets/upcoming_services_sheet.dart';
+import '../../shared_widgets/nav_icon.dart';
 import 'header_collapse_state.dart';
 
 /// ============================================================================
@@ -20,6 +21,11 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onMore;
   final List<Widget>? extraActions;
   final bool showBackButton;
+
+  /// ★ هل هذه الصفحة هي صفحة الإشعارات؟ true ⇒ يظهر جرس الإشعارات
+  ///   بنسخته الممتلئة (Filled Lucide SVG) ليعبّر عن أنه «مفعّل»،
+  ///   بنفس فكرة الأيقونة المحددة في الشريط السفلي (NavIcon).
+  final bool notificationsActive;
 
   /// نقر أيقونة «+» في الهيدر.
   /// null = السلوك الافتراضي (فتح ورقة «خدمات قادمة»).
@@ -34,6 +40,7 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
     this.onMore,
     this.extraActions,
     this.showBackButton = false,
+    this.notificationsActive = false,
     this.settingsItems = const [],
     this.onAccount,
   });
@@ -181,6 +188,9 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                                 box: btnBox,
                                 iconSize: iconSize,
                                 icon: LucideIcons.bell,
+                                // ★ داخل صفحة الإشعارات: النسخة الممتلئة (مفعّل).
+                                filledAsset: 'bell',
+                                selected: notificationsActive,
                                 badge: unreadNotifications > 9
                                     ? '+9'
                                     : '$unreadNotifications',
@@ -235,6 +245,12 @@ class _HeaderIconBtn extends StatelessWidget {
   final String tooltip;
   final String badge;
   final bool showBadge;
+
+  /// ★ اسم ملف SVG الممتلئ (بلا لاحقة) — يُعرض عند [selected] بدل الأيقونة
+  ///   المفرّغة، بنفس آلية الشريط السفلي. null ⇒ تبقى مفرّغة دائماً.
+  final String? filledAsset;
+  final bool selected;
+
   const _HeaderIconBtn({
     required this.box,
     required this.iconSize,
@@ -244,22 +260,31 @@ class _HeaderIconBtn extends StatelessWidget {
     required this.tooltip,
     this.badge = '',
     this.showBadge = false,
+    this.filledAsset,
+    this.selected = false,
   });
+
+  /// الأيقونة (مفرّغة/ممتلئة) بنفس منطق NavIcon المستخدم في الشريط السفلي.
+  Widget get _iconWidget => NavIcon(
+        outlined: icon,
+        filledAsset: filledAsset,
+        selected: selected,
+        color: color,
+        size: iconSize,
+      );
+
   @override
   Widget build(BuildContext context) {
-    final btn = IconButton(
-      visualDensity: VisualDensity.compact,
-      padding: EdgeInsets.zero,
-      constraints: BoxConstraints(minWidth: box, minHeight: box),
-      icon: AnimatedContainer(
-        duration: const Duration(milliseconds: 280),
-        curve: Curves.easeOut,
-        child: Icon(icon, size: iconSize, color: color),
-      ),
-      onPressed: onPressed,
-      tooltip: tooltip,
-    );
-    if (!showBadge) return btn;
+    if (!showBadge) {
+      return IconButton(
+        visualDensity: VisualDensity.compact,
+        padding: EdgeInsets.zero,
+        constraints: BoxConstraints(minWidth: box, minHeight: box),
+        icon: _iconWidget,
+        onPressed: onPressed,
+        tooltip: tooltip,
+      );
+    }
     return IconButton(
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
@@ -267,7 +292,7 @@ class _HeaderIconBtn extends StatelessWidget {
       icon: Badge(
         isLabelVisible: true,
         label: Text(badge),
-        child: Icon(icon, size: iconSize, color: color),
+        child: _iconWidget,
       ),
       onPressed: onPressed,
       tooltip: tooltip,
