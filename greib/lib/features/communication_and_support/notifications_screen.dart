@@ -31,7 +31,9 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   @override
   void initState() {
     super.initState();
-    NotificationManager.instance.loadMockNotifications();
+    // ★ الإشعارات تُحمَّل عند بدء التطبيق (main.dart) لا هنا، حتى تبقى
+    //   شارة الجرس ظاهرة دائماً ولا تُعاد التهيئة (وفقدان حالة القراءة)
+    //   عند كل فتح للصفحة.
     // إعادة البناء عند تغيير التبويب لتحديث زر «مسح الكل» أسفل الصفحة.
     _tabController = TabController(length: _kNotificationTabs.length, vsync: this)
       ..addListener(() => setState(() {}));
@@ -98,7 +100,6 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                                     ? notifManager.notifications
                                     : notifManager
                                         .notificationsBySource(tab.source!),
-                                source: tab.source,
                               ),
                           ],
                         ),
@@ -182,16 +183,11 @@ class _NotificationsTabBar extends StatelessWidget {
   }
 }
 
-/// قائمة إشعارات فئة واحدة مع زر «تحديد الكل مقروء».
-/// [source] = null ⇒ «الكل»، وإلا ⇒ كربي / بنكي / براوى.
+/// قائمة إشعارات فئة واحدة.
 class _NotificationsList extends StatelessWidget {
   final List<AppNotification> notifications;
-  final NotificationSource? source;
 
-  const _NotificationsList({
-    required this.notifications,
-    required this.source,
-  });
+  const _NotificationsList({required this.notifications});
 
   @override
   Widget build(BuildContext context) {
@@ -203,27 +199,9 @@ class _NotificationsList extends StatelessWidget {
       );
     }
 
-    // ★ تجاوب: نحدد إذا كانت الشاشة ضيقة لتقصير نص الزر.
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isCompact = screenWidth < 380;
-
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: TextButton.icon(
-            onPressed: () {
-              // يُحدّد إشعارات هذه الفئة فقط كمقروءة (null = الكل).
-              NotificationManager.instance.markAllAsRead(source: source);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('تم تحديد الكل كمقروء ✅')),
-              );
-            },
-            icon: const Icon(LucideIcons.checkCheck, size: 16),
-            label: Text(isCompact ? 'تحديد الكل' : 'تحديد الكل مقروء'),
-          ),
-        ),
         ...notifications.map((notif) => _NotificationCard(notif: notif)),
       ],
     );

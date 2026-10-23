@@ -34,6 +34,10 @@ Future<void> main() async {
   await ServicesRepository.instance.load();
   await AccountRepository.instance.load();
 
+  // ★ تحميل الإشعارات عند بدء التطبيق (لا عند فتح صفحة الإشعارات فقط)
+  //   حتى تظهر شارة الجرس في الهيدر بشكل دائم من أول لحظة.
+  NotificationManager.instance.loadMockNotifications();
+
   runApp(buildGreibMenkApp());
 }
 

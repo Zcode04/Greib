@@ -191,9 +191,13 @@ class SuperHeader extends StatelessWidget implements PreferredSizeWidget {
                                 // ★ داخل صفحة الإشعارات: النسخة الممتلئة (مفعّل).
                                 filledAsset: 'bell',
                                 selected: notificationsActive,
+                                // ★ الشارة تظهر دائمًا ما دام هناك إشعارات،
+                                //   وتُعرض بالزائد بجانب الرقم («9+») لتدل
+                                //   على وجود إشعارات. (مؤقتًا كل الإشعارات
+                                //   تجريبية؛ لاحقًا يمكن قصر الزائد على > 9).
                                 badge: unreadNotifications > 9
-                                    ? '+9'
-                                    : '$unreadNotifications',
+                                    ? '9+'
+                                    : '$unreadNotifications+',
                                 showBadge: unreadNotifications > 0,
                                 color: theme.colorScheme.onSurface,
                                 onPressed: () => context.push('/notifications'),
