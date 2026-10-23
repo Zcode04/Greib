@@ -7,10 +7,15 @@ import 'app_colors.dart';
 /// ============================================================================
 ///  theme_presets — ★ الثيمات الجاهزة + خلفيات جاهزة.
 ///
-///  ★ الفلسفة الجديدة: المستخدم لا يعدّل عشرات الحقول يدوياً، بل:
-///    • يختار **ثيماً جاهزاً** (نقرة = مظهر كامل متناسق ومحترف).
-///    • أو يغيّر **الخلفية فقط** (مع بقاء الثيم الحالي ونصوصه ولونه الرسمي).
-///  ⇒ الصفحة بسيطة واحترافية، و[AppColorPalette.deriveFrom] يشتق البقية آلياً.
+///  • المستخدم يختار ثيماً جاهزاً (نقرة = مظهر كامل متناسق ومحترف).
+///  • أو يغيّر الخلفية فقط (مع بقاء الثيم الحالي ونصوصه ولونه الرسمي).
+///  ⇒ [AppColorPalette.deriveFrom] يشتق البقية آلياً.
+///
+///  ★ قواعد اختيار الألوان (لضمان وضوح القراءة):
+///    - الداكن: خلفية شبه سوداء بصبغة لونية خفيفة + نص أبيض مائل للون الثيم
+///      + لون رسمي ساطع (نسبة تباين ≥ 4.5).
+///    - الفاتح: خلفية مائلة للون الثيم بدل الأبيض الصرف + نص داكن عميق
+///      + لون رسمي أغمق قليلاً ليبقى واضحاً على الفاتح.
 /// ============================================================================
 
 /// لون خلفية جاهز + اسمه العربي (للإتاحة والتمييز البصري).
@@ -30,17 +35,17 @@ class ColorOption {
 
 /// ============================================================================
 ///  BackgroundChoices — ★ 6 خلفيات محدودة + «لون مخصص».
+///  مرتبة من الأغمق إلى الأفتح، بصبغات حديثة بدل الرمادي الباهت.
 /// ============================================================================
 class BackgroundChoices {
   BackgroundChoices._();
 
-  /// من الأسود العميق إلى الأبيض — مرتبة حسب الإضاءة.
   static const List<ColorOption> all = [
-    ColorOption(Color(0xFF0B0D0B), 'أسود عميق'),
-    ColorOption(Color(0xFF0F172A), 'كحلي'),
-    ColorOption(Color(0xFF1B2537), 'أزرق داكن'),
-    ColorOption(Color(0xFF334155), 'رمادي داكن'),
-    ColorOption(Color(0xFFF1F5F9), 'رمادي فاتح'),
+    ColorOption(Color(0xFF09090B), 'أسود عميق'),
+    ColorOption(Color(0xFF0B1020), 'كحلي ليلي'),
+    ColorOption(Color(0xFF16203A), 'أزرق داكن'),
+    ColorOption(Color(0xFF27272A), 'جرافيت'),
+    ColorOption(Color(0xFFF4F6FA), 'رمادي فاتح'),
     ColorOption(Color(0xFFFFFFFF), 'أبيض'),
   ];
 }
@@ -96,9 +101,9 @@ class ThemePreset {
 class ThemePresets {
   ThemePresets._();
 
-  /// ★ الثيمات الجاهزة المنتقاة — هوية بصرية كاملة لكل ثيم (لون رسمي + طابع).
-  ///   الداكنة أولاً (الافتراضي في التطبيق) ثم الفاتحة.
+  /// ★ الثيمات الجاهزة المنتقاة — الداكنة أولاً (الافتراضي) ثم الفاتحة.
   static const List<ThemePreset> all = [
+    // ───────────────────────── داكنة ─────────────────────────
     ThemePreset(
       name: 'الافتراضي',
       description: 'مظهر التطبيق الأصلي',
@@ -110,67 +115,106 @@ class ThemePresets {
     ),
     ThemePreset(
       name: 'منتصف الليل',
-      description: 'كحلي هادئ للعين',
+      description: 'نيلي عميق وأنيق',
       icon: LucideIcons.moon,
       prefersDark: true,
-      background: Color(0xFF0F172A),
-      text: Color(0xFFF1F5F9),
-      accent: Color(0xFF6366F1),
+      background: Color(0xFF0B1020),
+      text: Color(0xFFE8ECF8),
+      accent: Color(0xFF7C83FF),
+    ),
+    ThemePreset(
+      name: 'جرافيت',
+      description: 'رمادي محايد واحترافي',
+      icon: LucideIcons.zap,
+      prefersDark: true,
+      background: Color(0xFF0E0F12),
+      text: Color(0xFFECEDEF),
+      accent: Color(0xFF4F8CFF),
     ),
     ThemePreset(
       name: 'زمردي',
-      description: 'أخضر مائي منعش',
-      icon: LucideIcons.waves,
+      description: 'أخضر نابض ومنعش',
+      icon: LucideIcons.leaf,
       prefersDark: true,
-      background: Color(0xFF0A1A18),
-      text: Color(0xFFECFDF5),
-      accent: Color(0xFF14B8A6),
+      background: Color(0xFF07140F),
+      text: Color(0xFFE6F4EC),
+      accent: Color(0xFF34D399),
     ),
     ThemePreset(
-      name: 'أرجواني',
-      description: 'بنفسجي عصري',
-      icon: LucideIcons.star,
+      name: 'ملكي',
+      description: 'بنفسجي فاخر',
+      icon: LucideIcons.gem,
       prefersDark: true,
-      background: Color(0xFF140F26),
-      text: Color(0xFFF5F3FF),
-      accent: Color(0xFF8B5CF6),
+      background: Color(0xFF120C22),
+      text: Color(0xFFF1ECFF),
+      accent: Color(0xFFA78BFA),
     ),
     ThemePreset(
-      name: 'دافئ',
-      description: 'عنبري مريح',
+      name: 'ياقوتي',
+      description: 'وردي جريء وعصري',
+      icon: LucideIcons.flame,
+      prefersDark: true,
+      background: Color(0xFF1A0D14),
+      text: Color(0xFFFCEFF4),
+      accent: Color(0xFFFF5C8A),
+    ),
+    ThemePreset(
+      name: 'ذهبي',
+      description: 'كهرماني راقٍ ودافئ',
       icon: LucideIcons.coffee,
       prefersDark: true,
-      background: Color(0xFF1A120B),
-      text: Color(0xFFFFF7ED),
-      accent: Color(0xFFF59E0B),
+      background: Color(0xFF14100A),
+      text: Color(0xFFFAF3E6),
+      accent: Color(0xFFE6B450),
     ),
+    ThemePreset(
+      name: 'محيطي',
+      description: 'تركوازي بارد وهادئ',
+      icon: LucideIcons.waves,
+      prefersDark: true,
+      background: Color(0xFF06161F),
+      text: Color(0xFFE4F4FA),
+      accent: Color(0xFF22B8CF),
+    ),
+
+    // ───────────────────────── فاتحة ─────────────────────────
     ThemePreset(
       name: 'نهاري',
       description: 'نظيف ومشرق',
       icon: LucideIcons.sun,
       prefersDark: false,
-      background: Color(0xFFF1F5F9),
+      background: Color(0xFFF6F8FB),
       text: Color(0xFF0F172A),
       accent: AppColors.accentPrimary,
     ),
     ThemePreset(
-      name: 'نهاري ناعم',
-      description: 'فاتح بلمسة زمردية',
-      icon: LucideIcons.paintbrush,
+      name: 'سماوي',
+      description: 'أزرق صافٍ كالسماء',
+      icon: LucideIcons.sunset,
       prefersDark: false,
-      background: Color(0xFFF8FAF9),
-      text: Color(0xFF1F2937),
-      accent: Color(0xFF14B8A6),
+      background: Color(0xFFF2F8FD),
+      text: Color(0xFF0B2239),
+      accent: Color(0xFF0A84D6),
     ),
     ThemePreset(
-      name: 'ورقي',
-      description: 'دافئ كالورق',
-      icon: LucideIcons.swatchBook,
+      name: 'نعناعي',
+      description: 'فاتح بلمسة خضراء',
+      icon: LucideIcons.paintbrush,
       prefersDark: false,
-      background: Color(0xFFFAF7F2),
-      text: Color(0xFF1F2937),
-      accent: Color(0xFFF59E0B),
+      background: Color(0xFFF4FAF7),
+      text: Color(0xFF12261E),
+      accent: Color(0xFF0F9F7A),
     ),
+    ThemePreset(
+      name: 'لافندر',
+      description: 'بنفسجي ناعم وحديث',
+      icon: LucideIcons.star,
+      prefersDark: false,
+      background: Color(0xFFF7F5FF),
+      text: Color(0xFF1E1B3A),
+      accent: Color(0xFF6D5AE6),
+    ),
+    
   ];
 
   /// الثيم المطابق للوحة الحالية (null = لا يوجد ⇒ خلفية مخصّصة).
